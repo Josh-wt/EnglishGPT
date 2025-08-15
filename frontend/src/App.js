@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import axios from 'axios';
 import { supabase } from './supabaseClient';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+// Removed charts for a clean card-based analytics UI
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
 const API = `${BACKEND_URL}/api`;
@@ -393,32 +393,69 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
     return { ...e, score, max, dateKey, type, ao1, ao2, reading, writing };
   });
 
-  // Time series by date (average score)
-  const byDate = Object.values(parsedEvaluations.reduce((acc, e) => {
-    if (!acc[e.dateKey]) acc[e.dateKey] = { date: e.dateKey, total: 0, count: 0 };
-    acc[e.dateKey].total += e.score;
-    acc[e.dateKey].count += 1;
-    return acc;
-  }, {})).
-  sort((a, b) => a.date.localeCompare(b.date)).
-  map(d => ({ date: d.date, average: Number((d.total / d.count).toFixed(2)) }));
+  // Aggregate metrics
+  const byDate = Object.values(
+    parsedEvaluations.reduce((acc, e) => {
+      if (!acc[e.dateKey]) acc[e.dateKey] = { date: e.dateKey, total: 0, count: 0 };
+      acc[e.dateKey].total += e.score; acc[e.dateKey].count += 1; return acc;
+    }, {})
+  ).sort((a,b)=>a.date.localeCompare(b.date)).map(d=>({ date: d.date, average: Number((d.total/d.count).toFixed(2)) }));
 
-  // By question type (average score)
   const byTypeMap = parsedEvaluations.reduce((acc, e) => {
     const label = e.type.replace('_', ' ');
     if (!acc[label]) acc[label] = { type: label, total: 0, count: 0 };
-    acc[label].total += e.score;
-    acc[label].count += 1;
-    return acc;
+    acc[label].total += e.score; acc[label].count += 1; return acc;
   }, {});
-  const byType = Object.values(byTypeMap).map(x => ({ type: x.type, average: Number((x.total / x.count).toFixed(2)) }));
+  const byType = Object.values(byTypeMap).map(x => ({ type: x.type, average: Number((x.total/x.count).toFixed(2)), count: x.count }));
 
-  // AO marks distribution (AO1/AO2 vs attempts)
   const aoSeries = parsedEvaluations.map(e => ({ date: e.dateKey, AO1: e.ao1, AO2: e.ao2, Reading: e.reading, Writing: e.writing }));
 
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#14b8a6'];
 
-  const totalResponses = evaluations.length;
+  // Range filter + nicer view data
+  const daysForRange = selectedTimeRange === 'week' ? 7 : selectedTimeRange === 'month' ? 30 : selectedTimeRange === 'quarter' ? 90 : null;
+  const cutoff = daysForRange ? new Date(Date.now() - daysForRange * 24 * 60 * 60 * 1000) : null;
+  const viewEvaluations = cutoff ? parsedEvaluations.filter(e => {
+    const d = new Date(e.dateKey);
+    return d >= cutoff;
+  }) : parsedEvaluations;
+
+  const viewByDate = Object.values(viewEvaluations.reduce((acc, e) => {
+    if (!acc[e.dateKey]) acc[e.dateKey] = { date: e.dateKey, total: 0, count: 0 };
+    acc[e.dateKey].total += e.score;
+    acc[e.dateKey].count += 1;
+    return acc;
+  }, {})).sort((a,b)=>a.date.localeCompare(b.date)).map(d=>({ date: d.date, average: Number((d.total/d.count).toFixed(2)) }));
+
+  const viewByTypeMap = viewEvaluations.reduce((acc, e) => {
+    const label = e.type.replace('_', ' ');
+    if (!acc[label]) acc[label] = { type: label, total: 0, count: 0 };
+    acc[label].total += e.score; acc[label].count += 1; return acc;
+  }, {});
+  const viewByType = Object.values(viewByTypeMap).map(x=>({ type: x.type, average: Number((x.total/x.count).toFixed(2)), count: x.count }));
+
+  const viewAoSeries = viewEvaluations.map(e => ({ date: e.dateKey, AO1: e.ao1, AO2: e.ao2, Reading: e.reading, Writing: e.writing }));
+
+  // Type distribution (donut)
+  const typeDistribution = viewByType.map(t => ({ name: t.type, value: t.count }));
+  const totalTypeCount = typeDistribution.reduce((s, x) => s + x.value, 0) || 1;
+  const totalResponses = viewEvaluations.length;
+
+  const ChartTooltip = ({ active, payload, label }) => {
+    if (!active || !payload || !payload.length) return null;
+    return (
+      <div className="bg-white rounded-xl shadow p-3 border border-gray-100">
+        {label && <div className="text-xs font-semibold mb-1 text-gray-700">{label}</div>}
+        {payload.map((p, i) => (
+          <div key={i} className="text-xs flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
+            <span className="text-gray-600">{p.name}:</span>
+            <span className="font-semibold text-gray-900">{p.value}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -442,75 +479,125 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Time Series Trend */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">Scores Over Time</h3>
-          <div style={{ width: '100%', height: 300 }}>
-            <ResponsiveContainer>
-              <LineChart data={byDate} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="average" stroke="#3b82f6" name="Average Score" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
+        {/* Filters */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            {['week','month','quarter','all'].map(r => (
+              <button key={r} onClick={()=>setSelectedTimeRange(r)} className={`px-3 py-1.5 rounded-full text-sm border ${selectedTimeRange===r ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}>
+                {r==='week'?'7d':r==='month'?'30d':r==='quarter'?'90d':'All'}
+              </button>
+            ))}
+          </div>
+          <div className="text-sm text-gray-600">Showing <span className="font-semibold text-gray-900">{totalResponses}</span> responses</div>
+        </div>
+        {/* KPI Row */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
+            <div className="text-xs text-gray-500 mb-1">Average Score</div>
+            <div className="text-3xl font-bold text-blue-600">{Math.round((viewByDate.reduce((s,d)=>s+d.average,0)/(viewByDate.length||1))||0)}</div>
+            <div className="text-xs text-gray-500 mt-2">Across selected range</div>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
+            <div className="text-xs text-gray-500 mb-1">Active Days</div>
+            <div className="text-3xl font-bold text-emerald-600">{new Set(viewByDate?.map(d=>d.date)).size || 0}</div>
+            <div className="text-xs text-gray-500 mt-2">Days with submissions</div>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
+            <div className="text-xs text-gray-500 mb-1">Types Attempted</div>
+            <div className="text-3xl font-bold text-purple-600">{viewByType.length}</div>
+            <div className="text-xs text-gray-500 mt-2">Unique question types</div>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
+            <div className="text-xs text-gray-500 mb-1">Best Score</div>
+            <div className="text-3xl font-bold text-orange-600">{Math.max(...parsedEvaluations.map(e => e.score), 0)}</div>
+            <div className="text-xs text-gray-500 mt-2">Highest single score</div>
           </div>
         </div>
 
-        {/* Average by Question Type */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">Average by Question Type</h3>
-          <div style={{ width: '100%', height: 320 }}>
-            <ResponsiveContainer>
-              <BarChart data={byType} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="type" interval={0} angle={-15} textAnchor="end" height={60} />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="average" name="Average Score" fill="#10b981" />
-              </BarChart>
-            </ResponsiveContainer>
+        {/* Type Insights */}
+        <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xl font-semibold text-gray-900">Type Insights</h3>
+            <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full">Top performers</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {viewByType.sort((a,b)=>b.average-a.average).slice(0,6).map((t,i)=> (
+              <div key={t.type} className="rounded-xl border border-gray-100 p-4 bg-gray-50">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="font-medium capitalize text-gray-900 truncate">{t.type}</div>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-white border border-gray-200">#{i+1}</span>
+                </div>
+                <div className="text-sm text-gray-600">Average <span className="font-semibold text-gray-900">{t.average}</span> • Attempts <span className="font-semibold text-gray-900">{t.count}</span></div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* AO Marks Over Time */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">AO/Component Marks Over Time</h3>
-          <div style={{ width: '100%', height: 320 }}>
-            <ResponsiveContainer>
-              <LineChart data={aoSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="AO1" stroke="#8b5cf6" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="AO2" stroke="#ef4444" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="Reading" stroke="#3b82f6" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="Writing" stroke="#f59e0b" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
+        {/* Recommendations */}
+        <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xl font-semibold text-gray-900">Recommendations</h3>
+            <span className="text-xs bg-pink-50 text-pink-700 px-2 py-1 rounded-full">Next steps</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {viewByType.sort((a,b)=>a.average-b.average).slice(0,3).map(t => (
+              <div key={t.type} className="rounded-xl border border-gray-100 p-4 bg-gray-50">
+                <div className="font-semibold capitalize text-gray-900 mb-1">Practice more: {t.type}</div>
+                <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                  <li>Review model answers and mark schemes for this type</li>
+                  <li>Focus on structure and clarity; set a word goal of +10%</li>
+                  <li>Attempt 2 new prompts this week in this category</li>
+                </ul>
+              </div>
+            ))}
+            <div className="rounded-xl border border-gray-100 p-4 bg-gray-50">
+              <div className="font-semibold text-gray-900 mb-1">General Tips</div>
+              <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                <li>Keep a personal glossary of advanced vocabulary</li>
+                <li>Summarize feedback into 3 bullet points after each attempt</li>
+                <li>Re-attempt your lowest-scoring type after 48 hours</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Component Strengths */}
+        <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xl font-semibold text-gray-900">Component Strengths</h3>
+            <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-full">AO & Submarks</span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {['AO1','AO2','Reading','Writing'].map(key => {
+              const vals = viewAoSeries.map(v => v[key] || 0);
+              const avg = Math.round(vals.reduce((s,n)=>s+n,0) / (vals.length||1));
+              const max = Math.max(...vals, 0);
+              return (
+                <div key={key} className="rounded-xl border border-gray-100 p-4 bg-gray-50">
+                  <div className="text-xs text-gray-500 mb-1">{key}</div>
+                  <div className="text-2xl font-bold text-gray-900">{avg}</div>
+                  <div className="text-xs text-gray-500 mt-1">Best: {max}</div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
         {/* Key Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100 hover:shadow-md transition-shadow">
             <div className="text-3xl font-bold text-blue-600 mb-2">{totalResponses}</div>
             <div className="text-gray-600">Total Responses</div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100 hover:shadow-md transition-shadow">
             <div className="text-3xl font-bold text-green-600 mb-2">{Object.keys(byDate).length}</div>
             <div className="text-gray-600">Active Days</div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100 hover:shadow-md transition-shadow">
             <div className="text-3xl font-bold text-purple-600 mb-2">{byType.length}</div>
             <div className="text-gray-600">Types Attempted</div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100 hover:shadow-md transition-shadow">
             <div className="text-3xl font-bold text-orange-600 mb-2">{Math.max(...parsedEvaluations.map(e => e.score), 0)}</div>
             <div className="text-gray-600">Best Score</div>
           </div>
