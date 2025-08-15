@@ -20,13 +20,23 @@ import io
 # Supabase connection
 from supabase import create_client, Client
 
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
+ROOT_DIR = Path(__file__).resolve().parent
+# Force-load backend/.env regardless of working directory; allow overriding empty envs
+load_dotenv(dotenv_path=ROOT_DIR / '.env', override=True)
 
 # Supabase connection
 SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://kvuzryhwszngcddetala.supabase.co')
 # Use service role key for backend operations (bypasses RLS)
-SUPABASE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2dXpyeWh3c3puZ2NkZGV0YWxhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTE2MzQxNiwiZXhwIjoyMDcwNzM5NDE2fQ.GqkJ8fIQ3vJMbnBtYs6y9oiXHDMOqsA2aZHC01MR8Og')
+SUPABASE_KEY = (
+    os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
+    or os.environ.get('SUPABASE_KEY')
+)
+
+if not SUPABASE_KEY:
+    # Provide a clear log to help diagnose missing env
+    logging.warning(
+        "SUPABASE_SERVICE_ROLE_KEY is not set. Ensure backend/.env exists and python-dotenv loads it."
+    )
 # Initialize Supabase client
 try:
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)

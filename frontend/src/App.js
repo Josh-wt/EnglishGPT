@@ -390,7 +390,8 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
     const ao2 = typeof e.ao2_marks === 'string' ? Number((e.ao2_marks.match(/\d+/) || [0])[0]) : 0;
     const reading = typeof e.reading_marks === 'string' ? Number((e.reading_marks.match(/\d+/) || [0])[0]) : 0;
     const writing = typeof e.writing_marks === 'string' ? Number((e.writing_marks.match(/\d+/) || [0])[0]) : 0;
-    return { ...e, score, max, dateKey, type, ao1, ao2, reading, writing };
+    const percent = max > 0 ? (score / max) * 100 : 0;
+    return { ...e, score, max, percent, dateKey, type, ao1, ao2, reading, writing };
   });
 
   // Aggregate metrics
@@ -422,7 +423,7 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
 
   const viewByDate = Object.values(viewEvaluations.reduce((acc, e) => {
     if (!acc[e.dateKey]) acc[e.dateKey] = { date: e.dateKey, total: 0, count: 0 };
-    acc[e.dateKey].total += e.score;
+    acc[e.dateKey].total += (e.max > 0 ? (e.score / e.max) * 100 : 0);
     acc[e.dateKey].count += 1;
     return acc;
   }, {})).sort((a,b)=>a.date.localeCompare(b.date)).map(d=>({ date: d.date, average: Number((d.total/d.count).toFixed(2)) }));
@@ -430,7 +431,7 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
   const viewByTypeMap = viewEvaluations.reduce((acc, e) => {
     const label = e.type.replace('_', ' ');
     if (!acc[label]) acc[label] = { type: label, total: 0, count: 0 };
-    acc[label].total += e.score; acc[label].count += 1; return acc;
+    acc[label].total += (e.max > 0 ? (e.score / e.max) * 100 : 0); acc[label].count += 1; return acc;
   }, {});
   const viewByType = Object.values(viewByTypeMap).map(x=>({ type: x.type, average: Number((x.total/x.count).toFixed(2)), count: x.count }));
 
@@ -493,9 +494,9 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
         {/* KPI Row */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-            <div className="text-xs text-gray-500 mb-1">Average Score</div>
-            <div className="text-3xl font-bold text-blue-600">{Math.round((viewByDate.reduce((s,d)=>s+d.average,0)/(viewByDate.length||1))||0)}</div>
-            <div className="text-xs text-gray-500 mt-2">Across selected range</div>
+            <div className="text-xs text-gray-500 mb-1">Average</div>
+            <div className="text-3xl font-bold text-blue-600">{Math.round((viewByDate.reduce((s,d)=>s+d.average,0)/(viewByDate.length||1))||0)}%</div>
+            <div className="text-xs text-gray-500 mt-2">Across selected range (percent)</div>
           </div>
           <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
             <div className="text-xs text-gray-500 mb-1">Active Days</div>
@@ -508,9 +509,9 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
             <div className="text-xs text-gray-500 mt-2">Unique question types</div>
           </div>
           <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-            <div className="text-xs text-gray-500 mb-1">Best Score</div>
-            <div className="text-3xl font-bold text-orange-600">{Math.max(...parsedEvaluations.map(e => e.score), 0)}</div>
-            <div className="text-xs text-gray-500 mt-2">Highest single score</div>
+            <div className="text-xs text-gray-500 mb-1">Best</div>
+            <div className="text-3xl font-bold text-orange-600">{Math.round(Math.max(...parsedEvaluations.map(e => (e.max>0?(e.score/e.max)*100:0)), 0))}%</div>
+            <div className="text-xs text-gray-500 mt-2">Highest single percentage</div>
           </div>
         </div>
 
