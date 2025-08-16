@@ -52,13 +52,17 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",
+"http://localhost:3000",
         "http://localhost:3001", 
         "http://localhost:3002",
         "http://localhost:3003",
         "http://localhost:3004",
         "http://localhost:5000",
-        "http://localhost:5001"
+        "http://localhost:5001",
+        "http://13.233.183.229",      # Your server IP
+        "https://13.233.183.229",     # For future HTTPS
+        "https://englishgpt.org",     # Your domain
+        "https://www.englishgpt.org"  # WWW subdomain
     ],
     allow_credentials=True,
     allow_methods=["*"],

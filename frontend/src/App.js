@@ -4,7 +4,7 @@ import axios from 'axios';
 import { supabase } from './supabaseClient';
 // Removed charts for a clean card-based analytics UI
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 // Supabase configuration is now in supabaseClient.js
@@ -3581,7 +3581,7 @@ const App = () => {
       if (error) throw error;
     } catch (error) {
       console.error('Error signing in with Discord:', error);
-      alert('Discord OAuth not configured. Please use email/password login.');
+      alert('Discord sign-in is not configured. Please try Google sign-in.');
     }
   };
 
@@ -3598,39 +3598,7 @@ const App = () => {
       if (error) throw error;
     } catch (error) {
       console.error('Error signing in with Google:', error);
-      alert('Google OAuth not configured. Please use email/password login.');
-    }
-  };
-
-  const signInWithEmail = async (email, password) => {
-    try {
-      console.log('DEBUG: Attempting to sign in with email:', email);
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      if (error) throw error;
-      console.log('DEBUG: Sign in successful:', data);
-      return { success: true };
-    } catch (error) {
-      console.error('Error signing in with email:', error);
-      return { success: false, error: error.message };
-    }
-  };
-
-  const signUpWithEmail = async (email, password) => {
-    try {
-      console.log('DEBUG: Attempting to sign up with email:', email);
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password
-      });
-      if (error) throw error;
-      console.log('DEBUG: Sign up successful:', data);
-      return { success: true };
-    } catch (error) {
-      console.error('Error signing up with email:', error);
-      return { success: false, error: error.message };
+      alert('Google sign-in is not configured. Please try Discord sign-in.');
     }
   };
 
@@ -3646,73 +3614,6 @@ const App = () => {
 
   // Authentication state is already handled above with Supabase
 
-  // Email Login Form Component
-  const EmailLoginForm = ({ onSignIn, onSignUp }) => {
-    const [isSignUp, setIsSignUp] = useState(false);
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-      console.log('DEBUG: Form submitted:', { isSignUp, email });
-      setLoading(true);
-      setError('');
-
-      const result = isSignUp 
-        ? await onSignUp(email, password)
-        : await onSignIn(email, password);
-
-      console.log('DEBUG: Authentication result:', result);
-      if (!result.success) {
-        setError(result.error);
-      }
-      setLoading(false);
-    };
-
-    return (
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            required
-          />
-        </div>
-        <div>
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            required
-          />
-        </div>
-        {error && (
-          <div className="text-red-600 text-sm">{error}</div>
-        )}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
-        >
-          {loading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Sign In')}
-        </button>
-        <button
-          type="button"
-          onClick={() => setIsSignUp(!isSignUp)}
-          className="w-full text-blue-600 text-sm hover:underline"
-        >
-          {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
-        </button>
-      </form>
-    );
-  };
 
   // Authentication Required Component
   const AuthRequired = ({ children }) => {
@@ -3778,14 +3679,7 @@ const App = () => {
               Sign in with Google
             </button>
 
-            {/* Email/Password Login */}
-            <div className="mt-6 pt-6 border-t border-gray-300">
-              <p className="text-sm text-gray-600 mb-4">Or sign in with email</p>
-              <EmailLoginForm 
-                onSignIn={signInWithEmail}
-                onSignUp={signUpWithEmail}
-              />
-            </div>
+            {/* Email/Password Login removed: Only Discord and Google are supported */}
           </div>
         </div>
       );
