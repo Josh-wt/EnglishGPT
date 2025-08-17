@@ -80,6 +80,24 @@ class SubscriptionService {
   }
 
   /**
+   * Redirect to checkout for subscription
+   */
+  async redirectToCheckout(userId, planType) {
+    try {
+      const result = await this.createCheckoutSession(planType, userId);
+      
+      if (result.success && result.checkoutUrl) {
+        window.location.href = result.checkoutUrl;
+      } else {
+        throw new Error(result.error || 'Failed to create checkout session');
+      }
+    } catch (error) {
+      console.error('Error redirecting to checkout:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Cancel user's subscription
    */
   async cancelSubscription(userId, subscriptionId, cancelAtPeriodEnd = true) {
