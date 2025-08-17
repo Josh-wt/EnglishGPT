@@ -38,7 +38,7 @@ const PricingPage = ({ onBack, user }) => {
       // Show user-friendly error message
       let errorMessage = 'Failed to start checkout process. ';
       if (error.message.includes('Backend server is not running')) {
-        errorMessage += 'The backend server is not available. Please ensure it is running on port 8000.';
+        errorMessage += 'The backend server is not available. Please ensure it is running on port 5000.';
       } else if (error.message.includes('CORS')) {
         errorMessage += 'Cross-origin request blocked. Please check server CORS configuration.';
       } else if (error.message.includes('Unable to connect')) {
