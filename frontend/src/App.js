@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import axios from 'axios';
 import { supabase } from './supabaseClient';
+import { Routes, Route, useParams, useNavigate } from 'react-router-dom';
 // Removed charts for a clean card-based analytics UI
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -2582,38 +2583,12 @@ const AssessmentPage = ({ selectedQuestionType, onBack, onEvaluate, darkMode }) 
   );
 };
 
-// Full Chat Modal
-const FullChatModal = ({ isOpen, onClose, fullChat }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold">Full AI Chat</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-          <pre className="whitespace-pre-wrap text-sm text-gray-700 bg-gray-50 p-4 rounded-xl">
-            {fullChat}
-          </pre>
-        </div>
-      </div>
-    </div>
-  );
-};
+// Full Chat removed
 
 // Results Page
 const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
   const [activeTab, setActiveTab] = useState('Summary');
-  const [showFullChat, setShowFullChat] = useState(false);
+  // Full Chat removed
   const [feedbackModal, setFeedbackModal] = useState({ open: false, category: 'overall' });
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackAccurate, setFeedbackAccurate] = useState(null);
@@ -2850,12 +2825,6 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
         <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-6 mb-6 shadow-sm border`}>
           <div className="flex items-center justify-between mb-4">
             <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Detailed Feedback</h2>
-            <button
-              onClick={() => setShowFullChat(true)}
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-            >
-              See Full Chat
-            </button>
           </div>
           
           {/* Tabs */}
@@ -3026,12 +2995,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
         </div>
       )}
 
-      {/* Full Chat Modal */}
-      <FullChatModal 
-        isOpen={showFullChat} 
-        onClose={() => setShowFullChat(false)}
-        fullChat={evaluation.full_chat}
-      />
+      {/* Full Chat removed */}
 
       {/* Feedback Modal */}
       {feedbackModal.open && (
@@ -3892,6 +3856,71 @@ const App = () => {
     setEvaluation(null);
     setCurrentPage('dashboard');
   };
+
+  // Public Result route wrapper component to fetch by ID and render ResultsPage
+  const PublicResultPageWrapper = () => {
+    const { id } = useParams();
+    const [loadingEval, setLoadingEval] = useState(true);
+    const [publicEval, setPublicEval] = useState(null);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+      let isMounted = true;
+      const fetchEvaluation = async () => {
+        try {
+          const response = await axios.get(`${API}/evaluations/${id}`);
+          if (!isMounted) return;
+          setPublicEval(response.data.evaluation);
+        } catch (err) {
+          console.error('Failed to load evaluation:', err);
+        } finally {
+          if (isMounted) setLoadingEval(false);
+        }
+      };
+      fetchEvaluation();
+      return () => { isMounted = false; };
+    }, [id]);
+
+    if (loadingEval) {
+      return (
+        <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-main'} flex items-center justify-center`}>
+          <div className="text-center">
+            <div className="loading-animation">
+              <div className="loading-dots">
+                <div className="loading-dot"></div>
+                <div className="loading-dot"></div>
+                <div className="loading-dot"></div>
+              </div>
+            </div>
+            <p className="mt-4 font-fredoka">Loading result...</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (!publicEval) {
+      return (
+        <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-main'} flex items-center justify-center`}>
+          <div className="text-center">
+            <h1 className="text-2xl font-fredoka font-bold mb-2">Result not found</h1>
+            <p className="text-gray-600">The evaluation you are looking for does not exist or has been removed.</p>
+            <button onClick={() => navigate('/')} className="mt-6 bg-blue-600 text-white px-4 py-2 rounded-lg">Go Home</button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className={darkMode ? 'dark' : ''}>
+        <ResultsPage 
+          evaluation={publicEval}
+          onNewEvaluation={handleNewEvaluation}
+          userPlan={userStats.currentPlan}
+          darkMode={darkMode}
+        />
+      </div>
+    );
+  };
   
   const handleSelectPlan = async (plan) => {
     const userId = user?.uid || user?.id;
@@ -3959,19 +3988,27 @@ const App = () => {
   }
   
   return (
-    <div className={darkMode ? 'dark' : ''}>
-      <AuthRequired />
-      <ErrorModal 
-        isOpen={showErrorModal} 
-        onClose={() => setShowErrorModal(false)}
-        message={errorMessage}
-        darkMode={darkMode}
+    <Routes>
+      <Route path="/results/:id" element={<PublicResultPageWrapper />} />
+      <Route
+        path="*"
+        element={
+          <div className={darkMode ? 'dark' : ''}>
+            <AuthRequired />
+            <ErrorModal 
+              isOpen={showErrorModal} 
+              onClose={() => setShowErrorModal(false)}
+              message={errorMessage}
+              darkMode={darkMode}
+            />
+            <KeyboardShortcutsHelp 
+              isVisible={showShortcutsHelp}
+              onClose={() => setShowShortcutsHelp(false)}
+            />
+          </div>
+        }
       />
-      <KeyboardShortcutsHelp 
-        isVisible={showShortcutsHelp}
-        onClose={() => setShowShortcutsHelp(false)}
-      />
-    </div>
+    </Routes>
   );
 };
 

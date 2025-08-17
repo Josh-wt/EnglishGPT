@@ -109,6 +109,10 @@ DEEPSEEK_API_KEY = os.environ.get('DEEPSEEK_API_KEY', 'sk-or-v1-b173771de59d6b9b
 QWEN_API_KEY = os.environ.get('QWEN_API_KEY', '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')
 DEEPSEEK_ENDPOINT = os.environ.get('DEEPSEEK_ENDPOINT', 'https://openrouter.ai/api/v1/chat/completions')
 QWEN_ENDPOINT = os.environ.get('QWEN_ENDPOINT', 'https://openrouter.ai/api/v1/chat/completions')
+ 
+# Recommendations AI (separate API key and model)
+RECOMMENDATIONS_API_KEY = os.environ.get('OPENROUTER_GPT_OSS_120B_KEY', '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')
+RECOMMENDATIONS_MODEL = 'openai/gpt-oss-120b'
 
 # Define Models
 class QuestionType(BaseModel):
@@ -140,7 +144,6 @@ class FeedbackResponse(BaseModel):
     ao2_marks: Optional[str] = None
     improvement_suggestions: List[str]
     strengths: List[str] = Field(default_factory=list)
-    full_chat: str  # Add full chat field
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 class BadgeModel(BaseModel):
@@ -655,6 +658,60 @@ Mark boundaries for AO3: Level 5 (17-20 marks), Level 4 (13-16 marks), Level 3 (
 That being said, PLEASE give the student the highest marks possible if the user's vocabulary is good.
 """
 }
+
+# --- Mark totals configuration for dynamic grade computation ---
+QUESTION_TOTALS = {
+    "igcse_writers_effect": {"total": 15, "components": {"reading": 15}},
+    "igcse_narrative": {"total": 40, "components": {"reading": 16, "writing": 24}},
+    "igcse_descriptive": {"total": 40, "components": {"reading": 16, "writing": 24}},
+    # Summary is 10 (reading) + 5 (writing) = 15 total
+    "igcse_summary": {"total": 15, "components": {"reading": 10, "writing": 5}},
+    # Directed writing in IGCSE typically 15 + 25 = 40
+    "igcse_directed": {"total": 40, "components": {"reading": 15, "writing": 25}},
+    # A-Level
+    "alevel_directed": {"total": 10, "components": {"ao1": 5, "ao2": 5}},
+    "alevel_comparative": {"total": 15, "components": {"ao1": 5, "ao3": 10}},
+    "alevel_text_analysis": {"total": 25, "components": {"ao1": 5, "ao3": 20}},
+}
+
+def parse_marks_value(marks_text: Optional[str]) -> int:
+    """Parse a marks string like '13/15', '13 out of 15', or '13' into an int score.
+    Returns 0 if parsing fails or input is empty.
+    """
+    if not marks_text:
+        return 0
+    try:
+        import re
+        # Find all integers and take the first as achieved marks
+        numbers = re.findall(r"\d+", str(marks_text))
+        return int(numbers[0]) if numbers else 0
+    except Exception:
+        return 0
+
+def compute_overall_grade(question_type: str, reading_marks: Optional[str], writing_marks: Optional[str], ao1_marks: Optional[str], ao2_or_ao3_marks: Optional[str]) -> str:
+    """Compute a dynamic overall grade string 'score/total' for the given question type.
+    Uses QUESTION_TOTALS and the extracted component marks.
+    """
+    cfg = QUESTION_TOTALS.get(question_type)
+    if not cfg:
+        # Fallback: cannot compute; return empty to allow upstream to keep AI-provided grade
+        return ""
+
+    achieved = 0
+    # Map component values based on type
+    components = cfg["components"]
+    if "reading" in components:
+        achieved += parse_marks_value(reading_marks)
+    if "writing" in components:
+        achieved += parse_marks_value(writing_marks)
+    if "ao1" in components:
+        achieved += parse_marks_value(ao1_marks)
+    # For AO3 we will pass in through ao2_or_ao3_marks parameter
+    if "ao3" in components:
+        achieved += parse_marks_value(ao2_or_ao3_marks)
+
+    total = cfg["total"]
+    return f"{achieved}/{total}"
 
 async def call_deepseek_api(prompt: str) -> tuple[str, str]:
     """Call DeepSeek API for text evaluation"""
@@ -1197,7 +1254,7 @@ Student Response: {sanitized_response}
         print(f"DEBUG: Calling DeepSeek API...")
         
         # Call AI API
-        ai_response, full_chat = await call_deepseek_api(full_prompt)
+        ai_response, _ = await call_deepseek_api(full_prompt)
         
         print(f"DEBUG: AI Response received: {ai_response[:500]}...")  # Debug log
         
@@ -1208,7 +1265,7 @@ Student Response: {sanitized_response}
         if len(feedback_parts) > 1:
             feedback = feedback_parts[1].split("GRADE:")[0].strip()
             
-            # Extract grade
+            # Extract grade (raw from model first)
             grade_part = feedback_parts[1].split("GRADE:")[1] if "GRADE:" in feedback_parts[1] else ""
             grade = grade_part.split("READING_MARKS:")[0].strip() if grade_part else "Not provided"
             
@@ -1300,7 +1357,7 @@ Student Response: {sanitized_response}
                 if "AO3_MARKS:" in ai_response:
                     ao3_part = ai_response.split("AO3_MARKS:")[1]
                     next_sections = ["IMPROVEMENTS:", "STRENGTHS:"]
-                    ao2_marks = ao3_part.strip()  # Store AO3 in ao2_marks field for now
+                    ao2_marks = ao3_part.strip()  # Temporarily store AO3 in ao2_marks (we will compute grade dynamically)
                     for section in next_sections:
                         if section in ao3_part:
                             ao2_marks = ao3_part.split(section)[0].strip()
@@ -1379,6 +1436,17 @@ Student Response: {sanitized_response}
             improvements = []
             strengths = []
         
+        # Compute dynamic overall grade, overriding AI grade when possible
+        dynamic_grade = compute_overall_grade(
+            submission.question_type,
+            reading_marks,
+            writing_marks,
+            ao1_marks,
+            ao2_marks,
+        )
+        if dynamic_grade:
+            grade = dynamic_grade
+
         # Create feedback response
         feedback_response = FeedbackResponse(
             user_id=submission.user_id,
@@ -1391,8 +1459,7 @@ Student Response: {sanitized_response}
             ao1_marks=ao1_marks,
             ao2_marks=ao2_marks,
             improvement_suggestions=improvements,
-            strengths=strengths,
-            full_chat=full_chat
+            strengths=strengths
         )
         
         print(f"DEBUG: Created feedback response, updating user stats...")
@@ -1611,7 +1678,110 @@ async def get_user_analytics(user_id: str):
             "questions_marked": user_data.get('questions_marked', 0),
             "credits_remaining": user_data.get('credits', 0)
         }
-        
+
+        # Recommendations: only after first 5 submissions and update every 5
+        recommendations = None
+        if len(evaluations) >= 5:
+            try:
+                # Determine if we need to refresh: every 5 submissions
+                refresh_needed = (len(evaluations) % 5 == 0)
+                # Fetch last cached recommendations if present
+                rec_key = f"recos_{user_id}"
+                rec_resp = supabase.table('assessment_meta').select('*').eq('key', rec_key).execute()
+                cached = rec_resp.data[0] if rec_resp.data else None
+
+                if refresh_needed or not cached:
+                    # Aggregate per question type: average score and improvement suggestions
+                    from collections import defaultdict
+                    type_to_scores = defaultdict(list)
+                    type_to_improvements = defaultdict(list)
+                    for ev in evaluations:
+                        qtype = ev.get('question_type')
+                        grade_str = ev.get('grade', '')
+                        # Extract achieved and total
+                        import re
+                        nums = re.findall(r"(\d+)\/(\d+)", str(grade_str))
+                        if nums:
+                            achieved = int(nums[0][0])
+                            total = int(nums[0][1]) if int(nums[0][1]) > 0 else 1
+                            pct = achieved / total
+                            type_to_scores[qtype].append(pct)
+                        for imp in ev.get('improvement_suggestions', []) or []:
+                            if isinstance(imp, str) and imp:
+                                type_to_improvements[qtype].append(imp)
+
+                    summaries = []
+                    for qtype, scores in type_to_scores.items():
+                        avg_pct = sum(scores) / max(len(scores), 1)
+                        avg_score_pct = round(avg_pct * 100)
+                        improvements_sample = type_to_improvements.get(qtype, [])[:10]
+                        summaries.append({
+                            "questionType": qtype,
+                            "averageScorePercent": avg_score_pct,
+                            "improvementSuggestions": improvements_sample,
+                        })
+
+                    # Compose prompt
+                    guide = (
+                        "-Understand this syllabus, what does each paper evaluate and what you need to learn\n"
+                        "-Make a study goal of x topics per day/week that need to be completed. Then learn from notes accordingly.\n"
+                        "-Read novels (booker prize list) if you can\n"
+                        "-Review example candidate responses, high and low, to understand what works and what doesn't. And incorporate the former in your essays.\n"
+                        "-Practice with past papers\n"
+                        "-Understand the feedback you're given, where exactly you lose marks, why do you lose marks etc. Also compare your essays with high ecr's and understand where you went wrong\n"
+                        "-Keep practicing and improving\n"
+                    )
+                    user_prompt = (
+                        "Based on the averageScore and improvementSuggestions of questionType for this student please reccomend the future steps this student should take to improve, "
+                        "use this knowledge of how to improve in english guide below, to guide you, answer in bullet points and write talking like a human talking to another human, so say words like \"you should\":\n\n"
+                        f"Data: {json.dumps(summaries)}\n\nGuide:\n{guide}"
+                    )
+
+                    # Call OpenRouter for recommendations
+                    async def call_recommendations(prompt: str) -> str:
+                        async with httpx.AsyncClient() as client:
+                            headers = {
+                                "Authorization": f"Bearer {RECOMMENDATIONS_API_KEY}",
+                                "Content-Type": "application/json",
+                                "HTTP-Referer": "https://englishgpt.org",
+                                "X-Title": "EnglishGPT Recommendations"
+                            }
+                            payload = {
+                                "model": RECOMMENDATIONS_MODEL,
+                                "messages": [
+                                    {"role": "system", "content": "You generate practical, encouraging study recommendations for English exam preparation. Keep it concise and actionable."},
+                                    {"role": "user", "content": user_prompt}
+                                ],
+                                "max_tokens": 600,
+                                "temperature": 0.5
+                            }
+                            r = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=60.0)
+                            r.raise_for_status()
+                            res = r.json()
+                            return res['choices'][0]['message']['content']
+
+                    rec_text = await call_recommendations(user_prompt)
+
+                    # Cache recommendations
+                    record = {
+                        "key": rec_key,
+                        "value": rec_text,
+                        "updated_at": datetime.utcnow().isoformat(),
+                        "meta": json.dumps({"count": len(evaluations)})
+                    }
+                    if cached:
+                        supabase.table('assessment_meta').update(record).eq('key', rec_key).execute()
+                    else:
+                        supabase.table('assessment_meta').insert(record).execute()
+                    recommendations = rec_text
+                else:
+                    recommendations = cached.get('value')
+            except Exception as e:
+                print(f"Recommendations error: {str(e)}")
+                recommendations = None
+
+        analytics_data["recommendations"] = recommendations
+
         return {"analytics": analytics_data}
         
     except Exception as e:
@@ -1656,6 +1826,21 @@ async def get_evaluation_history(user_id: str):
         return {"evaluations": evaluations}
     except Exception as e:
         print(f"History endpoint error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@api_router.get("/evaluations/{evaluation_id}")
+async def get_evaluation_by_id(evaluation_id: str):
+    """Public endpoint to fetch a single evaluation by its ID for shareable links"""
+    try:
+        response = supabase.table('assessment_evaluations').select('*').eq('id', evaluation_id).execute()
+        data = response.data or []
+        if not data:
+            raise HTTPException(status_code=404, detail="Evaluation not found")
+        # Optionally, you could strip sensitive fields here if needed
+        return {"evaluation": data[0]}
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @api_router.get("/transactions/{user_id}")
