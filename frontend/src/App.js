@@ -340,13 +340,13 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
     const plan = userStats.currentPlan?.toLowerCase();
     return plan === 'unlimited';
   };
-
-  if (!hasUnlimitedAccess()) {
-    return <LockedAnalyticsPage onBack={onBack} upgradeType="unlimited" page="analytics" />;
-  }
   
   // Fetch AI recommendations when component mounts or evaluations change
+  // This hook must be called before any conditional returns (React rules of hooks)
   useEffect(() => {
+    // Only fetch recommendations if user has unlimited access
+    if (!hasUnlimitedAccess()) return;
+    
     const fetchRecommendations = async () => {
       if (!user?.id || evaluations.length === 0) return;
       
@@ -381,6 +381,11 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
     
     fetchRecommendations();
   }, [user, evaluations.length]);
+
+  // Check access after hooks (React rules of hooks requirement)
+  if (!hasUnlimitedAccess()) {
+    return <LockedAnalyticsPage onBack={onBack} upgradeType="unlimited" page="analytics" />;
+  }
 
   // Prepare chart data
   const parsedEvaluations = (evaluations || []).map((e) => {
