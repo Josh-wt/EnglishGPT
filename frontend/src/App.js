@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import axios from 'axios';
 import { supabase } from './supabaseClient';
-import { Routes, Route, useParams, useNavigate } from 'react-router-dom';
+import { Routes, Route, useParams, useNavigate, useLocation } from 'react-router-dom';
 // Removed charts for a clean card-based analytics UI
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -2593,6 +2593,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackAccurate, setFeedbackAccurate] = useState(null);
   const [feedbackComments, setFeedbackComments] = useState('');
+  const routerLocation = useLocation();
   const modalRef = useRef(null);
   const firstModalButtonRef = useRef(null);
 
@@ -3202,6 +3203,54 @@ const App = () => {
     setLoadingStates(prev => ({ ...prev, [key]: value }));
   };
 
+  // --- Tab routing: sync URL <-> currentPage ---
+  const routerLocation = useLocation();
+  const tabToPage = {
+    pricing: 'pricing',
+    history: 'history',
+    analytics: 'analytics',
+    write: 'questionTypes',
+  };
+  const pageToTab = {
+    pricing: 'pricing',
+    history: 'history',
+    analytics: 'analytics',
+    questionTypes: 'write',
+  };
+
+  // When URL changes, update currentPage accordingly (for /dashboard and tab param)
+  useEffect(() => {
+    const pathname = (routerLocation && routerLocation.pathname) || '';
+    if (pathname.startsWith('/results/')) return; // results handled separately
+    if (!pathname.startsWith('/dashboard')) return; // only control under dashboard
+    const search = new URLSearchParams((routerLocation && routerLocation.search) || '');
+    const tab = (search.get('tab') || '').toLowerCase();
+    if (tab && tabToPage[tab]) {
+      if (currentPage !== tabToPage[tab]) setCurrentPage(tabToPage[tab]);
+    } else {
+      if (currentPage !== 'dashboard') setCurrentPage('dashboard');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routerLocation.pathname, routerLocation.search]);
+
+  // When currentPage changes, ensure URL reflects /dashboard?tab=...
+  useEffect(() => {
+    const pathname = (routerLocation && routerLocation.pathname) || '';
+    if (pathname.startsWith('/results/')) return; // don't override results links
+    const desiredTab = pageToTab[currentPage];
+    if (desiredTab) {
+      const currentTab = new URLSearchParams((routerLocation && routerLocation.search) || '').get('tab');
+      if (currentTab !== desiredTab || !pathname.startsWith('/dashboard')) {
+        navigate(`/dashboard?tab=${desiredTab}`, { replace: false });
+      }
+    } else if (currentPage === 'dashboard') {
+      if (!pathname.startsWith('/dashboard') || (routerLocation && routerLocation.search)) {
+        navigate(`/dashboard`, { replace: false });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage]);
+
   const submitFeedback = async () => {
     if (!evaluation || !user) return;
     if (feedbackAccurate === null) return;
@@ -3431,6 +3480,8 @@ const App = () => {
         if (session?.user?.id) {
           setUser(session.user);
           loadUserData(session.user);
+          // Redirect to dashboard after sign-in (no filtering)
+          navigate('/dashboard', { replace: true });
         } else {
           setUser(null);
           setUserStats({ questionsMarked: 0, credits: 3, currentPlan: 'free' });
@@ -3461,6 +3512,8 @@ const App = () => {
             loadUserData(session.user);
             // Ensure clean URL after sign-in
             window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+            // Redirect to dashboard after sign-in (no filtering)
+            navigate('/dashboard', { replace: true });
           }
           break;
         case 'SIGNED_OUT':
@@ -3468,6 +3521,8 @@ const App = () => {
           setUser(null);
           setUserStats({ questionsMarked: 0, credits: 3, currentPlan: 'free' });
           setEvaluations([]);
+          // Go back to landing on sign out
+          navigate('/', { replace: true });
           break;
       }
       setLoading(false);
@@ -3937,7 +3992,7 @@ const App = () => {
       if (response?.data?.id) {
         navigate(`/results/${response.data.id}`);
       } else {
-        setCurrentPage('results');
+        navigate(`/dashboard`);
       }
     } catch (error) {
       console.error('Error evaluating submission:', error);
@@ -3957,7 +4012,7 @@ const App = () => {
   const handleNewEvaluation = () => {
     setSelectedQuestionType(null);
     setEvaluation(null);
-    setCurrentPage('dashboard');
+    setCurrentPage('questionTypes');
   };
 
   // Public Result route wrapper component to fetch by ID and render ResultsPage
@@ -4095,6 +4150,8 @@ const App = () => {
       <Route path="/results/:id" element={<PublicResultPageWrapper />} />
       {/* Public landing */}
       <Route path="/" element={<LandingPage onDiscord={signInWithDiscord} onGoogle={signInWithGoogle} />} />
+      {/* Dashboard entry */}
+      <Route path="/dashboard" element={<div className={darkMode ? 'dark' : ''}><AuthRequired /></div>} />
 
       {/* App routes behind auth */}
       <Route
