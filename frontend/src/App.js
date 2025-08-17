@@ -3067,6 +3067,7 @@ const ErrorModal = ({ isOpen, onClose, message, darkMode }) => {
 // Main App Component
 const App = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const navigate = useNavigate();
   const [questionTypes, setQuestionTypes] = useState([]);
   const [selectedQuestionType, setSelectedQuestionType] = useState(null);
   const [selectedLevel, setSelectedLevel] = useState(null); // Track selected level
@@ -3081,6 +3082,103 @@ const App = () => {
     credits: 3,
     currentPlan: 'free'
   });
+  
+  // --- Landing Page (public) ---
+  const LandingPage = ({ onDiscord, onGoogle }) => {
+    return (
+      <div className="min-h-screen bg-white">
+        <header className="border-b">
+          <div className="max-w-6xl mx-auto flex items-center justify-between py-4 px-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-[#8B5FBF]" />
+              <span className="font-bold text-lg">EnglishGPT</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <button onClick={onDiscord} className="hidden sm:inline-flex px-4 py-2 rounded-lg border hover:bg-gray-50">Sign in</button>
+              <button onClick={onDiscord} className="px-4 py-2 rounded-lg text-white" style={{background:'#8B5FBF'}}>Get Started</button>
+            </div>
+          </div>
+        </header>
+
+        <section className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#F0EBFF] to-white pointer-events-none" />
+          <div className="relative max-w-6xl mx-auto px-4 py-16">
+            <div className="grid md:grid-cols-2 gap-10 items-center">
+              <div>
+                <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
+                  Ace English with AI-powered marking and coaching
+                </h1>
+                <p className="text-lg text-gray-600 mb-6">
+                  Get instant, criteria-aligned feedback for IGCSE and A-Level. Clear marks, strengths, and targeted improvements — every time.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button onClick={onDiscord} className="px-6 py-3 rounded-xl text-white" style={{background:'#8B5FBF'}}>Sign in with Discord</button>
+                  <button onClick={onGoogle} className="px-6 py-3 rounded-xl border">Sign in with Google</button>
+                </div>
+                <p className="text-xs text-gray-500 mt-3">No credit card required</p>
+              </div>
+              <div>
+                <div className="rounded-2xl border shadow-sm p-4 bg-white">
+                  <div className="rounded-xl bg-gray-50 p-6 border text-sm text-gray-700">
+                    “Your narrative uses striking sensory details. Great control of structure. Work on varied sentence openings to lift rhythm.”
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 mt-4 text-center">
+                    <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                      <div className="text-2xl font-bold text-green-700">16/24</div>
+                      <div className="text-sm text-green-700">Style</div>
+                    </div>
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                      <div className="text-2xl font-bold text-blue-700">12/16</div>
+                      <div className="text-sm text-blue-700">Content</div>
+                    </div>
+                    <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                      <div className="text-2xl font-bold text-purple-700">28/40</div>
+                      <div className="text-sm text-purple-700">Total</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="max-w-6xl mx-auto px-4 py-12">
+          <div className="grid md:grid-cols-3 gap-6">
+            {[{
+              title: 'Real mark schemes',
+              desc: 'Aligned to IGCSE and A-Level criteria for fair, consistent marking.'
+            },{
+              title: 'Actionable feedback',
+              desc: 'Concise strengths and improvements you can use immediately.'
+            },{
+              title: 'History & analytics',
+              desc: 'Track progress and trends; unlock recommendations over time.'
+            }].map((f, i) => (
+              <div key={i} className="border rounded-2xl p-6">
+                <div className="w-10 h-10 rounded-lg mb-4" style={{background:'#8B5FBF'}} />
+                <h3 className="font-semibold text-lg mb-2">{f.title}</h3>
+                <p className="text-gray-600 text-sm">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="max-w-6xl mx-auto px-4 pb-16">
+          <div className="border rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between bg-white">
+            <div>
+              <h3 className="font-bold text-xl mb-1">Ready to improve faster?</h3>
+              <p className="text-gray-600">Sign in and start marking in under a minute.</p>
+            </div>
+            <div className="mt-4 md:mt-0">
+              <button onClick={onDiscord} className="px-6 py-3 rounded-xl text-white" style={{background:'#8B5FBF'}}>
+                Get started
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  };
   const [evaluations, setEvaluations] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true); // Only for authentication loading
@@ -3835,7 +3933,12 @@ const App = () => {
       }));
       }
       
-      setCurrentPage('results');
+      // Navigate to shareable public results page
+      if (response?.data?.id) {
+        navigate(`/results/${response.data.id}`);
+      } else {
+        setCurrentPage('results');
+      }
     } catch (error) {
       console.error('Error evaluating submission:', error);
       // Handle specific error messages
@@ -3990,6 +4093,10 @@ const App = () => {
   return (
     <Routes>
       <Route path="/results/:id" element={<PublicResultPageWrapper />} />
+      {/* Public landing */}
+      <Route path="/" element={<LandingPage onDiscord={signInWithDiscord} onGoogle={signInWithGoogle} />} />
+
+      {/* App routes behind auth */}
       <Route
         path="*"
         element={

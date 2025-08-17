@@ -1,5 +1,6 @@
 from fastapi import FastAPI, APIRouter, HTTPException, File, UploadFile, Form
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 import os
@@ -1868,6 +1869,11 @@ async def get_transaction_history(user_id: str):
 
 # Include the router in the main app
 app.include_router(api_router)
+
+# Serve frontend build (SPA) with client-side routing fallback
+FRONTEND_BUILD_DIR = (ROOT_DIR.parent / 'frontend' / 'build')
+if FRONTEND_BUILD_DIR.exists():
+    app.mount("/", StaticFiles(directory=str(FRONTEND_BUILD_DIR), html=True), name="frontend")
 
 # Configure logging
 logging.basicConfig(
