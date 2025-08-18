@@ -3923,7 +3923,7 @@ const App = () => {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'discord',
         options: {
-          redirectTo: typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'
+          redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : 'http://localhost:3000/dashboard'
           ,
           flowType: 'pkce'
         }
@@ -3940,7 +3940,7 @@ const App = () => {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'
+          redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : 'http://localhost:3000/dashboard'
           ,
           flowType: 'pkce'
         }
