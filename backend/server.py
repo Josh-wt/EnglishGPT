@@ -105,15 +105,15 @@ async def hello():
     return {"message": "Hello from FastAPI!"}
 
 
-# AI Configuration
-DEEPSEEK_API_KEY = os.environ.get('DEEPSEEK_API_KEY', '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')
-QWEN_API_KEY = os.environ.get('QWEN_API_KEY', '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')
+# AI Configuration (env only; no hardcoded defaults)
+DEEPSEEK_API_KEY = os.environ.get('DEEPSEEK_API_KEY')
+QWEN_API_KEY = os.environ.get('QWEN_API_KEY')
 DEEPSEEK_ENDPOINT = os.environ.get('DEEPSEEK_ENDPOINT', 'https://openrouter.ai/api/v1/chat/completions')
 QWEN_ENDPOINT = os.environ.get('QWEN_ENDPOINT', 'https://openrouter.ai/api/v1/chat/completions')
- 
+
 # Recommendations AI (separate API key and model)
-RECOMMENDATIONS_API_KEY = os.environ.get('OPENROUTER_GPT_OSS_120B_KEY', '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')
-RECOMMENDATIONS_MODEL = 'openai/gpt-oss-120b'
+RECOMMENDATIONS_API_KEY = os.environ.get('OPENROUTER_GPT_OSS_120B_KEY')
+RECOMMENDATIONS_MODEL = os.environ.get('RECOMMENDATIONS_MODEL', 'openai/gpt-oss-120b')
 
 # Define Models
 class QuestionType(BaseModel):
@@ -179,15 +179,17 @@ class TransactionModel(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-# PayU Config (use environment variables for secrets)
-PAYU_CLIENT_ID = os.environ.get("PAYU_CLIENT_ID", "1b2ae685415b08874b4924b352d69bdfb9dfb01fc15cdb963923411fc1c4aa9f")
-PAYU_CLIENT_SECRET = os.environ.get("PAYU_CLIENT_SECRET", "changeme")
-PAYU_MERCHANT_KEY = os.environ.get("PAYU_MERCHANT_KEY", "7HvROB")
+# PayU Config (use environment variables for secrets; no defaults)
+PAYU_CLIENT_ID = os.environ.get("PAYU_CLIENT_ID")
+PAYU_CLIENT_SECRET = os.environ.get("PAYU_CLIENT_SECRET")
+PAYU_MERCHANT_KEY = os.environ.get("PAYU_MERCHANT_KEY")
 PAYU_BASE_URL = "https://secure.payu.in"
-USD_TO_INR = 85
+USD_TO_INR = 86.6
 MIN_USD = 3
 
 async def get_payu_access_token():
+    if not PAYU_CLIENT_ID or not PAYU_CLIENT_SECRET:
+        raise HTTPException(status_code=500, detail="PayU client credentials not configured.")
     data = {
         "grant_type": "client_credentials",
         "client_id": PAYU_CLIENT_ID,
@@ -214,6 +216,8 @@ async def create_payment_order(body: dict):
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
+    if not PAYU_MERCHANT_KEY:
+        raise HTTPException(status_code=500, detail="PayU merchant key not configured.")
     payload = {
         "customerIp": "127.0.0.1",
         "merchantPosId": PAYU_MERCHANT_KEY,
@@ -221,7 +225,7 @@ async def create_payment_order(body: dict):
         "currencyCode": "INR",
         "totalAmount": str(amount_paise),
         "extOrderId": ext_order_id,
-        "notifyUrl": os.environ.get("PAYU_NOTIFY_URL", "https://yourdomain.com/api/payment/webhook"),
+        "notifyUrl": os.environ.get("PAYU_NOTIFY_URL", "https://englishgpt.org/api/payment/webhook"),
         "products": [{
             "name": "Credits",
             "unitPrice": str(amount_paise),
@@ -717,7 +721,6 @@ def compute_overall_grade(question_type: str, reading_marks: Optional[str], writ
 async def call_deepseek_api(prompt: str) -> tuple[str, str]:
     """Call DeepSeek API for text evaluation"""
     print(f"DEBUG: call_deepseek_api called with prompt length: {len(prompt)}")
-    print(f"DEBUG: DEEPSEEK_API_KEY configured: {bool(DEEPSEEK_API_KEY and DEEPSEEK_API_KEY != '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')}")
     print(f"DEBUG: DEEPSEEK_ENDPOINT: {DEEPSEEK_ENDPOINT}")
     
     # Check if API key is properly configured
@@ -725,10 +728,6 @@ async def call_deepseek_api(prompt: str) -> tuple[str, str]:
         error_msg = "DeepSeek API key not configured. Please set DEEPSEEK_API_KEY environment variable."
         print(f"ERROR: {error_msg}")
         raise HTTPException(status_code=500, detail=error_msg)
-    
-    # For development/testing, allow the default API key
-    if DEEPSEEK_API_KEY == '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':
-        print("WARNING: Using default DeepSeek API key. For production, set DEEPSEEK_API_KEY environment variable.")
     
     async with httpx.AsyncClient() as client:
         headers = {
