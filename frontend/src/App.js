@@ -3711,7 +3711,7 @@ const App = () => {
           loadUserData(session.user);
           // If already signed in and currently on landing, go to dashboard
           if (typeof window !== 'undefined' && window.location.pathname === '/') {
-            navigate('/dashboard', { replace: true });
+            window.location.href = 'https://englishgpt.everythingenglish.xyz/dashboard';
           }
         } else {
           setUser(null);
@@ -3745,7 +3745,7 @@ const App = () => {
             window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
             // Only redirect from landing to dashboard
             if (typeof window !== 'undefined' && window.location.pathname === '/') {
-              navigate('/dashboard', { replace: true });
+              window.location.href = 'https://englishgpt.everythingenglish.xyz/dashboard';
             }
           }
           break;
