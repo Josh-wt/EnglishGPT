@@ -3917,50 +3917,58 @@ const App = () => {
     return { isValid: true };
   };
   
-  // Authentication functions
-  const signInWithDiscord = async () => {
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'discord',
-        options: {
-          redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : 'http://localhost:3000/dashboard'
-          ,
-          flowType: 'pkce'
-        }
-      });
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error signing in with Discord:', error);
-      alert('Discord sign-in is not configured. Please try Google sign-in.');
-    }
-  };
+// Authentication functions
+const signInWithDiscord = async () => {
+  try {
+    const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : 'http://localhost:3000/dashboard';
+    
+    console.log('Current origin:', window.location.origin);
+    console.log('Redirect URL will be:', redirectUrl);
+    
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'discord',
+      options: {
+        redirectTo: redirectUrl,
+        flowType: 'pkce'
+      }
+    });
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error signing in with Discord:', error);
+    alert('Discord sign-in is not configured. Please try Google sign-in.');
+  }
+};
 
-  const signInWithGoogle = async () => {
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : 'http://localhost:3000/dashboard'
-          ,
-          flowType: 'pkce'
-        }
-      });
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error signing in with Google:', error);
-      alert('Google sign-in is not configured. Please try Discord sign-in.');
-    }
-  };
+const signInWithGoogle = async () => {
+  try {
+    const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : 'http://localhost:3000/dashboard';
+    
+    console.log('Current origin:', window.location.origin);
+    console.log('Redirect URL will be:', redirectUrl);
+    
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectUrl,
+        flowType: 'pkce'
+      }
+    });
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error signing in with Google:', error);
+    alert('Google sign-in is not configured. Please try Discord sign-in.');
+  }
+};
 
-  const handleSignOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      setUser(null);
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
+const handleSignOut = async () => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    setUser(null);
+  } catch (error) {
+    console.error('Error signing out:', error);
+  }
+};
 
   // Authentication state is already handled above with Supabase
 
