@@ -3709,8 +3709,7 @@ const App = () => {
         if (session?.user?.id) {
           setUser(session.user);
           loadUserData(session.user);
-          // Redirect to dashboard after sign-in (no filtering)
-          navigate('/dashboard', { replace: true });
+          // Do not hard-redirect; stay on current route
         } else {
           setUser(null);
           setUserStats({ questionsMarked: 0, credits: 3, currentPlan: 'free' });
@@ -3741,11 +3740,7 @@ const App = () => {
             loadUserData(session.user);
             // Ensure clean URL after sign-in
             window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
-            // Redirect to dashboard after sign-in only when coming from landing or dashboard
-            const currentPath = window.location.pathname;
-            if (currentPath === '/' || currentPath === '/dashboard') {
-              navigate('/dashboard', { replace: true });
-            }
+            // Do not hard-redirect after sign-in
           }
           break;
         case 'SIGNED_OUT':
