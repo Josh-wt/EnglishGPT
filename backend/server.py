@@ -64,7 +64,9 @@ app.add_middleware(
         "http://13.233.183.229",      # Your server IP
         "https://13.233.183.229",     # For future HTTPS
         "https://englishgpt.org",     # Your domain
-        "https://www.englishgpt.org"  # WWW subdomain
+        "https://www.englishgpt.org",   # WWW subdomain
+        "https://englishgpt.org/dashboard", # Dashboard URL
+        "https://englishgpt.everythingenglish.xyz" # Dashboard URL
     ],
     allow_credentials=True,
     allow_methods=["*"],
