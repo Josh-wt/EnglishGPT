@@ -37,6 +37,9 @@ CREATE TABLE assessment_evaluations (
   timestamp timestamp with time zone DEFAULT now()
 );
 
+ALTER TABLE assessment_evaluations ADD COLUMN short_id text UNIQUE;
+CREATE INDEX IF NOT EXISTS idx_assessment_evaluations_short_id ON assessment_evaluations(short_id);
+
 -- Assessment Badges table
 CREATE TABLE assessment_badges (
   id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,

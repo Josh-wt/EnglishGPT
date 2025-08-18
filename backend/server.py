@@ -8,6 +8,7 @@ import logging
 from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
+import secrets
 import uuid
 from datetime import datetime, timedelta
 import httpx
@@ -146,6 +147,7 @@ class FeedbackResponse(BaseModel):
     improvement_suggestions: List[str]
     strengths: List[str] = Field(default_factory=list)
     timestamp: datetime = Field(default_factory=datetime.utcnow)
+    short_id: Optional[str] = None
 
 class BadgeModel(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -1472,9 +1474,19 @@ Student Response: {sanitized_response}
         }).eq('uid', submission.user_id).execute()
         
         # Save to database
+        # Generate a short, URL-safe id (5 chars) for shareable URLs
+        short_id = secrets.token_urlsafe(4)[:5]
+        feedback_response.short_id = short_id
+
         evaluation_data = feedback_response.dict()
         evaluation_data['timestamp'] = evaluation_data['timestamp'].isoformat()
-        supabase.table('assessment_evaluations').insert(evaluation_data).execute()
+        # Also persist short_id alongside the evaluation record (requires DB column)
+        try:
+            supabase.table('assessment_evaluations').insert(evaluation_data).execute()
+        except Exception:
+            # Fallback: if the DB doesn't have short_id column yet, strip it and insert
+            eval_copy = {k: v for k, v in evaluation_data.items() if k != 'short_id'}
+            supabase.table('assessment_evaluations').insert(eval_copy).execute()
         
         print(f"DEBUG: Evaluation completed successfully")
         return feedback_response
@@ -1830,13 +1842,20 @@ async def get_evaluation_history(user_id: str):
 
 @api_router.get("/evaluations/{evaluation_id}")
 async def get_evaluation_by_id(evaluation_id: str):
-    """Public endpoint to fetch a single evaluation by its ID for shareable links"""
+    """Public endpoint to fetch a single evaluation by its ID or short_id for shareable links"""
     try:
+        # Try full UUID first
         response = supabase.table('assessment_evaluations').select('*').eq('id', evaluation_id).execute()
         data = response.data or []
         if not data:
+            # Fallback to short_id if column exists
+            try:
+                response2 = supabase.table('assessment_evaluations').select('*').eq('short_id', evaluation_id).execute()
+                data = response2.data or []
+            except Exception:
+                data = []
+        if not data:
             raise HTTPException(status_code=404, detail="Evaluation not found")
-        # Optionally, you could strip sensitive fields here if needed
         return {"evaluation": data[0]}
     except HTTPException:
         raise

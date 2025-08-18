@@ -3709,7 +3709,10 @@ const App = () => {
         if (session?.user?.id) {
           setUser(session.user);
           loadUserData(session.user);
-          // Do not hard-redirect; stay on current route
+          // If already signed in and currently on landing, go to dashboard
+          if (typeof window !== 'undefined' && window.location.pathname === '/') {
+            navigate('/dashboard', { replace: true });
+          }
         } else {
           setUser(null);
           setUserStats({ questionsMarked: 0, credits: 3, currentPlan: 'free' });
@@ -3740,7 +3743,10 @@ const App = () => {
             loadUserData(session.user);
             // Ensure clean URL after sign-in
             window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
-            // Do not hard-redirect after sign-in
+            // Only redirect from landing to dashboard
+            if (typeof window !== 'undefined' && window.location.pathname === '/') {
+              navigate('/dashboard', { replace: true });
+            }
           }
           break;
         case 'SIGNED_OUT':
@@ -4176,9 +4182,10 @@ const App = () => {
       }));
       }
       
-      // Navigate to shareable public results page
-      if (response?.data?.id) {
-        navigate(`/results/${response.data.id}`);
+      // Navigate to shareable public results page (prefer short_id if present)
+      const resultId = response?.data?.short_id || response?.data?.id;
+      if (resultId) {
+        navigate(`/results/${resultId}`);
       } else {
         navigate(`/dashboard`);
       }
