@@ -25,6 +25,11 @@ import io
 # Supabase connection
 from supabase import create_client, Client
 
+# Dodo Payments integration
+from subscription_service import SubscriptionService
+from dodo_payments_client import create_webhook_validator
+import standardwebhooks
+
 ROOT_DIR = Path(__file__).resolve().parent
 # Force-load backend/.env regardless of working directory; allow overriding empty envs
 load_dotenv(dotenv_path=ROOT_DIR / '.env', override=True)
@@ -186,265 +191,13 @@ class TransactionModel(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-# PayU Config (use environment variables for secrets; no defaults)
-PAYU_CLIENT_ID = os.environ.get("PAYU_CLIENT_ID")
-PAYU_CLIENT_SECRET = os.environ.get("PAYU_CLIENT_SECRET")
-PAYU_MERCHANT_KEY = os.environ.get("PAYU_MERCHANT_KEY")
-PAYU_BASE_URL = "https://secure.payu.in"
+# Payment Config - Ready for DodoPayments integration
 USD_TO_INR = 86.6
 MIN_USD = 3
-def sha512_hex(value: str) -> str:
-    return hashlib.sha512(value.encode('utf-8')).hexdigest()
 
-def generate_upi_hash(merchant_key: str, salt: str, txnid: str, amount: str, productinfo: str, firstname: str, email: str, udf1: str = '', udf2: str = '', udf3: str = '', udf4: str = '', udf5: str = '') -> str:
-    # Format: sha512(key|txnid|amount|productinfo|firstname|email|udf1|udf2|udf3|udf4|udf5||||||SALT)
-    base = f"{merchant_key}|{txnid}|{amount}|{productinfo}|{firstname}|{email}|{udf1}|{udf2}|{udf3}|{udf4}|{udf5}||||||{salt}"
-    return sha512_hex(base)
+# PayU endpoints removed - ready for DodoPayments integration
 
-@api_router.post("/payment/upi")
-async def init_upi_payment(payload: Dict[str, Any]):
-    """Create an HTML form to submit to PayU for UPI payment and auto-submit it."""
-    try:
-        merchant_key = os.environ.get("PAYU_MERCHANT_KEY")
-        salt = os.environ.get("PAYU_SALT")
-        base_url = os.environ.get("PAYU_BASE_URL", PAYU_BASE_URL)
-        notify_url = os.environ.get("PAYU_NOTIFY_URL", "")
-        if not merchant_key or not salt:
-            raise HTTPException(status_code=500, detail="PayU keys not configured")
-
-        amount = str(payload.get("amount", "0.00"))
-        productinfo = payload.get("productinfo", "EnglishGPT Plan")
-        firstname = payload.get("firstname", "User")
-        email = payload.get("email", "user@example.com")
-        vpa = payload.get("vpa", "")
-        user_id = payload.get("user_id", "")
-        plan_id = payload.get("plan_id", "")
-        if not vpa:
-            raise HTTPException(status_code=400, detail="VPA is required")
-
-        txnid = uuid.uuid4().hex[:20]
-        hash_value = generate_upi_hash(merchant_key, salt, txnid, amount, productinfo, firstname, email)
-
-        # Success/Failure URLs
-        origin = os.environ.get("PUBLIC_ORIGIN", "https://englishgpt.everythingenglish.xyz")
-        surl = f"{origin}/dashboard?payu=success"
-        furl = f"{origin}/dashboard?payu=failure"
-
-        form_fields = {
-            "key": merchant_key,
-            "txnid": txnid,
-            "amount": amount,
-            "productinfo": productinfo,
-            "firstname": firstname,
-            "email": email,
-            "pg": "UPI",
-            "bankcode": "UPI",
-            "vpa": vpa,
-            "hash": hash_value,
-            "surl": surl,
-            "furl": furl,
-            "udf1": user_id,
-            "udf2": plan_id,
-            "notify_url": notify_url or "",
-        }
-
-        action_url = f"{base_url}/_payment"
-        inputs = "".join([f'<input type="hidden" name="{k}" value="{str(v)}" />' for k, v in form_fields.items() if v is not None])
-        html = f"""
-<!DOCTYPE html>
-<html><head><meta charset='utf-8'><title>Redirecting…</title></head>
-<body onload="document.forms[0].submit()">
-  <p>Redirecting to PayU… Please wait.</p>
-  <form method="post" action="{action_url}">
-    {inputs}
-    <noscript><button type="submit">Continue</button></noscript>
-  </form>
-</body></html>"""
-        return {"html": html, "txnid": txnid}
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@api_router.post("/payu-webhook")
-async def payu_webhook(request: Request):
-    """Handle PayU webhook callbacks (x-www-form-urlencoded)."""
-    try:
-        salt = os.environ.get("PAYU_SALT")
-        merchant_key = os.environ.get("PAYU_MERCHANT_KEY")
-        if not salt or not merchant_key:
-            raise HTTPException(status_code=500, detail="PayU keys not configured")
-
-        form = await request.form()
-        data = {k: form.get(k) for k in form.keys()}
-
-        # Extract essentials
-        status = data.get("status", "")
-        txnid = data.get("txnid", "")
-        amount = data.get("amount", "")
-        productinfo = data.get("productinfo", "")
-        email = data.get("email", "")
-        firstname = data.get("firstname", "")
-        mihpayid = data.get("mihpayid", "")
-        received_hash = data.get("hash", "")
-        udf1 = data.get("udf1", "")  # user_id
-        udf2 = data.get("udf2", "")  # plan_id
-
-        # Verify hash for response: sha512(salt|status||||||udf5|udf4|udf3|udf2|udf1|email|firstname|productinfo|amount|txnid|key)
-        reverse_sequence = f"{salt}|{status}||||||{data.get('udf5','')}|{data.get('udf4','')}|{data.get('udf3','')}|{udf2}|{udf1}|{email}|{firstname}|{productinfo}|{amount}|{txnid}|{merchant_key}"
-        computed = sha512_hex(reverse_sequence)
-        if received_hash != computed:
-            raise HTTPException(status_code=400, detail="Invalid hash")
-
-        # Update Supabase: store transaction and set plan if success
-        try:
-            supabase.table('assessment_transactions').insert({
-                'order_id': txnid,
-                'user_email': email,
-                'amount_inr': int(float(amount) * 86.6) if amount else 0,
-                'status': status
-            }).execute()
-        except Exception:
-            pass
-
-        if status.lower() == 'success' and udf1:
-            try:
-                supabase.table('assessment_users').update({'current_plan': 'unlimited', 'updated_at': datetime.utcnow().isoformat()}).eq('uid', udf1).execute()
-            except Exception:
-                pass
-
-        return JSONResponse({"ok": True})
-    except HTTPException:
-        raise
-    except Exception as e:
-        return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
-
-async def get_payu_access_token():
-    if not PAYU_CLIENT_ID or not PAYU_CLIENT_SECRET:
-        raise HTTPException(status_code=500, detail="PayU client credentials not configured.")
-    data = {
-        "grant_type": "client_credentials",
-        "client_id": PAYU_CLIENT_ID,
-        "client_secret": PAYU_CLIENT_SECRET
-    }
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
-    async with httpx.AsyncClient() as client:
-        r = await client.post(f"{PAYU_BASE_URL}/pl/standard/user/oauth/authorize", data=data, headers=headers)
-        r.raise_for_status()
-        return r.json()["access_token"]
-
-@api_router.post("/payment/create")
-async def create_payment_order(body: dict):
-    usd = float(body.get("amount", 0))
-    email = body.get("email")
-    inr = int(usd * USD_TO_INR)
-    amount_paise = inr * 100
-    try:
-        token = await get_payu_access_token()
-    except Exception as e:
-        return JSONResponse({"error": f"PayU auth failed: {str(e)}"}, status_code=500)
-    ext_order_id = f"ORDER_{email}_{inr}_{uuid.uuid4().hex[:8]}"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json"
-    }
-    if not PAYU_MERCHANT_KEY:
-        raise HTTPException(status_code=500, detail="PayU merchant key not configured.")
-    payload = {
-        "customerIp": "127.0.0.1",
-        "merchantPosId": PAYU_MERCHANT_KEY,
-        "description": "Credit Purchase",
-        "currencyCode": "INR",
-        "totalAmount": str(amount_paise),
-        "extOrderId": ext_order_id,
-        "notifyUrl": os.environ.get("PAYU_NOTIFY_URL", "https://englishgpt.org/api/payment/webhook"),
-        "products": [{
-            "name": "Credits",
-            "unitPrice": str(amount_paise),
-            "quantity": "1"
-        }]
-    }
-    try:
-        async with httpx.AsyncClient() as client:
-            r = await client.post(f"{PAYU_BASE_URL}/api/v2_1/orders", json=payload, headers=headers)
-        if r.status_code != 200:
-            return JSONResponse({"error": "Unable to create PayU order", "details": r.text}, status_code=500)
-        data = r.json()
-        # Save transaction as pending
-        tx_data = {
-            "order_id": ext_order_id,
-            "user_email": email,
-            "amount_inr": inr,
-            "status": "PENDING",
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat()
-        }
-        supabase.table('assessment_transactions').insert(tx_data).execute()
-        return {"redirectUri": data["redirectUri"]}
-    except Exception as e:
-        return JSONResponse({"error": f"PayU order error: {str(e)}"}, status_code=500)
-
-@api_router.post("/payment/webhook")
-async def payu_webhook(data: dict):
-    order_id = data.get("extOrderId")
-    status = data.get("status")
-    amount_paise = int(data.get("totalAmount", 0))
-    inr_paid = amount_paise // 100
-    
-    # Find transaction
-    tx_response = supabase.table('assessment_transactions').select('*').eq('order_id', order_id).execute()
-    
-    if not tx_response.data:
-        # Create record if not found
-        tx_data = {
-            "order_id": order_id,
-            "user_email": "",
-            "amount_inr": inr_paid,
-            "status": status,
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat()
-        }
-        supabase.table('assessment_transactions').insert(tx_data).execute()
-        tx_data = tx_data
-    else:
-        tx_data = tx_response.data[0]
-    
-    # Only award credits if SUCCESS and not already marked as SUCCESS
-    if status == "SUCCESS" and tx_data.get("status") != "SUCCESS":
-        # Extract email from order_id
-        try:
-            user_email = order_id.split("_")[1]
-        except Exception:
-            user_email = None
-        if user_email:
-            # Find user by email and update credits
-            user_response = supabase.table('assessment_users').select('*').eq('email', user_email).execute()
-            if user_response.data:
-                user_data = user_response.data[0]
-                current_credits = user_data.get('credits', 0)
-                new_credits = current_credits + inr_paid
-                supabase.table('assessment_users').update({
-                    "credits": new_credits,
-                    "updated_at": datetime.utcnow().isoformat()
-                }).eq('uid', user_data['uid']).execute()
-        
-        # Update transaction status
-        if tx_response.data:
-            supabase.table('assessment_transactions').update({
-                "status": "SUCCESS", 
-                "user_email": user_email, 
-                "amount_inr": inr_paid, 
-                "updated_at": datetime.utcnow().isoformat()
-            }).eq('order_id', order_id).execute()
-        return "OK"
-    else:
-        # Update transaction status
-        if tx_response.data:
-            supabase.table('assessment_transactions').update({
-                "status": status, 
-                "updated_at": datetime.utcnow().isoformat()
-            }).eq('order_id', order_id).execute()
-        return "FAILED"
+# Payment endpoints removed - ready for DodoPayments integration
 
 # Question Types Configuration
 QUESTION_TYPES = [
@@ -1221,16 +974,15 @@ async def evaluate_submission(submission: SubmissionRequest):
         
         print(f"DEBUG: User plan: {current_plan}, credits: {credits}")
         
-        # Enforce free plan limit: free users get 3 total evaluations
-        # Unlimited plan has no limits; force bypass
-        plan_lower = (current_plan or '').lower()
-        if plan_lower == 'free':
+        # Check subscription status for access control
+        has_active_subscription = await subscription_service._check_user_subscription_access(submission.user_id)
+        
+        # Enforce access limits based on subscription status
+        if not has_active_subscription:
+            # Free users get 3 total evaluations
             if questions_marked >= 3:
                 raise HTTPException(status_code=402, detail="Free plan limit reached. Upgrade to Unlimited to continue.")
-        elif plan_lower == 'unlimited':
-            pass  # no limits
-        else:
-            pass  # other paid plans currently unrestricted
+        # Users with active subscription have unlimited access
         
         # Check if question type requires marking scheme
         requires_marking_scheme = submission.question_type in ['igcse_summary', 'alevel_comparative', 'alevel_text_analysis']
@@ -1874,7 +1626,7 @@ async def get_user_analytics(user_id: str):
                         "-Keep practicing and improving\n"
                     )
                     user_prompt = (
-                        "Based on the averageScore and improvementSuggestions of questionType for this student please reccomend the future steps this student should take to improve, "
+                        "Based on the averageScore and improvementSuggestions of questionType for this student please Womend the future steps this student should take to improve, "
                         "use this knowledge of how to improve in english guide below, to guide you, answer in bullet points and write talking like a human talking to another human, so say words like \"you should\":\n\n"
                         f"Data: {json.dumps(summaries)}\n\nGuide:\n{guide}"
                     )
@@ -2107,3 +1859,207 @@ async def submit_feedback(feedback: FeedbackSubmitModel):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Feedback save error: {str(e)}")
+
+# Subscription API endpoints
+subscription_service = SubscriptionService(supabase)
+
+@api_router.post("/subscriptions/create-checkout")
+async def create_subscription_checkout(request: dict):
+    """Create a checkout session for subscription"""
+    try:
+        user_id = request.get('userId')
+        plan_type = request.get('planType')
+        metadata = request.get('metadata', {})
+        
+        if not user_id:
+            raise HTTPException(status_code=400, detail="User ID is required")
+        if not plan_type or plan_type not in ['monthly', 'yearly']:
+            raise HTTPException(status_code=400, detail="Valid plan type is required")
+        
+        result = await subscription_service.create_checkout_session(user_id, plan_type, metadata)
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Checkout creation failed: {str(e)}")
+
+@api_router.get("/subscriptions/status")
+async def get_subscription_status(user_id: str):
+    """Get user's subscription status"""
+    try:
+        if not user_id:
+            raise HTTPException(status_code=400, detail="User ID is required")
+        
+        status = await subscription_service.get_subscription_status(user_id)
+        return status.dict()
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get subscription status: {str(e)}")
+
+@api_router.post("/subscriptions/cancel")
+async def cancel_subscription(request: dict):
+    """Cancel user's subscription"""
+    try:
+        user_id = request.get('userId')
+        subscription_id = request.get('subscriptionId')
+        cancel_at_period_end = request.get('cancelAtPeriodEnd', True)
+        
+        if not user_id:
+            raise HTTPException(status_code=400, detail="User ID is required")
+        if not subscription_id:
+            raise HTTPException(status_code=400, detail="Subscription ID is required")
+        
+        result = await subscription_service.cancel_subscription(user_id, subscription_id, cancel_at_period_end)
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Subscription cancellation failed: {str(e)}")
+
+@api_router.post("/subscriptions/reactivate")
+async def reactivate_subscription(request: dict):
+    """Reactivate user's subscription"""
+    try:
+        user_id = request.get('userId')
+        subscription_id = request.get('subscriptionId')
+        
+        if not user_id:
+            raise HTTPException(status_code=400, detail="User ID is required")
+        if not subscription_id:
+            raise HTTPException(status_code=400, detail="Subscription ID is required")
+        
+        result = await subscription_service.reactivate_subscription(user_id, subscription_id)
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Subscription reactivation failed: {str(e)}")
+
+@api_router.post("/subscriptions/customer-portal")
+async def create_customer_portal_session(request: dict):
+    """Create customer portal session for payment method management"""
+    try:
+        user_id = request.get('userId')
+        
+        if not user_id:
+            raise HTTPException(status_code=400, detail="User ID is required")
+        
+        result = await subscription_service.create_customer_portal_session(user_id)
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Customer portal creation failed: {str(e)}")
+
+@api_router.get("/subscriptions/billing-history")
+async def get_billing_history(user_id: str, limit: int = 50):
+    """Get user's billing history"""
+    try:
+        if not user_id:
+            raise HTTPException(status_code=400, detail="User ID is required")
+        
+        history = await subscription_service.get_billing_history(user_id, limit)
+        return {"data": [item.dict() for item in history]}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get billing history: {str(e)}")
+
+@api_router.post("/webhooks/dodo")
+async def handle_dodo_webhook(request: Request):
+    """Handle Dodo Payments webhooks"""
+    try:
+        # Get request headers and body
+        signature = request.headers.get('Dodo-Signature')
+        timestamp = request.headers.get('Dodo-Timestamp')
+        
+        if not signature or not timestamp:
+            raise HTTPException(status_code=400, detail="Missing webhook signature or timestamp")
+        
+        body = await request.body()
+        
+        # Verify webhook signature
+        webhook_validator = create_webhook_validator()
+        
+        if not webhook_validator.verify_signature(body, signature, timestamp):
+            raise HTTPException(status_code=400, detail="Invalid webhook signature")
+        
+        if not webhook_validator.is_timestamp_valid(timestamp):
+            raise HTTPException(status_code=400, detail="Webhook timestamp too old")
+        
+        # Parse webhook payload
+        try:
+            payload = json.loads(body.decode('utf-8'))
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=400, detail="Invalid JSON payload")
+        
+        event_type = payload.get('type')
+        event_id = payload.get('id')
+        event_data = payload.get('data', {})
+        
+        if not event_type or not event_id:
+            raise HTTPException(status_code=400, detail="Invalid webhook payload")
+        
+        # Check if event already processed (idempotency)
+        existing_event = supabase.table('dodo_webhook_events').select('processed').eq('dodo_event_id', event_id).execute()
+        
+        if existing_event.data and existing_event.data[0].get('processed'):
+            return {"status": "already_processed"}
+        
+        # Store webhook event
+        webhook_record = {
+            "id": str(uuid.uuid4()),
+            "event_type": event_type,
+            "dodo_event_id": event_id,
+            "processed": False,
+            "payload": payload,
+            "created_at": datetime.utcnow().isoformat()
+        }
+        
+        try:
+            # Insert webhook event record
+            supabase.table('dodo_webhook_events').insert(webhook_record).execute()
+            
+            # Process the webhook based on event type
+            if event_type.startswith('subscription.'):
+                await subscription_service.handle_subscription_webhook(event_type, event_data)
+            elif event_type.startswith('payment.'):
+                await subscription_service.handle_payment_webhook(event_type, event_data)
+            elif event_type.startswith('customer.'):
+                # Handle customer events if needed
+                pass
+            else:
+                logger.warning(f"Unhandled webhook event type: {event_type}")
+            
+            # Mark event as processed
+            supabase.table('dodo_webhook_events').update({
+                "processed": True,
+                "processed_at": datetime.utcnow().isoformat()
+            }).eq('dodo_event_id', event_id).execute()
+            
+            return {"status": "processed"}
+            
+        except Exception as processing_error:
+            logger.error(f"Webhook processing failed: {processing_error}")
+            
+            # Update webhook record with error
+            supabase.table('dodo_webhook_events').update({
+                "error_message": str(processing_error),
+                "retry_count": 1
+            }).eq('dodo_event_id', event_id).execute()
+            
+            # Return 500 to trigger Dodo Payments retry
+            raise HTTPException(status_code=500, detail="Webhook processing failed")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Webhook handling failed: {e}")
+        raise HTTPException(status_code=500, detail="Webhook handling failed")

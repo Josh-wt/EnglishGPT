@@ -3,6 +3,9 @@ import './App.css';
 import axios from 'axios';
 import { supabase } from './supabaseClient';
 import { Routes, Route, useParams, useNavigate, useLocation } from 'react-router-dom';
+import subscriptionService from './subscriptionService';
+import toast, { Toaster } from 'react-hot-toast';
+import SubscriptionDashboard from './SubscriptionDashboard';
 // Removed charts for a clean card-based analytics UI
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -10,60 +13,31 @@ const API = `${BACKEND_URL}/api`;
 
 // Supabase configuration is now in supabaseClient.js
 
-// Region Select Modal
-const RegionSelectModal = ({ isOpen, onClose, onSelect }) => {
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-md mx-4 rounded-2xl bg-white/95 backdrop-blur-xl border border-purple-200/60 shadow-2xl p-6">
-        <h3 className="text-xl font-fredoka font-bold mb-2">Where are you located?</h3>
-        <p className="text-sm text-gray-600 mb-4">We’ll tailor the payment method for your region.</p>
-        <div className="grid gap-3">
-          <button onClick={() => onSelect('indian')} className="px-4 py-3 rounded-xl text-white bg-gradient-to-br from-purple-500 to-purple-700 shadow-lg">I’m in India</button>
-          <button onClick={() => onSelect('international')} className="px-4 py-3 rounded-xl border border-purple-300/60 text-purple-700 hover:bg-purple-50/70">I’m International</button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// UPI Payment Modal
-const UPIPaymentModal = ({ isOpen, onClose, amountLabel, onSubmit }) => {
-  const [vpa, setVpa] = useState('');
-  const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  if (!isOpen) return null;
-  const validateVpa = (value) => /^[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}$/.test(value);
-  const handleSubmit = async () => {
-    if (!validateVpa(vpa)) {
-      setError('Enter a valid UPI ID, e.g., user@paytm');
-      return;
-    }
-    setError('');
-    setSubmitting(true);
-    try { await onSubmit(vpa); } finally { setSubmitting(false); }
-  };
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-md mx-4 rounded-2xl bg-white/95 backdrop-blur-xl border border-purple-200/60 shadow-2xl p-6">
-        <h3 className="text-xl font-fredoka font-bold mb-2">Pay with UPI</h3>
-        <p className="text-sm text-gray-600 mb-4">Amount: {amountLabel}</p>
-        <label className="block text-sm text-gray-700 mb-1">UPI ID (VPA)</label>
-        <input value={vpa} onChange={(e)=>setVpa(e.target.value)} placeholder="user@paytm" className="w-full border rounded-lg px-3 py-2 mb-2" />
-        {error && <div className="text-sm text-red-600 mb-2">{error}</div>}
-        <div className="flex gap-3 justify-end mt-2">
-          <button onClick={onClose} className="px-4 py-2 rounded-lg border">Cancel</button>
-          <button disabled={submitting} onClick={handleSubmit} className="px-4 py-2 rounded-lg text-white bg-gradient-to-br from-purple-500 to-purple-700 shadow-lg">{submitting ? 'Processing…' : 'Pay Now'}</button>
-        </div>
-      </div>
-    </div>
-  );
-};
+// PayU modals removed - ready for DodoPayments integration
 
 // Pricing Page Component
-const PricingPage = ({ onBack, handlePlanSelect, onBuyPlan }) => {
+const PricingPage = ({ onBack, user }) => {
+  const [loading, setLoading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+
+  const handlePlanSelect = async (planType) => {
+    if (!user?.id) {
+      toast.error('Please sign in to subscribe');
+      return;
+    }
+
+    setSelectedPlan(planType);
+    setLoading(true);
+
+    try {
+      await subscriptionService.redirectToCheckout(user.id, planType);
+    } catch (error) {
+      console.error('Plan selection failed:', error);
+    } finally {
+      setLoading(false);
+      setSelectedPlan(null);
+    }
+  };
   const sharedFeatures = [
     "Unlimited essay marking",
     "Advanced analytics and insights",
@@ -128,7 +102,7 @@ const PricingPage = ({ onBack, handlePlanSelect, onBuyPlan }) => {
           </div>
 
           <button 
-            onClick={() => onBuyPlan(monthlyPlan)}
+            onClick={() => handlePlanSelect('monthly')}
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-4 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 font-fredoka text-lg"
           >
             Get Unlimited - $4.99/m
@@ -167,7 +141,7 @@ const PricingPage = ({ onBack, handlePlanSelect, onBuyPlan }) => {
           </div>
 
           <button 
-            onClick={() => onBuyPlan(yearlyPlan)}
+            onClick={() => handlePlanSelect('yearly')}
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-4 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 font-fredoka text-lg"
           >
             Get Unlimited - $49/year
@@ -1463,7 +1437,7 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
 };
 
 // UPDATED Dashboard Page - Always Navigate to Analytics/History with Mobile Social Links in Profile Menu
-const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAnalytics, onAccountSettings, userStats, user, darkMode, onSignOut }) => {
+const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAnalytics, onAccountSettings, onSubscription, userStats, user, darkMode, onSignOut }) => {
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   
   // Helper function to check if user has unlimited access
@@ -1767,6 +1741,19 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                         Account Settings
+                      </button>
+                      
+                      <button 
+                        onClick={() => {
+                          onSubscription();
+                          setShowAccountDropdown(false);
+                        }}
+                        className="w-full px-4 py-2 text-left font-fredoka text-gray-700 hover:bg-gray-100 flex items-center"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        Subscription
                       </button>
                       
                       <div className="border-t border-gray-100"></div>
@@ -2646,11 +2633,6 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackAccurate, setFeedbackAccurate] = useState(null);
   const [feedbackComments, setFeedbackComments] = useState('');
-  // Payment UI state
-  const [showRegionModal, setShowRegionModal] = useState(false);
-  const [showUpiModal, setShowUpiModal] = useState(false);
-  const [showInternationalNotice, setShowInternationalNotice] = useState(false);
-  const [pendingPlan, setPendingPlan] = useState(null);
   const routerLocation = useLocation();
   const modalRef = useRef(null);
   const firstModalButtonRef = useRef(null);
@@ -3475,12 +3457,6 @@ const App = () => {
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackAccurate, setFeedbackAccurate] = useState(null);
   const [feedbackComments, setFeedbackComments] = useState('');
-  // Payment UI state
-  const [showRegionModal, setShowRegionModal] = useState(false);
-  const [showUpiModal, setShowUpiModal] = useState(false);
-  const [showInternationalNotice, setShowInternationalNotice] = useState(false);
-  const [pendingPlan, setPendingPlan] = useState(null);
-  
   // Additional loading states for different operations
   const [loadingStates, setLoadingStates] = useState({
     userUpdate: false,
@@ -3495,46 +3471,7 @@ const App = () => {
     setLoadingStates(prev => ({ ...prev, [key]: value }));
   };
 
-  // Region selection handler (saves to localStorage)
-  const handleRegionSelect = (region) => {
-    try { if (typeof window !== 'undefined') localStorage.setItem('eg_region', region); } catch {}
-    setShowRegionModal(false);
-    if (region === 'indian') {
-      setShowUpiModal(true);
-    } else {
-      setShowInternationalNotice(true);
-    }
-  };
-
-  // Start UPI payment
-  const startUpiPayment = async (vpa) => {
-    if (!pendingPlan || !user) return;
-    try {
-      const amount = pendingPlan.id === 'unlimited_yearly' ? 49 : 4.99;
-      const payload = {
-        amount: amount.toFixed(2),
-        productinfo: pendingPlan.name,
-        email: user.email,
-        firstname: (user.user_metadata?.full_name || user.email || 'User').split(' ')[0],
-        vpa,
-        user_id: user.id || user.uid,
-        plan_id: pendingPlan.id,
-      };
-      const res = await axios.post(`${API}/payment/upi`, payload, { headers: { 'Content-Type': 'application/json' } });
-      // Backend returns an HTML form that auto-submits; open in a new window
-      const html = res.data?.html;
-      if (html) {
-        const w = window.open('', '_self');
-        if (w) { w.document.write(html); w.document.close(); }
-      }
-    } catch (e) {
-      console.error('UPI payment init failed', e);
-      setErrorMessage('Payment initialization failed. Please try again.');
-      setShowErrorModal(true);
-    } finally {
-      setShowUpiModal(false);
-    }
-  };
+  // PayU functions removed - ready for DodoPayments integration
 
   // --- Tab routing: sync URL <-> currentPage ---
   const routerLocation = useLocation();
@@ -4118,6 +4055,7 @@ const handleSignOut = async () => {
             onHistory={() => setCurrentPage('history')}
             onAnalytics={() => setCurrentPage('analytics')}
             onAccountSettings={() => setCurrentPage('accountSettings')}
+            onSubscription={() => setCurrentPage('subscription')}
             userStats={userStats}
             user={user}
             darkMode={darkMode}
@@ -4155,21 +4093,14 @@ const handleSignOut = async () => {
         {currentPage === 'pricing' && (
           <PricingPage 
             onBack={handleBack}
-            handlePlanSelect={handleSelectPlan}
-            onBuyPlan={(plan) => {
-              // Region select or reuse from localStorage
-              const saved = typeof window !== 'undefined' ? localStorage.getItem('eg_region') : null;
-              if (!saved) {
-                setShowRegionModal(true);
-                setPendingPlan(plan);
-              } else if (saved === 'indian') {
-                setPendingPlan(plan);
-                setShowUpiModal(true);
-              } else {
-                setPendingPlan(plan);
-                setShowInternationalNotice(true);
-              }
-            }}
+            user={user}
+          />
+        )}
+        {currentPage === 'subscription' && (
+          <SubscriptionDashboard
+            user={user}
+            onBack={handleBack}
+            darkMode={darkMode}
           />
         )}
         {currentPage === 'history' && (
@@ -4489,30 +4420,17 @@ const handleSignOut = async () => {
               onClose={() => setShowShortcutsHelp(false)}
             />
             
-            {/* Payment/Region Modals */}
-            <RegionSelectModal
-              isOpen={showRegionModal}
-              onClose={() => setShowRegionModal(false)}
-              onSelect={handleRegionSelect}
+            {/* Toast notifications */}
+            <Toaster 
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: darkMode ? '#374151' : '#ffffff',
+                  color: darkMode ? '#ffffff' : '#000000',
+                },
+              }}
             />
-            <UPIPaymentModal
-              isOpen={showUpiModal}
-              onClose={() => setShowUpiModal(false)}
-              amountLabel={pendingPlan?.id === 'unlimited_yearly' ? '$49.00' : '$4.99'}
-              onSubmit={startUpiPayment}
-            />
-            {showInternationalNotice && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center">
-                <div className="absolute inset-0 bg-black/40" onClick={() => setShowInternationalNotice(false)} />
-                <div className="relative w-full max-w-md mx-4 rounded-2xl bg-white/95 backdrop-blur-xl border border-purple-200/60 shadow-2xl p-6">
-                  <h3 className="text-xl font-fredoka font-bold mb-2">International Payments</h3>
-                  <p className="text-sm text-gray-700 mb-4">International payments will be processed via DodoPayments soon. For now, please contact support or choose the India option if you have a UPI ID.</p>
-                  <div className="flex justify-end">
-                    <button onClick={() => setShowInternationalNotice(false)} className="px-4 py-2 rounded-lg text-white bg-gradient-to-br from-purple-500 to-purple-700">OK</button>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         }
       />

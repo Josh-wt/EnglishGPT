@@ -3,6 +3,7 @@
 backend/.env
 backend/.env.txt
 frontend/.env
+DODO_DEPLOYMENT_GUIDE.md
 
 # IDE and editors
 .idea/
