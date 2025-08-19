@@ -26,20 +26,28 @@ import io
 from supabase import create_client, Client
 
 # Dodo Payments integration
-from subscription_service import SubscriptionService
-from dodo_payments_client import create_webhook_validator
-import standardwebhooks
+try:
+    from subscription_service import SubscriptionService
+    from dodo_payments_client import create_webhook_validator
+    import standardwebhooks
+    DODO_INTEGRATION_AVAILABLE = True
+except ImportError as e:
+    print(f"Dodo Payments integration not available: {e}")
+    SubscriptionService = None
+    create_webhook_validator = None
+    DODO_INTEGRATION_AVAILABLE = False
 
 ROOT_DIR = Path(__file__).resolve().parent
+
 # Force-load backend/.env regardless of working directory; allow overriding empty envs
 load_dotenv(dotenv_path=ROOT_DIR / '.env', override=True)
 
 # Supabase connection
 SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://zwrwtqspeyajttnuzwkl.supabase.co')
+
 # Use service role key for backend operations (bypasses RLS)
 SUPABASE_KEY = (
-    os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
-    or os.environ.get('SUPABASE_KEY')
+    os.environ.get('SUPABASE_SERVICE_ROLE_KEY') or os.environ.get('SUPABASE_KEY')
 )
 
 if not SUPABASE_KEY:
@@ -47,6 +55,7 @@ if not SUPABASE_KEY:
     logging.warning(
         "SUPABASE_SERVICE_ROLE_KEY is not set. Ensure backend/.env exists and python-dotenv loads it."
     )
+
 # Initialize Supabase client
 try:
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -58,27 +67,39 @@ except Exception as e:
 # Create the main app without a prefix
 app = FastAPI()
 
-# Add CORS middleware for frontend
+# Add CORS middleware for frontend - FIXED VERSION
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-"http://localhost:3000",
+        "http://localhost:3000",
         "http://localhost:3001", 
         "http://localhost:3002",
         "http://localhost:3003",
         "http://localhost:3004",
         "http://localhost:5000",
         "http://localhost:5001",
-        "http://13.233.183.229",      # Your server IP
-        "https://13.233.183.229",     # For future HTTPS
-        "https://englishgpt.org",     # Your domain
-        "https://www.englishgpt.org",   # WWW subdomain
-        "https://englishgpt.org/dashboard", # Dashboard URL
-        "https://englishgpt.everythingenglish.xyz" # Dashboard URL
+        "http://13.233.183.229",  # Your server IP
+        "https://13.233.183.229",  # For future HTTPS
+        "https://englishgpt.org",  # Your domain
+        "https://www.englishgpt.org",  # WWW subdomain
+        "https://englishgpt.everythingenglish.xyz",  # Primary domain
+        "http://englishgpt.everythingenglish.xyz"  # HTTP version for development
     ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=[
+        "Accept",
+        "Accept-Language", 
+        "Content-Language",
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "Origin",
+        "Access-Control-Request-Method",
+        "Access-Control-Request-Headers"
+    ],
+    expose_headers=["*"],
+    max_age=3600,
 )
 
 # Create a router with the /api prefix
@@ -1861,11 +1882,17 @@ async def submit_feedback(feedback: FeedbackSubmitModel):
         raise HTTPException(status_code=500, detail=f"Feedback save error: {str(e)}")
 
 # Subscription API endpoints
-subscription_service = SubscriptionService(supabase)
+# Initialize subscription service if available
+if DODO_INTEGRATION_AVAILABLE and SubscriptionService:
+    subscription_service = SubscriptionService(supabase)
+else:
+    subscription_service = None
 
 @api_router.post("/subscriptions/create-checkout")
 async def create_subscription_checkout(request: dict):
     """Create a checkout session for subscription"""
+    if not subscription_service:
+        raise HTTPException(status_code=503, detail="Subscription service unavailable")
     try:
         user_id = request.get('userId')
         plan_type = request.get('planType')
@@ -1887,6 +1914,8 @@ async def create_subscription_checkout(request: dict):
 @api_router.get("/subscriptions/status")
 async def get_subscription_status(user_id: str):
     """Get user's subscription status"""
+    if not subscription_service:
+        raise HTTPException(status_code=503, detail="Subscription service unavailable")
     try:
         if not user_id:
             raise HTTPException(status_code=400, detail="User ID is required")
@@ -1902,6 +1931,8 @@ async def get_subscription_status(user_id: str):
 @api_router.post("/subscriptions/cancel")
 async def cancel_subscription(request: dict):
     """Cancel user's subscription"""
+    if not subscription_service:
+        raise HTTPException(status_code=503, detail="Subscription service unavailable")
     try:
         user_id = request.get('userId')
         subscription_id = request.get('subscriptionId')
@@ -1923,6 +1954,8 @@ async def cancel_subscription(request: dict):
 @api_router.post("/subscriptions/reactivate")
 async def reactivate_subscription(request: dict):
     """Reactivate user's subscription"""
+    if not subscription_service:
+        raise HTTPException(status_code=503, detail="Subscription service unavailable")
     try:
         user_id = request.get('userId')
         subscription_id = request.get('subscriptionId')
@@ -1943,6 +1976,8 @@ async def reactivate_subscription(request: dict):
 @api_router.post("/subscriptions/customer-portal")
 async def create_customer_portal_session(request: dict):
     """Create customer portal session for payment method management"""
+    if not subscription_service:
+        raise HTTPException(status_code=503, detail="Subscription service unavailable")
     try:
         user_id = request.get('userId')
         
@@ -1960,6 +1995,8 @@ async def create_customer_portal_session(request: dict):
 @api_router.get("/subscriptions/billing-history")
 async def get_billing_history(user_id: str, limit: int = 50):
     """Get user's billing history"""
+    if not subscription_service:
+        raise HTTPException(status_code=503, detail="Subscription service unavailable")
     try:
         if not user_id:
             raise HTTPException(status_code=400, detail="User ID is required")
@@ -1975,6 +2012,8 @@ async def get_billing_history(user_id: str, limit: int = 50):
 @api_router.post("/webhooks/dodo")
 async def handle_dodo_webhook(request: Request):
     """Handle Dodo Payments webhooks"""
+    if not subscription_service or not create_webhook_validator:
+        raise HTTPException(status_code=503, detail="Webhook service unavailable")
     try:
         # Get request headers and body
         signature = request.headers.get('Dodo-Signature')
