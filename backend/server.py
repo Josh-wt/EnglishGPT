@@ -1974,7 +1974,9 @@ async def get_evaluation_history(user_id: str):
 async def get_evaluation_by_id(evaluation_id: str):
     """Public endpoint to fetch a single evaluation by its ID or short_id for shareable links"""
     try:
+        print(f"DEBUG: Looking for evaluation_id: {evaluation_id}")
         data = []
+        
         # Try full UUID first, but only if it looks like a UUID to avoid PG uuid parse errors
         def _looks_like_uuid(value: str) -> bool:
             try:
@@ -1984,24 +1986,55 @@ async def get_evaluation_by_id(evaluation_id: str):
                 return False
 
         if _looks_like_uuid(evaluation_id):
+            print(f"DEBUG: Trying UUID query for {evaluation_id}")
             try:
                 response = supabase.table('assessment_evaluations').select('*').eq('id', evaluation_id).execute()
                 data = response.data or []
-            except Exception:
+                print(f"DEBUG: UUID query returned {len(data)} results")
+            except Exception as e:
+                print(f"DEBUG: UUID query failed: {e}")
                 data = []
+        
         if not data:
             # Fallback to short_id if column exists
+            print(f"DEBUG: Trying short_id query for {evaluation_id}")
             try:
                 response2 = supabase.table('assessment_evaluations').select('*').eq('short_id', evaluation_id).execute()
                 data = response2.data or []
-            except Exception:
+                print(f"DEBUG: short_id query returned {len(data)} results")
+            except Exception as e:
+                print(f"DEBUG: short_id query failed: {e}")
+                # If short_id column doesn't exist, try to find evaluation differently
+                # Maybe the short_id is actually part of the main ID or stored elsewhere
+                try:
+                    print(f"DEBUG: Trying fallback - searching all evaluations containing {evaluation_id}")
+                    # This is a fallback - get recent evaluations and check if any match
+                    response3 = supabase.table('assessment_evaluations').select('*').order('timestamp', desc=True).limit(50).execute()
+                    all_evals = response3.data or []
+                    print(f"DEBUG: Fallback search through {len(all_evals)} recent evaluations")
+                    # Look for evaluation where ID contains the short string or vice versa
+                    for eval_item in all_evals:
+                        eval_id = str(eval_item.get('id', ''))
+                        if evaluation_id in eval_id or eval_id.endswith(evaluation_id):
+                            print(f"DEBUG: Found match by ID pattern: {eval_id}")
+                            data = [eval_item]
+                            break
+                except Exception as e2:
+                    print(f"DEBUG: Fallback search also failed: {e2}")
                 data = []
+        
         if not data:
+            print(f"DEBUG: No evaluation found for {evaluation_id}")
             raise HTTPException(status_code=404, detail="Evaluation not found")
+        
+        print(f"DEBUG: Returning evaluation: {data[0].get('id')}")
         return {"evaluation": data[0]}
     except HTTPException:
         raise
     except Exception as e:
+        print(f"ERROR in get_evaluation_by_id: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @api_router.get("/transactions/{user_id}")
