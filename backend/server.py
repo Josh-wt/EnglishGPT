@@ -67,7 +67,24 @@ except Exception as e:
 # Create the main app without a prefix
 app = FastAPI()
 
-# Add CORS middleware for frontend - FIXED VERSION
+# CORS middleware with comprehensive debugging
+@app.middleware("http")
+async def cors_debug_middleware(request: Request, call_next):
+    origin = request.headers.get("origin")
+    method = request.method
+    
+    print(f"🌐 CORS DEBUG: {method} {request.url}")
+    print(f"🌐 Origin: {origin}")
+    print(f"🌐 Headers: {dict(request.headers)}")
+    
+    response = await call_next(request)
+    
+    print(f"🌐 Response status: {response.status_code}")
+    print(f"🌐 Response headers: {dict(response.headers)}")
+    
+    return response
+
+# Add CORS middleware for frontend - COMPREHENSIVE VERSION
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -83,21 +100,12 @@ app.add_middleware(
         "https://englishgpt.org",  # Your domain
         "https://www.englishgpt.org",  # WWW subdomain
         "https://englishgpt.everythingenglish.xyz",  # Primary domain
-        "http://englishgpt.everythingenglish.xyz"  # HTTP version for development
+        "http://englishgpt.everythingenglish.xyz",  # HTTP version for development
+        "*"  # Allow all origins for debugging (remove in production)
     ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allow_headers=[
-        "Accept",
-        "Accept-Language", 
-        "Content-Language",
-        "Content-Type",
-        "Authorization",
-        "X-Requested-With",
-        "Origin",
-        "Access-Control-Request-Method",
-        "Access-Control-Request-Headers"
-    ],
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
     expose_headers=["*"],
     max_age=3600,
 )
@@ -109,9 +117,36 @@ api_router = APIRouter(prefix="/api")
 async def root():
     return {"message": "English Marking AI API"}
 
+# Explicit OPTIONS handler for CORS preflight
+@api_router.options("/{path:path}")
+async def options_handler(request: Request):
+    origin = request.headers.get("origin", "*")
+    print(f"🔍 OPTIONS preflight request from {origin} for {request.url}")
+    
+    return JSONResponse(
+        content={"message": "CORS preflight successful"},
+        headers={
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Max-Age": "3600"
+        }
+    )
+
 @api_router.get("/test")
 async def test():
     return {"message": "Backend is working!", "supabase_connected": supabase is not None}
+
+@api_router.get("/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "message": "Backend is running",
+        "supabase_connected": supabase is not None,
+        "dodo_integration": DODO_INTEGRATION_AVAILABLE,
+        "subscription_service": subscription_service is not None
+    }
 
 @api_router.get("/test-user/{user_id}")
 async def test_user(user_id: str):
@@ -1888,9 +1923,20 @@ if DODO_INTEGRATION_AVAILABLE and SubscriptionService:
 else:
     subscription_service = None
 
+@api_router.get("/subscriptions/test")
+async def test_subscription_endpoint():
+    """Test endpoint for subscription service debugging"""
+    return {
+        "message": "Subscription endpoint accessible",
+        "service_available": subscription_service is not None,
+        "dodo_integration": DODO_INTEGRATION_AVAILABLE,
+        "cors_test": "✅ CORS working if you can see this"
+    }
+
 @api_router.post("/subscriptions/create-checkout")
 async def create_subscription_checkout(request: dict):
     """Create a checkout session for subscription"""
+    print(f"🔧 CREATE CHECKOUT REQUEST: {request}")
     if not subscription_service:
         raise HTTPException(status_code=503, detail="Subscription service unavailable")
     try:

@@ -6,12 +6,15 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const API_BASE = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+// Use relative URLs to avoid CORS issues - same as main app
+console.log('🔧 SubscriptionService using relative URLs');
+console.log('🔧 Current hostname:', window.location.hostname);
+console.log('🔧 Current origin:', window.location.origin);
 
 class SubscriptionService {
   constructor() {
     this.api = axios.create({
-      baseURL: `${API_BASE}/api`,
+      baseURL: '/api',  // Use relative URL
       timeout: 30000,
     });
   }
