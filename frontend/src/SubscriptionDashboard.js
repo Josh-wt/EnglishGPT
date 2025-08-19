@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import subscriptionService from './subscriptionService';
-import toast from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 
 const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
   const [subscriptionStatus, setSubscriptionStatus] = useState(null);
