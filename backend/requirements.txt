@@ -27,4 +27,3 @@ httpx>=0.25.0  # For async PayU integration
 PyPDF2>=3.0.0
 Pillow>=10.0.0
 standardwebhooks>=1.0.0
-zod>=1.0.0
