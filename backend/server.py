@@ -30,7 +30,7 @@ ROOT_DIR = Path(__file__).resolve().parent
 load_dotenv(dotenv_path=ROOT_DIR / '.env', override=True)
 
 # Supabase connection
-SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://kvuzryhwszngcddetala.supabase.co')
+SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://zwrwtqspeyajttnuzwkl.supabase.co')
 # Use service role key for backend operations (bypasses RLS)
 SUPABASE_KEY = (
     os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
