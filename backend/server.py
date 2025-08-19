@@ -1,5 +1,6 @@
 from fastapi import FastAPI, APIRouter, HTTPException, File, UploadFile, Form
 from fastapi.responses import JSONResponse
+from fastapi import Request
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -11,6 +12,8 @@ from typing import List, Optional, Dict, Any
 import secrets
 import uuid
 from datetime import datetime, timedelta
+import hashlib
+import hmac
 import httpx
 import json
 import base64
@@ -190,6 +193,131 @@ PAYU_MERCHANT_KEY = os.environ.get("PAYU_MERCHANT_KEY")
 PAYU_BASE_URL = "https://secure.payu.in"
 USD_TO_INR = 86.6
 MIN_USD = 3
+def sha512_hex(value: str) -> str:
+    return hashlib.sha512(value.encode('utf-8')).hexdigest()
+
+def generate_upi_hash(merchant_key: str, salt: str, txnid: str, amount: str, productinfo: str, firstname: str, email: str, udf1: str = '', udf2: str = '', udf3: str = '', udf4: str = '', udf5: str = '') -> str:
+    # Format: sha512(key|txnid|amount|productinfo|firstname|email|udf1|udf2|udf3|udf4|udf5||||||SALT)
+    base = f"{merchant_key}|{txnid}|{amount}|{productinfo}|{firstname}|{email}|{udf1}|{udf2}|{udf3}|{udf4}|{udf5}||||||{salt}"
+    return sha512_hex(base)
+
+@api_router.post("/payment/upi")
+async def init_upi_payment(payload: Dict[str, Any]):
+    """Create an HTML form to submit to PayU for UPI payment and auto-submit it."""
+    try:
+        merchant_key = os.environ.get("PAYU_MERCHANT_KEY")
+        salt = os.environ.get("PAYU_SALT")
+        base_url = os.environ.get("PAYU_BASE_URL", PAYU_BASE_URL)
+        notify_url = os.environ.get("PAYU_NOTIFY_URL", "")
+        if not merchant_key or not salt:
+            raise HTTPException(status_code=500, detail="PayU keys not configured")
+
+        amount = str(payload.get("amount", "0.00"))
+        productinfo = payload.get("productinfo", "EnglishGPT Plan")
+        firstname = payload.get("firstname", "User")
+        email = payload.get("email", "user@example.com")
+        vpa = payload.get("vpa", "")
+        user_id = payload.get("user_id", "")
+        plan_id = payload.get("plan_id", "")
+        if not vpa:
+            raise HTTPException(status_code=400, detail="VPA is required")
+
+        txnid = uuid.uuid4().hex[:20]
+        hash_value = generate_upi_hash(merchant_key, salt, txnid, amount, productinfo, firstname, email)
+
+        # Success/Failure URLs
+        origin = os.environ.get("PUBLIC_ORIGIN", "https://englishgpt.everythingenglish.xyz")
+        surl = f"{origin}/dashboard?payu=success"
+        furl = f"{origin}/dashboard?payu=failure"
+
+        form_fields = {
+            "key": merchant_key,
+            "txnid": txnid,
+            "amount": amount,
+            "productinfo": productinfo,
+            "firstname": firstname,
+            "email": email,
+            "pg": "UPI",
+            "bankcode": "UPI",
+            "vpa": vpa,
+            "hash": hash_value,
+            "surl": surl,
+            "furl": furl,
+            "udf1": user_id,
+            "udf2": plan_id,
+            "notify_url": notify_url or "",
+        }
+
+        action_url = f"{base_url}/_payment"
+        inputs = "".join([f'<input type="hidden" name="{k}" value="{str(v)}" />' for k, v in form_fields.items() if v is not None])
+        html = f"""
+<!DOCTYPE html>
+<html><head><meta charset='utf-8'><title>Redirecting…</title></head>
+<body onload="document.forms[0].submit()">
+  <p>Redirecting to PayU… Please wait.</p>
+  <form method="post" action="{action_url}">
+    {inputs}
+    <noscript><button type="submit">Continue</button></noscript>
+  </form>
+</body></html>"""
+        return {"html": html, "txnid": txnid}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/payu-webhook")
+async def payu_webhook(request: Request):
+    """Handle PayU webhook callbacks (x-www-form-urlencoded)."""
+    try:
+        salt = os.environ.get("PAYU_SALT")
+        merchant_key = os.environ.get("PAYU_MERCHANT_KEY")
+        if not salt or not merchant_key:
+            raise HTTPException(status_code=500, detail="PayU keys not configured")
+
+        form = await request.form()
+        data = {k: form.get(k) for k in form.keys()}
+
+        # Extract essentials
+        status = data.get("status", "")
+        txnid = data.get("txnid", "")
+        amount = data.get("amount", "")
+        productinfo = data.get("productinfo", "")
+        email = data.get("email", "")
+        firstname = data.get("firstname", "")
+        mihpayid = data.get("mihpayid", "")
+        received_hash = data.get("hash", "")
+        udf1 = data.get("udf1", "")  # user_id
+        udf2 = data.get("udf2", "")  # plan_id
+
+        # Verify hash for response: sha512(salt|status||||||udf5|udf4|udf3|udf2|udf1|email|firstname|productinfo|amount|txnid|key)
+        reverse_sequence = f"{salt}|{status}||||||{data.get('udf5','')}|{data.get('udf4','')}|{data.get('udf3','')}|{udf2}|{udf1}|{email}|{firstname}|{productinfo}|{amount}|{txnid}|{merchant_key}"
+        computed = sha512_hex(reverse_sequence)
+        if received_hash != computed:
+            raise HTTPException(status_code=400, detail="Invalid hash")
+
+        # Update Supabase: store transaction and set plan if success
+        try:
+            supabase.table('assessment_transactions').insert({
+                'order_id': txnid,
+                'user_email': email,
+                'amount_inr': int(float(amount) * 86.6) if amount else 0,
+                'status': status
+            }).execute()
+        except Exception:
+            pass
+
+        if status.lower() == 'success' and udf1:
+            try:
+                supabase.table('assessment_users').update({'current_plan': 'unlimited', 'updated_at': datetime.utcnow().isoformat()}).eq('uid', udf1).execute()
+            except Exception:
+                pass
+
+        return JSONResponse({"ok": True})
+    except HTTPException:
+        raise
+    except Exception as e:
+        return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
 
 async def get_payu_access_token():
     if not PAYU_CLIENT_ID or not PAYU_CLIENT_SECRET:
@@ -1846,9 +1974,21 @@ async def get_evaluation_history(user_id: str):
 async def get_evaluation_by_id(evaluation_id: str):
     """Public endpoint to fetch a single evaluation by its ID or short_id for shareable links"""
     try:
-        # Try full UUID first
-        response = supabase.table('assessment_evaluations').select('*').eq('id', evaluation_id).execute()
-        data = response.data or []
+        data = []
+        # Try full UUID first, but only if it looks like a UUID to avoid PG uuid parse errors
+        def _looks_like_uuid(value: str) -> bool:
+            try:
+                uuid.UUID(str(value))
+                return True
+            except Exception:
+                return False
+
+        if _looks_like_uuid(evaluation_id):
+            try:
+                response = supabase.table('assessment_evaluations').select('*').eq('id', evaluation_id).execute()
+                data = response.data or []
+            except Exception:
+                data = []
         if not data:
             # Fallback to short_id if column exists
             try:

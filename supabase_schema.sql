@@ -22,6 +22,7 @@ CREATE TABLE assessment_users (
 -- Assessment Evaluations table
 CREATE TABLE assessment_evaluations (
   id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+  short_id text UNIQUE,
   user_id text NOT NULL REFERENCES assessment_users(uid) ON DELETE CASCADE,
   question_type text NOT NULL,
   student_response text NOT NULL,
@@ -78,6 +79,7 @@ CREATE TABLE assessment_follow_ups (
 -- Create indexes for better performance
 CREATE INDEX idx_assessment_evaluations_user_id ON assessment_evaluations(user_id);
 CREATE INDEX idx_assessment_evaluations_timestamp ON assessment_evaluations(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_assessment_evaluations_short_id ON assessment_evaluations(short_id);
 CREATE INDEX idx_assessment_badges_user_id ON assessment_badges(user_id);
 CREATE INDEX idx_assessment_badges_earned_at ON assessment_badges(earned_at DESC);
 CREATE INDEX idx_assessment_transactions_order_id ON assessment_transactions(order_id);
