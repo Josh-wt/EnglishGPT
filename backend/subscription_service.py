@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from fastapi import HTTPException
 import logging
 
-from dodo_payments_client import DodoPaymentsClient, create_dodo_client, SubscriptionResponse
+from dodo_payments_client import DodoPaymentsClient
 from supabase import Client
 
 logger = logging.getLogger(__name__)
@@ -46,23 +46,23 @@ class SubscriptionService:
                 return user_response.data[0]['dodo_customer_id']
             
             # Create new Dodo customer
-            async with await create_dodo_client() as dodo_client:
-                customer_data = await dodo_client.create_customer(
-                    email=email,
-                    name=name,
-                    metadata={"user_id": user_id, "source": "englishgpt"}
-                )
-                
-                dodo_customer_id = customer_data['id']
-                
-                # Update user with Dodo customer ID
-                self.supabase.table('assessment_users').update({
-                    'dodo_customer_id': dodo_customer_id,
-                    'updated_at': datetime.utcnow().isoformat()
-                }).eq('uid', user_id).execute()
-                
-                logger.info(f"Created Dodo customer {dodo_customer_id} for user {user_id}")
-                return dodo_customer_id
+            dodo_client = DodoPaymentsClient()
+            customer_data = await dodo_client.create_customer(
+                email=email,
+                name=name,
+                metadata={"user_id": user_id, "source": "englishgpt"}
+            )
+            
+            dodo_customer_id = customer_data['id']
+            
+            # Update user with Dodo customer ID
+            self.supabase.table('assessment_users').update({
+                'dodo_customer_id': dodo_customer_id,
+                'updated_at': datetime.utcnow().isoformat()
+            }).eq('uid', user_id).execute()
+            
+            logger.info(f"Created Dodo customer {dodo_customer_id} for user {user_id}")
+            return dodo_customer_id
                 
         except Exception as e:
             logger.error(f"Failed to get/create Dodo customer for user {user_id}: {e}")
@@ -89,23 +89,23 @@ class SubscriptionService:
             dodo_customer_id = await self.get_or_create_dodo_customer(user_id, email, name)
             
             # Create checkout session
-            async with await create_dodo_client() as dodo_client:
-                session_data = await dodo_client.create_checkout_session(
-                    customer_id=dodo_customer_id,
-                    plan_type=plan_type,
-                    metadata={
-                        "user_id": user_id,
-                        "plan_type": plan_type,
-                        **(metadata or {})
-                    }
-                )
-                
-                return {
-                    "checkout_url": session_data['url'],
-                    "session_id": session_data['id'],
-                    "customer_id": dodo_customer_id
+            dodo_client = DodoPaymentsClient()
+            session_data = await dodo_client.create_checkout_session(
+                customer_id=dodo_customer_id,
+                plan_type=plan_type,
+                metadata={
+                    "user_id": user_id,
+                    "plan_type": plan_type,
+                    **(metadata or {})
                 }
-                
+            )
+            
+            return {
+                "checkout_url": session_data['url'],
+                "session_id": session_data['id'],
+                "customer_id": dodo_customer_id
+            }
+            
         except HTTPException:
             raise
         except Exception as e:
@@ -167,11 +167,11 @@ class SubscriptionService:
             dodo_subscription_id = subscription['dodo_subscription_id']
             
             # Cancel subscription with Dodo Payments
-            async with await create_dodo_client() as dodo_client:
-                result = await dodo_client.cancel_subscription(
-                    subscription_id=dodo_subscription_id,
-                    cancel_at_period_end=cancel_at_period_end
-                )
+            dodo_client = DodoPaymentsClient()
+            result = await dodo_client.cancel_subscription(
+                subscription_id=dodo_subscription_id,
+                cancel_at_period_end=cancel_at_period_end
+            )
             
             # Update local database
             update_data = {
@@ -216,8 +216,8 @@ class SubscriptionService:
             dodo_subscription_id = subscription['dodo_subscription_id']
             
             # Reactivate subscription with Dodo Payments
-            async with await create_dodo_client() as dodo_client:
-                result = await dodo_client.reactivate_subscription(dodo_subscription_id)
+            dodo_client = DodoPaymentsClient()
+            result = await dodo_client.reactivate_subscription(dodo_subscription_id)
             
             # Update local database
             self.supabase.table('dodo_subscriptions').update({
@@ -261,8 +261,8 @@ class SubscriptionService:
                 )
             
             # Create portal session
-            async with await create_dodo_client() as dodo_client:
-                session_data = await dodo_client.create_customer_portal_session(dodo_customer_id)
+            dodo_client = DodoPaymentsClient()
+            session_data = await dodo_client.create_customer_portal_session(dodo_customer_id)
             
             # Save portal session to database
             session_id = str(uuid.uuid4())

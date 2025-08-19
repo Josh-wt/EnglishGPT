@@ -28,13 +28,15 @@ from supabase import create_client, Client
 # Dodo Payments integration
 try:
     from subscription_service import SubscriptionService
-    from dodo_payments_client import create_webhook_validator
+    from dodo_payments_client import DodoPaymentsClient, WebhookValidator
     import standardwebhooks
     DODO_INTEGRATION_AVAILABLE = True
+    print("✅ Dodo Payments integration available")
 except ImportError as e:
-    print(f"Dodo Payments integration not available: {e}")
+    print(f"❌ Dodo Payments integration not available: {e}")
     SubscriptionService = None
-    create_webhook_validator = None
+    DodoPaymentsClient = None
+    WebhookValidator = None
     DODO_INTEGRATION_AVAILABLE = False
 
 ROOT_DIR = Path(__file__).resolve().parent
