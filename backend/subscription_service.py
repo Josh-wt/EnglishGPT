@@ -30,7 +30,6 @@ class BillingHistoryItem(BaseModel):
     created_at: str
     failure_reason: Optional[str] = None
 
-
 class SubscriptionService:
     """Service for managing subscriptions and payments"""
     
@@ -53,7 +52,8 @@ class SubscriptionService:
                 name=name,
             )
             
-            dodo_customer_id = customer_data['id']
+            # FIX: Use 'customer_id' instead of 'id'
+            dodo_customer_id = customer_data['customer_id']
             
             # Update user with Dodo customer ID
             self.supabase.table('assessment_users').update({
