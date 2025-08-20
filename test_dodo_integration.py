@@ -15,6 +15,8 @@ from typing import Dict, Any
 # Add backend to path for imports
 sys.path.append('backend')
 
+from dodo_payments_client import create_webhook_validator
+
 # Test configuration
 TEST_CONFIG = {
     'backend_url': 'http://localhost:5000',
@@ -194,9 +196,6 @@ class DodoIntegrationTester:
     async def test_webhook_signature_validation(self):
         """Test webhook signature validation (without actual webhook call)"""
         try:
-            # Import webhook validator
-            from dodo_payments_client import create_webhook_validator
-            
             validator = create_webhook_validator()
             
             # Test with dummy data

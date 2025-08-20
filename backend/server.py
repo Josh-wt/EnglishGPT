@@ -958,6 +958,17 @@ async def update_user(user_id: str, updates: dict):
         print(f"User update error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"User update error: {str(e)}")
 
+@api_router.get("/debug/env-check")
+async def debug_env_check():
+    """Check environment variables"""
+    return {
+        "api_key_configured": bool(os.environ.get('DODO_PAYMENTS_API_KEY')),
+        "api_key_first_10": os.environ.get('DODO_PAYMENTS_API_KEY', '')[:10],
+        "environment": os.environ.get('DODO_PAYMENTS_ENVIRONMENT'),
+        "base_url": os.environ.get('DODO_PAYMENTS_BASE_URL')
+    }
+        
+
 @api_router.post("/test-plan-update/{user_id}")
 async def test_plan_update(user_id: str, plan_data: dict):
     """Test endpoint to update user plan"""
