@@ -110,8 +110,10 @@ class DodoPaymentsClient:
         response.raise_for_status()
         return response.json()
 
-    async def create_customer(self, email: str, name: str):
+    async def create_customer(self, email: str, name: str, metadata: dict = None):
         payload = {"email": email, "name": name}
+        if metadata:
+            payload["metadata"] = metadata
         response = await self.client.post("/customers", json=payload)
         response.raise_for_status()
         return response.json()
