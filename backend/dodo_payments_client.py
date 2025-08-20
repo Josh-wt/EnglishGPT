@@ -23,16 +23,38 @@ class DodoPaymentsClient:
         }
         self.client = httpx.AsyncClient(base_url=self.base_url)
 
-    async def create_checkout_session(self, product_id: str, customer_id: str, success_url: str, cancel_url: str, metadata: dict = None):
+    async def create_checkout_session(self, product_id: str, customer_id: str = None, customer_email: str = None, customer_name: str = None, return_url: str = None, metadata: dict = None):
+        """Create a subscription checkout session according to Dodo Payments API"""
+        # Build customer object - can be existing customer_id or new customer data
+        if customer_id:
+            customer_data = {"customer_id": customer_id}
+        else:
+            customer_data = {
+                "email": customer_email,
+                "name": customer_name or customer_email.split('@')[0]
+            }
+        
+        # Default billing info (can be updated in the checkout)
+        billing_data = {
+            "city": "Default City",
+            "country": "IN",
+            "state": "Default State", 
+            "street": "Default Street",
+            "zipcode": 110001
+        }
+        
         payload = {
-            "product_cart": [{"product_id": product_id, "quantity": 1}],
-            "customer": {"customer_id": customer_id},
+            "billing": billing_data,
+            "customer": customer_data,
+            "product_id": product_id,
+            "quantity": 1,
             "payment_link": True,
-            "return_url": success_url,
-            "cancel_url": cancel_url,
+            "return_url": return_url,
             "metadata": metadata or {}
         }
-        response = await self.client.post("/payments", json=payload)
+        
+        logger.info(f"Creating Dodo subscription checkout with payload: {payload}")
+        response = await self.client.post("/subscriptions", json=payload, headers=self.headers)
         response.raise_for_status()
         return response.json()
 

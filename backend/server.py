@@ -1870,8 +1870,7 @@ async def get_transaction_history(user_id: str):
         print(f"Transaction history endpoint error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-# Include the router in the main app
-app.include_router(api_router)
+# Router will be included after all routes are defined
 
 # Serve frontend build (SPA) with client-side routing fallback
 FRONTEND_BUILD_DIR = (ROOT_DIR.parent / 'frontend' / 'build')
@@ -1936,15 +1935,18 @@ async def test_subscription_endpoint():
     }
 
 @api_router.post("/subscriptions/create-checkout")
-async def create_subscription_checkout(request: dict):
+async def create_subscription_checkout(request: Request):
     """Create a checkout session for subscription"""
-    print(f"🔧 CREATE CHECKOUT REQUEST: {request}")
     if not subscription_service:
         raise HTTPException(status_code=503, detail="Subscription service unavailable")
     try:
-        user_id = request.get('userId')
-        plan_type = request.get('planType')
-        metadata = request.get('metadata', {})
+        # Parse JSON request body
+        request_data = await request.json()
+        print(f"🔧 CREATE CHECKOUT REQUEST: {request_data}")
+        
+        user_id = request_data.get('userId')
+        plan_type = request_data.get('planType')
+        metadata = request_data.get('metadata', {})
         
         if not user_id:
             raise HTTPException(status_code=400, detail="User ID is required")
@@ -2060,7 +2062,7 @@ async def get_billing_history(user_id: str, limit: int = 50):
 @api_router.post("/webhooks/dodo")
 async def handle_dodo_webhook(request: Request):
     """Handle Dodo Payments webhooks"""
-    if not subscription_service or not create_webhook_validator:
+    if not subscription_service:
         raise HTTPException(status_code=503, detail="Webhook service unavailable")
     try:
         # Get request headers and body
@@ -2073,7 +2075,7 @@ async def handle_dodo_webhook(request: Request):
         body = await request.body()
         
         # Verify webhook signature
-        webhook_validator = create_webhook_validator()
+        webhook_validator = WebhookValidator()
         
         if not webhook_validator.verify_signature(body, signature, timestamp):
             raise HTTPException(status_code=400, detail="Invalid webhook signature")
@@ -2150,3 +2152,6 @@ async def handle_dodo_webhook(request: Request):
     except Exception as e:
         logger.error(f"Webhook handling failed: {e}")
         raise HTTPException(status_code=500, detail="Webhook handling failed")
+
+# Include the API router after all routes are defined
+app.include_router(api_router)

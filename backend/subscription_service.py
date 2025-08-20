@@ -88,11 +88,19 @@ class SubscriptionService:
             # Get or create Dodo customer
             dodo_customer_id = await self.get_or_create_dodo_customer(user_id, email, name)
             
+            # Map plan type to product ID
+            product_id_map = {
+                'monthly': 'pdt_1SNTZ2ED27HBPf8JOOWtI',
+                'yearly': 'pdt_R9BBFdK801119u9r3r6jyL'
+            }
+            product_id = product_id_map[plan_type]
+            
             # Create checkout session
             dodo_client = DodoPaymentsClient()
             session_data = await dodo_client.create_checkout_session(
+                product_id=product_id,
                 customer_id=dodo_customer_id,
-                plan_type=plan_type,
+                return_url='https://englishgpt.everythingenglish.xyz/dashboard',
                 metadata={
                     "user_id": user_id,
                     "plan_type": plan_type,
@@ -101,8 +109,8 @@ class SubscriptionService:
             )
             
             return {
-                "checkout_url": session_data['url'],
-                "session_id": session_data['id'],
+                "checkout_url": session_data['payment_link'],
+                "subscription_id": session_data['subscription_id'],
                 "customer_id": dodo_customer_id
             }
             
