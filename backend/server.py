@@ -22,6 +22,7 @@ from PIL import Image
 import PyPDF2
 import io
 
+
 # Supabase connection
 from supabase import create_client, Client
 
@@ -114,6 +115,42 @@ app.add_middleware(
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
+
+@api_router.post("/subscriptions/create-checkout")
+async def create_subscription_checkout(request: Request):
+    """Create a checkout session for subscription"""
+    if not subscription_service:
+        raise HTTPException(status_code=503, detail="Subscription service unavailable")
+    try:
+        # Parse JSON request body
+        request_data = await request.json()
+        print(f"🔧 SERVER DEBUG: CREATE CHECKOUT REQUEST: {request_data}")
+        
+        user_id = request_data.get('userId')
+        plan_type = request_data.get('planType')
+        metadata = request_data.get('metadata', {})
+        
+        print(f"🔧 SERVER DEBUG: user_id={user_id}, plan_type={plan_type}")
+        
+        if not user_id:
+            raise HTTPException(status_code=400, detail="User ID is required")
+        if not plan_type or plan_type not in ['monthly', 'yearly']:
+            raise HTTPException(status_code=400, detail="Valid plan type is required")
+        
+        print(f"🔧 SERVER DEBUG: About to call subscription_service.create_checkout_session")
+        result = await subscription_service.create_checkout_session(user_id, plan_type, metadata)
+        print(f"🔧 SERVER DEBUG: Success! Result: {result}")
+        return result
+        
+    except HTTPException as he:
+        print(f"🔧 SERVER DEBUG: HTTPException: {he.detail}")
+        raise
+    except Exception as e:
+        print(f"🔧 SERVER DEBUG: Exception: {str(e)}")
+        print(f"🔧 SERVER DEBUG: Exception type: {type(e).__name__}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Checkout creation failed: {str(e)}")
 
 @api_router.get("/")
 async def root():
