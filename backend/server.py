@@ -1116,6 +1116,9 @@ async def evaluate_submission(submission: SubmissionRequest):
                 print(f"ERROR: Descriptive criteria found in narrative request!")
             else:
                 print(f"DEBUG: Criteria type unclear")
+
+                
+                
         
         # Add marking scheme to criteria if provided
         if submission.marking_scheme:

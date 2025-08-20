@@ -30,6 +30,7 @@ class BillingHistoryItem(BaseModel):
     created_at: str
     failure_reason: Optional[str] = None
 
+
 class SubscriptionService:
     """Service for managing subscriptions and payments"""
     
@@ -64,8 +65,12 @@ class SubscriptionService:
             return dodo_customer_id
                 
         except Exception as e:
+            print(f"🔧 DEBUG: ACTUAL ERROR: {str(e)}")
+            print(f"🔧 DEBUG: ERROR TYPE: {type(e).__name__}")
+            import traceback
+            traceback.print_exc()
             logger.error(f"Failed to get/create Dodo customer for user {user_id}: {e}")
-            raise HTTPException(status_code=500, detail="Failed to initialize customer account")
+            raise HTTPException(status_code=500, detail=f"Failed to initialize customer account: {str(e)}")
     
     async def create_checkout_session(self, user_id: str, plan_type: str, 
                                     metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
