@@ -121,6 +121,27 @@ class DodoPaymentsClient:
     async def close(self):
         await self.client.aclose()
 
+async def create_customer(self, email: str, name: str, metadata: dict = None):
+    payload = {"email": email, "name": name}
+    if metadata:
+        payload["metadata"] = metadata
+    
+    # ADD THIS DEBUG CODE:
+    print(f"🔧 DODO DEBUG: API Key being used: {self.api_key[:10]}...")
+    print(f"🔧 DODO DEBUG: Base URL: {self.base_url}")
+    print(f"🔧 DODO DEBUG: Headers: {self.headers}")
+    print(f"🔧 DODO DEBUG: Payload: {payload}")
+    
+    response = await self.client.post("/customers", json=payload, headers=self.headers)
+    
+    # ADD THIS DEBUG CODE:
+    print(f"🔧 DODO DEBUG: Response status: {response.status_code}")
+    print(f"🔧 DODO DEBUG: Response headers: {dict(response.headers)}")
+    print(f"🔧 DODO DEBUG: Response text: {response.text}")
+    
+    response.raise_for_status()
+    return response.json()
+
 class WebhookValidator:
     def __init__(self):
         self.webhook_key = os.environ.get('DODO_PAYMENTS_WEBHOOK_KEY')
