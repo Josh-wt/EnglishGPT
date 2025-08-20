@@ -50,7 +50,6 @@ class SubscriptionService:
             customer_data = await dodo_client.create_customer(
                 email=email,
                 name=name,
-                metadata={"user_id": user_id, "source": "englishgpt"}
             )
             
             dodo_customer_id = customer_data['id']
