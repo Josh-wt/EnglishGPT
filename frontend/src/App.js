@@ -1191,31 +1191,37 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
 
   const handleAcademicLevelChange = async (level) => {
     const normalized = level.toLowerCase().replace(/[^a-z]/g, '');
-    console.log('DEBUG: handleAcademicLevelChange called with level:', level, 'normalized:', normalized);
+    // Debug logging removed for production
+    // console.log('DEBUG: handleAcademicLevelChange called with level:', level, 'normalized:', normalized);
     setAcademicLevel(normalized);
     setError('');
     const userId = user?.uid || user?.id;
     if (user && userId) {
       try {
-        console.log('DEBUG: Updating user level in backend:', { academic_level: level });
+        // Debug logging removed for production
+    // console.log('DEBUG: Updating user level in backend:', { academic_level: level });
         await axios.put(`${API}/users/${userId}`, { academic_level: level });
         if (onLevelChange) onLevelChange(normalized);
         
         // If this was triggered by the level prompt, redirect to question types
         if (showLevelPrompt) {
-          console.log('DEBUG: Level prompt active, will redirect after update');
+          // Debug logging removed for production
+    // console.log('DEBUG: Level prompt active, will redirect after update');
           // Small delay to ensure the level is updated
           setTimeout(() => {
-            console.log('DEBUG: Reloading page to refresh state');
+            // Debug logging removed for production
+    // console.log('DEBUG: Reloading page to refresh state');
             window.location.reload(); // Simple way to refresh and go to dashboard
           }, 500);
         }
       } catch (err) {
-        console.error('DEBUG: Error updating level:', err);
+        // Debug logging removed for production
+      // console.error('DEBUG: Error updating level:', err);
         setError('Failed to update level.');
       }
     } else {
-      console.error('DEBUG: Cannot update level - user or user ID not available');
+      // Debug logging removed for production
+      // console.error('DEBUG: Cannot update level - user or user ID not available');
       setError('Please wait for authentication to complete.');
     }
   };
@@ -2069,8 +2075,10 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       return { questions: [], levelName: 'Loading...', fullName: 'Loading...', color: 'gray', gradient: 'from-gray-500 to-gray-600' };
     }
 
-    console.log('DEBUG: All question types:', questionTypes);
-    console.log('DEBUG: Selected level:', selectedLevel);
+    // Debug logging removed for production
+    // console.log('DEBUG: All question types:', questionTypes);
+    // Debug logging removed for production
+    // console.log('DEBUG: Selected level:', selectedLevel);
 
     const igcseQuestions = questionTypes.filter(q => q.category === 'IGCSE').map(q => ({
       ...q,
@@ -2084,8 +2092,10 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       icon: getIconForQuestionType(q.id)
     }));
 
-    console.log('DEBUG: IGCSE questions:', igcseQuestions);
-    console.log('DEBUG: A-Level questions:', alevelQuestions);
+    // Debug logging removed for production
+    // console.log('DEBUG: IGCSE questions:', igcseQuestions);
+    // Debug logging removed for production
+    // console.log('DEBUG: A-Level questions:', alevelQuestions);
 
     if (selectedLevel === 'igcse') {
       return { questions: igcseQuestions, levelName: 'IGCSE', fullName: 'International GCSE', color: 'blue', gradient: 'from-blue-500 to-green-500' };
@@ -2950,7 +2960,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
                           No specific strengths identified in this evaluation.
                           {evaluation.strengths && (
                             <span className="block text-xs text-gray-500 mt-2">
-                              Debug: {typeof evaluation.strengths} - {JSON.stringify(evaluation.strengths)}
+
                             </span>
                           )}
                         </p>
@@ -3724,11 +3734,14 @@ const App = () => {
         const code = searchParams.get('code') || hashParams.get('code');
 
         if (code) {
-          console.log('DEBUG: Detected OAuth PKCE code param');
+          // Debug logging removed for production
+    // console.log('DEBUG: Detected OAuth PKCE code param');
           const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-          console.log('DEBUG: exchangeCodeForSession result:', { data, error });
+          // Debug logging removed for production
+    // console.log('DEBUG: exchangeCodeForSession result:', { data, error });
           const userRes = await supabase.auth.getUser();
-          console.log('DEBUG: getUser after code exchange:', userRes);
+          // Debug logging removed for production
+    // console.log('DEBUG: getUser after code exchange:', userRes);
           // Clean URL (remove code from both query and hash)
           const cleanedSearch = url.search.replace(/([?&])code=[^&]*&?/, '$1').replace(/[?&]$/, '');
           window.history.replaceState({}, document.title, window.location.pathname + cleanedSearch);
@@ -3737,16 +3750,20 @@ const App = () => {
           }
         }
       } catch (e) {
-        console.error('DEBUG: Error hydrating session from URL:', e);
+        // Debug logging removed for production
+      // console.error('DEBUG: Error hydrating session from URL:', e);
       }
     };
 
     const initializeSession = async () => {
-      console.log('DEBUG: Getting session...');
+      // Debug logging removed for production
+    // console.log('DEBUG: Getting session...');
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        console.log('DEBUG: Session data:', session);
-        console.log('DEBUG: Session error:', error);
+        // Debug logging removed for production
+    // console.log('DEBUG: Session data:', session);
+        // Debug logging removed for production
+    // console.log('DEBUG: Session error:', error);
         if (session?.user?.id) {
           setUser(session.user);
           loadUserData(session.user);
@@ -3760,7 +3777,8 @@ const App = () => {
           setEvaluations([]);
         }
       } catch (error) {
-        console.error('DEBUG: Exception getting session:', error);
+        // Debug logging removed for production
+      // console.error('DEBUG: Exception getting session:', error);
         setUser(null);
         setUserStats({ questionsMarked: 0, credits: 3, currentPlan: 'free' });
         setEvaluations([]);
@@ -3773,8 +3791,10 @@ const App = () => {
     hydrateSessionFromUrl().finally(initializeSession);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('DEBUG: Auth state change:', event, session?.user?.id);
-      console.log('DEBUG: Full session object:', session);
+      // Debug logging removed for production
+    // console.log('DEBUG: Auth state change:', event, session?.user?.id);
+      // Debug logging removed for production
+    // console.log('DEBUG: Full session object:', session);
       switch (event) {
         case 'SIGNED_IN':
         case 'INITIAL_SESSION':
@@ -3807,7 +3827,8 @@ const App = () => {
   
   // Load user data from backend
   const loadUserData = async (supabaseUser) => {
-    console.log('DEBUG: loadUserData called with:', supabaseUser);
+    // Debug logging removed for production
+    // console.log('DEBUG: loadUserData called with:', supabaseUser);
     
     if (!supabaseUser) {
       console.error('No user object provided to loadUserData');
@@ -3826,7 +3847,8 @@ const App = () => {
 
     setLoadingState('dataLoad', true);
     try {
-      console.log('DEBUG: Loading user data for:', supabaseUser.id);
+      // Debug logging removed for production
+    // console.log('DEBUG: Loading user data for:', supabaseUser.id);
       
       const userData = {
         user_id: supabaseUser.id,
@@ -3834,7 +3856,8 @@ const App = () => {
         name: supabaseUser.user_metadata?.full_name || supabaseUser.email
       };
       
-      console.log('DEBUG: Sending user data to backend:', userData);
+      // Debug logging removed for production
+    // console.log('DEBUG: Sending user data to backend:', userData);
       const response = await axios.post(`${API}/users`, userData);
       const userInfo = response.data.user;
       
@@ -3856,7 +3879,8 @@ const App = () => {
       setEvaluations(historyResponse.data.evaluations || []);
       setLoadingState('historyLoad', false);
       
-      console.log('DEBUG: User data loaded successfully');
+      // Debug logging removed for production
+    // console.log('DEBUG: User data loaded successfully');
       
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -3895,15 +3919,19 @@ const App = () => {
     }
 
     const normalized = level.toLowerCase().replace(/[^a-z]/g, '');
-    console.log('DEBUG: onLevelChange called with:', level, 'normalized:', normalized);
+    // Debug logging removed for production
+    // console.log('DEBUG: onLevelChange called with:', level, 'normalized:', normalized);
     setSelectedLevel(normalized);    
     // Update the user level in backend
     try {
-      console.log('DEBUG: Updating user level in backend:', { academic_level: level });
+      // Debug logging removed for production
+    // console.log('DEBUG: Updating user level in backend:', { academic_level: level });
       await axios.put(`${API}/users/${userId}`, { academic_level: level });
-      console.log('DEBUG: User level updated successfully');
+      // Debug logging removed for production
+    // console.log('DEBUG: User level updated successfully');
     } catch (err) {
-      console.error('DEBUG: Error updating level:', err);
+      // Debug logging removed for production
+      // console.error('DEBUG: Error updating level:', err);
       // Don't throw error here to avoid breaking the UI flow
     }
   };
@@ -3963,7 +3991,8 @@ const signInWithDiscord = async () => {
   try {
     const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : 'http://localhost:3000/dashboard';
     
-    console.log('Current origin:', window.location.origin);
+    // Debug logging removed for production
+    // console.log('Current origin:', window.location.origin);
     console.log('Redirect URL will be:', redirectUrl);
     
     const { data, error } = await supabase.auth.signInWithOAuth({
@@ -3984,7 +4013,8 @@ const signInWithGoogle = async () => {
   try {
     const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : 'http://localhost:3000/dashboard';
     
-    console.log('Current origin:', window.location.origin);
+    // Debug logging removed for production
+    // console.log('Current origin:', window.location.origin);
     console.log('Redirect URL will be:', redirectUrl);
     
     const { data, error } = await supabase.auth.signInWithOAuth({
@@ -4149,12 +4179,15 @@ const handleSignOut = async () => {
   }, []);
   
   const handleStartQuestion = () => {
-    console.log('DEBUG: handleStartQuestion called, selectedLevel:', selectedLevel);
+    // Debug logging removed for production
+    // console.log('DEBUG: handleStartQuestion called, selectedLevel:', selectedLevel);
     if (selectedLevel) {
-      console.log('DEBUG: Level found, going to questionTypes');
+      // Debug logging removed for production
+    // console.log('DEBUG: Level found, going to questionTypes');
       setCurrentPage('questionTypes');
     } else {
-      console.log('DEBUG: No level found, redirecting to account settings');
+      // Debug logging removed for production
+    // console.log('DEBUG: No level found, redirecting to account settings');
       // Redirect to account settings with level prompt
       setShowLevelPrompt(true);
       setCurrentPage('accountSettings');
@@ -4165,18 +4198,22 @@ const handleSignOut = async () => {
   useEffect(() => {
     const userId = user?.uid || user?.id;
     if (user && userId) {
-      console.log('DEBUG: Fetching user level for:', userId);
+      // Debug logging removed for production
+    // console.log('DEBUG: Fetching user level for:', userId);
       const fetchUserLevel = async () => {
         try {
           const response = await axios.get(`${API}/users/${userId}`);
           let backendLevel = response.data.user?.academic_level;
-          console.log('DEBUG: Fetched academic level:', backendLevel);
+          // Debug logging removed for production
+    // console.log('DEBUG: Fetched academic level:', backendLevel);
           if (backendLevel && backendLevel !== 'N/A') {
             backendLevel = backendLevel.toLowerCase().replace(/[^a-z]/g, ''); // normalize
-            console.log('DEBUG: Normalized level:', backendLevel);
+            // Debug logging removed for production
+    // console.log('DEBUG: Normalized level:', backendLevel);
             setSelectedLevel(backendLevel);
           } else {
-            console.log('DEBUG: No level set or level is N/A');
+            // Debug logging removed for production
+    // console.log('DEBUG: No level set or level is N/A');
           }
         } catch (error) {
           console.error('Error fetching user level:', error);
@@ -4185,7 +4222,8 @@ const handleSignOut = async () => {
       };
       fetchUserLevel();
     } else {
-      console.log('DEBUG: No user or user ID available for fetching level');
+      // Debug logging removed for production
+    // console.log('DEBUG: No user or user ID available for fetching level');
     }
   }, [user]);
   

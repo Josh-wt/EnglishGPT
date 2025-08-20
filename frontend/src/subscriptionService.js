@@ -7,9 +7,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 
 // Use relative URLs to avoid CORS issues - same as main app
-console.log('🔧 SubscriptionService using relative URLs');
-console.log('🔧 Current hostname:', window.location.hostname);
-console.log('🔧 Current origin:', window.location.origin);
+// Debug logging removed for production
 
 class SubscriptionService {
   constructor() {

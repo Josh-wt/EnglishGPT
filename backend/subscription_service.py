@@ -36,6 +36,53 @@ class SubscriptionService:
     def __init__(self, supabase: Client):
         self.supabase = supabase
     
+    # -------------------------
+    # Internal helpers
+    # -------------------------
+    def _get_nested(self, data: Dict[str, Any], path: List[str]) -> Optional[Any]:
+        """Safely fetch nested dict value by path"""
+        node: Any = data
+        for key in path:
+            if isinstance(node, dict) and key in node:
+                node = node[key]
+            else:
+                return None
+        return node
+
+    def _coalesce(self, *values: Any) -> Optional[Any]:
+        """Return the first non-None value"""
+        for value in values:
+            if value is not None:
+                return value
+        return None
+
+    def _as_int(self, value: Any) -> Optional[int]:
+        try:
+            if value is None:
+                return None
+            return int(value)
+        except Exception:
+            return None
+
+    def _amount_cents_from_payment(self, payment_data: Dict[str, Any]) -> Optional[int]:
+        """Derive amount in cents from various Dodo fields."""
+        # Prefer explicit minor units if provided
+        amount_cents = self._as_int(payment_data.get('amount_cents'))
+        if amount_cents is not None:
+            return amount_cents
+        # Fallback to total_amount (often minor units) if present
+        total_amount = self._as_int(payment_data.get('total_amount'))
+        if total_amount is not None:
+            return total_amount
+        # As a last resort, multiply settlement_amount (assumed major units)
+        settlement_amount = payment_data.get('settlement_amount')
+        try:
+            if settlement_amount is not None:
+                return int(round(float(settlement_amount) * 100))
+        except Exception:
+            pass
+        return None
+    
     async def get_or_create_dodo_customer(self, user_id: str, email: str, name: Optional[str] = None) -> str:
         """Get existing Dodo customer ID or create a new customer"""
         try:
@@ -65,8 +112,7 @@ class SubscriptionService:
             return dodo_customer_id
                 
         except Exception as e:
-            print(f"🔧 DEBUG: ACTUAL ERROR: {str(e)}")
-            print(f"🔧 DEBUG: ERROR TYPE: {type(e).__name__}")
+            logger.error(f"Dodo API error: {str(e)}")
             import traceback
             traceback.print_exc()
             logger.error(f"Failed to get/create Dodo customer for user {user_id}: {e}")
@@ -361,8 +407,15 @@ class SubscriptionService:
     async def handle_subscription_webhook(self, event_type: str, subscription_data: Dict[str, Any]) -> None:
         """Handle subscription-related webhook events"""
         try:
-            subscription_id = subscription_data.get('id')
-            customer_id = subscription_data.get('customer_id')
+            subscription_id = self._coalesce(
+                subscription_data.get('id'),
+                subscription_data.get('subscription_id')
+            )
+            customer_id = self._coalesce(
+                subscription_data.get('customer_id'),
+                self._get_nested(subscription_data, ['customer', 'customer_id']),
+                self._get_nested(subscription_data, ['customer', 'id'])
+            )
             
             # Find user by customer ID
             user_response = self.supabase.table('assessment_users').select('uid').eq('dodo_customer_id', customer_id).execute()
@@ -392,30 +445,66 @@ class SubscriptionService:
     async def _handle_subscription_update(self, user_id: str, subscription_data: Dict[str, Any]) -> None:
         """Handle subscription creation or update"""
         try:
-            # Parse subscription data
-            dodo_subscription_id = subscription_data['id']
+            # Parse subscription data with robust key handling
+            dodo_subscription_id = self._coalesce(
+                subscription_data.get('id'),
+                subscription_data.get('subscription_id')
+            )
+            if not dodo_subscription_id:
+                logger.error("Subscription update missing subscription ID")
+                return
             
             # Determine plan type from product ID
             plan_type = 'monthly'  # default
-            product_id = subscription_data.get('product_id', '')
+            product_id = self._coalesce(
+                subscription_data.get('product_id'),
+                self._get_nested(subscription_data, ['product', 'product_id']),
+                self._get_nested(subscription_data, ['product', 'id'])
+            ) or ''
             if 'yearly' in product_id.lower() or 'annual' in product_id.lower():
                 plan_type = 'yearly'
             
             subscription_record = {
                 'user_id': user_id,
                 'dodo_subscription_id': dodo_subscription_id,
-                'dodo_product_id': subscription_data.get('product_id'),
-                'dodo_customer_id': subscription_data.get('customer_id'),
+                'dodo_product_id': product_id,
+                'dodo_customer_id': self._coalesce(
+                    subscription_data.get('customer_id'),
+                    self._get_nested(subscription_data, ['customer', 'customer_id']),
+                    self._get_nested(subscription_data, ['customer', 'id'])
+                ),
                 'status': subscription_data.get('status', 'active'),
                 'plan_type': plan_type,
-                'current_period_start': subscription_data.get('current_period_start'),
-                'current_period_end': subscription_data.get('current_period_end'),
+                'current_period_start': self._coalesce(
+                    subscription_data.get('current_period_start'),
+                    self._get_nested(subscription_data, ['current_period', 'start'])
+                ),
+                'current_period_end': self._coalesce(
+                    subscription_data.get('current_period_end'),
+                    self._get_nested(subscription_data, ['current_period', 'end'])
+                ),
                 'cancel_at_period_end': subscription_data.get('cancel_at_period_end', False),
                 'trial_start': subscription_data.get('trial_start'),
                 'trial_end': subscription_data.get('trial_end'),
                 'metadata': subscription_data.get('metadata', {}),
                 'updated_at': datetime.utcnow().isoformat()
             }
+            
+            # If critical fields missing, fetch fresh subscription details from Dodo
+            if not subscription_record['current_period_end'] or not subscription_record['status']:
+                try:
+                    dodo_client = DodoPaymentsClient()
+                    fresh = await dodo_client.get_subscription(dodo_subscription_id)
+                    subscription_record['dodo_product_id'] = subscription_record['dodo_product_id'] or fresh.get('product_id')
+                    subscription_record['status'] = subscription_record['status'] or fresh.get('status', 'active')
+                    subscription_record['current_period_start'] = subscription_record['current_period_start'] or self._coalesce(
+                        fresh.get('current_period_start'), self._get_nested(fresh, ['current_period', 'start'])
+                    )
+                    subscription_record['current_period_end'] = subscription_record['current_period_end'] or self._coalesce(
+                        fresh.get('current_period_end'), self._get_nested(fresh, ['current_period', 'end'])
+                    )
+                except Exception as e:
+                    logger.warning(f"Could not fetch subscription {dodo_subscription_id} from Dodo: {e}")
             
             # Upsert subscription record
             existing_sub = self.supabase.table('dodo_subscriptions').select('id').eq('dodo_subscription_id', dodo_subscription_id).execute()
@@ -489,18 +578,31 @@ class SubscriptionService:
     async def handle_payment_webhook(self, event_type: str, payment_data: Dict[str, Any]) -> None:
         """Handle payment-related webhook events"""
         try:
-            payment_id = payment_data.get('id')
-            subscription_id = payment_data.get('subscription_id')
-            customer_id = payment_data.get('customer_id')
+            payment_id = self._coalesce(payment_data.get('id'), payment_data.get('payment_id'))
+            subscription_id = self._coalesce(
+                payment_data.get('subscription_id'),
+                self._get_nested(payment_data, ['subscription', 'id'])
+            )
+            customer_id = self._coalesce(
+                payment_data.get('customer_id'),
+                self._get_nested(payment_data, ['customer', 'customer_id']),
+                self._get_nested(payment_data, ['customer', 'id'])
+            )
             
             # Find user by customer ID
             user_response = self.supabase.table('assessment_users').select('uid').eq('dodo_customer_id', customer_id).execute()
             
+            # Fallback: if customer not mapped, try metadata.user_id from payload
             if not user_response.data:
-                logger.warning(f"No user found for Dodo customer {customer_id}")
-                return
-            
-            user_id = user_response.data[0]['uid']
+                fallback_user_id = self._get_nested(payment_data, ['metadata', 'user_id'])
+                if fallback_user_id:
+                    logger.warning(f"No user found for customer {customer_id}; falling back to metadata user_id {fallback_user_id}")
+                    user_id = fallback_user_id
+                else:
+                    logger.warning(f"No user found for Dodo customer {customer_id}")
+                    return
+            else:
+                user_id = user_response.data[0]['uid']
             
             # Find subscription record if payment is subscription-related
             db_subscription_id = None
@@ -508,17 +610,41 @@ class SubscriptionService:
                 sub_response = self.supabase.table('dodo_subscriptions').select('id').eq('dodo_subscription_id', subscription_id).execute()
                 if sub_response.data:
                     db_subscription_id = sub_response.data[0]['id']
+                else:
+                    # Create subscription record if missing, using Dodo API for details
+                    try:
+                        dodo_client = DodoPaymentsClient()
+                        fresh_sub = await dodo_client.get_subscription(subscription_id)
+                        # Normalize minimal fields
+                        await self._handle_subscription_update(user_id, {
+                            'id': subscription_id,
+                            'customer_id': customer_id,
+                            'product_id': fresh_sub.get('product_id'),
+                            'status': fresh_sub.get('status', 'active'),
+                            'current_period_start': fresh_sub.get('current_period_start') or self._get_nested(fresh_sub, ['current_period', 'start']),
+                            'current_period_end': fresh_sub.get('current_period_end') or self._get_nested(fresh_sub, ['current_period', 'end']),
+                            'cancel_at_period_end': fresh_sub.get('cancel_at_period_end', False),
+                            'trial_start': fresh_sub.get('trial_start'),
+                            'trial_end': fresh_sub.get('trial_end'),
+                            'metadata': fresh_sub.get('metadata', {})
+                        })
+                        # fetch ID again
+                        sub_response = self.supabase.table('dodo_subscriptions').select('id').eq('dodo_subscription_id', subscription_id).execute()
+                        if sub_response.data:
+                            db_subscription_id = sub_response.data[0]['id']
+                    except Exception as e:
+                        logger.warning(f"Could not create subscription {subscription_id} from payment: {e}")
             
             # Create or update payment record
             payment_record = {
                 'user_id': user_id,
                 'dodo_payment_id': payment_id,
                 'subscription_id': db_subscription_id,
-                'amount_cents': payment_data.get('amount_cents', 0),
-                'currency': payment_data.get('currency', 'USD'),
+                'amount_cents': self._amount_cents_from_payment(payment_data) or 0,
+                'currency': self._coalesce(payment_data.get('currency'), payment_data.get('settlement_currency'), 'USD'),
                 'status': payment_data.get('status'),
-                'payment_method_type': payment_data.get('payment_method_type'),
-                'failure_reason': payment_data.get('failure_reason'),
+                'payment_method_type': self._coalesce(payment_data.get('payment_method_type'), payment_data.get('payment_method'), payment_data.get('card_network')),
+                'failure_reason': self._coalesce(payment_data.get('failure_reason'), payment_data.get('error_message'), payment_data.get('error_code')),
                 'metadata': payment_data.get('metadata', {}),
                 'updated_at': datetime.utcnow().isoformat()
             }
@@ -534,6 +660,10 @@ class SubscriptionService:
                 self.supabase.table('dodo_payments').insert(payment_record).execute()
             
             logger.info(f"Processed payment {payment_id} for user {user_id}")
+
+            # On payment success, ensure user's subscription status is synced
+            if payment_record['status'] == 'succeeded':
+                await self._sync_user_subscription_status(user_id)
             
         except Exception as e:
             logger.error(f"Failed to handle payment webhook {event_type}: {e}")

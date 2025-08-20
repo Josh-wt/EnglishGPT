@@ -22,6 +22,9 @@ from PIL import Image
 import PyPDF2
 import io
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Supabase connection
 from supabase import create_client, Client
@@ -32,9 +35,9 @@ try:
     from dodo_payments_client import DodoPaymentsClient, WebhookValidator
     import standardwebhooks
     DODO_INTEGRATION_AVAILABLE = True
-    print("✅ Dodo Payments integration available")
+    logger.info("Dodo Payments integration available")
 except ImportError as e:
-    print(f"❌ Dodo Payments integration not available: {e}")
+    logger.warning(f"Dodo Payments integration not available: {e}")
     SubscriptionService = None
     DodoPaymentsClient = None
     WebhookValidator = None
@@ -62,29 +65,18 @@ if not SUPABASE_KEY:
 # Initialize Supabase client
 try:
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-    print("Supabase client initialized successfully")
+    logger.info("Supabase client initialized successfully")
 except Exception as e:
-    print(f"Error initializing Supabase: {e}")
+    logger.error(f"Error initializing Supabase: {e}")
     supabase = None
 
 # Create the main app without a prefix
 app = FastAPI()
 
-# CORS middleware with comprehensive debugging
+# CORS middleware
 @app.middleware("http")
-async def cors_debug_middleware(request: Request, call_next):
-    origin = request.headers.get("origin")
-    method = request.method
-    
-    print(f"🌐 CORS DEBUG: {method} {request.url}")
-    print(f"🌐 Origin: {origin}")
-    print(f"🌐 Headers: {dict(request.headers)}")
-    
+async def cors_middleware(request: Request, call_next):
     response = await call_next(request)
-    
-    print(f"🌐 Response status: {response.status_code}")
-    print(f"🌐 Response headers: {dict(response.headers)}")
-    
     return response
 
 # Add CORS middleware for frontend - COMPREHENSIVE VERSION
@@ -104,7 +96,7 @@ app.add_middleware(
         "https://www.englishgpt.org",  # WWW subdomain
         "https://englishgpt.everythingenglish.xyz",  # Primary domain
         "http://englishgpt.everythingenglish.xyz",  # HTTP version for development
-        "*"  # Allow all origins for debugging (remove in production)
+        "https://yourdomain.com"  # Update with your production domain
     ],
     allow_credentials=True,
     allow_methods=["*"],  # Allow all methods
@@ -124,30 +116,27 @@ async def create_subscription_checkout(request: Request):
     try:
         # Parse JSON request body
         request_data = await request.json()
-        print(f"🔧 SERVER DEBUG: CREATE CHECKOUT REQUEST: {request_data}")
+
         
         user_id = request_data.get('userId')
         plan_type = request_data.get('planType')
         metadata = request_data.get('metadata', {})
         
-        print(f"🔧 SERVER DEBUG: user_id={user_id}, plan_type={plan_type}")
+
         
         if not user_id:
             raise HTTPException(status_code=400, detail="User ID is required")
         if not plan_type or plan_type not in ['monthly', 'yearly']:
             raise HTTPException(status_code=400, detail="Valid plan type is required")
         
-        print(f"🔧 SERVER DEBUG: About to call subscription_service.create_checkout_session")
         result = await subscription_service.create_checkout_session(user_id, plan_type, metadata)
-        print(f"🔧 SERVER DEBUG: Success! Result: {result}")
         return result
         
     except HTTPException as he:
-        print(f"🔧 SERVER DEBUG: HTTPException: {he.detail}")
+
         raise
     except Exception as e:
-        print(f"🔧 SERVER DEBUG: Exception: {str(e)}")
-        print(f"🔧 SERVER DEBUG: Exception type: {type(e).__name__}")
+        logger.error(f"Checkout creation error: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Checkout creation failed: {str(e)}")
@@ -160,7 +149,7 @@ async def root():
 @api_router.options("/{path:path}")
 async def options_handler(request: Request):
     origin = request.headers.get("origin", "*")
-    print(f"🔍 OPTIONS preflight request from {origin} for {request.url}")
+
     
     return JSONResponse(
         content={"message": "CORS preflight successful"},
@@ -700,13 +689,12 @@ def compute_overall_grade(question_type: str, reading_marks: Optional[str], writ
 
 async def call_deepseek_api(prompt: str) -> tuple[str, str]:
     """Call DeepSeek API for text evaluation"""
-    print(f"DEBUG: call_deepseek_api called with prompt length: {len(prompt)}")
-    print(f"DEBUG: DEEPSEEK_ENDPOINT: {DEEPSEEK_ENDPOINT}")
+
     
     # Check if API key is properly configured
     if not DEEPSEEK_API_KEY or DEEPSEEK_API_KEY.strip() == '':
         error_msg = "DeepSeek API key not configured. Please set DEEPSEEK_API_KEY environment variable."
-        print(f"ERROR: {error_msg}")
+        logger.error(error_msg)
         raise HTTPException(status_code=500, detail=error_msg)
     
     async with httpx.AsyncClient() as client:
@@ -725,41 +713,41 @@ async def call_deepseek_api(prompt: str) -> tuple[str, str]:
             "temperature": 0.3
         }
         
-        print(f"DEBUG: Making request to DeepSeek API...")
+
         
         try:
             response = await client.post(DEEPSEEK_ENDPOINT, headers=headers, json=payload, timeout=60.0)
-            print(f"DEBUG: DeepSeek API response status: {response.status_code}")
+
             
             response.raise_for_status()
             result = response.json()
             
             if 'choices' not in result or not result['choices']:
                 error_msg = "Invalid response from DeepSeek API: No choices in response"
-                print(f"ERROR: {error_msg}")
+                logger.error(error_msg)
                 raise HTTPException(status_code=500, detail=error_msg)
             
             full_response = result['choices'][0]['message']['content']
-            print(f"DEBUG: DeepSeek API call successful, response length: {len(full_response)}")
+
             return full_response, json.dumps(payload) + "\n\nResponse:\n" + full_response
             
         except httpx.TimeoutException:
             error_msg = "DeepSeek API request timed out. Please try again."
-            print(f"ERROR: {error_msg}")
+            logger.error(error_msg)
             raise HTTPException(status_code=500, detail=error_msg)
         except httpx.HTTPStatusError as e:
             print(f"ERROR: DeepSeek API HTTP error - Status: {e.response.status_code}, Response: {e.response.text}")
             if e.response.status_code == 401:
                 error_msg = "DeepSeek API authentication failed. Please check your API key."
-                print(f"ERROR: {error_msg}")
+                logger.error(error_msg)
                 raise HTTPException(status_code=500, detail=error_msg)
             elif e.response.status_code == 429:
                 error_msg = "DeepSeek API rate limit exceeded. Please try again later."
-                print(f"ERROR: {error_msg}")
+                logger.error(error_msg)
                 raise HTTPException(status_code=500, detail=error_msg)
             else:
                 error_msg = f"DeepSeek API error: {e.response.status_code} - {e.response.text}"
-                print(f"ERROR: {error_msg}")
+                logger.error(error_msg)
                 raise HTTPException(status_code=500, detail=error_msg)
         except Exception as e:
             # Provide a more helpful error message
@@ -767,15 +755,15 @@ async def call_deepseek_api(prompt: str) -> tuple[str, str]:
             print(f"ERROR: DeepSeek API exception: {error_msg}")
             if "401" in error_msg or "unauthorized" in error_msg.lower():
                 error_msg = "DeepSeek API authentication failed. Please check your API key configuration."
-                print(f"ERROR: {error_msg}")
+                logger.error(error_msg)
                 raise HTTPException(status_code=500, detail=error_msg)
             elif "404" in error_msg or "not found" in error_msg.lower():
                 error_msg = "DeepSeek API endpoint not found. Please check your API endpoint configuration."
-                print(f"ERROR: {error_msg}")
+                logger.error(error_msg)
                 raise HTTPException(status_code=500, detail=error_msg)
             else:
                 error_msg = f"DeepSeek API error: {error_msg}"
-                print(f"ERROR: {error_msg}")
+                logger.error(error_msg)
                 raise HTTPException(status_code=500, detail=error_msg)
 
 async def call_qwen_api(file_content: str, file_type: str) -> str:
@@ -833,7 +821,7 @@ def process_image_to_base64(file_content: bytes) -> str:
 # Routes
 @api_router.get("/users")
 async def get_all_users():
-    """Get all users (for debugging/testing)"""
+    """Get all users"""
     try:
         response = supabase.table('assessment_users').select('*').execute()
         return {"users": response.data}
@@ -851,18 +839,19 @@ async def create_or_get_user(user_data: dict):
         if not user_id or user_id == "undefined":
             raise HTTPException(status_code=400, detail="Invalid user ID provided")
         
-        print(f"DEBUG: Creating/getting user with ID: {user_id}")
-        print(f"DEBUG: User data: {user_data}")
+
         
         # Check if user already exists
         response = supabase.table('assessment_users').select('*').eq('uid', user_id).execute()
-        print(f"DEBUG: Check existing user response: {response}")
+        # Debug logging removed for production
+        # print(f"DEBUG: Check existing user response: {response}")
         
         if response.data:
             # User exists, return the data
             existing_user = response.data[0]
             existing_user['id'] = existing_user['uid']  # For compatibility
-            print(f"DEBUG: Returning existing user: {existing_user}")
+            # Debug logging removed for production
+        # print(f"DEBUG: Returning existing user: {existing_user}")
             return {"user": existing_user}
         
         # Create new user with 3 free credits
@@ -878,16 +867,19 @@ async def create_or_get_user(user_data: dict):
             "updated_at": datetime.utcnow().isoformat()
         }
         
-        print(f"DEBUG: Creating new user with data: {new_user_data}")
+        # Debug logging removed for production
+        # print(f"DEBUG: Creating new user with data: {new_user_data}")
         
         # Save to Supabase
         insert_response = supabase.table('assessment_users').insert(new_user_data).execute()
-        print(f"DEBUG: Insert response: {insert_response}")
+        # Debug logging removed for production
+        # print(f"DEBUG: Insert response: {insert_response}")
         
         if insert_response.data:
             user_dict = insert_response.data[0]
             user_dict['id'] = user_dict['uid']  # For compatibility
-            print(f"DEBUG: Created user successfully: {user_dict}")
+            # Debug logging removed for production
+        # print(f"DEBUG: Created user successfully: {user_dict}")
             return {"user": user_dict}
         else:
             raise HTTPException(status_code=500, detail="Failed to create user")
@@ -895,7 +887,8 @@ async def create_or_get_user(user_data: dict):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"DEBUG: Exception in create_or_get_user: {str(e)}")
+        # Debug logging removed for production
+        # print(f"DEBUG: Exception in create_or_get_user: {str(e)}")
         raise HTTPException(status_code=500, detail=f"User creation error: {str(e)}")
 
 @api_router.get("/users/{user_id}")
@@ -905,23 +898,28 @@ async def get_user(user_id: str):
         if not user_id or user_id == "undefined":
             raise HTTPException(status_code=400, detail="Invalid user ID provided")
         
-        print(f"DEBUG: Getting user with ID: {user_id}")
+        # Debug logging removed for production
+        # print(f"DEBUG: Getting user with ID: {user_id}")
         response = supabase.table('assessment_users').select('*').eq('uid', user_id).execute()
         
         if not response.data:
-            print(f"DEBUG: User not found for ID: {user_id}")
+            # Debug logging removed for production
+        # print(f"DEBUG: User not found for ID: {user_id}")
             raise HTTPException(status_code=404, detail="User not found")
         
         user_data = response.data[0]
         user_data['id'] = user_data['uid']  # For compatibility
-        print(f"DEBUG: Retrieved user data: {user_data}")
-        print(f"DEBUG: Academic level in user data: {user_data.get('academic_level')}")
+        # Debug logging removed for production
+        # print(f"DEBUG: Retrieved user data: {user_data}")
+        # Debug logging removed for production
+        # print(f"DEBUG: Academic level in user data: {user_data.get('academic_level')}")
         return {"user": user_data}
         
     except HTTPException:
         raise
     except Exception as e:
-        print(f"DEBUG: Exception in get_user: {str(e)}")
+        # Debug logging removed for production
+        # print(f"DEBUG: Exception in get_user: {str(e)}")
         raise HTTPException(status_code=500, detail=f"User retrieval error: {str(e)}")
 
 @api_router.put("/users/{user_id}")
@@ -931,7 +929,8 @@ async def update_user(user_id: str, updates: dict):
         if not user_id or user_id == "undefined":
             raise HTTPException(status_code=400, detail="Invalid user ID provided")
         
-        print(f"DEBUG: Updating user {user_id} with: {updates}")
+        # Debug logging removed for production
+        # print(f"DEBUG: Updating user {user_id} with: {updates}")
         
         # Update timestamp
         updates['updated_at'] = datetime.utcnow().isoformat()
@@ -940,17 +939,22 @@ async def update_user(user_id: str, updates: dict):
         response = supabase.table('assessment_users').update(updates).eq('uid', user_id).execute()
         
         if not response.data:
-            print(f"DEBUG: User not found for update, ID: {user_id}")
+            # Debug logging removed for production
+        # print(f"DEBUG: User not found for update, ID: {user_id}")
             raise HTTPException(status_code=404, detail="User not found")
         
         updated_user = response.data[0]
         updated_user['id'] = updated_user['uid']  # For compatibility
-        print(f"DEBUG: User updated successfully: {updated_user}")
+        # Debug logging removed for production
+        # print(f"DEBUG: User updated successfully: {updated_user}")
         
         # Debug: Check if academic_level was updated
         if 'academic_level' in updates:
-            print(f"DEBUG: Academic level updated to: {updates['academic_level']}")
-            print(f"DEBUG: User document now has academic_level: {updated_user.get('academic_level')}")
+            # Debug logging removed for production
+            # print(f"DEBUG: Academic level updated to: {updates['academic_level']}")
+            # Debug logging removed for production
+            # print(f"DEBUG: User document now has academic_level: {updated_user.get('academic_level')}")
+            pass
         
         return {"user": updated_user}
         
@@ -973,7 +977,7 @@ async def debug_env_check():
 async def test_plan_update(user_id: str, plan_data: dict):
     """Test endpoint to update user plan"""
     try:
-        print(f"Testing plan update for user {user_id}: {plan_data}")
+
         
         updates = {
             'current_plan': plan_data.get('plan', 'free'),
@@ -996,7 +1000,7 @@ async def test_plan_update(user_id: str, plan_data: dict):
         }
         
     except Exception as e:
-        print(f"Test plan update error: {str(e)}")
+        logger.error(f"Plan update error: {str(e)}")
         return {"error": str(e)}
 
 @api_router.put("/users/{user_id}/preferences")
@@ -1066,7 +1070,8 @@ async def process_file(file: UploadFile = File(...)):
 async def evaluate_submission(submission: SubmissionRequest):
     """Evaluate student submission using AI"""
     try:
-        print(f"DEBUG: Starting evaluation for user {submission.user_id}, question type: {submission.question_type}")
+        # Debug logging removed for production
+        # print(f"DEBUG: Starting evaluation for user {submission.user_id}, question type: {submission.question_type}")
         
         # Get user data and validate limits
         user_response = supabase.table('assessment_users').select('*').eq('uid', submission.user_id).execute()
@@ -1078,7 +1083,8 @@ async def evaluate_submission(submission: SubmissionRequest):
         credits = user_data.get('credits', 3)
         questions_marked = user_data.get('questions_marked', 0)
         
-        print(f"DEBUG: User plan: {current_plan}, credits: {credits}")
+        # Debug logging removed for production
+        # print(f"DEBUG: User plan: {current_plan}, credits: {credits}")
         
         # Check subscription status for access control
         has_active_subscription = await subscription_service._check_user_subscription_access(submission.user_id)
@@ -1102,31 +1108,46 @@ async def evaluate_submission(submission: SubmissionRequest):
         if not marking_criteria:
             raise HTTPException(status_code=400, detail="Invalid question type")
         
-        print(f"DEBUG: Marking criteria found for {submission.question_type}")
-        print(f"DEBUG: Available marking criteria keys: {list(MARKING_CRITERIA.keys())}")
-        print(f"DEBUG: Question type received: '{submission.question_type}'")
-        print(f"DEBUG: Marking criteria length: {len(marking_criteria)}")
-        print(f"DEBUG: First 200 chars of marking criteria: {marking_criteria[:200]}")
+        # Debug logging removed for production
+        # print(f"DEBUG: Marking criteria found for {submission.question_type}")
+        # Debug logging removed for production
+        # print(f"DEBUG: Available marking criteria keys: {list(MARKING_CRITERIA.keys())}")
+        # Debug logging removed for production
+        # print(f"DEBUG: Question type received: '{submission.question_type}'")
+        # Debug logging removed for production
+        # print(f"DEBUG: Marking criteria length: {len(marking_criteria)}")
+        # Debug logging removed for production
+        # print(f"DEBUG: First 200 chars of marking criteria: {marking_criteria[:200]}")
         
         # Additional debugging to check if the right criteria is being used
         if submission.question_type == "igcse_descriptive":
-            print(f"DEBUG: This should be descriptive criteria. First 500 chars: {marking_criteria[:500]}")
+            # Debug logging removed for production
+            # print(f"DEBUG: This should be descriptive criteria. First 500 chars: {marking_criteria[:500]}")
             # Check for specific markers that indicate descriptive criteria
             if "Core Principle for Descriptive Marking" in marking_criteria:
-                print(f"DEBUG: Correct descriptive criteria confirmed")
+                # Debug logging removed for production
+                # print(f"DEBUG: Correct descriptive criteria confirmed")
+                pass
             elif "Primary Focus:" in marking_criteria and "narrative" in marking_criteria.lower():
                 print(f"ERROR: Narrative criteria found in descriptive request!")
             else:
-                print(f"DEBUG: Criteria type unclear")
+                # Debug logging removed for production
+                # print(f"DEBUG: Criteria type unclear")
+                pass
         elif submission.question_type == "igcse_narrative":
-            print(f"DEBUG: This should be narrative criteria. First 500 chars: {marking_criteria[:500]}")
+            # Debug logging removed for production
+            # print(f"DEBUG: This should be narrative criteria. First 500 chars: {marking_criteria[:500]}")
             # Check for specific markers that indicate narrative criteria
             if "Primary Focus:" in marking_criteria and "Content/Structure (16 marks)" in marking_criteria:
-                print(f"DEBUG: Correct narrative criteria confirmed")
+                # Debug logging removed for production
+                # print(f"DEBUG: Correct narrative criteria confirmed")
+                pass
             elif "Core Principle for Descriptive Marking" in marking_criteria:
                 print(f"ERROR: Descriptive criteria found in narrative request!")
             else:
-                print(f"DEBUG: Criteria type unclear")
+                # Debug logging removed for production
+                # print(f"DEBUG: Criteria type unclear")
+                pass
 
                 
                 
@@ -1225,31 +1246,43 @@ Student Response: {sanitized_response}
 {"Marking Scheme: " + sanitized_scheme if sanitized_scheme else ""}
 """
         
-        print(f"DEBUG: Full prompt length: {len(full_prompt)}")
-        print(f"DEBUG: First 500 chars of prompt: {full_prompt[:500]}")
+        # Debug logging removed for production
+        # print(f"DEBUG: Full prompt length: {len(full_prompt)}")
+        # Debug logging removed for production
+        # print(f"DEBUG: First 500 chars of prompt: {full_prompt[:500]}")
         
         # Check if the correct marking criteria is in the prompt
         if submission.question_type == "igcse_descriptive":
             if "Core Principle for Descriptive Marking" in full_prompt:
-                print(f"DEBUG: Correct descriptive criteria found in prompt")
+                # Debug logging removed for production
+                # print(f"DEBUG: Correct descriptive criteria found in prompt")
+                pass
             elif "Primary Focus:" in full_prompt and "Content/Structure (16 marks)" in full_prompt:
                 print(f"ERROR: Narrative criteria found in descriptive prompt!")
             else:
-                print(f"DEBUG: Criteria type unclear in prompt")
+                # Debug logging removed for production
+                # print(f"DEBUG: Criteria type unclear in prompt")
+                pass
         elif submission.question_type == "igcse_narrative":
             if "Primary Focus:" in full_prompt and "Content/Structure (16 marks)" in full_prompt:
-                print(f"DEBUG: Correct narrative criteria found in prompt")
+                # Debug logging removed for production
+                # print(f"DEBUG: Correct narrative criteria found in prompt")
+                pass
             elif "Core Principle for Descriptive Marking" in full_prompt:
                 print(f"ERROR: Descriptive criteria found in narrative prompt!")
             else:
-                print(f"DEBUG: Criteria type unclear in prompt")
+                # Debug logging removed for production
+                # print(f"DEBUG: Criteria type unclear in prompt")
+                pass
         
-        print(f"DEBUG: Calling DeepSeek API...")
+        # Debug logging removed for production
+        # print(f"DEBUG: Calling DeepSeek API...")
         
         # Call AI API
         ai_response, _ = await call_deepseek_api(full_prompt)
         
-        print(f"DEBUG: AI Response received: {ai_response[:500]}...")  # Debug log
+        # Debug logging removed for production
+        # print(f"DEBUG: AI Response received: {ai_response[:500]}...")  # Debug log
         
         # Remove any bolding from the response
         ai_response = ai_response.replace('**', '')
@@ -1403,7 +1436,8 @@ Student Response: {sanitized_response}
             strengths = []
             if "STRENGTHS:" in ai_response:
                 strengths_part = ai_response.split("STRENGTHS:")[1].strip()
-                print(f"DEBUG: Raw strengths part: {strengths_part}")
+                # Debug logging removed for production
+        # print(f"DEBUG: Raw strengths part: {strengths_part}")
                 
                 # Try multiple parsing methods
                 if "|" in strengths_part:
@@ -1416,7 +1450,8 @@ Student Response: {sanitized_response}
                     # Use as single strength
                     strengths = [strengths_part] if strengths_part else []
                 
-                print(f"DEBUG: Parsed strengths: {strengths}")
+                # Debug logging removed for production
+        # print(f"DEBUG: Parsed strengths: {strengths}")
             else:
                 strengths = []
         else:
@@ -1455,7 +1490,8 @@ Student Response: {sanitized_response}
             strengths=strengths
         )
         
-        print(f"DEBUG: Created feedback response, updating user stats...")
+        # Debug logging removed for production
+        # print(f"DEBUG: Created feedback response, updating user stats...")
         
         # Update user stats (credits no longer decremented)
         new_questions_marked = questions_marked + 1
@@ -1479,7 +1515,8 @@ Student Response: {sanitized_response}
             eval_copy = {k: v for k, v in evaluation_data.items() if k != 'short_id'}
             supabase.table('assessment_evaluations').insert(eval_copy).execute()
         
-        print(f"DEBUG: Evaluation completed successfully")
+        # Debug logging removed for production
+        # print(f"DEBUG: Evaluation completed successfully")
         return feedback_response
         
     except HTTPException as http_exc:
@@ -1780,7 +1817,7 @@ async def get_user_analytics(user_id: str):
                 else:
                     recommendations = cached.get('value')
             except Exception as e:
-                print(f"Recommendations error: {str(e)}")
+                logger.error(f"Recommendations error: {str(e)}")
                 recommendations = None
 
         analytics_data["recommendations"] = recommendations
@@ -1794,7 +1831,7 @@ async def get_user_analytics(user_id: str):
 async def test_history(user_id: str):
     """Test endpoint to check if history works for a user"""
     try:
-        print(f"Testing history for user: {user_id}")
+
         
         # Check if user exists
         user_response = supabase.table('assessment_users').select('*').eq('uid', user_id).execute()
@@ -1812,30 +1849,31 @@ async def test_history(user_id: str):
         }
         
     except Exception as e:
-        print(f"Test history error: {str(e)}")
+        logger.error(f"History error: {str(e)}")
         return {"error": str(e), "user_id": user_id}
 
 @api_router.get("/history/{user_id}")
 async def get_evaluation_history(user_id: str):
     """Get evaluation history for a specific user"""
     try:
-        print(f"Getting history for user: {user_id}")
+
         
         # Get evaluations from Supabase
         evaluations_response = supabase.table('assessment_evaluations').select('*').eq('user_id', user_id).execute()
         evaluations = evaluations_response.data
         
-        print(f"Found {len(evaluations)} evaluations for user {user_id}")
+
         return {"evaluations": evaluations}
     except Exception as e:
-        print(f"History endpoint error: {str(e)}")
+        logger.error(f"History endpoint error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @api_router.get("/evaluations/{evaluation_id}")
 async def get_evaluation_by_id(evaluation_id: str):
     """Public endpoint to fetch a single evaluation by its ID or short_id for shareable links"""
     try:
-        print(f"DEBUG: Looking for evaluation_id: {evaluation_id}")
+        # Debug logging removed for production
+        # print(f"DEBUG: Looking for evaluation_id: {evaluation_id}")
         data = []
         
         # Try full UUID first, but only if it looks like a UUID to avoid PG uuid parse errors
@@ -1847,48 +1885,61 @@ async def get_evaluation_by_id(evaluation_id: str):
                 return False
 
         if _looks_like_uuid(evaluation_id):
-            print(f"DEBUG: Trying UUID query for {evaluation_id}")
+            # Debug logging removed for production
+        # print(f"DEBUG: Trying UUID query for {evaluation_id}")
             try:
                 response = supabase.table('assessment_evaluations').select('*').eq('id', evaluation_id).execute()
                 data = response.data or []
-                print(f"DEBUG: UUID query returned {len(data)} results")
+                # Debug logging removed for production
+        # print(f"DEBUG: UUID query returned {len(data)} results")
             except Exception as e:
-                print(f"DEBUG: UUID query failed: {e}")
+                # Debug logging removed for production
+        # print(f"DEBUG: UUID query failed: {e}")
                 data = []
         
         if not data:
             # Fallback to short_id if column exists
-            print(f"DEBUG: Trying short_id query for {evaluation_id}")
+            # Debug logging removed for production
+        # print(f"DEBUG: Trying short_id query for {evaluation_id}")
             try:
                 response2 = supabase.table('assessment_evaluations').select('*').eq('short_id', evaluation_id).execute()
                 data = response2.data or []
-                print(f"DEBUG: short_id query returned {len(data)} results")
+                # Debug logging removed for production
+        # print(f"DEBUG: short_id query returned {len(data)} results")
             except Exception as e:
-                print(f"DEBUG: short_id query failed: {e}")
+                # Debug logging removed for production
+        # print(f"DEBUG: short_id query failed: {e}")
                 # If short_id column doesn't exist, try to find evaluation differently
                 # Maybe the short_id is actually part of the main ID or stored elsewhere
                 try:
-                    print(f"DEBUG: Trying fallback - searching all evaluations containing {evaluation_id}")
+                    # Debug logging removed for production
+        # print(f"DEBUG: Trying fallback - searching all evaluations containing {evaluation_id}")
                     # This is a fallback - get recent evaluations and check if any match
                     response3 = supabase.table('assessment_evaluations').select('*').order('timestamp', desc=True).limit(50).execute()
                     all_evals = response3.data or []
-                    print(f"DEBUG: Fallback search through {len(all_evals)} recent evaluations")
+                    # Debug logging removed for production
+        # print(f"DEBUG: Fallback search through {len(all_evals)} recent evaluations")
                     # Look for evaluation where ID contains the short string or vice versa
                     for eval_item in all_evals:
                         eval_id = str(eval_item.get('id', ''))
                         if evaluation_id in eval_id or eval_id.endswith(evaluation_id):
-                            print(f"DEBUG: Found match by ID pattern: {eval_id}")
+                            # Debug logging removed for production
+                            # print(f"DEBUG: Found match by ID pattern: {eval_id}")
                             data = [eval_item]
                             break
                 except Exception as e2:
-                    print(f"DEBUG: Fallback search also failed: {e2}")
+                    # Debug logging removed for production
+                    # print(f"DEBUG: Fallback search also failed: {e2}")
+                    pass
                 data = []
         
         if not data:
-            print(f"DEBUG: No evaluation found for {evaluation_id}")
+            # Debug logging removed for production
+            # print(f"DEBUG: No evaluation found for {evaluation_id}")
             raise HTTPException(status_code=404, detail="Evaluation not found")
         
-        print(f"DEBUG: Returning evaluation: {data[0].get('id')}")
+        # Debug logging removed for production
+        # print(f"DEBUG: Returning evaluation: {data[0].get('id')}")
         return {"evaluation": data[0]}
     except HTTPException:
         raise
@@ -1902,7 +1953,7 @@ async def get_evaluation_by_id(evaluation_id: str):
 async def get_transaction_history(user_id: str):
     """Get transaction history for a specific user"""
     try:
-        print(f"Getting transaction history for user: {user_id}")
+
         
         # First get user email
         user_response = supabase.table('assessment_users').select('email').eq('uid', user_id).execute()
@@ -1915,10 +1966,10 @@ async def get_transaction_history(user_id: str):
         transactions_response = supabase.table('assessment_transactions').select('*').eq('user_email', user_email).order('created_at', desc=True).execute()
         transactions = transactions_response.data
         
-        print(f"Found {len(transactions)} transactions for user {user_id}")
+
         return {"transactions": transactions}
     except Exception as e:
-        print(f"Transaction history endpoint error: {str(e)}")
+        logger.error(f"Transaction history endpoint error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 # Router will be included after all routes are defined
@@ -1977,7 +2028,7 @@ else:
 
 @api_router.get("/subscriptions/test")
 async def test_subscription_endpoint():
-    """Test endpoint for subscription service debugging"""
+    """Test endpoint for subscription service"""
     return {
         "message": "Subscription endpoint accessible",
         "service_available": subscription_service is not None,
@@ -1993,7 +2044,7 @@ async def create_subscription_checkout(request: Request):
     try:
         # Parse JSON request body
         request_data = await request.json()
-        print(f"🔧 CREATE CHECKOUT REQUEST: {request_data}")
+
         
         user_id = request_data.get('userId')
         plan_type = request_data.get('planType')
@@ -2113,10 +2164,25 @@ async def get_billing_history(user_id: str, limit: int = 50):
 @api_router.post("/webhooks/dodo")
 async def handle_dodo_webhook(request: Request):
     """Handle Dodo Payments webhooks"""
-    if not subscription_service:
-        raise HTTPException(status_code=503, detail="Webhook service unavailable")
+    print(f"🔥 WEBHOOK RECEIVED!")
     try:
-        # Get request headers and body
+        print(f"🔥 Headers: {dict(request.headers)}")
+        print(f"🔥 Method: {request.method}")
+        print(f"🔥 URL: {request.url}")
+
+        # Get request body early for debug
+        body = await request.body()
+        print(f"🔥 Raw Body: {body}")
+        try:
+            print(f"🔥 Body Text: {body.decode('utf-8')}")
+        except Exception:
+            print(f"🔥 Body decode failed; non-utf8 content")
+
+        if not subscription_service:
+            print(f"🔥 ERROR: Subscription service unavailable")
+            raise HTTPException(status_code=503, detail="Webhook service unavailable")
+
+        # Get request headers for signature verification
         signature = request.headers.get('Dodo-Signature')
         timestamp = request.headers.get('Dodo-Timestamp')
         
@@ -2141,16 +2207,18 @@ async def handle_dodo_webhook(request: Request):
             raise HTTPException(status_code=400, detail="Invalid JSON payload")
         
         event_type = payload.get('type')
-        event_id = payload.get('id')
+        event_id = payload.get('id') or payload.get('event_id') or payload.get('timestamp')
         event_data = payload.get('data', {})
         
-        if not event_type or not event_id:
+        if not event_type:
             raise HTTPException(status_code=400, detail="Invalid webhook payload")
         
         # Check if event already processed (idempotency)
-        existing_event = supabase.table('dodo_webhook_events').select('processed').eq('dodo_event_id', event_id).execute()
+        existing_event = None
+        if event_id:
+            existing_event = supabase.table('dodo_webhook_events').select('processed').eq('dodo_event_id', event_id).execute()
         
-        if existing_event.data and existing_event.data[0].get('processed'):
+        if existing_event and existing_event.data and existing_event.data[0].get('processed'):
             return {"status": "already_processed"}
         
         # Store webhook event

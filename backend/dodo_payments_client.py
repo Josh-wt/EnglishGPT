@@ -11,11 +11,15 @@ logger = logging.getLogger(__name__)
 class DodoPaymentsClient:
     def __init__(self):
         self.api_key = os.environ.get('DODO_PAYMENTS_API_KEY')
-        self.base_url = os.environ.get('DODO_PAYMENTS_BASE_URL', 'https://api.dodopayments.com')
-        self.environment = os.environ.get('DODO_PAYMENTS_ENVIRONMENT', 'live')
+        self.base_url = os.environ.get('DODO_PAYMENTS_BASE_URL')
+        self.environment = os.environ.get('DODO_PAYMENTS_ENVIRONMENT')
 
         if not self.api_key:
             raise ValueError("DODO_PAYMENTS_API_KEY environment variable not set.")
+        if not self.base_url:
+            raise ValueError("DODO_PAYMENTS_BASE_URL environment variable not set.")
+        if not self.environment:
+            raise ValueError("DODO_PAYMENTS_ENVIRONMENT environment  variable not set.")
 
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -23,8 +27,12 @@ class DodoPaymentsClient:
         }
         self.client = httpx.AsyncClient(base_url=self.base_url)
 
-    async def create_checkout_session(self, product_id: str, customer_id: str = None, customer_email: str = None, customer_name: str = None, return_url: str = None, metadata: dict = None):
-        """Create a subscription checkout session according to Dodo Payments API"""
+    async def create_checkout_session(self, product_id: str, customer_id: str = None, customer_email: str = None, customer_name: str = None, return_url: str = None, metadata: dict = None, discount_id: str = None):
+        """Create a subscription checkout session.
+
+        Note: Do not send default billing to Dodo. Let the hosted checkout collect
+        billing address and any discount details from the user.
+        """
         # Build customer object - can be existing customer_id or new customer data
         if customer_id:
             customer_data = {"customer_id": customer_id}
@@ -34,17 +42,8 @@ class DodoPaymentsClient:
                 "name": customer_name or customer_email.split('@')[0]
             }
         
-        # Default billing info (can be updated in the checkout)
-        billing_data = {
-            "city": "Default City",
-            "country": "IN",
-            "state": "Default State", 
-            "street": "Default Street",
-            "zipcode": 110001
-        }
-        
+        # Build payload without billing – hosted checkout will collect it
         payload = {
-            "billing": billing_data,
             "customer": customer_data,
             "product_id": product_id,
             "quantity": 1,
@@ -52,6 +51,10 @@ class DodoPaymentsClient:
             "return_url": return_url,
             "metadata": metadata or {}
         }
+        
+        # Optional discount - only include if explicitly provided
+        if discount_id:
+            payload["discount_id"] = discount_id
         
         logger.info(f"Creating Dodo subscription checkout with payload: {payload}")
         response = await self.client.post("/subscriptions", json=payload, headers=self.headers)
@@ -115,18 +118,7 @@ class DodoPaymentsClient:
         if metadata:
             payload["metadata"] = metadata
         
-        # DEBUG CODE:
-        print(f"🔧 DODO DEBUG: API Key being used: {self.api_key[:10]}...")
-        print(f"🔧 DODO DEBUG: Base URL: {self.base_url}")
-        print(f"🔧 DODO DEBUG: Headers: {self.headers}")
-        print(f"🔧 DODO DEBUG: Payload: {payload}")
-        
         response = await self.client.post("/customers", json=payload, headers=self.headers)
-        
-        # DEBUG CODE:
-        print(f"🔧 DODO DEBUG: Response status: {response.status_code}")
-        print(f"🔧 DODO DEBUG: Response headers: {dict(response.headers)}")
-        print(f"🔧 DODO DEBUG: Response text: {response.text}")
         
         response.raise_for_status()
         return response.json()

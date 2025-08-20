@@ -21,7 +21,7 @@ export const handleAuthCallback = async () => {
   const expiresAt = hashParams.get('expires_at');
 
   if (accessToken && refreshToken) {
-    console.log('🔄 Processing OAuth callback...');
+    // Processing OAuth callback
     try {
       // Set the session manually
       const { data, error } = await supabase.auth.setSession({
@@ -34,7 +34,7 @@ export const handleAuthCallback = async () => {
         return null;
       }
 
-      console.log('✅ Session set successfully:', data.session?.user?.email);
+      // Session set successfully
       
       // Clear the URL
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -49,11 +49,8 @@ export const handleAuthCallback = async () => {
   return null;
 };
 
-// Debug Supabase configuration
-console.log('DEBUG: Supabase URL:', supabaseUrl);
-console.log('DEBUG: Supabase Key (first 20 chars):', supabaseKey.substring(0, 20) + '...');
-console.log('DEBUG: Key length:', supabaseKey.length);
-console.log('DEBUG: Environment variables loaded:', {
+// Debug logging removed for production
+// Supabase configuration initialized
   hasUrl: !!process.env.REACT_APP_SUPABASE_URL,
   hasKey: !!process.env.REACT_APP_SUPABASE_ANON_KEY
 });
