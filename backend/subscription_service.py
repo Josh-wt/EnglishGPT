@@ -5,6 +5,7 @@ Handles business logic for subscription management
 
 import uuid
 from typing import Dict, Any, Optional, List, Tuple
+from urllib.parse import urlencode
 from datetime import datetime, timezone
 from pydantic import BaseModel
 from fastapi import HTTPException
@@ -147,22 +148,42 @@ class SubscriptionService:
             
             # Create checkout session
             dodo_client = DodoPaymentsClient()
-            session_data = await dodo_client.create_checkout_session(
-                product_id=product_id,
-                customer_id=dodo_customer_id,
-                return_url='https://englishgpt.everythingenglish.xyz/dashboard',
-                metadata={
-                    "user_id": user_id,
-                    "plan_type": plan_type,
-                    **(metadata or {})
+            try:
+                session_data = await dodo_client.create_checkout_session(
+                    product_id=product_id,
+                    customer_id=dodo_customer_id,
+                    return_url='https://englishgpt.everythingenglish.xyz/dashboard/payment-success',
+                    metadata={
+                        "user_id": user_id,
+                        "plan_type": plan_type,
+                        **(metadata or {})
+                    }
+                )
+                return {
+                    "checkout_url": session_data['payment_link'],
+                    "subscription_id": session_data.get('subscription_id'),
+                    "customer_id": dodo_customer_id
                 }
-            )
-            
-            return {
-                "checkout_url": session_data['payment_link'],
-                "subscription_id": session_data['subscription_id'],
-                "customer_id": dodo_customer_id
-            }
+            except Exception as e:
+                # Fallback: build a static checkout link that lets Dodo collect billing/discounts
+                base_link = f"https://checkout.dodopayments.com/buy/{product_id}"
+                query = {
+                    "redirect_url": 'https://englishgpt.everythingenglish.xyz/dashboard/payment-success',
+                    "email": email,
+                    "fullName": name or email.split('@')[0],
+                    "showDiscounts": "true",
+                    # Pass metadata via query to associate after redirect
+                    "metadata_userId": user_id,
+                    "metadata_planType": plan_type,
+                }
+                checkout_url = f"{base_link}?{urlencode(query)}"
+                logger.warning(f"Falling back to static checkout link due to API error: {e}")
+                return {
+                    "checkout_url": checkout_url,
+                    "subscription_id": None,
+                    "customer_id": dodo_customer_id,
+                    "link_type": "static"
+                }
             
         except HTTPException:
             raise
