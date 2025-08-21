@@ -5,6 +5,7 @@ Handles business logic for subscription management
 
 import uuid
 from typing import Dict, Any, Optional, List, Tuple
+import os
 from urllib.parse import urlencode
 from datetime import datetime, timezone
 from pydantic import BaseModel
@@ -139,12 +140,13 @@ class SubscriptionService:
             # Get or create Dodo customer
             dodo_customer_id = await self.get_or_create_dodo_customer(user_id, email, name)
             
-            # Map plan type to product ID
+            # Map plan type to product ID (allow env override)
             product_id_map = {
-                'monthly': 'pdt_LOhuvCIgbeo2qflVuaAty',
-                'yearly': 'pdt_R9BBFdK801119u9r3r6jyL'
+                'monthly': os.environ.get('DODO_PAYMENTS_PRODUCT_ID_MONTHLY', 'pdt_LOhuvCIgbeo2qflVuaAty'),
+                'yearly': os.environ.get('DODO_PAYMENTS_PRODUCT_ID_YEARLY', 'pdt_R9BBFdK801119u9r3r6jyL')
             }
             product_id = product_id_map[plan_type]
+            logger.info(f"Using Dodo product_id for {plan_type}: {product_id}")
             
             # Create checkout session
             dodo_client = DodoPaymentsClient()
@@ -172,6 +174,7 @@ class SubscriptionService:
                     "email": email,
                     "fullName": name or email.split('@')[0],
                     "showDiscounts": "true",
+                    "quantity": 1,
                     # Pass metadata via query to associate after redirect
                     "metadata_userId": user_id,
                     "metadata_planType": plan_type,
