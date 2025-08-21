@@ -421,6 +421,75 @@ class SubscriptionService:
             logger.error(f"Failed to get billing history for user {user_id}: {e}")
             raise HTTPException(status_code=500, detail="Failed to get billing history")
     
+    async def confirm_subscription(self, user_id: str, subscription_id: Optional[str] = None) -> Dict[str, Any]:
+        """Force-verify subscription with Dodo and upsert locally. Useful if webhooks are delayed."""
+        try:
+            # Ensure we have a Dodo customer for the user
+            user_resp = self.supabase.table('assessment_users').select('email, display_name, dodo_customer_id').eq('uid', user_id).limit(1).execute()
+            if not user_resp.data:
+                raise HTTPException(status_code=404, detail="User not found")
+            user_row = user_resp.data[0]
+            dodo_customer_id = user_row.get('dodo_customer_id')
+
+            if not dodo_customer_id:
+                # Create customer if missing
+                dodo_customer_id = await self.get_or_create_dodo_customer(user_id, user_row['email'], user_row.get('display_name'))
+
+            dodo = DodoPaymentsClient()
+
+            # Fetch subscription details
+            subs_to_consider: List[Dict[str, Any]] = []
+            if subscription_id:
+                try:
+                    sub = await dodo.get_subscription(subscription_id)
+                    subs_to_consider.append(sub)
+                except Exception as e:
+                    logger.warning(f"confirm_subscription: could not fetch subscription {subscription_id}: {e}")
+            else:
+                try:
+                    page = await dodo.list_subscriptions(dodo_customer_id, limit=10)
+                    items = page.get('data') if isinstance(page, dict) else page
+                    subs_to_consider.extend(items or [])
+                except Exception as e:
+                    logger.warning(f"confirm_subscription: list_subscriptions failed for customer {dodo_customer_id}: {e}")
+
+            # Upsert any active/trialing subscription first; otherwise most recent
+            chosen = None
+            for s in subs_to_consider:
+                if (s.get('status') in ['active', 'trialing', 'activated']):
+                    chosen = s
+                    break
+            if not chosen and subs_to_consider:
+                chosen = subs_to_consider[0]
+
+            if chosen:
+                try:
+                    await self._handle_subscription_update(user_id, {
+                        'id': chosen.get('subscription_id') or chosen.get('id'),
+                        'customer_id': dodo_customer_id,
+                        'product_id': chosen.get('product_id'),
+                        'status': chosen.get('status'),
+                        'current_period_start': chosen.get('previous_billing_date') or chosen.get('current_period_start'),
+                        'current_period_end': chosen.get('next_billing_date') or chosen.get('current_period_end'),
+                        'cancel_at_period_end': chosen.get('cancel_at_next_billing_date', False),
+                        'trial_start': None,
+                        'trial_end': None,
+                        'metadata': chosen.get('metadata', {})
+                    })
+                except Exception as e:
+                    logger.error(f"confirm_subscription: failed to upsert subscription: {e}")
+
+            # Sync and return status
+            await self._sync_user_subscription_status(user_id)
+            status = await self.get_subscription_status(user_id)
+            return status.dict()
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Failed to confirm subscription for user {user_id}: {e}")
+            raise HTTPException(status_code=500, detail="Failed to confirm subscription")
+
     async def _sync_user_subscription_status(self, user_id: str) -> None:
         """Sync user's subscription status in assessment_users table"""
         try:
