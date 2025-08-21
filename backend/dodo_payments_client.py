@@ -11,11 +11,15 @@ logger = logging.getLogger(__name__)
 class DodoPaymentsClient:
     def __init__(self):
         self.api_key = os.environ.get('DODO_PAYMENTS_API_KEY')
-        self.base_url = os.environ.get('DODO_PAYMENTS_BASE_URL', 'https://live.dodopayments.com')
-        self.environment = os.environ.get('DODO_PAYMENTS_ENVIRONMENT', 'live')
+        self.base_url = os.environ.get('DODO_PAYMENTS_BASE_URL')
+        self.environment = os.environ.get('DODO_PAYMENTS_ENVIRONMENT')
 
         if not self.api_key:
             raise ValueError("DODO_PAYMENTS_API_KEY environment variable not set.")
+        if not self.base_url:
+            raise ValueError("DODO_PAYMENTS_BASE_URL environment variable not set.")
+        if not self.environment:
+            raise ValueError("DODO_PAYMENTS_ENVIRONMENT environment variable not set.")
 
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
