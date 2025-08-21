@@ -961,7 +961,41 @@ async def update_user(user_id: str, updates: dict):
     except Exception as e:
         print(f"User update error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"User update error: {str(e)}")
+        
+@api_router.get("/debug/webhook-status")
+async def debug_webhook_status():
+    """Check webhook configuration"""
+    return {
+        "webhook_key_configured": bool(os.environ.get('DODO_PAYMENTS_WEBHOOK_KEY')),
+        "subscription_service": subscription_service is not None,
+        "endpoint_url": "https://englishgpt.everythingenglish.xyz/api/webhooks/dodo"
+    }
 
+@api_router.get("/debug/subscription-check/{user_id}")
+async def debug_subscription_check(user_id: str):
+    """Check user subscription status"""
+    try:
+        # Check user record
+        user_resp = supabase.table('assessment_users').select('*').eq('uid', user_id).execute()
+        user_data = user_resp.data[0] if user_resp.data else None
+        
+        # Check subscription access
+        has_access = await subscription_service._check_user_subscription_access(user_id) if subscription_service else False
+        
+        # Check subscription records
+        sub_resp = supabase.table('dodo_subscriptions').select('*').eq('user_id', user_id).execute()
+        
+        return {
+            "user_found": bool(user_data),
+            "current_plan": user_data.get('current_plan') if user_data else None,
+            "dodo_customer_id": user_data.get('dodo_customer_id') if user_data else None,
+            "has_subscription_access": has_access,
+            "subscription_records": sub_resp.data,
+            "questions_marked": user_data.get('questions_marked') if user_data else 0
+        }
+    except Exception as e:
+        return {"error": str(e)}
+        
 @api_router.get("/debug/env-check")
 async def debug_env_check():
     """Check environment variables"""
