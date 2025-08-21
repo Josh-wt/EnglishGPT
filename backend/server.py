@@ -2182,23 +2182,42 @@ async def handle_dodo_webhook(request: Request):
             print(f"🔥 ERROR: Subscription service unavailable")
             raise HTTPException(status_code=503, detail="Webhook service unavailable")
 
-        # Get request headers for signature verification
-        signature = request.headers.get('Dodo-Signature')
-        timestamp = request.headers.get('Dodo-Timestamp')
-        
-        if not signature or not timestamp:
-            raise HTTPException(status_code=400, detail="Missing webhook signature or timestamp")
-        
+        # Get request headers for signature verification (support Standard Webhooks + legacy)
         body = await request.body()
-        
-        # Verify webhook signature
-        webhook_validator = WebhookValidator()
-        
-        if not webhook_validator.verify_signature(body, signature, timestamp):
-            raise HTTPException(status_code=400, detail="Invalid webhook signature")
-        
-        if not webhook_validator.is_timestamp_valid(timestamp):
-            raise HTTPException(status_code=400, detail="Webhook timestamp too old")
+        sw_sig = request.headers.get('webhook-signature') or request.headers.get('Webhook-Signature')
+        sw_ts = request.headers.get('webhook-timestamp') or request.headers.get('Webhook-Timestamp')
+        sw_id = request.headers.get('webhook-id') or request.headers.get('Webhook-Id')
+
+        legacy_sig = request.headers.get('Dodo-Signature')
+        legacy_ts = request.headers.get('Dodo-Timestamp')
+
+        if sw_sig and sw_ts:
+            # Prefer Standard Webhooks verification when present
+            try:
+                from standardwebhooks import Webhook as StandardWebhook  # type: ignore
+                secret = os.environ.get('DODO_PAYMENTS_WEBHOOK_KEY')
+                if not secret:
+                    raise HTTPException(status_code=500, detail="Webhook secret not configured")
+                verifier = StandardWebhook(secret)
+                verifier.verify(body.decode('utf-8'), {
+                    'webhook-id': sw_id or '',
+                    'webhook-signature': sw_sig,
+                    'webhook-timestamp': sw_ts,
+                })
+            except HTTPException:
+                raise
+            except Exception as e:
+                logger.error(f"Standard webhook verification failed: {e}")
+                raise HTTPException(status_code=400, detail="Invalid webhook signature (standard)")
+        else:
+            # Legacy HMAC verification fallback
+            if not legacy_sig or not legacy_ts:
+                raise HTTPException(status_code=400, detail="Missing webhook signature or timestamp")
+            webhook_validator = WebhookValidator()
+            if not webhook_validator.verify_signature(body, legacy_sig, legacy_ts):
+                raise HTTPException(status_code=400, detail="Invalid webhook signature")
+            if not webhook_validator.is_timestamp_valid(legacy_ts):
+                raise HTTPException(status_code=400, detail="Webhook timestamp too old")
         
         # Parse webhook payload
         try:
