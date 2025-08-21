@@ -11,19 +11,8 @@ logger = logging.getLogger(__name__)
 class DodoPaymentsClient:
     def __init__(self):
         self.api_key = os.environ.get('DODO_PAYMENTS_API_KEY')
-        # Environment: 'test' or 'live' (default to 'live' if unset)
-        self.environment = os.environ.get('DODO_PAYMENTS_ENVIRONMENT', 'live').lower()
-        # Allow explicit override, otherwise derive from environment
-        configured_base = os.environ.get('DODO_PAYMENTS_BASE_URL')
-        if configured_base:
-            self.base_url = configured_base
-        else:
-            # Derive sensible defaults per environment
-            if self.environment == 'test':
-                self.base_url = 'https://test.dodopayments.com'
-            else:
-                # Live
-                self.base_url = 'https://live.dodopayments.com'
+        self.base_url = os.environ.get('DODO_PAYMENTS_BASE_URL', 'https://live.dodopayments.com')
+        self.environment = os.environ.get('DODO_PAYMENTS_ENVIRONMENT', 'live')
 
         if not self.api_key:
             raise ValueError("DODO_PAYMENTS_API_KEY environment variable not set.")
@@ -32,106 +21,179 @@ class DodoPaymentsClient:
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
-        # Reasonable timeouts to avoid hanging
-        self.client = httpx.AsyncClient(base_url=self.base_url, timeout=15.0)
+        self.client = httpx.AsyncClient(base_url=self.base_url, timeout=30.0)
 
-    async def create_checkout_session(self, product_id: str, customer_id: str = None, customer_email: str = None, customer_name: str = None, return_url: str = None, metadata: dict = None, discount_id: str = None):
-        """Create a subscription checkout session.
-
-        Note: Do not send default billing to Dodo. Let the hosted checkout collect
-        billing address and any discount details from the user.
-        """
-        # Build customer object - can be existing customer_id or new customer data
-        if customer_id:
-            customer_data = {"customer_id": customer_id}
-        else:
-            customer_data = {
-                "email": customer_email,
-                "name": customer_name or customer_email.split('@')[0]
+    async def create_checkout_session(self, product_id: str, customer_id: str = None, customer_email: str = None, customer_name: str = None, return_url: str = None, metadata: dict = None):
+        """Create a subscription checkout session according to Dodo Payments API"""
+        try:
+            # Build customer object - can be existing customer_id or new customer data
+            if customer_id:
+                customer_data = {"customer_id": customer_id}
+            else:
+                customer_data = {
+                    "email": customer_email,
+                    "name": customer_name or customer_email.split('@')[0]
+                }
+            
+            # Default billing info (can be updated in the checkout)
+            billing_data = {
+                "city": "Default City",
+                "country": "IN",
+                "state": "Default State", 
+                "street": "Default Street",
+                "zipcode": 110001
             }
-        
-        # Build payload without billing – hosted checkout will collect it
-        payload = {
-            "customer": customer_data,
-            "product_id": product_id,
-            "quantity": 1,
-            "payment_link": True,
-            "return_url": return_url,
-            "metadata": metadata or {}
-        }
-        
-        # Optional discount - only include if explicitly provided
-        if discount_id:
-            payload["discount_id"] = discount_id
-        
-        logger.info(f"Creating Dodo subscription checkout with payload: {payload}")
-        response = await self.client.post("/subscriptions", json=payload, headers=self.headers)
-        response.raise_for_status()
-        return response.json()
+            
+            payload = {
+                "billing": billing_data,
+                "customer": customer_data,
+                "product_id": product_id,
+                "quantity": 1,
+                "payment_link": True,
+                "return_url": return_url,
+                "metadata": metadata or {}
+            }
+            
+            logger.info(f"Creating Dodo subscription checkout with payload: {json.dumps(payload, indent=2)}")
+            response = await self.client.post("/subscriptions", json=payload, headers=self.headers)
+            response.raise_for_status()
+            result = response.json()
+            logger.info(f"Checkout session created successfully: {result}")
+            return result
+            
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error creating checkout session: {e.response.status_code} - {e.response.text}")
+            raise
+        except Exception as e:
+            logger.error(f"Error creating checkout session: {e}")
+            raise
 
     async def get_subscription(self, subscription_id: str):
-        response = await self.client.get(f"/subscriptions/{subscription_id}")
-        response.raise_for_status()
-        return response.json()
+        """Get subscription details"""
+        try:
+            response = await self.client.get(f"/subscriptions/{subscription_id}", headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error getting subscription {subscription_id}: {e.response.status_code} - {e.response.text}")
+            raise
+        except Exception as e:
+            logger.error(f"Error getting subscription {subscription_id}: {e}")
+            raise
 
     async def cancel_subscription(self, subscription_id: str, cancel_at_period_end: bool = True):
-        payload = {"cancel_at_period_end": cancel_at_period_end}
-        response = await self.client.patch(f"/subscriptions/{subscription_id}", json=payload)
-        response.raise_for_status()
-        return response.json()
+        """Cancel a subscription"""
+        try:
+            payload = {"cancel_at_period_end": cancel_at_period_end}
+            response = await self.client.patch(f"/subscriptions/{subscription_id}", json=payload, headers=self.headers)
+            response.raise_for_status()
+            result = response.json()
+            logger.info(f"Subscription {subscription_id} cancelled successfully")
+            return result
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error cancelling subscription {subscription_id}: {e.response.status_code} - {e.response.text}")
+            raise
+        except Exception as e:
+            logger.error(f"Error cancelling subscription {subscription_id}: {e}")
+            raise
 
     async def reactivate_subscription(self, subscription_id: str):
-        # DodoPayments API doesn't have a direct 'reactivate' endpoint.
-        # This would typically involve changing the plan back or updating status.
-        # For now, we'll assume a PATCH to set status to active if supported, or re-creating.
-        # Based on docs, 'change-plan' is used for upgrades/downgrades.
-        # For reactivation, we might need to update the subscription to a new active plan.
-        # This is a placeholder, actual implementation depends on Dodo's API for reactivation.
-        # For now, let's assume we change plan to the same product_id to reactivate.
-        # This might require knowing the original product_id.
-        # A more robust solution would involve fetching the subscription details first.
-        logger.warning(f"Reactivation logic for subscription {subscription_id} is a placeholder. Check DodoPayments API for exact method.")
-        # Example: Fetch subscription to get product_id, then call change-plan
-        # sub_details = await self.get_subscription(subscription_id)
-        # product_id = sub_details['product_id']
-        # payload = {"product_id": product_id, "proration_mode": "full_immediately"}
-        # response = await self.client.post(f"/subscriptions/{subscription_id}/change-plan", json=payload)
-        # response.raise_for_status()
-        # return response.json()
-        return {"message": "Reactivation logic needs to be implemented based on DodoPayments API."}
+        """Reactivate a cancelled subscription"""
+        try:
+            # Get current subscription details first
+            subscription = await self.get_subscription(subscription_id)
+            
+            # Reactivate by setting cancel_at_period_end to False
+            payload = {"cancel_at_period_end": False}
+            response = await self.client.patch(f"/subscriptions/{subscription_id}", json=payload, headers=self.headers)
+            response.raise_for_status()
+            result = response.json()
+            logger.info(f"Subscription {subscription_id} reactivated successfully")
+            return result
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error reactivating subscription {subscription_id}: {e.response.status_code} - {e.response.text}")
+            raise
+        except Exception as e:
+            logger.error(f"Error reactivating subscription {subscription_id}: {e}")
+            raise
 
     async def create_customer_portal_session(self, customer_id: str):
-        payload = {"customer_id": customer_id}
-        response = await self.client.post("/customers/customer-portal/session", json=payload)
-        response.raise_for_status()
-        return response.json()
+        """Create a customer portal session"""
+        try:
+            payload = {"customer_id": customer_id}
+            response = await self.client.post("/customers/customer-portal/session", json=payload, headers=self.headers)
+            response.raise_for_status()
+            result = response.json()
+            logger.info(f"Customer portal session created for customer {customer_id}")
+            return result
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error creating customer portal for {customer_id}: {e.response.status_code} - {e.response.text}")
+            raise
+        except Exception as e:
+            logger.error(f"Error creating customer portal for {customer_id}: {e}")
+            raise
 
     async def list_payments(self, customer_id: str, limit: int = 50):
-        response = await self.client.get(f"/payments?customer_id={customer_id}&limit={limit}")
-        response.raise_for_status()
-        return response.json()
+        """List payments for a customer"""
+        try:
+            response = await self.client.get(f"/payments?customer_id={customer_id}&limit={limit}", headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error listing payments for {customer_id}: {e.response.status_code} - {e.response.text}")
+            raise
+        except Exception as e:
+            logger.error(f"Error listing payments for {customer_id}: {e}")
+            raise
 
     async def list_subscriptions(self, customer_id: str, limit: int = 50):
-        response = await self.client.get(f"/subscriptions?customer_id={customer_id}&limit={limit}")
-        response.raise_for_status()
-        return response.json()
+        """List subscriptions for a customer"""
+        try:
+            response = await self.client.get(f"/subscriptions?customer_id={customer_id}&limit={limit}", headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error listing subscriptions for {customer_id}: {e.response.status_code} - {e.response.text}")
+            raise
+        except Exception as e:
+            logger.error(f"Error listing subscriptions for {customer_id}: {e}")
+            raise
 
     async def get_customer(self, customer_id: str):
-        response = await self.client.get(f"/customers/{customer_id}")
-        response.raise_for_status()
-        return response.json()
+        """Get customer details"""
+        try:
+            response = await self.client.get(f"/customers/{customer_id}", headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error getting customer {customer_id}: {e.response.status_code} - {e.response.text}")
+            raise
+        except Exception as e:
+            logger.error(f"Error getting customer {customer_id}: {e}")
+            raise
 
     async def create_customer(self, email: str, name: str, metadata: dict = None):
-        payload = {"email": email, "name": name}
-        if metadata:
-            payload["metadata"] = metadata
-        
-        response = await self.client.post("/customers", json=payload, headers=self.headers)
-        
-        response.raise_for_status()
-        return response.json()
+        """Create a new customer"""
+        try:
+            payload = {"email": email, "name": name}
+            if metadata:
+                payload["metadata"] = metadata
+            
+            logger.info(f"Creating customer with email: {email}, name: {name}")
+            response = await self.client.post("/customers", json=payload, headers=self.headers)
+            response.raise_for_status()
+            result = response.json()
+            logger.info(f"Customer created successfully: {result}")
+            return result
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error creating customer {email}: {e.response.status_code} - {e.response.text}")
+            raise
+        except Exception as e:
+            logger.error(f"Error creating customer {email}: {e}")
+            raise
 
     async def close(self):
+        """Close the HTTP client"""
         await self.client.aclose()
 
 class WebhookValidator:
@@ -141,18 +203,29 @@ class WebhookValidator:
             raise ValueError("DODO_PAYMENTS_WEBHOOK_KEY environment variable not set.")
 
     def verify_signature(self, payload_body: bytes, signature: str, timestamp: str) -> bool:
-        # Standard Webhooks signature verification
-        # Format: t=<timestamp>,v1=<signature>
+        """
+        Verify webhook signature using Standard Webhooks format
+        Format: t=<timestamp>,v1=<signature>
+        """
         try:
+            logger.debug(f"Verifying webhook signature for timestamp {timestamp}")
+            
+            # Parse signature header
             parts = signature.split(',')
             ts_part = next((p for p in parts if p.startswith('t=')), None)
             v1_part = next((p for p in parts if p.startswith('v1=')), None)
 
             if not ts_part or not v1_part:
+                logger.error(f"Invalid signature format: {signature}")
                 return False
 
             received_ts = ts_part.split('=')[1]
             received_v1 = v1_part.split('=')[1]
+
+            # Verify timestamp matches
+            if received_ts != timestamp:
+                logger.error(f"Timestamp mismatch: header={received_ts}, expected={timestamp}")
+                return False
 
             # Reconstruct signed_content
             signed_content = f"{received_ts}.{payload_body.decode('utf-8')}"
@@ -164,19 +237,41 @@ class WebhookValidator:
                 hashlib.sha256
             ).hexdigest()
 
-            return hmac.compare_digest(expected_signature, received_v1)
+            # Compare signatures
+            is_valid = hmac.compare_digest(expected_signature, received_v1)
+            
+            if is_valid:
+                logger.debug("Webhook signature verification successful")
+            else:
+                logger.error(f"Signature verification failed. Expected: {expected_signature}, Received: {received_v1}")
+            
+            return is_valid
+            
         except Exception as e:
-            logger.error(f"Signature verification failed: {e}")
+            logger.error(f"Signature verification failed with error: {e}")
             return False
 
     def is_timestamp_valid(self, timestamp: str, tolerance_seconds: int = 300) -> bool:
-        # Check if timestamp is within tolerance (e.g., 5 minutes)
+        """
+        Check if timestamp is within tolerance (default 5 minutes)
+        This prevents replay attacks
+        """
         try:
             received_time = int(timestamp)
             current_time = int(time.time())
-            return abs(current_time - received_time) <= tolerance_seconds
-        except ValueError:
+            time_diff = abs(current_time - received_time)
+            
+            is_valid = time_diff <= tolerance_seconds
+            
+            if not is_valid:
+                logger.error(f"Timestamp too old: {time_diff}s ago (tolerance: {tolerance_seconds}s)")
+            
+            return is_valid
+            
+        except ValueError as e:
+            logger.error(f"Invalid timestamp format: {timestamp}")
             return False
 
 def create_webhook_validator():
+    """Factory function to create webhook validator"""
     return WebhookValidator()
