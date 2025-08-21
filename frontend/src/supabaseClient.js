@@ -50,7 +50,3 @@ export const handleAuthCallback = async () => {
 };
 
 // Debug logging removed for production
-// Supabase configuration initialized
-  hasUrl: !!process.env.REACT_APP_SUPABASE_URL,
-  hasKey: !!process.env.REACT_APP_SUPABASE_ANON_KEY
-});
