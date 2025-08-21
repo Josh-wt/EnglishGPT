@@ -3,6 +3,7 @@ import './App.css';
 import axios from 'axios';
 import { supabase } from './supabaseClient';
 import { Routes, Route, useParams, useNavigate, useLocation } from 'react-router-dom';
+import PaymentSuccess from './PaymentSuccess';
 import subscriptionService from './subscriptionService';
 import toast, { Toaster } from 'react-hot-toast';
 import SubscriptionDashboard from './SubscriptionDashboard';
@@ -4440,6 +4441,8 @@ const handleSignOut = async () => {
       <Route path="/" element={<LandingPage onDiscord={signInWithDiscord} onGoogle={signInWithGoogle} />} />
       {/* Dashboard entry */}
       <Route path="/dashboard" element={<div className={darkMode ? 'dark' : ''}><AuthRequired /></div>} />
+      {/* Payment success landing */}
+      <Route path="/dashboard/payment-success" element={<PaymentSuccess darkMode={darkMode} />} />
 
       {/* App routes behind auth */}
       <Route

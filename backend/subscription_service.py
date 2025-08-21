@@ -140,7 +140,7 @@ class SubscriptionService:
             
             # Map plan type to product ID
             product_id_map = {
-                'monthly': 'pdt_1SNTZ2ED27HBPf8JOOWtI',
+                'monthly': 'pdt_LOhuvCIgbeo2qflVuaAty',
                 'yearly': 'pdt_R9BBFdK801119u9r3r6jyL'
             }
             product_id = product_id_map[plan_type]
