@@ -148,9 +148,9 @@ class SubscriptionService:
             product_id = product_id_map[plan_type]
             logger.info(f"Using Dodo product_id for {plan_type}: {product_id}")
             
-            # Create checkout session
-            dodo_client = DodoPaymentsClient()
+            # Create checkout session (wrap client creation too so we can fallback)
             try:
+                dodo_client = DodoPaymentsClient()
                 session_data = await dodo_client.create_checkout_session(
                     product_id=product_id,
                     customer_id=dodo_customer_id,
@@ -182,7 +182,7 @@ class SubscriptionService:
                     "metadata_planType": plan_type,
                 }
                 checkout_url = f"{base_link}?{urlencode(query)}"
-                logger.warning(f"Falling back to static checkout link due to API error: {e}")
+                logger.warning(f"Falling back to static checkout link due to API/client error: {e}")
                 return {
                     "checkout_url": checkout_url,
                     "subscription_id": None,
