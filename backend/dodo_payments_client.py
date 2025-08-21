@@ -11,21 +11,29 @@ logger = logging.getLogger(__name__)
 class DodoPaymentsClient:
     def __init__(self):
         self.api_key = os.environ.get('DODO_PAYMENTS_API_KEY')
-        self.base_url = os.environ.get('DODO_PAYMENTS_BASE_URL')
-        self.environment = os.environ.get('DODO_PAYMENTS_ENVIRONMENT')
+        # Environment: 'test' or 'live' (default to 'live' if unset)
+        self.environment = os.environ.get('DODO_PAYMENTS_ENVIRONMENT', 'live').lower()
+        # Allow explicit override, otherwise derive from environment
+        configured_base = os.environ.get('DODO_PAYMENTS_BASE_URL')
+        if configured_base:
+            self.base_url = configured_base
+        else:
+            # Derive sensible defaults per environment
+            if self.environment == 'test':
+                self.base_url = 'https://test.dodopayments.com'
+            else:
+                # Live
+                self.base_url = 'https://live.dodopayments.com'
 
         if not self.api_key:
             raise ValueError("DODO_PAYMENTS_API_KEY environment variable not set.")
-        if not self.base_url:
-            raise ValueError("DODO_PAYMENTS_BASE_URL environment variable not set.")
-        if not self.environment:
-            raise ValueError("DODO_PAYMENTS_ENVIRONMENT environment  variable not set.")
 
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
-        self.client = httpx.AsyncClient(base_url=self.base_url)
+        # Reasonable timeouts to avoid hanging
+        self.client = httpx.AsyncClient(base_url=self.base_url, timeout=15.0)
 
     async def create_checkout_session(self, product_id: str, customer_id: str = None, customer_email: str = None, customer_name: str = None, return_url: str = None, metadata: dict = None, discount_id: str = None):
         """Create a subscription checkout session.

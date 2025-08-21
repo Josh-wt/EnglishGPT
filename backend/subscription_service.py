@@ -168,7 +168,9 @@ class SubscriptionService:
                 }
             except Exception as e:
                 # Fallback: build a static checkout link that lets Dodo collect billing/discounts
-                base_link = f"https://test.checkout.dodopayments.com/buy/{product_id}"
+                env = os.environ.get('DODO_PAYMENTS_ENVIRONMENT', 'live').lower()
+                domain = 'test.checkout.dodopayments.com' if env == 'test' else 'checkout.dodopayments.com'
+                base_link = f"https://{domain}/buy/{product_id}"
                 query = {
                     "redirect_url": 'https://englishgpt.everythingenglish.xyz/dashboard/payment-success',
                     "email": email,
