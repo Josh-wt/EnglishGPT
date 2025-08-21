@@ -201,7 +201,36 @@ class SubscriptionService:
             subscription_response = self.supabase.table('dodo_subscriptions').select('*').eq('user_id', user_id).in_('status', ['active', 'trialing']).order('created_at', desc=True).limit(1).execute()
             
             if not subscription_response.data:
-                return SubscriptionStatus(has_active_subscription=False)
+                # Fallback: try to fetch latest status from Dodo if webhook is delayed
+                try:
+                    user_row = self.supabase.table('assessment_users').select('dodo_customer_id').eq('uid', user_id).limit(1).execute()
+                    dodo_customer_id = (user_row.data or [{}])[0].get('dodo_customer_id')
+                    if dodo_customer_id:
+                        dodo = DodoPaymentsClient()
+                        api_subs = await dodo.list_subscriptions(dodo_customer_id, limit=5)
+                        items = api_subs.get('data') if isinstance(api_subs, dict) else api_subs
+                        for sub in items or []:
+                            try:
+                                await self._handle_subscription_update(user_id, {
+                                    'id': sub.get('subscription_id') or sub.get('id'),
+                                    'customer_id': dodo_customer_id,
+                                    'product_id': sub.get('product_id'),
+                                    'status': sub.get('status'),
+                                    'current_period_start': sub.get('previous_billing_date') or sub.get('current_period_start'),
+                                    'current_period_end': sub.get('next_billing_date') or sub.get('current_period_end'),
+                                    'cancel_at_period_end': sub.get('cancel_at_next_billing_date', False),
+                                    'trial_start': None,
+                                    'trial_end': None,
+                                    'metadata': sub.get('metadata', {})
+                                })
+                            except Exception:
+                                continue
+                        # Re-query
+                        subscription_response = self.supabase.table('dodo_subscriptions').select('*').eq('user_id', user_id).in_('status', ['active', 'trialing']).order('created_at', desc=True).limit(1).execute()
+                except Exception:
+                    pass
+                if not subscription_response.data:
+                    return SubscriptionStatus(has_active_subscription=False)
             
             subscription = subscription_response.data[0]
             current_period_end = datetime.fromisoformat(subscription['current_period_end'].replace('Z', '+00:00'))
@@ -450,7 +479,7 @@ class SubscriptionService:
             
             user_id = user_response.data[0]['uid']
             
-            if event_type in ['subscription.created', 'subscription.updated', 'subscription.activated']:
+            if event_type in ['subscription.created', 'subscription.updated', 'subscription.activated', 'subscription.active', 'subscription.renewed']:
                 await self._handle_subscription_update(user_id, subscription_data)
             elif event_type == 'subscription.cancelled':
                 await self._handle_subscription_cancelled(user_id, subscription_data)
@@ -458,6 +487,14 @@ class SubscriptionService:
                 await self._handle_subscription_expired(user_id, subscription_data)
             elif event_type == 'subscription.trial_ended':
                 await self._handle_trial_ended(user_id, subscription_data)
+            elif event_type == 'subscription.on_hold':
+                try:
+                    self.supabase.table('dodo_subscriptions').update({
+                        'status': 'on_hold',
+                        'updated_at': datetime.utcnow().isoformat()
+                    }).eq('dodo_subscription_id', subscription_id).execute()
+                except Exception:
+                    pass
             
             # Sync user status after any subscription change
             await self._sync_user_subscription_status(user_id)
@@ -501,11 +538,13 @@ class SubscriptionService:
                 'plan_type': plan_type,
                 'current_period_start': self._coalesce(
                     subscription_data.get('current_period_start'),
-                    self._get_nested(subscription_data, ['current_period', 'start'])
+                    self._get_nested(subscription_data, ['current_period', 'start']),
+                    subscription_data.get('previous_billing_date')
                 ),
                 'current_period_end': self._coalesce(
                     subscription_data.get('current_period_end'),
-                    self._get_nested(subscription_data, ['current_period', 'end'])
+                    self._get_nested(subscription_data, ['current_period', 'end']),
+                    subscription_data.get('next_billing_date')
                 ),
                 'cancel_at_period_end': subscription_data.get('cancel_at_period_end', False),
                 'trial_start': subscription_data.get('trial_start'),

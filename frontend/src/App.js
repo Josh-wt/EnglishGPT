@@ -1459,7 +1459,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
       <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-card border-pink-200'} shadow-sm border-b`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
-            <div className="flex items-center">
+            <div className="flex items-center space-x-4 sm:space-x-6">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden">
                 <img 
                   src="https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143" 
@@ -1467,13 +1467,13 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                   className="w-full h-full object-contain"
                 />
               </div>
-              <span className={`ml-2 sm:ml-3 text-sm sm:text-lg font-fredoka ${darkMode ? 'text-white' : 'text-gray-900'} font-bold`}>EnglishGPT</span>
+              <span className={`ml-1 sm:ml-2 text-base sm:text-xl font-fredoka ${darkMode ? 'text-white' : 'text-gray-900'} font-bold`}>EnglishGPT</span>
             </div>
             
             {/* Center Navigation - Hide on mobile */}
-            <div className="hidden lg:flex items-center space-x-6">
+            <div className="hidden lg:flex items-center space-x-10">
               {/* User Stats - Show for all users */}
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-8">
                 {hasUnlimitedAccess() ? (
                   <>
                     <div className="text-center">
@@ -1510,8 +1510,8 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
               
               {/* New User Welcome Message */}
               {!hasUnlimitedAccess() && userStats.questionsMarked === 0 && (
-                <div className={`${darkMode ? 'bg-blue-900 text-blue-300 border-blue-700' : 'bg-blue-50 text-blue-700 border-blue-200'} px-4 py-2 rounded-lg border`}>
-                  <span className="font-fredoka text-sm">🎉 Welcome! You have 3 free credits. Upgrade to unlimited for $4.99/month!</span>
+                <div className={`${darkMode ? 'bg-blue-900 text-blue-300 border-blue-700' : 'bg-blue-50 text-blue-700 border-blue-200'} px-6 py-3 rounded-xl border ml-4`}>
+                  <span className="font-fredoka text-sm sm:text-base">🎉 Welcome! You have 3 free credits. Upgrade to unlimited for $4.99/month!</span>
                 </div>
               )}
             </div>
@@ -3522,11 +3522,7 @@ const App = () => {
     if (desiredTab) {
       const currentTab = new URLSearchParams((routerLocation && routerLocation.search) || '').get('tab');
       if (currentTab !== desiredTab || !pathname.startsWith('/dashboard')) {
-        navigate(`/dashboard?tab=${desiredTab}`, { replace: false });
-      }
-    } else if (currentPage === 'dashboard') {
-      if (!pathname.startsWith('/dashboard') || (routerLocation && routerLocation.search)) {
-        navigate(`/dashboard`, { replace: false });
+        navigate(`/dashboard?tab=${desiredTab}`, { replace: true });
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
