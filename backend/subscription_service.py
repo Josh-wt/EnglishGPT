@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from pydantic import BaseModel
 from fastapi import HTTPException
 import logging
+import os
 
 from dodo_payments_client import DodoPaymentsClient
 from supabase import Client
