@@ -2204,7 +2204,7 @@ async def test_subscription_endpoint():
         "dodo_integration": DODO_INTEGRATION_AVAILABLE,
         "cors_test": "✅ CORS working if you can see this"
     }
-z
+
 @api_router.post("/subscriptions/create-checkout")
 async def create_subscription_checkout(request: Request):
     """Create a checkout session for subscription"""
