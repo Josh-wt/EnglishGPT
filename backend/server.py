@@ -2331,156 +2331,39 @@ async def get_billing_history(user_id: str, limit: int = 50):
         raise HTTPException(status_code=500, detail=f"Failed to get billing history: {str(e)}")
 @api_router.post("/webhooks/dodo")
 async def handle_dodo_webhook(request: Request):
-    """Handle Dodo Payments webhooks with robust processing"""
-    print(f"🔥 WEBHOOK RECEIVED!")
-    
+    """Enhanced webhook handler with proper validation"""
     try:
-        # Get request headers and body
-        headers = dict(request.headers)
-        print(f"🔥 Webhook Headers: {headers}")
-        
-        signature = request.headers.get('webhook-signature')
-        timestamp = request.headers.get('webhook-timestamp')
-        
-        print(f"🔥 Signature: {signature}")
-        print(f"🔥 Timestamp: {timestamp}")
-        
-        if not signature or not timestamp:
-            print(f"❌ Missing webhook signature or timestamp")
-            raise HTTPException(status_code=400, detail="Missing webhook signature or timestamp")
-        
         body = await request.body()
-        print(f"🔥 Webhook Body (first 500 chars): {body.decode('utf-8')[:500]}")
+        signature = request.headers.get('webhook-signature', '')
+        timestamp = request.headers.get('webhook-timestamp', '')
         
-        # Verify webhook signature if service is available
-        if subscription_service and create_webhook_validator:
-            try:
-                webhook_validator = create_webhook_validator()
-                
-                if not webhook_validator.verify_signature(body, signature, timestamp):
-                    print(f"❌ Invalid webhook signature")
-                    raise HTTPException(status_code=400, detail="Invalid webhook signature")
-                
-                if not webhook_validator.is_timestamp_valid(timestamp):
-                    print(f"❌ Webhook timestamp too old")
-                    raise HTTPException(status_code=400, detail="Webhook timestamp too old")
-                    
-                print(f"✅ Webhook signature verified successfully")
-            except Exception as sig_error:
-                print(f"⚠️ Signature verification failed: {sig_error}")
-                # In production, you might want to reject unsigned webhooks
-                # For now, we'll log and continue
+        logger.info(f"Received webhook with signature: {signature[:20]}...")
+        
+        # Validate webhook signature
+        is_valid = webhook_validator.validate_webhook(body, signature, timestamp)
+        
+        if not is_valid:
+            logger.error("Webhook signature validation failed")
+            raise HTTPException(status_code=400, detail="Invalid webhook signature")
+        
+        # Parse webhook data
+        webhook_data = json.loads(body.decode('utf-8'))
+        
+        # Process webhook
+        success = await subscription_service.handle_subscription_webhook(webhook_data)
+        
+        if success:
+            logger.info("✅ Webhook processed successfully")
+            return {"status": "success"}
         else:
-            print(f"⚠️ Webhook signature verification skipped (service unavailable)")
-        
-        # Parse webhook payload
-        try:
-            payload = json.loads(body.decode('utf-8'))
-            print(f"🔥 Parsed Payload: {json.dumps(payload, indent=2)}")
-        except json.JSONDecodeError as json_error:
-            print(f"❌ Invalid JSON payload: {json_error}")
-            raise HTTPException(status_code=400, detail="Invalid JSON payload")
-        
-        event_type = payload.get('type')
-        event_id = payload.get('id') or payload.get('event_id') or f"evt_{int(datetime.utcnow().timestamp())}"
-        event_data = payload.get('data', {})
-        
-        print(f"🔥 Event Type: {event_type}")
-        print(f"🔥 Event ID: {event_id}")
-        print(f"🔥 Event Data: {json.dumps(event_data, indent=2)}")
-        
-        if not event_type:
-            print(f"❌ Invalid webhook payload - missing event type")
-            raise HTTPException(status_code=400, detail="Invalid webhook payload - missing event type")
-        
-        # Check if event already processed (idempotency)
-        try:
-            existing_event = supabase.table('dodo_webhook_events').select('processed').eq('dodo_event_id', event_id).execute()
-            
-            if existing_event.data and existing_event.data[0].get('processed'):
-                print(f"✅ Event {event_id} already processed, skipping")
-                return {"status": "already_processed"}
-        except Exception as db_error:
-            print(f"⚠️ Could not check event idempotency: {db_error}")
-            # Continue processing even if we can't check idempotency
-        
-        # Store webhook event for debugging and idempotency
-        webhook_record = {
-            "id": str(uuid.uuid4()),
-            "event_type": event_type,
-            "dodo_event_id": event_id,
-            "processed": False,
-            "payload": payload,
-            "signature": signature,
-            "timestamp": timestamp,
-            "created_at": datetime.utcnow().isoformat()
-        }
-        
-        try:
-            # Insert webhook event record
-            supabase.table('dodo_webhook_events').insert(webhook_record).execute()
-            print(f"✅ Webhook event stored in database")
-        except Exception as db_error:
-            print(f"⚠️ Could not store webhook event: {db_error}")
-            # Continue processing even if we can't store the event
-        
-        # Process the webhook based on event type
-        try:
-            if not subscription_service:
-                print(f"❌ Subscription service unavailable")
-                raise HTTPException(status_code=503, detail="Subscription service unavailable")
-            
-            print(f"🔥 Processing webhook event: {event_type}")
-            
-            if event_type.startswith('subscription.'):
-                print(f"🔥 Processing as subscription event")
-                await subscription_service.handle_subscription_webhook(event_type, event_data)
-            elif event_type.startswith('payment.'):
-                print(f"🔥 Processing as payment event")
-                await subscription_service.handle_payment_webhook(event_type, event_data)
-            elif event_type.startswith('customer.'):
-                print(f"🔥 Customer event received (no specific handler)")
-                # Handle customer events if needed in the future
-                pass
-            else:
-                print(f"⚠️ Unhandled webhook event type: {event_type}")
-            
-            # Mark event as processed
-            try:
-                supabase.table('dodo_webhook_events').update({
-                    "processed": True,
-                    "processed_at": datetime.utcnow().isoformat()
-                }).eq('dodo_event_id', event_id).execute()
-                print(f"✅ Event {event_id} marked as processed")
-            except Exception as db_error:
-                print(f"⚠️ Could not mark event as processed: {db_error}")
-            
-            print(f"🎉 Webhook processing completed successfully")
-            return {"status": "processed", "event_type": event_type, "event_id": event_id}
-            
-        except Exception as processing_error:
-            print(f"❌ Webhook processing failed: {processing_error}")
-            logger.error(f"Webhook processing failed for {event_type}: {processing_error}")
-            
-            # Update webhook record with error
-            try:
-                supabase.table('dodo_webhook_events').update({
-                    "error_message": str(processing_error),
-                    "retry_count": 1,
-                    "processed": False
-                }).eq('dodo_event_id', event_id).execute()
-            except Exception as db_error:
-                print(f"⚠️ Could not update error status: {db_error}")
-            
-            # Return 500 to trigger Dodo Payments retry
+            logger.error("❌ Webhook processing failed")
             raise HTTPException(status_code=500, detail="Webhook processing failed")
         
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ Webhook handling failed: {e}")
-        logger.error(f"Webhook handling failed: {e}")
-        raise HTTPException(status_code=500, detail="Webhook handling failed")
-
+        logger.error(f"Unexpected webhook error: {e}")
+        raise HTTPException(status_code=500, detail=f"Webhook error: {str(e)}")
+        
 # Include the API router after all routes are defined
 app.include_router(api_router)
