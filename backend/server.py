@@ -2339,8 +2339,8 @@ async def handle_dodo_webhook(request: Request):
         headers = dict(request.headers)
         print(f"🔥 Webhook Headers: {headers}")
         
-        signature = request.headers.get('Dodo-Signature') or request.headers.get('dodo-signature')
-        timestamp = request.headers.get('Dodo-Timestamp') or request.headers.get('dodo-timestamp')
+        signature = request.headers.get('webhook-signature')
+        timestamp = request.headers.get('webhook-timestamp')
         
         print(f"🔥 Signature: {signature}")
         print(f"🔥 Timestamp: {timestamp}")
