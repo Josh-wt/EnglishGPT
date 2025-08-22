@@ -480,7 +480,7 @@ class SubscriptionService:
             logger.info(f"Processing subscription webhook: {event_type}")
             logger.info(f"Subscription data: {subscription_data}")
             
-            customer_id = subscription_data.get('customer_id')
+            customer_id = subscription_data.get('customer', {}).get('customer_id')
             metadata = subscription_data.get('metadata', {})
             
             if not customer_id:
@@ -648,7 +648,7 @@ class SubscriptionService:
             
             payment_id = payment_data.get('payment_id')
             subscription_id = payment_data.get('subscription_id')
-            customer_id = payment_data.get('customer_id')
+            customer_id = payment_data.get('customer', {}).get('customer_id')
             metadata = payment_data.get('metadata', {})
             
             if not customer_id:
