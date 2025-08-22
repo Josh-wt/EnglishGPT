@@ -37,33 +37,36 @@ class SubscriptionService:
         self.supabase = supabase
     
     async def get_or_create_dodo_customer(self, user_id: str, email: str, name: Optional[str] = None) -> str:
-        """Get existing Dodo customer ID or create a new customer with robust error handling"""
+        """Get existing Dodo customer ID or create a new customer. If an existing ID
+        is from a different environment (404 on fetch), create a new one for the current env."""
         try:
             # Check if user already has a Dodo customer ID
             user_response = self.supabase.table('assessment_users').select('dodo_customer_id').eq('uid', user_id).execute()
-            
-            if user_response.data and user_response.data[0].get('dodo_customer_id'):
-                logger.info(f"Found existing Dodo customer ID for user {user_id}")
-                return user_response.data[0]['dodo_customer_id']
-            
-            # Create new Dodo customer
+            existing_id = user_response.data[0]['dodo_customer_id'] if (user_response.data and user_response.data[0].get('dodo_customer_id')) else None
+
             dodo_client = DodoPaymentsClient()
-            customer_data = await dodo_client.create_customer(
-                email=email,
-                name=name,
-            )
-            
+            if existing_id:
+                try:
+                    # Validate it exists in this environment
+                    await dodo_client.get_customer(existing_id)
+                    logger.info(f"Found existing Dodo customer ID for user {user_id}")
+                    return existing_id
+                except Exception as e:
+                    logger.warning(f"Existing Dodo customer {existing_id} not valid in this environment. Recreating. Reason: {e}")
+
+            # Create new customer in the current environment
+            customer_data = await dodo_client.create_customer(email=email, name=name)
             dodo_customer_id = customer_data['customer_id']
-            
-            # Update user with Dodo customer ID
+
+            # Update user with new customer ID
             self.supabase.table('assessment_users').update({
                 'dodo_customer_id': dodo_customer_id,
                 'updated_at': datetime.utcnow().isoformat()
             }).eq('uid', user_id).execute()
-            
+
             logger.info(f"Created Dodo customer {dodo_customer_id} for user {user_id}")
             return dodo_customer_id
-                
+
         except Exception as e:
             logger.error(f"Failed to get/create Dodo customer for user {user_id}: {e}")
             raise HTTPException(status_code=500, detail="Failed to initialize customer account")
@@ -88,38 +91,64 @@ class SubscriptionService:
             # Get or create Dodo customer
             dodo_customer_id = await self.get_or_create_dodo_customer(user_id, email, name)
             
-            # Map plan type to product ID
+            # Map plan type to product ID (env override allowed)
             product_id_map = {
-                'monthly': 'pdt_LOhuvCIgbeo2qflVuaAty',
-                'yearly': 'pdt_R9BBFdK801119u9r3r6jyL'
+                'monthly': os.environ.get('DODO_PAYMENTS_PRODUCT_ID_MONTHLY'),
+                'yearly': os.environ.get('DODO_PAYMENTS_PRODUCT_ID_YEARLY')
             }
             product_id = product_id_map[plan_type]
-            
+
             # Enhanced metadata with multiple user identifiers for robust webhook mapping
             enhanced_metadata = {
+                "user_id": user_id,
+                "plan_type": plan_type,
+                "userEmail": email,
+                "source": (metadata or {}).get('source') or 'pricing_page',
+                # include legacy keys too for compatibility
                 "userId": user_id,
                 "planType": plan_type,
-                "userEmail": email,
-                "source": "englishgpt",
                 **(metadata or {})
             }
-            
-            # Create checkout session
-            dodo_client = DodoPaymentsClient()
-            session_data = await dodo_client.create_checkout_session(
-                product_id=product_id,
-                customer_id=dodo_customer_id,
-                return_url='https://englishgpt.everythingenglish.xyz/dashboard',
-                metadata=enhanced_metadata
-            )
-            
-            logger.info(f"Created checkout session for user {user_id}, customer {dodo_customer_id}")
-            
-            return {
-                "checkout_url": session_data['payment_link'],
-                "subscription_id": session_data.get('subscription_id'),
-                "customer_id": dodo_customer_id
-            }
+
+            # Create checkout session with fallback to static link
+            try:
+                dodo_client = DodoPaymentsClient()
+                session_data = await dodo_client.create_checkout_session(
+                    product_id=product_id,
+                    customer_id=dodo_customer_id,
+                    return_url='https://englishgpt.everythingenglish.xyz/dashboard/payment-success',
+                    metadata=enhanced_metadata
+                )
+
+                logger.info(f"Created checkout session for user {user_id}, customer {dodo_customer_id}")
+                return {
+                    "checkout_url": session_data['payment_link'],
+                    "subscription_id": session_data.get('subscription_id'),
+                    "customer_id": dodo_customer_id
+                }
+            except Exception as e:
+                # Fallback static checkout link based on environment
+                env = os.environ.get('DODO_PAYMENTS_ENVIRONMENT', 'live').lower()
+                domain = 'test.checkout.dodopayments.com' if env == 'test' else 'checkout.dodopayments.com'
+                base_link = f"https://{domain}/buy/{product_id}"
+                from urllib.parse import urlencode as _urlencode  # local alias
+                query = {
+                    "redirect_url": 'https://englishgpt.everythingenglish.xyz/dashboard/payment-success',
+                    "email": email,
+                    "fullName": name or email.split('@')[0],
+                    "showDiscounts": "true",
+                    "quantity": 1,
+                    "metadata_userId": user_id,
+                    "metadata_planType": plan_type,
+                }
+                checkout_url = f"{base_link}?{_urlencode(query)}"
+                logger.warning(f"Falling back to static checkout link due to API error: {e}")
+                return {
+                    "checkout_url": checkout_url,
+                    "subscription_id": None,
+                    "customer_id": dodo_customer_id,
+                    "link_type": "static"
+                }
             
         except HTTPException:
             raise
