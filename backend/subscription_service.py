@@ -287,7 +287,7 @@ class SubscriptionService:
             logger.info(f"🔄 Processing subscription webhook: {event_type}")
             logger.info(f"📋 Subscription data keys: {list(subscription_data.keys())}")
             
-            subscription_id = subscription_data.get('id')
+            subscription_id = subscription_data.get('subscription_id') or subscription_data.get('id')
             user_id = None
             
             # ENHANCED USER LOOKUP - Try multiple methods
@@ -411,7 +411,7 @@ class SubscriptionService:
                     return user_id
         
         # Strategy 5: Try subscription ID lookup (if we have historical data)
-        subscription_id = webhook_data.get('id')
+        subscription_id = webhook_data.get('subscription_id') or webhook_data.get('id')
         if subscription_id:
             user_id = await self._find_user_by_subscription_id(subscription_id)
             if user_id:
@@ -427,7 +427,6 @@ class SubscriptionService:
                     logger.info(f"✅ Found user via metadata email: {email}")
                     return user_id
         
-
     
     async def _find_user_by_customer_id(self, customer_id: str) -> Optional[str]:
         """Find user by Dodo customer ID"""
@@ -493,7 +492,7 @@ class SubscriptionService:
     async def _handle_subscription_activation(self, user_id: str, subscription_data: Dict[str, Any]) -> None:
         """Handle subscription activation/creation/renewal"""
         try:
-            dodo_subscription_id = subscription_data['id']
+            dodo_subscription_id = subscription_data.get('subscription_id') or subscription_data.get('id')
             customer_id = subscription_data.get('customer_id') or subscription_data.get('customer', {}).get('customer_id')
             
             # Determine plan type from product
@@ -672,7 +671,7 @@ class SubscriptionService:
     async def _handle_subscription_cancelled(self, user_id: str, subscription_data: Dict[str, Any]) -> None:
         """Handle subscription cancellation"""
         try:
-            dodo_subscription_id = subscription_data['id']
+            dodo_subscription_id = subscription_data.get('subscription_id') or subscription_data.get('id')
             
             # Update subscription status to cancelled
             self.supabase.table('dodo_subscriptions').update({
@@ -691,7 +690,7 @@ class SubscriptionService:
     async def _handle_subscription_expired(self, user_id: str, subscription_data: Dict[str, Any]) -> None:
         """Handle subscription expiration"""
         try:
-            dodo_subscription_id = subscription_data['id']
+            dodo_subscription_id = subscription_data.get('subscription_id') or subscription_data.get('id')
             
             # Update subscription status to expired
             self.supabase.table('dodo_subscriptions').update({
@@ -708,7 +707,7 @@ class SubscriptionService:
     async def _handle_subscription_update(self, user_id: str, subscription_data: Dict[str, Any]) -> None:
         """Handle subscription update"""
         try:
-            dodo_subscription_id = subscription_data['id']
+            dodo_subscription_id = subscription_data.get('subscription_id') or subscription_data.get('id')
             
             # Extract updated fields
             update_data = {
