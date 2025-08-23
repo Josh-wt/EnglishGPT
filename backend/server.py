@@ -2327,13 +2327,24 @@ async def handle_dodo_webhook(request: Request):
     """Enhanced webhook handler with proper validation"""
     try:
         body = await request.body()
-        signature = request.headers.get('webhook-signature', '')
-        timestamp = request.headers.get('webhook-timestamp', '')
+        # Support multiple possible header names (standard and legacy)
+        def _first_header(keys):
+            for key in keys:
+                value = request.headers.get(key)
+                if value:
+                    return key, value
+            return None, ''
+
+        sig_header_used, signature = _first_header(['webhook-signature', 'x-dodo-signature', 'dodo-signature', 'signature'])
+        ts_header_used, timestamp = _first_header(['webhook-timestamp', 'x-dodo-timestamp', 'dodo-timestamp', 'timestamp'])
+
         logger.info("webhook received", extra={
             "component": "subscriptions",
             "action": "webhook.received",
-            "sig_prefix": signature[:8],
-            "body_len": len(body)
+            "sig_prefix": signature[:8] if signature else '',
+            "body_len": len(body),
+            "sig_header": sig_header_used,
+            "ts_header": ts_header_used
         })
         
         # Validate webhook signature
