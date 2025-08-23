@@ -287,15 +287,15 @@ class SubscriptionService:
             # Store payment record
             await self._store_payment_record(payment_id, user_id, payment_data)
             
-            # CRITICAL: Update user to unlimited immediately after payment
-            user_update = {
-                'current_plan': 'unlimited',  # THIS IS THE KEY FIELD
-                'subscription_status': 'premium',
-                'updated_at': datetime.utcnow().isoformat()
-            }
+            # CRITICAL: Update user to unlimited immediately after payment - SIMPLE AND DIRECT
+            logger.info(f"🚀 SETTING USER {user_id} TO UNLIMITED NOW!")
             
-            self.supabase.table('assessment_users').update(user_update).eq('uid', user_id).execute()
-            logger.info(f"Payment succeeded - Updated user {user_id} to premium (current_plan='premium')")
+            result = self.supabase.table('assessment_users').update({
+                'current_plan': 'unlimited'
+            }).eq('uid', user_id).execute()
+            
+            logger.info(f"✅ DATABASE UPDATE RESULT: {result.data}")
+            logger.info(f"✅ Payment succeeded - User {user_id} should now have current_plan='unlimited'")
             
             logger.info(f"Processed payment {payment_id} for user {user_id}")
             return True
@@ -360,16 +360,15 @@ class SubscriptionService:
                 except Exception as insert_error:
                     logger.warning(f"Could not insert subscription: {insert_error}")
             
-            # Update user subscription status - MUST update current_plan!
-            user_update = {
-                'current_plan': 'unlimited',  # THIS IS CRITICAL - the frontend checks current_plan
-                'subscription_status': 'premium',
-                'subscription_tier': plan_type,
-                'updated_at': datetime.utcnow().isoformat()
-            }
+            # Update user subscription status - SIMPLE: JUST SET UNLIMITED
+            logger.info(f"🚀 SUBSCRIPTION ACTIVE: SETTING USER {user_id} TO UNLIMITED NOW!")
             
-            self.supabase.table('assessment_users').update(user_update).eq('uid', user_id).execute()
-            logger.info(f"Updated user {user_id} to premium plan (current_plan='premium')")
+            result = self.supabase.table('assessment_users').update({
+                'current_plan': 'unlimited'
+            }).eq('uid', user_id).execute()
+            
+            logger.info(f"✅ DATABASE UPDATE RESULT: {result.data}")
+            logger.info(f"✅ Subscription active - User {user_id} should now have current_plan='unlimited'")
             
             logger.info(f"Successfully processed subscription.active for user {user_id}")
             return True
@@ -530,3 +529,55 @@ class SubscriptionService:
         except Exception as e:
             logger.error(f"Failed to get billing history for user {user_id}: {e}")
             return []
+
+    async def handle_subscription_webhook(self, webhook_data: Dict[str, Any]) -> bool:
+        """
+        MAIN WEBHOOK HANDLER - Process any Dodo payment webhook and SET USER TO UNLIMITED
+        This is the entry point called from server.py
+        """
+        try:
+            event_type = webhook_data.get('type', 'unknown')
+            event_id = webhook_data.get('id', 'unknown')
+            
+            logger.info(f"🎯 WEBHOOK RECEIVED: {event_type} (ID: {event_id})")
+            
+            # For ANY payment/subscription event, just find the user and set them to unlimited
+            user_id = None
+            
+            # Try to find user from various webhook data sources
+            if 'customer' in webhook_data:
+                customer_data = webhook_data['customer']
+                if isinstance(customer_data, dict):
+                    metadata = customer_data.get('metadata', {})
+                    user_id = metadata.get('userId') or metadata.get('userEmail')
+            
+            # Try subscription metadata
+            if not user_id and 'subscription' in webhook_data:
+                sub_data = webhook_data['subscription']
+                if isinstance(sub_data, dict):
+                    metadata = sub_data.get('metadata', {})
+                    user_id = metadata.get('userId') or metadata.get('userEmail')
+            
+            # Try top-level metadata
+            if not user_id and 'metadata' in webhook_data:
+                metadata = webhook_data['metadata']
+                user_id = metadata.get('userId') or metadata.get('userEmail')
+            
+            if user_id:
+                logger.info(f"🚀 FOUND USER {user_id} IN WEBHOOK - SETTING TO UNLIMITED!")
+                
+                # Just set them to unlimited - that's it!
+                result = self.supabase.table('assessment_users').update({
+                    'current_plan': 'unlimited'
+                }).eq('uid', user_id).execute()
+                
+                logger.info(f"✅ SUCCESS! User {user_id} set to unlimited: {result.data}")
+                return True
+            else:
+                logger.warning(f"❌ Could not find user_id in webhook {event_type}")
+                logger.debug(f"Full webhook data: {webhook_data}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"❌ Webhook handler failed: {e}")
+            return False
