@@ -72,7 +72,7 @@ class SubscriptionService:
             
             # Extract customer ID with fallbacks
             if 'customer_id' in customer_data:
-                dodo_customer_id = customer_data['customer_id']
+            dodo_customer_id = customer_data['customer_id']
             elif 'id' in customer_data:
                 dodo_customer_id = customer_data['id']
             else:
@@ -208,9 +208,9 @@ class SubscriptionService:
                 subscription_status = user_data.get('subscription_status')
                 
                 if subscription_status == 'premium':
-                    return SubscriptionStatus(
-                        has_active_subscription=True,
-                        subscription={
+            return SubscriptionStatus(
+                has_active_subscription=True,
+                subscription={
                             "status": "active",
                             "plan_type": (user_data.get('subscription_tier') if user_data.get('subscription_tier') in ['monthly', 'yearly'] else 'monthly')
                         }
@@ -577,7 +577,7 @@ class SubscriptionService:
                 logger.warning(f"❌ Could not find user_id in webhook {event_type}")
                 logger.debug(f"Full webhook data: {webhook_data}")
                 return False
-                
+            
         except Exception as e:
             logger.error(f"❌ Webhook handler failed: {e}")
             return False
