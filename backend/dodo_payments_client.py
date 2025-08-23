@@ -45,6 +45,21 @@ class DodoPaymentsClient:
     async def create_customer(self, email: str, name: str, metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Create a new customer in Dodo Payments"""
         try:
+            # First check if customer already exists
+            logger.info(f"Checking if customer exists with email: {email}")
+            try:
+                existing_response = await self.client.get(f"/customers?email={email}")
+                if existing_response.status_code == 200:
+                    existing_data = existing_response.json()
+                    if existing_data and len(existing_data) > 0:
+                        customer_data = existing_data[0]
+                        customer_id = customer_data.get('customer_id') or customer_data.get('id')
+                        logger.info(f"Customer already exists: {customer_id}")
+                        return customer_data
+            except httpx.HTTPError:
+                logger.info("Customer lookup failed, proceeding to create new customer")
+            
+            # Create new customer if not found
             payload = {
                 "email": email,
                 "name": name
