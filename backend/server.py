@@ -2338,13 +2338,20 @@ async def handle_dodo_webhook(request: Request):
         sig_header_used, signature = _first_header(['webhook-signature', 'x-dodo-signature', 'dodo-signature', 'signature'])
         ts_header_used, timestamp = _first_header(['webhook-timestamp', 'x-dodo-timestamp', 'dodo-timestamp', 'timestamp'])
 
+        # Log all headers for debugging
+        logger.debug("All webhook headers:", extra={
+            "headers": dict(request.headers),
+            "component": "subscriptions"
+        })
+
         logger.info("webhook received", extra={
             "component": "subscriptions",
             "action": "webhook.received",
-            "sig_prefix": signature[:8] if signature else '',
+            "sig_full": signature[:50] if signature else 'MISSING',  # Show more of signature for debugging
+            "timestamp": timestamp if timestamp else 'MISSING',
             "body_len": len(body),
-            "sig_header": sig_header_used,
-            "ts_header": ts_header_used
+            "sig_header": sig_header_used or 'NOT_FOUND',
+            "ts_header": ts_header_used or 'NOT_FOUND'
         })
         
         # Validate webhook signature

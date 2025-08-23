@@ -249,6 +249,11 @@ class WebhookValidator:
         """
         Validate webhook signature using Dodo Payments webhook signing
         
+        Dodo Payments webhook signature format:
+        - Header format: v1,<base64_encoded_signature>
+        - Signing string: {timestamp}.{request_body}
+        - Algorithm: HMAC-SHA256 with webhook secret
+        
         Args:
             payload: Raw webhook payload bytes
             signature: Webhook signature from header (format: v1,base64signature)
@@ -266,62 +271,97 @@ class WebhookValidator:
             return False
         
         try:
-            # Normalize signature header and verify timestamp
-            normalized_sig = self.extract_signature_from_header(signature) or signature
-            if not self.verify_timestamp(timestamp):
-                logger.error("Webhook timestamp verification failed")
+            # Extract actual signature from header format (v1,... or v1=...)
+            actual_signature = self.extract_signature_from_header(signature)
+            if not actual_signature:
+                logger.error(f"Could not extract signature from header: {signature[:30]}...")
                 return False
-
-            # Build candidate messages for signing
-            payload_str = payload.decode('utf-8')
-            signed_standard = f"{timestamp}.{payload_str}".encode('utf-8')
-            signed_payload_only = payload_str.encode('utf-8')
-
-            # Compute HMAC-SHA256 digests for both candidate messages
-            digest_std = hmac.new(self.webhook_secret.encode('utf-8'), signed_standard, hashlib.sha256).digest()
-            digest_payload = hmac.new(self.webhook_secret.encode('utf-8'), signed_payload_only, hashlib.sha256).digest()
-
-            # Create comparison variants (base64 and hex)
-            candidates = [
-                base64.b64encode(digest_std).decode('utf-8'),
-                base64.b64encode(digest_payload).decode('utf-8'),
-                hashlib.sha256(signed_standard).hexdigest(),
-                hashlib.sha256(signed_payload_only).hexdigest(),
-            ]
-
-            # Compare against provided signature
-            for idx, expected in enumerate(candidates):
-                if hmac.compare_digest(normalized_sig, expected):
-                    logger.info("Webhook signature validation successful", extra={
-                        "variant": idx,
-                        "uses_timestamp": idx in (0, 2)
-                    })
+            
+            # Verify timestamp is recent (5 minute tolerance)
+            if not self.verify_timestamp(timestamp):
+                logger.error("Webhook timestamp verification failed - too old")
+                return False
+            
+            # Build the signing string: timestamp.payload
+            # This is the standard webhook format used by Dodo Payments
+            signing_string = f"{timestamp}.{payload.decode('utf-8')}"
+            
+            # Calculate expected signature using HMAC-SHA256
+            expected_signature = hmac.new(
+                self.webhook_secret.encode('utf-8'),
+                signing_string.encode('utf-8'),
+                hashlib.sha256
+            ).digest()
+            
+            # Convert to base64 (Dodo uses base64 encoding)
+            expected_signature_b64 = base64.b64encode(expected_signature).decode('utf-8')
+            
+            # Use constant-time comparison for security
+            is_valid = hmac.compare_digest(actual_signature, expected_signature_b64)
+            
+            if is_valid:
+                logger.info("Webhook signature validation successful")
+                return True
+            else:
+                # If standard format fails, try without timestamp (fallback)
+                expected_signature_no_ts = hmac.new(
+                    self.webhook_secret.encode('utf-8'),
+                    payload,
+                    hashlib.sha256
+                ).digest()
+                expected_signature_no_ts_b64 = base64.b64encode(expected_signature_no_ts).decode('utf-8')
+                
+                is_valid_no_ts = hmac.compare_digest(actual_signature, expected_signature_no_ts_b64)
+                
+                if is_valid_no_ts:
+                    logger.info("Webhook signature validation successful (without timestamp)")
                     return True
-
-            logger.error("Webhook signature validation failed")
-            # Log short prefixes only for safety
-            logger.debug(f"Sig provided (prefix): {normalized_sig[:16]}")
-            logger.debug(f"Expected (b64 std) prefix: {candidates[0][:16]}")
-            logger.debug(f"Expected (b64 payload) prefix: {candidates[1][:16]}")
-            logger.debug(f"Expected (hex std) prefix: {candidates[2][:16]}")
-            logger.debug(f"Expected (hex payload) prefix: {candidates[3][:16]}")
-            logger.debug(f"Timestamp: {timestamp}")
-            logger.debug(f"Payload length: {len(payload)}")
-            return False
+                
+                logger.error("Webhook signature validation failed")
+                logger.debug(f"Provided signature (first 20 chars): {actual_signature[:20]}")
+                logger.debug(f"Expected signature (first 20 chars): {expected_signature_b64[:20]}")
+                logger.debug(f"Expected no-ts sig (first 20 chars): {expected_signature_no_ts_b64[:20]}")
+                logger.debug(f"Timestamp used: {timestamp}")
+                logger.debug(f"Payload length: {len(payload)} bytes")
+                logger.debug(f"Webhook secret length: {len(self.webhook_secret)} chars")
+                return False
             
         except Exception as e:
             logger.error(f"Error validating webhook signature: {e}")
             return False
     
     def extract_signature_from_header(self, signature_header: str) -> Optional[str]:
-        """Extract signature from webhook header"""
+        """Extract signature from webhook header
+        
+        Dodo Payments format: v1,<base64_signature>
+        Also handles: v1=<signature> for compatibility
+        """
         try:
-            # Dodo Payments uses format: v1=signature or v1,signature
-            if signature_header.startswith('v1='):
-                return signature_header[3:]
-            elif signature_header.startswith('v1,'):
-                return signature_header[3:]
+            # Remove any whitespace
+            signature_header = signature_header.strip()
+            
+            # Handle v1,signature format (Dodo standard)
+            if signature_header.startswith('v1,'):
+                extracted = signature_header[3:].strip()
+                logger.debug(f"Extracted signature from v1, format (first 20 chars): {extracted[:20]}")
+                return extracted
+            
+            # Handle v1=signature format (alternative)
+            elif signature_header.startswith('v1='):
+                extracted = signature_header[3:].strip()
+                logger.debug(f"Extracted signature from v1= format (first 20 chars): {extracted[:20]}")
+                return extracted
+            
+            # Handle v1:signature format (another alternative)
+            elif signature_header.startswith('v1:'):
+                extracted = signature_header[3:].strip()
+                logger.debug(f"Extracted signature from v1: format (first 20 chars): {extracted[:20]}")
+                return extracted
+            
+            # If no prefix, assume it's just the signature
+            logger.debug(f"No v1 prefix found, using raw signature (first 20 chars): {signature_header[:20]}")
             return signature_header
+            
         except Exception as e:
             logger.error(f"Error extracting signature: {e}")
             return None

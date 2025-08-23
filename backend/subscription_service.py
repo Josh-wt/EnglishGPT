@@ -456,8 +456,8 @@ class SubscriptionService:
                 'dodo_event_id': event_id,
                 'event_type': event_type,
                 'processed': False,
-                'created_at': datetime.utcnow().isoformat(),
-                'raw_data': webhook_data
+                'payload': webhook_data,
+                'created_at': datetime.utcnow().isoformat()
             }
             
             self.supabase.table('dodo_webhook_events').insert(webhook_record).execute()
