@@ -1,11 +1,12 @@
 """
-Subscription Service Layer
+Enhanced Subscription Service Layer
 Handles business logic for subscription management with FIXED webhook processing
 """
 
 import uuid
+import json
 from typing import Dict, Any, Optional, List, Tuple
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel
 from fastapi import HTTPException
 import logging
@@ -32,10 +33,11 @@ class BillingHistoryItem(BaseModel):
     failure_reason: Optional[str] = None
 
 class SubscriptionService:
-    """Service for managing subscriptions and payments with FIXED webhooks"""
+    """Enhanced service for managing subscriptions and payments with robust webhook processing"""
     
     def __init__(self, supabase: Client):
         self.supabase = supabase
+        logger.info("Initialized SubscriptionService")
     
     async def get_or_create_dodo_customer(self, user_id: str, email: str, name: Optional[str] = None) -> str:
         """Get existing Dodo customer ID or create a new customer"""
@@ -61,7 +63,7 @@ class SubscriptionService:
                         'dodo_customer_id': None
                     }).eq('uid', user_id).execute()
             
-            # Create new Dodo customer - FIXED: matching your current signature
+            # Create new Dodo customer
             dodo_client = DodoPaymentsClient()
             logger.info(f"Creating new Dodo customer for email: {email}")
             
@@ -93,7 +95,7 @@ class SubscriptionService:
             raise HTTPException(status_code=500, detail=f"Failed to initialize customer account: {str(e)}")
     
     async def create_checkout_session(self, user_id: str, plan_type: str, metadata: Optional[Dict] = None) -> Dict[str, Any]:
-        """Create a checkout session for subscription - SAME signature as before"""
+        """Create a checkout session for subscription"""
         try:
             logger.debug("create_checkout_session.start", extra={
                 "component": "subscription_service",
@@ -144,18 +146,21 @@ class SubscriptionService:
             # Create checkout session
             dodo_client = DodoPaymentsClient()
             
-            # Prepare metadata for checkout
+            # Prepare metadata for checkout - CRITICAL: Include userId in multiple formats for webhook processing
             checkout_metadata = {
                 "user_id": user_id,
+                "userId": user_id,  # Primary fallback for webhook processing
                 "plan_type": plan_type,
-                "userEmail": email,
-                "userId": user_id,
                 "planType": plan_type,
+                "userEmail": email,
+                "email": email,
                 "source": "englishgpt_subscription",
                 "timestamp": datetime.utcnow().isoformat()
             }
             if metadata:
                 checkout_metadata.update(metadata)
+            
+            logger.info(f"Creating checkout with metadata: {checkout_metadata}")
             
             session_data = await dodo_client.create_checkout_session(
                 product_id=product_id,
@@ -187,7 +192,7 @@ class SubscriptionService:
             raise HTTPException(status_code=500, detail=f"Checkout creation failed: {str(e)}")
     
     async def get_subscription_status(self, user_id: str) -> SubscriptionStatus:
-        """Get the subscription status for a user - SAME return format"""
+        """Get the subscription status for a user"""
         try:
             # Check for active subscriptions
             sub_response = self.supabase.table('dodo_subscriptions').select('*').eq('user_id', user_id).in_('status', ['active', 'trialing']).order('created_at', desc=True).limit(1).execute()
@@ -201,13 +206,15 @@ class SubscriptionService:
                 )
             
             # Fallback: Check user subscription status
-            user_response = self.supabase.table('assessment_users').select('subscription_status, subscription_tier').eq('uid', user_id).execute()
+            user_response = self.supabase.table('assessment_users').select('subscription_status, subscription_tier, current_plan').eq('uid', user_id).execute()
             
             if user_response.data:
                 user_data = user_response.data[0]
                 subscription_status = user_data.get('subscription_status')
+                current_plan = user_data.get('current_plan')
                 
-                if subscription_status == 'premium':
+                # Check if user has unlimited access
+                if current_plan == 'unlimited' or subscription_status in ['premium', 'active']:
                     return SubscriptionStatus(
                         has_active_subscription=True,
                         subscription={
@@ -222,250 +229,525 @@ class SubscriptionService:
             logger.error(f"Failed to get subscription status for user {user_id}: {e}")
             return SubscriptionStatus(has_active_subscription=False)
     
-    async def handle_subscription_webhook(self, webhook_data: Dict[str, Any]) -> bool:
-        """
-        FIXED webhook handler - handles all the issues we found
-        """
+    async def _check_user_subscription_access(self, user_id: str) -> bool:
+        """Check if user has active subscription access - used by evaluation system"""
         try:
-            event_type = webhook_data.get('type')
-            event_data = webhook_data.get('data', {})
-            event_id = webhook_data.get('id', f"evt_{int(datetime.now().timestamp())}")
+            # First check current_plan field - this is the definitive access control field
+            user_response = self.supabase.table('assessment_users').select('current_plan, subscription_status').eq('uid', user_id).execute()
             
-            logger.info(f"Processing webhook event: {event_type}")
-            logger.info(f"Event data keys: {list(event_data.keys())}")
+            if user_response.data:
+                user_data = user_response.data[0]
+                current_plan = user_data.get('current_plan', 'free')
+                
+                # If current_plan is unlimited, user has access
+                if current_plan == 'unlimited':
+                    logger.info(f"User {user_id} has unlimited access via current_plan")
+                    return True
+                
+                # Fallback: check subscription_status
+                subscription_status = user_data.get('subscription_status')
+                if subscription_status in ['premium', 'active']:
+                    logger.info(f"User {user_id} has access via subscription_status: {subscription_status}")
+                    return True
             
-            if event_type not in ['subscription.created', 'subscription.active', 'subscription.updated', 'subscription.cancelled', 'subscription.renewed', 'payment.succeeded']:
-                logger.info(f"Ignoring webhook event type: {event_type}")
+            # Final check: Look for active subscription records
+            result = self.supabase.table('dodo_subscriptions').select('*').eq('user_id', user_id).in_('status', ['active', 'trialing']).order('created_at', desc=True).limit(1).execute()
+            
+            if result.data:
+                subscription = result.data[0]
+                current_period_end = subscription.get('current_period_end')
+                
+                # Check if subscription is still valid
+                if current_period_end:
+                    try:
+                        end_date = datetime.fromisoformat(current_period_end.replace('Z', '+00:00'))
+                        is_valid = end_date > datetime.now(timezone.utc)
+                        logger.info(f"User {user_id} subscription validity: {is_valid}")
+                        return is_valid
+                    except Exception as e:
+                        logger.warning(f"Could not parse subscription end date: {e}")
+                        # If we can't parse the date, assume it's valid
+                        return True
+                
+                # If no end date, assume active subscription is valid
+                logger.info(f"User {user_id} has active subscription without end date")
                 return True
             
-            # Store webhook event for debugging
-            await self._store_webhook_event(event_id, event_type, webhook_data)
-            
-            # Route to specific handlers
-            if event_type == 'payment.succeeded':
-                return await self._handle_payment_succeeded(event_data, event_id)
-            elif event_type in ['subscription.active', 'subscription.created', 'subscription.renewed']:
-                return await self._handle_subscription_active(event_data, event_id)
-            elif event_type == 'subscription.cancelled':
-                return await self._handle_subscription_cancelled(event_data, event_id)
-            
-            return True
+            logger.info(f"User {user_id} has no active subscription access")
+            return False
             
         except Exception as e:
-            logger.error(f"Failed to process webhook {event_type}: {e}")
-            logger.error(f"Stack trace: {traceback.format_exc()}")
+            logger.error(f"Failed to check subscription access for user {user_id}: {e}")
+            # Default to no access on error for security
             return False
     
-    async def _handle_payment_succeeded(self, payment_data: Dict[str, Any], event_id: str) -> bool:
+    async def handle_subscription_webhook(self, event_type: str, subscription_data: Dict[str, Any]) -> None:
+        """Enhanced subscription webhook handler with robust user lookup and processing"""
+        try:
+            logger.info(f"🔄 Processing subscription webhook: {event_type}")
+            logger.info(f"📋 Subscription data keys: {list(subscription_data.keys())}")
+            
+            subscription_id = subscription_data.get('id')
+            user_id = None
+            
+            # ENHANCED USER LOOKUP - Try multiple methods
+            user_id = await self._find_user_from_webhook_data(subscription_data)
+            
+            if not user_id:
+                logger.error(f"❌ Cannot find user for subscription {subscription_id}")
+                logger.error(f"📋 Available data: {json.dumps(subscription_data, indent=2)}")
+                return
+            
+            logger.info(f"✅ Found user: {user_id}")
+            
+            # Process different subscription events
+            if event_type in ['subscription.created', 'subscription.active', 'subscription.activated', 'subscription.renewed']:
+                await self._handle_subscription_activation(user_id, subscription_data)
+            elif event_type in ['subscription.cancelled', 'subscription.canceled']:
+                await self._handle_subscription_cancelled(user_id, subscription_data)
+            elif event_type in ['subscription.expired', 'subscription.ended']:
+                await self._handle_subscription_expired(user_id, subscription_data)
+            elif event_type == 'subscription.updated':
+                await self._handle_subscription_update(user_id, subscription_data)
+            else:
+                logger.warning(f"⚠️ Unhandled subscription event: {event_type}")
+            
+            # CRITICAL: Always sync user status after any change
+            await self._sync_user_subscription_status(user_id)
+            logger.info(f"✅ Subscription webhook {event_type} processed successfully for user {user_id}")
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to handle subscription webhook {event_type}: {e}")
+            logger.error(f"📋 Webhook data: {json.dumps(subscription_data, indent=2)}")
+            raise
+    
+    async def handle_payment_webhook(self, event_type: str, payment_data: Dict[str, Any]) -> None:
+        """Enhanced payment webhook handler"""
+        try:
+            logger.info(f"🔄 Processing payment webhook: {event_type}")
+            logger.info(f"📋 Payment data keys: {list(payment_data.keys())}")
+            
+            payment_id = payment_data.get('id')
+            user_id = None
+            
+            # Find user from payment data
+            user_id = await self._find_user_from_webhook_data(payment_data)
+            
+            if not user_id:
+                logger.error(f"❌ Cannot find user for payment {payment_id}")
+                logger.error(f"📋 Available data: {json.dumps(payment_data, indent=2)}")
+                return
+            
+            logger.info(f"✅ Found user: {user_id}")
+            
+            if event_type == 'payment.succeeded':
+                await self._handle_payment_succeeded(user_id, payment_data)
+            elif event_type == 'payment.failed':
+                await self._handle_payment_failed(user_id, payment_data)
+            else:
+                logger.warning(f"⚠️ Unhandled payment event: {event_type}")
+            
+            logger.info(f"✅ Payment webhook {event_type} processed successfully for user {user_id}")
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to handle payment webhook {event_type}: {e}")
+            logger.error(f"📋 Webhook data: {json.dumps(payment_data, indent=2)}")
+            raise
+    
+    async def handle_customer_webhook(self, event_type: str, customer_data: Dict[str, Any]) -> None:
+        """Handle customer webhook events"""
+        try:
+            logger.info(f"🔄 Processing customer webhook: {event_type}")
+            logger.info(f"📋 Customer data keys: {list(customer_data.keys())}")
+            
+            # For now, just log customer events
+            # We could add customer data synchronization here if needed
+            logger.info(f"✅ Customer webhook {event_type} logged")
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to handle customer webhook {event_type}: {e}")
+    
+    async def _find_user_from_webhook_data(self, webhook_data: Dict[str, Any]) -> Optional[str]:
+        """Enhanced user lookup with multiple fallback strategies"""
+        
+        # Strategy 1: Try customer_id from webhook root
+        customer_id = webhook_data.get('customer_id')
+        if customer_id:
+            user_id = await self._find_user_by_customer_id(customer_id)
+            if user_id:
+                logger.info(f"✅ Found user via root customer_id: {customer_id}")
+                return user_id
+        
+        # Strategy 2: Try customer.customer_id nested structure
+        customer_obj = webhook_data.get('customer', {})
+        if isinstance(customer_obj, dict):
+            customer_id = customer_obj.get('customer_id')
+            if customer_id:
+                user_id = await self._find_user_by_customer_id(customer_id)
+                if user_id:
+                    logger.info(f"✅ Found user via nested customer.customer_id: {customer_id}")
+                    return user_id
+        
+        # Strategy 3: Try customer.id
+        if isinstance(customer_obj, dict):
+            customer_id = customer_obj.get('id')
+            if customer_id:
+                user_id = await self._find_user_by_customer_id(customer_id)
+                if user_id:
+                    logger.info(f"✅ Found user via customer.id: {customer_id}")
+                    return user_id
+        
+        # Strategy 4: Try metadata.userId (from checkout creation)
+        metadata = webhook_data.get('metadata', {})
+        if isinstance(metadata, dict):
+            user_id = metadata.get('userId') or metadata.get('user_id')
+            if user_id:
+                # Verify this user exists
+                user_exists = await self._verify_user_exists(user_id)
+                if user_exists:
+                    logger.info(f"✅ Found user via metadata.userId: {user_id}")
+                    # Update their customer ID for future webhooks
+                    await self._update_user_customer_id(user_id, webhook_data.get('customer_id'))
+                    return user_id
+        
+        # Strategy 5: Try subscription ID lookup (if we have historical data)
+        subscription_id = webhook_data.get('id')
+        if subscription_id:
+            user_id = await self._find_user_by_subscription_id(subscription_id)
+            if user_id:
+                logger.info(f"✅ Found user via subscription_id: {subscription_id}")
+                return user_id
+        
+        # Strategy 6: Try email lookup from metadata
+        if isinstance(metadata, dict):
+            email = metadata.get('userEmail') or metadata.get('email')
+            if email:
+                user_id = await self._find_user_by_email(email)
+                if user_id:
+                    logger.info(f"✅ Found user via metadata email: {email}")
+                    return user_id
+        
+        # All strategies failed
+        logger.error(f"❌ Cannot find user with any strategy")
+        logger.error(f"📋 Available customer identifiers: {json.dumps({
+            'customer_id_root': webhook_data.get('customer_id'),
+            'customer_nested': customer_obj,
+            'metadata': metadata,
+            'subscription_id': subscription_id
+        }, indent=2)}")
+        
+        return None
+    
+    async def _find_user_by_customer_id(self, customer_id: str) -> Optional[str]:
+        """Find user by Dodo customer ID"""
+        try:
+            user_response = self.supabase.table('assessment_users').select('uid').eq('dodo_customer_id', customer_id).execute()
+            if user_response.data:
+                return user_response.data[0]['uid']
+            return None
+        except Exception as e:
+            logger.error(f"Error finding user by customer ID {customer_id}: {e}")
+            return None
+    
+    async def _find_user_by_email(self, email: str) -> Optional[str]:
+        """Find user by email address"""
+        try:
+            user_response = self.supabase.table('assessment_users').select('uid').eq('email', email).execute()
+            if user_response.data:
+                return user_response.data[0]['uid']
+            return None
+        except Exception as e:
+            logger.error(f"Error finding user by email {email}: {e}")
+            return None
+    
+    async def _verify_user_exists(self, user_id: str) -> bool:
+        """Verify that a user ID exists in our database"""
+        try:
+            user_response = self.supabase.table('assessment_users').select('uid').eq('uid', user_id).execute()
+            return bool(user_response.data)
+        except Exception as e:
+            logger.error(f"Error verifying user {user_id}: {e}")
+            return False
+    
+    async def _find_user_by_subscription_id(self, subscription_id: str) -> Optional[str]:
+        """Find user by existing subscription record"""
+        try:
+            sub_response = self.supabase.table('dodo_subscriptions').select('user_id').eq('dodo_subscription_id', subscription_id).execute()
+            if sub_response.data:
+                return sub_response.data[0]['user_id']
+            return None
+        except Exception as e:
+            logger.error(f"Error finding user by subscription ID {subscription_id}: {e}")
+            return None
+    
+    async def _update_user_customer_id(self, user_id: str, customer_id: str) -> None:
+        """Update user's Dodo customer ID if missing"""
+        if not customer_id:
+            return
+        
+        try:
+            # Check if user already has this customer ID
+            user_response = self.supabase.table('assessment_users').select('dodo_customer_id').eq('uid', user_id).execute()
+            if user_response.data:
+                current_customer_id = user_response.data[0].get('dodo_customer_id')
+                if not current_customer_id or current_customer_id != customer_id:
+                    self.supabase.table('assessment_users').update({
+                        'dodo_customer_id': customer_id,
+                        'updated_at': datetime.utcnow().isoformat()
+                    }).eq('uid', user_id).execute()
+                    logger.info(f"✅ Updated customer ID for user {user_id}: {customer_id}")
+        except Exception as e:
+            logger.error(f"Error updating customer ID for user {user_id}: {e}")
+    
+    async def _handle_subscription_activation(self, user_id: str, subscription_data: Dict[str, Any]) -> None:
+        """Handle subscription activation/creation/renewal"""
+        try:
+            dodo_subscription_id = subscription_data['id']
+            customer_id = subscription_data.get('customer_id') or subscription_data.get('customer', {}).get('customer_id')
+            
+            # Determine plan type from product
+            plan_type = self._determine_plan_type(subscription_data)
+            
+            # Calculate period dates
+            current_period_start = subscription_data.get('current_period_start')
+            current_period_end = subscription_data.get('current_period_end')
+            
+            # If dates are missing, calculate them
+            if not current_period_start:
+                current_period_start = datetime.utcnow().isoformat()
+            if not current_period_end:
+                start_date = datetime.fromisoformat(current_period_start.replace('Z', '+00:00'))
+                days_to_add = 30 if plan_type == 'monthly' else 365
+                end_date = start_date + timedelta(days=days_to_add)
+                current_period_end = end_date.isoformat()
+            
+            subscription_record = {
+                'user_id': user_id,
+                'dodo_subscription_id': dodo_subscription_id,
+                'dodo_customer_id': customer_id,
+                'dodo_product_id': subscription_data.get('product_id'),
+                'status': 'active',  # Always set to active for activation events
+                'plan_type': plan_type,
+                'current_period_start': current_period_start,
+                'current_period_end': current_period_end,
+                'cancel_at_period_end': subscription_data.get('cancel_at_period_end', False),
+                'trial_start': subscription_data.get('trial_start'),
+                'trial_end': subscription_data.get('trial_end'),
+                'next_billing_date': subscription_data.get('next_billing_date'),
+                'metadata': subscription_data.get('metadata', {}),
+                'raw_data': subscription_data,
+                'updated_at': datetime.utcnow().isoformat()
+            }
+            
+            # Upsert subscription record
+            existing_sub = self.supabase.table('dodo_subscriptions').select('id').eq('dodo_subscription_id', dodo_subscription_id).execute()
+            
+            if existing_sub.data:
+                # Update existing subscription
+                self.supabase.table('dodo_subscriptions').update(subscription_record).eq('dodo_subscription_id', dodo_subscription_id).execute()
+                logger.info(f"✅ Updated subscription {dodo_subscription_id} for user {user_id}")
+            else:
+                # Create new subscription
+                subscription_record['id'] = str(uuid.uuid4())
+                subscription_record['created_at'] = datetime.utcnow().isoformat()
+                self.supabase.table('dodo_subscriptions').insert(subscription_record).execute()
+                logger.info(f"✅ Created subscription {dodo_subscription_id} for user {user_id}")
+            
+            # Update user's customer ID if needed
+            await self._update_user_customer_id(user_id, customer_id)
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to handle subscription activation for user {user_id}: {e}")
+            raise
+    
+    async def _handle_payment_succeeded(self, user_id: str, payment_data: Dict[str, Any]) -> None:
         """Handle successful payment"""
         try:
-            logger.info(f"Processing payment webhook: payment.succeeded")
-            
-            # Extract payment info with FIXED parsing
-            payment_id = payment_data.get('payment_id') or payment_data.get('id')
+            payment_id = payment_data.get('id')
             subscription_id = payment_data.get('subscription_id')
             
-            # FIXED customer ID extraction - this was the main bug
-            customer_info = payment_data.get('customer', {})
-            if isinstance(customer_info, dict):
-                customer_id = customer_info.get('customer_id')
-            else:
-                customer_id = payment_data.get('customer_id')
-            
-            if not customer_id:
-                logger.error("No customer ID found in payment webhook")
-                return False
-            
-            # Find user with multiple strategies
-            user_id = await self._find_user_for_webhook(customer_id, payment_data.get('metadata', {}))
-            if not user_id:
-                logger.error(f"No user found for customer_id: {customer_id}")
-                return False
-            
-            logger.info(f"Processing payment {payment_id} for user {user_id}")
+            logger.info(f"Processing successful payment {payment_id} for user {user_id}")
             
             # Store payment record
             await self._store_payment_record(payment_id, user_id, payment_data)
             
-            # CRITICAL: Update user to unlimited immediately after payment - SIMPLE AND DIRECT
-            logger.info(f"🚀 SETTING USER {user_id} TO UNLIMITED NOW!")
+            # CRITICAL: Payment succeeded means user should have unlimited access
+            logger.info(f"🚀 Payment succeeded - Granting unlimited access to user {user_id}")
             
-            result = self.supabase.table('assessment_users').update({
-                'current_plan': 'unlimited'
-            }).eq('uid', user_id).execute()
-            
-            logger.info(f"✅ DATABASE UPDATE RESULT: {result.data}")
-            logger.info(f"✅ Payment succeeded - User {user_id} should now have current_plan='unlimited'")
-            
-            logger.info(f"Processed payment {payment_id} for user {user_id}")
-            return True
+            # Note: We don't update current_plan here directly, we let _sync_user_subscription_status handle it
+            # This ensures consistent state management
             
         except Exception as e:
-            logger.error(f"Failed to handle payment webhook: {e}")
-            return False
+            logger.error(f"❌ Failed to handle payment success for user {user_id}: {e}")
+            raise
     
-    async def _handle_subscription_active(self, subscription_data: Dict[str, Any], event_id: str) -> bool:
-        """Handle active subscription - FIXED the customer_id bug"""
+    async def _handle_payment_failed(self, user_id: str, payment_data: Dict[str, Any]) -> None:
+        """Handle failed payment"""
         try:
-            logger.info(f"Processing subscription webhook: subscription.active")
+            payment_id = payment_data.get('id')
             
-            subscription_id = subscription_data.get('subscription_id') or subscription_data.get('id')
+            logger.info(f"Processing failed payment {payment_id} for user {user_id}")
             
-            # FIXED customer ID extraction - this was causing the 'customer_id' KeyError
-            customer_info = subscription_data.get('customer', {})
-            if isinstance(customer_info, dict):
-                customer_id = customer_info.get('customer_id')
-            else:
-                customer_id = subscription_data.get('customer_id')
+            # Store payment record with failed status
+            await self._store_payment_record(payment_id, user_id, payment_data)
             
-            status = subscription_data.get('status', 'active')
+            # Don't change user's subscription status on failed payment
+            # They might have other active subscriptions
             
-            if not customer_id:
-                logger.error("No customer ID found in subscription webhook")
-                return False
+        except Exception as e:
+            logger.error(f"❌ Failed to handle payment failure for user {user_id}: {e}")
+            raise
+    
+    def _determine_plan_type(self, subscription_data: Dict[str, Any]) -> str:
+        """Determine plan type from subscription data"""
+        # Check product ID first
+        product_id = subscription_data.get('product_id', '').lower()
+        if 'yearly' in product_id or 'annual' in product_id:
+            return 'yearly'
+        
+        # Check payment frequency
+        payment_frequency = subscription_data.get('payment_frequency_interval', '').lower()
+        if payment_frequency == 'year':
+            return 'yearly'
+        
+        # Check metadata
+        metadata = subscription_data.get('metadata', {})
+        if isinstance(metadata, dict):
+            plan_type = metadata.get('planType') or metadata.get('plan_type')
+            if plan_type:
+                return plan_type.lower()
+        
+        # Default to monthly
+        return 'monthly'
+    
+    async def _sync_user_subscription_status(self, user_id: str) -> None:
+        """Sync user's subscription status based on active subscriptions - FIXED VERSION"""
+        try:
+            logger.info(f"🔄 Syncing subscription status for user {user_id}")
             
-            # Find user with fallback strategies
-            user_id = await self._find_user_for_webhook(customer_id, subscription_data.get('metadata', {}))
-            if not user_id:
-                logger.error(f"No user found for customer_id: {customer_id}")
-                return False
+            # Get all active subscriptions for user
+            active_subs_response = self.supabase.table('dodo_subscriptions').select('*').eq('user_id', user_id).in_('status', ['active', 'trialing']).order('created_at', desc=True).execute()
             
-            logger.info(f"Processing subscription webhook for user {user_id}")
+            if active_subs_response.data:
+                # User has active subscriptions
+                latest_sub = active_subs_response.data[0]
+                
+                # Check if subscription is still valid (not expired)
+                current_period_end = latest_sub.get('current_period_end')
+                is_valid = True
+                
+                if current_period_end:
+                    try:
+                        end_date = datetime.fromisoformat(current_period_end.replace('Z', '+00:00'))
+                        is_valid = end_date > datetime.now(timezone.utc)
+                        logger.info(f"Subscription end date: {end_date}, valid: {is_valid}")
+                    except Exception as e:
+                        logger.warning(f"⚠️ Could not parse end date {current_period_end}: {e}")
+                        # If we can't parse the date, assume it's valid to be safe
+                        is_valid = True
+                
+                if is_valid:
+                    # Update user to premium/unlimited plan
+                    plan_type = latest_sub.get('plan_type', 'monthly')
+                    
+                    user_updates = {
+                        'current_plan': 'unlimited',  # This is the key field for access control
+                        'subscription_status': 'active',  # Status field
+                        'subscription_tier': plan_type,  # Plan type (monthly/yearly)
+                        'updated_at': datetime.utcnow().isoformat()
+                    }
+                    
+                    result = self.supabase.table('assessment_users').update(user_updates).eq('uid', user_id).execute()
+                    logger.info(f"✅ Updated user {user_id} to unlimited plan (subscription active)")
+                    logger.info(f"📊 Database update result: {result.data}")
+                    return
             
-            # Extract subscription details
-            next_billing_date = subscription_data.get('next_billing_date')
-            payment_frequency = subscription_data.get('payment_frequency_interval', 'Month')
-            plan_type = 'monthly' if payment_frequency == 'Month' else 'yearly'
-            
-            # Create or update subscription record
-            subscription_record = {
-                'user_id': user_id,
-                'dodo_subscription_id': subscription_id,
-                'dodo_customer_id': customer_id,
-                'status': status,
-                'plan_type': plan_type,
-                'next_billing_date': next_billing_date,
-                'created_at': subscription_data.get('created_at', datetime.utcnow().isoformat()),
-                'updated_at': datetime.utcnow().isoformat(),
-                'raw_data': subscription_data
+            # No active/valid subscriptions - set to free plan
+            user_updates = {
+                'current_plan': 'free',
+                'subscription_status': 'inactive',
+                'subscription_tier': None,
+                'updated_at': datetime.utcnow().isoformat()
             }
             
-            # Upsert subscription
-            try:
-                self.supabase.table('dodo_subscriptions').upsert(subscription_record, on_conflict='dodo_subscription_id').execute()
-            except Exception as db_error:
-                logger.warning(f"Could not upsert subscription, trying insert: {db_error}")
-                try:
-                    self.supabase.table('dodo_subscriptions').insert(subscription_record).execute()
-                except Exception as insert_error:
-                    logger.warning(f"Could not insert subscription: {insert_error}")
-            
-            # Update user subscription status - SIMPLE: JUST SET UNLIMITED
-            logger.info(f"🚀 SUBSCRIPTION ACTIVE: SETTING USER {user_id} TO UNLIMITED NOW!")
-            
-            result = self.supabase.table('assessment_users').update({
-                'current_plan': 'unlimited'
-            }).eq('uid', user_id).execute()
-            
-            logger.info(f"✅ DATABASE UPDATE RESULT: {result.data}")
-            logger.info(f"✅ Subscription active - User {user_id} should now have current_plan='unlimited'")
-            
-            logger.info(f"Successfully processed subscription.active for user {user_id}")
-            return True
+            result = self.supabase.table('assessment_users').update(user_updates).eq('uid', user_id).execute()
+            logger.info(f"ℹ️ Updated user {user_id} to free plan (no active subscription)")
+            logger.info(f"📊 Database update result: {result.data}")
             
         except Exception as e:
-            logger.error(f"Failed to handle subscription webhook: {e}")
-            logger.error(f"Stack trace: {traceback.format_exc()}")
-            return False
+            logger.error(f"❌ Failed to sync subscription status for user {user_id}: {e}")
+            # Don't raise - this shouldn't block webhook processing
     
-    async def _handle_subscription_cancelled(self, subscription_data: Dict[str, Any], event_id: str) -> bool:
-        """Handle cancelled subscription"""
+    async def _handle_subscription_cancelled(self, user_id: str, subscription_data: Dict[str, Any]) -> None:
+        """Handle subscription cancellation"""
         try:
-            logger.info("Processing subscription webhook: subscription.cancelled")
+            dodo_subscription_id = subscription_data['id']
             
-            subscription_id = subscription_data.get('subscription_id') or subscription_data.get('id')
-            
-            # FIXED customer ID extraction
-            customer_info = subscription_data.get('customer', {})
-            if isinstance(customer_info, dict):
-                customer_id = customer_info.get('customer_id')
-            else:
-                customer_id = subscription_data.get('customer_id')
-            
-            if not customer_id:
-                logger.error("No customer ID found in cancellation webhook")
-                return False
-            
-            user_id = await self._find_user_for_webhook(customer_id, subscription_data.get('metadata', {}))
-            if not user_id:
-                logger.error(f"No user found for customer_id: {customer_id}")
-                return False
-            
-            # Update subscription to cancelled
-            try:
-                self.supabase.table('dodo_subscriptions').update({
-                    'status': 'cancelled',
-                    'cancelled_at': datetime.utcnow().isoformat(),
-                    'updated_at': datetime.utcnow().isoformat()
-                }).eq('dodo_subscription_id', subscription_id).execute()
-            except Exception as e:
-                logger.warning(f"Could not update subscription record: {e}")
-            
-            # Update user subscription status to free - MUST update current_plan!
-            self.supabase.table('assessment_users').update({
-                'current_plan': 'free',  # THIS IS CRITICAL - revert to free plan
-                'subscription_status': 'none',
-                'subscription_tier': 'free',
+            # Update subscription status to cancelled
+            self.supabase.table('dodo_subscriptions').update({
+                'status': 'cancelled',
+                'cancel_at_period_end': subscription_data.get('cancel_at_period_end', True),
+                'cancelled_at': datetime.utcnow().isoformat(),
                 'updated_at': datetime.utcnow().isoformat()
-            }).eq('uid', user_id).execute()
-            logger.info(f"Updated user {user_id} back to free plan (current_plan='free')")
+            }).eq('dodo_subscription_id', dodo_subscription_id).execute()
             
-            logger.info(f"Cancelled subscription {subscription_id} for user {user_id}")
-            return True
+            logger.info(f"✅ Cancelled subscription {dodo_subscription_id} for user {user_id}")
             
         except Exception as e:
-            logger.error(f"Failed to handle subscription cancellation: {e}")
-            return False
+            logger.error(f"❌ Failed to handle subscription cancellation for user {user_id}: {e}")
+            raise
     
-    async def _find_user_for_webhook(self, customer_id: str, metadata: Dict[str, Any]) -> Optional[str]:
-        """FIXED user lookup with multiple fallback strategies"""
+    async def _handle_subscription_expired(self, user_id: str, subscription_data: Dict[str, Any]) -> None:
+        """Handle subscription expiration"""
         try:
-            # Strategy 1: Direct customer ID lookup
-            user_response = self.supabase.table('assessment_users').select('uid').eq('dodo_customer_id', customer_id).execute()
+            dodo_subscription_id = subscription_data['id']
             
-            if user_response.data:
-                user_id = user_response.data[0]['uid']
-                logger.info(f"Found user {user_id} via direct customer ID lookup")
-                return user_id
+            # Update subscription status to expired
+            self.supabase.table('dodo_subscriptions').update({
+                'status': 'expired',
+                'updated_at': datetime.utcnow().isoformat()
+            }).eq('dodo_subscription_id', dodo_subscription_id).execute()
             
-            # Strategy 2: Metadata userId lookup
-            metadata_user_id = metadata.get('userId') or metadata.get('user_id')
-            if metadata_user_id:
-                user_response = self.supabase.table('assessment_users').select('uid').eq('uid', metadata_user_id).execute()
-                if user_response.data:
-                    logger.info(f"Found user {metadata_user_id} via metadata lookup")
-                    return metadata_user_id
-            
-            # Strategy 3: Email lookup from metadata
-            metadata_email = metadata.get('userEmail') or metadata.get('email')
-            if metadata_email:
-                user_response = self.supabase.table('assessment_users').select('uid').eq('email', metadata_email).execute()
-                if user_response.data:
-                    user_id = user_response.data[0]['uid']
-                    logger.info(f"Found user {user_id} via email lookup")
-                    return user_id
-            
-            logger.error(f"Could not find user with customer_id: {customer_id}, metadata: {metadata}")
-            return None
+            logger.info(f"✅ Expired subscription {dodo_subscription_id} for user {user_id}")
             
         except Exception as e:
-            logger.error(f"Error finding user: {e}")
-            return None
+            logger.error(f"❌ Failed to handle subscription expiration for user {user_id}: {e}")
+            raise
+    
+    async def _handle_subscription_update(self, user_id: str, subscription_data: Dict[str, Any]) -> None:
+        """Handle subscription update"""
+        try:
+            dodo_subscription_id = subscription_data['id']
+            
+            # Extract updated fields
+            update_data = {
+                'status': subscription_data.get('status', 'active'),
+                'plan_type': self._determine_plan_type(subscription_data),
+                'current_period_start': subscription_data.get('current_period_start'),
+                'current_period_end': subscription_data.get('current_period_end'),
+                'cancel_at_period_end': subscription_data.get('cancel_at_period_end', False),
+                'next_billing_date': subscription_data.get('next_billing_date'),
+                'metadata': subscription_data.get('metadata', {}),
+                'raw_data': subscription_data,
+                'updated_at': datetime.utcnow().isoformat()
+            }
+            
+            # Remove None values
+            update_data = {k: v for k, v in update_data.items() if v is not None}
+            
+            self.supabase.table('dodo_subscriptions').update(update_data).eq('dodo_subscription_id', dodo_subscription_id).execute()
+            
+            logger.info(f"✅ Updated subscription {dodo_subscription_id} for user {user_id}")
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to handle subscription update for user {user_id}: {e}")
+            raise
     
     async def _store_webhook_event(self, event_id: str, event_type: str, webhook_data: Dict[str, Any]) -> None:
         """Store webhook event for debugging"""
         try:
             webhook_record = {
+                'id': str(uuid.uuid4()),
                 'dodo_event_id': event_id,
                 'event_type': event_type,
                 'processed': False,
@@ -491,12 +773,14 @@ class SubscriptionService:
                 return
             
             payment_record = {
+                'id': str(uuid.uuid4()),
                 'user_id': user_id,
                 'dodo_payment_id': payment_id,
                 'subscription_id': payment_data.get('subscription_id'),
-                'amount': payment_data.get('total_amount', 0),
+                'amount': payment_data.get('total_amount') or payment_data.get('amount', 0),
                 'currency': payment_data.get('currency', 'USD'),
                 'status': payment_data.get('status', 'succeeded'),
+                'payment_method_type': payment_data.get('payment_method', {}).get('type') if payment_data.get('payment_method') else None,
                 'created_at': payment_data.get('created_at', datetime.utcnow().isoformat()),
                 'raw_data': payment_data
             }
@@ -508,7 +792,7 @@ class SubscriptionService:
             logger.warning(f"Could not store payment record: {e}")
     
     async def get_billing_history(self, user_id: str) -> List[BillingHistoryItem]:
-        """Get billing history for a user - SAME signature as before"""
+        """Get billing history for a user"""
         try:
             payments_response = self.supabase.table('dodo_payments').select('*').eq('user_id', user_id).order('created_at', desc=True).execute()
             
@@ -529,55 +813,31 @@ class SubscriptionService:
         except Exception as e:
             logger.error(f"Failed to get billing history for user {user_id}: {e}")
             return []
-
+    
+    # Legacy webhook handler for backwards compatibility
     async def handle_subscription_webhook(self, webhook_data: Dict[str, Any]) -> bool:
         """
-        MAIN WEBHOOK HANDLER - Process any Dodo payment webhook and SET USER TO UNLIMITED
-        This is the entry point called from server.py
+        Legacy webhook handler - redirects to new enhanced handlers
+        This maintains backwards compatibility with existing server.py code
         """
         try:
             event_type = webhook_data.get('type', 'unknown')
-            event_id = webhook_data.get('id', 'unknown')
+            event_data = webhook_data.get('data', webhook_data)
             
-            logger.info(f"🎯 WEBHOOK RECEIVED: {event_type} (ID: {event_id})")
+            logger.info(f"🎯 Legacy webhook handler processing: {event_type}")
             
-            # For ANY payment/subscription event, just find the user and set them to unlimited
-            user_id = None
-            
-            # Try to find user from various webhook data sources
-            if 'customer' in webhook_data:
-                customer_data = webhook_data['customer']
-                if isinstance(customer_data, dict):
-                    metadata = customer_data.get('metadata', {})
-                    user_id = metadata.get('userId') or metadata.get('userEmail')
-            
-            # Try subscription metadata
-            if not user_id and 'subscription' in webhook_data:
-                sub_data = webhook_data['subscription']
-                if isinstance(sub_data, dict):
-                    metadata = sub_data.get('metadata', {})
-                    user_id = metadata.get('userId') or metadata.get('userEmail')
-            
-            # Try top-level metadata
-            if not user_id and 'metadata' in webhook_data:
-                metadata = webhook_data['metadata']
-                user_id = metadata.get('userId') or metadata.get('userEmail')
-            
-            if user_id:
-                logger.info(f"🚀 FOUND USER {user_id} IN WEBHOOK - SETTING TO UNLIMITED!")
-                
-                # Just set them to unlimited - that's it!
-                result = self.supabase.table('assessment_users').update({
-                    'current_plan': 'unlimited'
-                }).eq('uid', user_id).execute()
-                
-                logger.info(f"✅ SUCCESS! User {user_id} set to unlimited: {result.data}")
-                return True
+            # Route to appropriate new handler
+            if event_type.startswith('subscription.'):
+                await self.handle_subscription_webhook(event_type, event_data)
+            elif event_type.startswith('payment.'):
+                await self.handle_payment_webhook(event_type, event_data)
+            elif event_type.startswith('customer.'):
+                await self.handle_customer_webhook(event_type, event_data)
             else:
-                logger.warning(f"❌ Could not find user_id in webhook {event_type}")
-                logger.debug(f"Full webhook data: {webhook_data}")
-                return False
+                logger.warning(f"⚠️ Unknown webhook type: {event_type}")
+            
+            return True
             
         except Exception as e:
-            logger.error(f"❌ Webhook handler failed: {e}")
+            logger.error(f"❌ Legacy webhook handler failed: {e}")
             return False
