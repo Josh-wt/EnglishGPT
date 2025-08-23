@@ -266,37 +266,48 @@ class WebhookValidator:
             return False
         
         try:
-            # Remove 'v1,' prefix if present
-            if signature.startswith('v1,'):
-                signature = signature[3:]
-            
-            # Dodo Payments webhook signature verification
-            # Format: HMAC-SHA256(webhook_secret, timestamp.payload)
-            signed_payload = f"{timestamp}.{payload.decode('utf-8')}"
-            
-            # Calculate expected signature
-            expected_signature = hmac.new(
-                self.webhook_secret.encode('utf-8'),
-                signed_payload.encode('utf-8'),
-                hashlib.sha256
-            ).digest()
-            
-            # Encode to base64 for comparison
-            expected_signature_b64 = base64.b64encode(expected_signature).decode('utf-8')
-            
-            # Compare signatures using constant-time comparison
-            is_valid = hmac.compare_digest(signature, expected_signature_b64)
-            
-            if not is_valid:
-                logger.error("Webhook signature validation failed")
-                logger.debug(f"Expected signature: {expected_signature_b64}")
-                logger.debug(f"Received signature: {signature}")
-                logger.debug(f"Timestamp: {timestamp}")
-                logger.debug(f"Payload length: {len(payload)}")
-            else:
-                logger.info("Webhook signature validation successful")
-            
-            return is_valid
+            # Normalize signature header and verify timestamp
+            normalized_sig = self.extract_signature_from_header(signature) or signature
+            if not self.verify_timestamp(timestamp):
+                logger.error("Webhook timestamp verification failed")
+                return False
+
+            # Build candidate messages for signing
+            payload_str = payload.decode('utf-8')
+            signed_standard = f"{timestamp}.{payload_str}".encode('utf-8')
+            signed_payload_only = payload_str.encode('utf-8')
+
+            # Compute HMAC-SHA256 digests for both candidate messages
+            digest_std = hmac.new(self.webhook_secret.encode('utf-8'), signed_standard, hashlib.sha256).digest()
+            digest_payload = hmac.new(self.webhook_secret.encode('utf-8'), signed_payload_only, hashlib.sha256).digest()
+
+            # Create comparison variants (base64 and hex)
+            candidates = [
+                base64.b64encode(digest_std).decode('utf-8'),
+                base64.b64encode(digest_payload).decode('utf-8'),
+                hashlib.sha256(signed_standard).hexdigest(),
+                hashlib.sha256(signed_payload_only).hexdigest(),
+            ]
+
+            # Compare against provided signature
+            for idx, expected in enumerate(candidates):
+                if hmac.compare_digest(normalized_sig, expected):
+                    logger.info("Webhook signature validation successful", extra={
+                        "variant": idx,
+                        "uses_timestamp": idx in (0, 2)
+                    })
+                    return True
+
+            logger.error("Webhook signature validation failed")
+            # Log short prefixes only for safety
+            logger.debug(f"Sig provided (prefix): {normalized_sig[:16]}")
+            logger.debug(f"Expected (b64 std) prefix: {candidates[0][:16]}")
+            logger.debug(f"Expected (b64 payload) prefix: {candidates[1][:16]}")
+            logger.debug(f"Expected (hex std) prefix: {candidates[2][:16]}")
+            logger.debug(f"Expected (hex payload) prefix: {candidates[3][:16]}")
+            logger.debug(f"Timestamp: {timestamp}")
+            logger.debug(f"Payload length: {len(payload)}")
+            return False
             
         except Exception as e:
             logger.error(f"Error validating webhook signature: {e}")

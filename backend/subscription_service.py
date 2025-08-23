@@ -201,7 +201,7 @@ class SubscriptionService:
                 )
             
             # Fallback: Check user subscription status
-            user_response = self.supabase.table('assessment_users').select('subscription_status, subscription_type').eq('uid', user_id).execute()
+            user_response = self.supabase.table('assessment_users').select('subscription_status, subscription_tier').eq('uid', user_id).execute()
             
             if user_response.data:
                 user_data = user_response.data[0]
@@ -212,7 +212,7 @@ class SubscriptionService:
                         has_active_subscription=True,
                         subscription={
                             "status": "active",
-                            "plan_type": user_data.get('subscription_type', 'monthly')
+                            "plan_type": (user_data.get('subscription_tier') if user_data.get('subscription_tier') in ['monthly', 'yearly'] else 'monthly')
                         }
                     )
             
@@ -353,7 +353,7 @@ class SubscriptionService:
             # Update user subscription status
             user_update = {
                 'subscription_status': 'premium',
-                'subscription_type': plan_type,
+                'subscription_tier': plan_type,
                 'updated_at': datetime.utcnow().isoformat()
             }
             
@@ -403,7 +403,7 @@ class SubscriptionService:
             # Update user subscription status to free
             self.supabase.table('assessment_users').update({
                 'subscription_status': 'free',
-                'subscription_type': None,
+                'subscription_tier': None,
                 'updated_at': datetime.utcnow().isoformat()
             }).eq('uid', user_id).execute()
             
