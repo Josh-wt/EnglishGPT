@@ -69,13 +69,23 @@ class DodoPaymentsClient:
             if metadata:
                 payload["metadata"] = metadata
             
-            logger.info(f"Creating Dodo customer with email: {email}")
+            logger.info("Creating Dodo customer", extra={
+                "component": "dodo_client",
+                "action": "create_customer",
+                "env": self.environment,
+                "email_hash": hashlib.sha256(email.encode()).hexdigest()[:10]
+            })
             response = await self.client.post("/customers", json=payload)
             response.raise_for_status()
             
             customer_data = response.json()
             customer_id = customer_data.get('customer_id') or customer_data.get('id')
-            logger.info(f"Successfully created customer: {customer_id}")
+            logger.info("Created Dodo customer", extra={
+                "component": "dodo_client",
+                "action": "create_customer.success",
+                "env": self.environment,
+                "customer_id": customer_id
+            })
             return customer_data
             
         except httpx.HTTPError as e:
@@ -118,12 +128,27 @@ class DodoPaymentsClient:
             if metadata:
                 payload["metadata"] = metadata
             
-            logger.info(f"Creating Dodo subscription checkout with payload: {payload}")
+            logger.info("Creating checkout session", extra={
+                "component": "dodo_client",
+                "action": "create_checkout",
+                "env": self.environment,
+                "product_id": product_id,
+                "customer_id": customer_id,
+                "has_metadata": bool(metadata)
+            })
             response = await self.client.post("/subscriptions", json=payload)
             response.raise_for_status()
             
             checkout_data = response.json()
-            logger.info(f"Checkout session created successfully: {checkout_data}")
+            safe_checkout = {
+                k: v for k, v in checkout_data.items() if k in {"subscription_id", "id", "payment_link", "status"}
+            }
+            logger.info("Checkout created", extra={
+                "component": "dodo_client",
+                "action": "create_checkout.success",
+                "env": self.environment,
+                "data": safe_checkout
+            })
             return checkout_data
             
         except httpx.HTTPError as e:
@@ -139,6 +164,12 @@ class DodoPaymentsClient:
     async def get_subscription(self, subscription_id: str) -> Dict[str, Any]:
         """Get subscription details by ID"""
         try:
+            logger.debug("Fetching subscription", extra={
+                "component": "dodo_client",
+                "action": "get_subscription",
+                "env": self.environment,
+                "subscription_id": subscription_id
+            })
             response = await self.client.get(f"/subscriptions/{subscription_id}")
             response.raise_for_status()
             return response.json()
@@ -156,6 +187,12 @@ class DodoPaymentsClient:
     async def cancel_subscription(self, subscription_id: str) -> Dict[str, Any]:
         """Cancel a subscription"""
         try:
+            logger.info("Cancelling subscription", extra={
+                "component": "dodo_client",
+                "action": "cancel_subscription",
+                "env": self.environment,
+                "subscription_id": subscription_id
+            })
             response = await self.client.delete(f"/subscriptions/{subscription_id}")
             response.raise_for_status()
             return response.json()
@@ -173,6 +210,12 @@ class DodoPaymentsClient:
     async def get_customer(self, customer_id: str) -> Dict[str, Any]:
         """Get customer details by ID"""
         try:
+            logger.debug("Fetching customer", extra={
+                "component": "dodo_client",
+                "action": "get_customer",
+                "env": self.environment,
+                "customer_id": customer_id
+            })
             response = await self.client.get(f"/customers/{customer_id}")
             response.raise_for_status()
             return response.json()

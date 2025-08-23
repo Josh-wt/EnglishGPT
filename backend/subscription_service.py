@@ -95,6 +95,12 @@ class SubscriptionService:
     async def create_checkout_session(self, user_id: str, plan_type: str, metadata: Optional[Dict] = None) -> Dict[str, Any]:
         """Create a checkout session for subscription - SAME signature as before"""
         try:
+            logger.debug("create_checkout_session.start", extra={
+                "component": "subscription_service",
+                "user_id": user_id,
+                "plan_type": plan_type,
+                "has_metadata": bool(metadata)
+            })
             logger.info(f"Creating checkout session for user {user_id}, plan: {plan_type}")
             
             # Get user data
@@ -122,6 +128,12 @@ class SubscriptionService:
                 logger.warning(f"Product ID not configured for {plan_type}, using fallback")
                 _fallback_url = f"https://checkout.dodopayments.com/buy/{plan_type}"
                 _fallback_sub_id = f"fallback_{int(datetime.now().timestamp())}"
+                logger.debug("create_checkout_session.fallback", extra={
+                    "component": "subscription_service",
+                    "user_id": user_id,
+                    "plan_type": plan_type,
+                    "url": _fallback_url
+                })
                 return {
                     "checkout_url": _fallback_url,
                     "checkoutUrl": _fallback_url,
@@ -153,6 +165,11 @@ class SubscriptionService:
             )
             
             logger.info(f"Created checkout session for user {user_id}: {session_data.get('subscription_id', 'N/A')}")
+            logger.debug("create_checkout_session.success", extra={
+                "component": "subscription_service",
+                "user_id": user_id,
+                "has_link": bool(session_data.get('payment_link'))
+            })
             
             _link = session_data.get('payment_link')
             _sub_id = session_data.get('subscription_id') or session_data.get('id', f"temp_{int(datetime.now().timestamp())}")
