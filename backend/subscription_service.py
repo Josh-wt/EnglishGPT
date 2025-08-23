@@ -427,15 +427,14 @@ class SubscriptionService:
                     logger.info(f"✅ Found user via metadata email: {email}")
                     return user_id
         
-        # All strategies failed
+       # All strategies failed
         logger.error("❌ Cannot find user with any strategy")
         logger.error(f"📋 Available customer identifiers: {json.dumps({
-            'customer_id_root': webhook_data.get('customer_id'),
-            'customer_nested': customer_obj,
-            'metadata': metadata,
-            'subscription_id': subscription_id
-        }, indent=2)}")
-        
+              'customer_id_root': webhook_data.get('customer_id'),
+              'customer_nested': customer_obj,
+           'metadata': metadata,
+           'subscription_id': subscription_id
+           }, indent=2)}")
         return None
     
     async def _find_user_by_customer_id(self, customer_id: str) -> Optional[str]:
