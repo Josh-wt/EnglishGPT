@@ -48,16 +48,26 @@ class DodoPaymentsClient:
             # First check if customer already exists
             logger.info(f"Checking if customer exists with email: {email}")
             try:
-                existing_response = await self.client.get(f"/customers?email={email}")
+                existing_response = await self.client.get("/customers", params={"email": email})
                 if existing_response.status_code == 200:
-                    existing_data = existing_response.json()
-                    if existing_data and len(existing_data) > 0:
-                        customer_data = existing_data[0]
+                    raw = existing_response.json()
+                    candidates = []
+                    if isinstance(raw, list):
+                        candidates = raw
+                    elif isinstance(raw, dict):
+                        if isinstance(raw.get("data"), list):
+                            candidates = raw["data"]
+                        elif any(k in raw for k in ("customer_id", "id", "email")):
+                            candidates = [raw]
+                    if candidates:
+                        customer_data = candidates[0]
                         customer_id = customer_data.get('customer_id') or customer_data.get('id')
                         logger.info(f"Customer already exists: {customer_id}")
                         return customer_data
-            except httpx.HTTPError:
-                logger.info("Customer lookup failed, proceeding to create new customer")
+            except httpx.HTTPError as http_err:
+                logger.info(f"Customer lookup HTTP error, proceeding to create new customer: {getattr(http_err.response, 'status_code', 'n/a')}")
+            except Exception as parse_err:
+                logger.info(f"Customer lookup parse error, proceeding to create new customer: {parse_err}")
             
             # Create new customer if not found
             payload = {
@@ -89,11 +99,17 @@ class DodoPaymentsClient:
             return customer_data
             
         except httpx.HTTPError as e:
-            error_msg = f"HTTP error creating customer: {e.response.status_code}"
-            if hasattr(e.response, 'text'):
-                error_msg += f" - {e.response.text}"
+            status = getattr(getattr(e, 'response', None), 'status_code', 'n/a')
+            body = ''
+            try:
+                body = getattr(e.response, 'text', '') if e.response is not None else ''
+            except Exception:
+                body = ''
+            error_msg = f"HTTP error creating customer: {status}"
+            if body:
+                error_msg += f" - {body}"
             logger.error(error_msg)
-            raise HTTPException(status_code=e.response.status_code, detail=f"Failed to create customer: {error_msg}")
+            raise HTTPException(status_code=status if isinstance(status, int) else 502, detail=f"Failed to create customer: {error_msg}")
         except Exception as e:
             logger.error(f"Unexpected error creating customer: {e}")
             raise HTTPException(status_code=500, detail=f"Failed to create customer: {str(e)}")
@@ -152,11 +168,17 @@ class DodoPaymentsClient:
             return checkout_data
             
         except httpx.HTTPError as e:
-            error_msg = f"HTTP error creating checkout session: {e.response.status_code}"
-            if hasattr(e.response, 'text'):
-                error_msg += f" - {e.response.text}"
+            status = getattr(getattr(e, 'response', None), 'status_code', 'n/a')
+            body = ''
+            try:
+                body = getattr(e.response, 'text', '') if e.response is not None else ''
+            except Exception:
+                body = ''
+            error_msg = f"HTTP error creating checkout session: {status}"
+            if body:
+                error_msg += f" - {body}"
             logger.error(error_msg)
-            raise HTTPException(status_code=e.response.status_code, detail=f"Failed to create checkout session: {error_msg}")
+            raise HTTPException(status_code=status if isinstance(status, int) else 502, detail=f"Failed to create checkout session: {error_msg}")
         except Exception as e:
             logger.error(f"Unexpected error creating checkout session: {e}")
             raise HTTPException(status_code=500, detail=f"Failed to create checkout session: {str(e)}")
@@ -175,11 +197,17 @@ class DodoPaymentsClient:
             return response.json()
             
         except httpx.HTTPError as e:
-            error_msg = f"HTTP error getting subscription: {e.response.status_code}"
-            if hasattr(e.response, 'text'):
-                error_msg += f" - {e.response.text}"
+            status = getattr(getattr(e, 'response', None), 'status_code', 'n/a')
+            body = ''
+            try:
+                body = getattr(e.response, 'text', '') if e.response is not None else ''
+            except Exception:
+                body = ''
+            error_msg = f"HTTP error getting subscription: {status}"
+            if body:
+                error_msg += f" - {body}"
             logger.error(error_msg)
-            raise HTTPException(status_code=e.response.status_code, detail=f"Failed to get subscription: {error_msg}")
+            raise HTTPException(status_code=status if isinstance(status, int) else 502, detail=f"Failed to get subscription: {error_msg}")
         except Exception as e:
             logger.error(f"Unexpected error getting subscription: {e}")
             raise HTTPException(status_code=500, detail=f"Failed to get subscription: {str(e)}")
@@ -198,11 +226,17 @@ class DodoPaymentsClient:
             return response.json()
             
         except httpx.HTTPError as e:
-            error_msg = f"HTTP error cancelling subscription: {e.response.status_code}"
-            if hasattr(e.response, 'text'):
-                error_msg += f" - {e.response.text}"
+            status = getattr(getattr(e, 'response', None), 'status_code', 'n/a')
+            body = ''
+            try:
+                body = getattr(e.response, 'text', '') if e.response is not None else ''
+            except Exception:
+                body = ''
+            error_msg = f"HTTP error cancelling subscription: {status}"
+            if body:
+                error_msg += f" - {body}"
             logger.error(error_msg)
-            raise HTTPException(status_code=e.response.status_code, detail=f"Failed to cancel subscription: {error_msg}")
+            raise HTTPException(status_code=status if isinstance(status, int) else 502, detail=f"Failed to cancel subscription: {error_msg}")
         except Exception as e:
             logger.error(f"Unexpected error cancelling subscription: {e}")
             raise HTTPException(status_code=500, detail=f"Failed to cancel subscription: {str(e)}")
@@ -221,11 +255,17 @@ class DodoPaymentsClient:
             return response.json()
             
         except httpx.HTTPError as e:
-            error_msg = f"HTTP error getting customer: {e.response.status_code}"
-            if hasattr(e.response, 'text'):
-                error_msg += f" - {e.response.text}"
+            status = getattr(getattr(e, 'response', None), 'status_code', 'n/a')
+            body = ''
+            try:
+                body = getattr(e.response, 'text', '') if e.response is not None else ''
+            except Exception:
+                body = ''
+            error_msg = f"HTTP error getting customer: {status}"
+            if body:
+                error_msg += f" - {body}"
             logger.error(error_msg)
-            raise HTTPException(status_code=e.response.status_code, detail=f"Failed to get customer: {error_msg}")
+            raise HTTPException(status_code=status if isinstance(status, int) else 502, detail=f"Failed to get customer: {error_msg}")
         except Exception as e:
             logger.error(f"Unexpected error getting customer: {e}")
             raise HTTPException(status_code=500, detail=f"Failed to get customer: {str(e)}")
