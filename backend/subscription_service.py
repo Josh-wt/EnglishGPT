@@ -428,7 +428,7 @@ class SubscriptionService:
                     return user_id
         
         # All strategies failed
-        logger.error(f"❌ Cannot find user with any strategy")
+        logger.error("❌ Cannot find user with any strategy")
         logger.error(f"📋 Available customer identifiers: {json.dumps({
             'customer_id_root': webhook_data.get('customer_id'),
             'customer_nested': customer_obj,
