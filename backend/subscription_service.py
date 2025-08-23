@@ -287,9 +287,9 @@ class SubscriptionService:
             # Store payment record
             await self._store_payment_record(payment_id, user_id, payment_data)
             
-            # CRITICAL: Update user to premium immediately after payment
+            # CRITICAL: Update user to unlimited immediately after payment
             user_update = {
-                'current_plan': 'premium',  # THIS IS THE KEY FIELD
+                'current_plan': 'unlimited',  # THIS IS THE KEY FIELD
                 'subscription_status': 'premium',
                 'updated_at': datetime.utcnow().isoformat()
             }
@@ -362,7 +362,7 @@ class SubscriptionService:
             
             # Update user subscription status - MUST update current_plan!
             user_update = {
-                'current_plan': 'premium',  # THIS IS CRITICAL - the frontend checks current_plan
+                'current_plan': 'unlimited',  # THIS IS CRITICAL - the frontend checks current_plan
                 'subscription_status': 'premium',
                 'subscription_tier': plan_type,
                 'updated_at': datetime.utcnow().isoformat()

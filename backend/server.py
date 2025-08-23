@@ -2428,20 +2428,20 @@ async def confirm_subscription(user_id: str):
         raise HTTPException(status_code=503, detail="Subscription service unavailable")
     
     try:
-        # Update user to premium immediately
+        # Update user to unlimited immediately
         supabase.table('assessment_users').update({
-            'current_plan': 'premium',
+            'current_plan': 'unlimited',
             'subscription_status': 'premium',
             'subscription_tier': 'monthly',
             'updated_at': datetime.utcnow().isoformat()
         }).eq('uid', user_id).execute()
         
-        logger.info(f"Manually confirmed subscription for user {user_id} - set current_plan='premium'")
+        logger.info(f"Manually confirmed subscription for user {user_id} - set current_plan='unlimited'")
         
         return {
             "status": "success",
-            "message": f"User {user_id} now has premium access",
-            "current_plan": "premium"
+            "message": f"User {user_id} now has unlimited access",
+            "current_plan": "unlimited"
         }
     except Exception as e:
         logger.error(f"Failed to confirm subscription: {e}")
