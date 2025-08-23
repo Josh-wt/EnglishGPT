@@ -281,7 +281,7 @@ class SubscriptionService:
             # Default to no access on error for security
             return False
     
-    async def handle_subscription_webhook(self, event_type: str, subscription_data: Dict[str, Any]) -> None:
+    async def handle_subscription_webhook_event(self, event_type: str, subscription_data: Dict[str, Any]) -> None:
         """Enhanced subscription webhook handler with robust user lookup and processing"""
         try:
             logger.info(f"🔄 Processing subscription webhook: {event_type}")
@@ -814,21 +814,21 @@ class SubscriptionService:
             logger.error(f"Failed to get billing history for user {user_id}: {e}")
             return []
     
-    # Legacy webhook handler for backwards compatibility
+    # Main webhook entry point - maintains backwards compatibility
     async def handle_subscription_webhook(self, webhook_data: Dict[str, Any]) -> bool:
         """
-        Legacy webhook handler - redirects to new enhanced handlers
-        This maintains backwards compatibility with existing server.py code
+        Main webhook entry point - processes any Dodo webhook
+        This is called from server.py webhook handler
         """
         try:
             event_type = webhook_data.get('type', 'unknown')
             event_data = webhook_data.get('data', webhook_data)
             
-            logger.info(f"🎯 Legacy webhook handler processing: {event_type}")
+            logger.info(f"🎯 Main webhook handler processing: {event_type}")
             
-            # Route to appropriate new handler
+            # Route to appropriate specialized handler
             if event_type.startswith('subscription.'):
-                await self.handle_subscription_webhook(event_type, event_data)
+                await self.handle_subscription_webhook_event(event_type, event_data)
             elif event_type.startswith('payment.'):
                 await self.handle_payment_webhook(event_type, event_data)
             elif event_type.startswith('customer.'):
@@ -839,5 +839,5 @@ class SubscriptionService:
             return True
             
         except Exception as e:
-            logger.error(f"❌ Legacy webhook handler failed: {e}")
+            logger.error(f"❌ Main webhook handler failed: {e}")
             return False
