@@ -120,9 +120,13 @@ class SubscriptionService:
             
             if not product_id:
                 logger.warning(f"Product ID not configured for {plan_type}, using fallback")
+                _fallback_url = f"https://checkout.dodopayments.com/buy/{plan_type}"
+                _fallback_sub_id = f"fallback_{int(datetime.now().timestamp())}"
                 return {
-                    "checkoutUrl": f"https://checkout.dodopayments.com/buy/{plan_type}",
-                    "subscriptionId": f"fallback_{int(datetime.now().timestamp())}"
+                    "checkout_url": _fallback_url,
+                    "checkoutUrl": _fallback_url,
+                    "subscription_id": _fallback_sub_id,
+                    "subscriptionId": _fallback_sub_id
                 }
             
             # Create checkout session
@@ -150,9 +154,13 @@ class SubscriptionService:
             
             logger.info(f"Created checkout session for user {user_id}: {session_data.get('subscription_id', 'N/A')}")
             
+            _link = session_data.get('payment_link')
+            _sub_id = session_data.get('subscription_id') or session_data.get('id', f"temp_{int(datetime.now().timestamp())}")
             return {
-                "checkoutUrl": session_data.get('payment_link'),
-                "subscriptionId": session_data.get('subscription_id') or session_data.get('id', f"temp_{int(datetime.now().timestamp())}")
+                "checkout_url": _link,
+                "checkoutUrl": _link,
+                "subscription_id": _sub_id,
+                "subscriptionId": _sub_id
             }
             
         except HTTPException:
