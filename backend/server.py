@@ -2397,6 +2397,56 @@ async def handle_dodo_webhook(request: Request):
         logger.error(f"Unexpected webhook error: {e}")
         raise HTTPException(status_code=500, detail=f"Webhook error: {str(e)}")
 
+@api_router.get("/debug/subscription-status/{user_id}")
+async def debug_subscription_status(user_id: str):
+    """Debug endpoint to check user's subscription status"""
+    try:
+        # Get user data
+        user_resp = supabase.table('assessment_users').select('*').eq('uid', user_id).execute()
+        
+        # Get subscription data
+        sub_resp = supabase.table('dodo_subscriptions').select('*').eq('user_id', user_id).execute()
+        
+        # Get recent payments
+        payment_resp = supabase.table('dodo_payments').select('*').eq('user_id', user_id).order('created_at', desc=True).limit(5).execute()
+        
+        return {
+            "user": user_resp.data[0] if user_resp.data else None,
+            "subscriptions": sub_resp.data,
+            "recent_payments": payment_resp.data,
+            "current_plan": user_resp.data[0].get('current_plan') if user_resp.data else None,
+            "subscription_status": user_resp.data[0].get('subscription_status') if user_resp.data else None
+        }
+    except Exception as e:
+        logger.error(f"Failed to get debug info: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/subscriptions/confirm/{user_id}")
+async def confirm_subscription(user_id: str):
+    """Manual endpoint to confirm subscription and grant premium access"""
+    if not subscription_service:
+        raise HTTPException(status_code=503, detail="Subscription service unavailable")
+    
+    try:
+        # Update user to premium immediately
+        supabase.table('assessment_users').update({
+            'current_plan': 'premium',
+            'subscription_status': 'premium',
+            'subscription_tier': 'monthly',
+            'updated_at': datetime.utcnow().isoformat()
+        }).eq('uid', user_id).execute()
+        
+        logger.info(f"Manually confirmed subscription for user {user_id} - set current_plan='premium'")
+        
+        return {
+            "status": "success",
+            "message": f"User {user_id} now has premium access",
+            "current_plan": "premium"
+        }
+    except Exception as e:
+        logger.error(f"Failed to confirm subscription: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.post("/debug/webhook-signature-test")
 async def test_webhook_signature(request: Request):
     """Debug endpoint to test webhook signature validation"""

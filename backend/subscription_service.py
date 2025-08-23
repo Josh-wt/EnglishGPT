@@ -72,7 +72,7 @@ class SubscriptionService:
             
             # Extract customer ID with fallbacks
             if 'customer_id' in customer_data:
-                dodo_customer_id = customer_data['customer_id']
+            dodo_customer_id = customer_data['customer_id']
             elif 'id' in customer_data:
                 dodo_customer_id = customer_data['id']
             else:
@@ -208,9 +208,9 @@ class SubscriptionService:
                 subscription_status = user_data.get('subscription_status')
                 
                 if subscription_status == 'premium':
-                    return SubscriptionStatus(
-                        has_active_subscription=True,
-                        subscription={
+            return SubscriptionStatus(
+                has_active_subscription=True,
+                subscription={
                             "status": "active",
                             "plan_type": (user_data.get('subscription_tier') if user_data.get('subscription_tier') in ['monthly', 'yearly'] else 'monthly')
                         }
@@ -287,6 +287,16 @@ class SubscriptionService:
             # Store payment record
             await self._store_payment_record(payment_id, user_id, payment_data)
             
+            # CRITICAL: Update user to premium immediately after payment
+            user_update = {
+                'current_plan': 'premium',  # THIS IS THE KEY FIELD
+                'subscription_status': 'premium',
+                'updated_at': datetime.utcnow().isoformat()
+            }
+            
+            self.supabase.table('assessment_users').update(user_update).eq('uid', user_id).execute()
+            logger.info(f"Payment succeeded - Updated user {user_id} to premium (current_plan='premium')")
+            
             logger.info(f"Processed payment {payment_id} for user {user_id}")
             return True
             
@@ -350,14 +360,16 @@ class SubscriptionService:
                 except Exception as insert_error:
                     logger.warning(f"Could not insert subscription: {insert_error}")
             
-            # Update user subscription status
+            # Update user subscription status - MUST update current_plan!
             user_update = {
+                'current_plan': 'premium',  # THIS IS CRITICAL - the frontend checks current_plan
                 'subscription_status': 'premium',
                 'subscription_tier': plan_type,
                 'updated_at': datetime.utcnow().isoformat()
             }
             
             self.supabase.table('assessment_users').update(user_update).eq('uid', user_id).execute()
+            logger.info(f"Updated user {user_id} to premium plan (current_plan='premium')")
             
             logger.info(f"Successfully processed subscription.active for user {user_id}")
             return True
@@ -392,20 +404,22 @@ class SubscriptionService:
             
             # Update subscription to cancelled
             try:
-                self.supabase.table('dodo_subscriptions').update({
-                    'status': 'cancelled',
-                    'cancelled_at': datetime.utcnow().isoformat(),
+            self.supabase.table('dodo_subscriptions').update({
+                'status': 'cancelled',
+                'cancelled_at': datetime.utcnow().isoformat(),
                     'updated_at': datetime.utcnow().isoformat()
                 }).eq('dodo_subscription_id', subscription_id).execute()
             except Exception as e:
                 logger.warning(f"Could not update subscription record: {e}")
             
-            # Update user subscription status to free
+            # Update user subscription status to free - MUST update current_plan!
             self.supabase.table('assessment_users').update({
-                'subscription_status': 'free',
-                'subscription_tier': None,
+                'current_plan': 'free',  # THIS IS CRITICAL - revert to free plan
+                'subscription_status': 'none',
+                'subscription_tier': 'free',
                 'updated_at': datetime.utcnow().isoformat()
             }).eq('uid', user_id).execute()
+            logger.info(f"Updated user {user_id} back to free plan (current_plan='free')")
             
             logger.info(f"Cancelled subscription {subscription_id} for user {user_id}")
             return True
