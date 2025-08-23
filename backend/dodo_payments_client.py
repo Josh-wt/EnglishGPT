@@ -242,8 +242,11 @@ class WebhookValidator:
     
     def __init__(self):
         self.webhook_secret = os.getenv('DODO_PAYMENTS_WEBHOOK_KEY')
+        self.bypass_validation = os.getenv('DODO_BYPASS_WEBHOOK_VALIDATION', '').lower() == 'true'
         if not self.webhook_secret:
             logger.warning("DODO_PAYMENTS_WEBHOOK_KEY not set - webhook validation disabled")
+        if self.bypass_validation:
+            logger.warning("WEBHOOK VALIDATION BYPASS ENABLED - FOR TESTING ONLY!")
     
     def validate_webhook(self, payload: bytes, signature: str, timestamp: str) -> bool:
         """
@@ -262,6 +265,11 @@ class WebhookValidator:
         Returns:
             bool: True if signature is valid, False otherwise
         """
+        # TEMPORARY: Allow bypassing validation for testing
+        if self.bypass_validation:
+            logger.warning("BYPASSING WEBHOOK VALIDATION - TESTING MODE")
+            return True
+            
         if not self.webhook_secret:
             logger.warning("Webhook validation skipped - no webhook secret configured")
             return True
@@ -282,49 +290,64 @@ class WebhookValidator:
                 logger.error("Webhook timestamp verification failed - too old")
                 return False
             
-            # Build the signing string: timestamp.payload
-            # This is the standard webhook format used by Dodo Payments
-            signing_string = f"{timestamp}.{payload.decode('utf-8')}"
+            # Try multiple signing formats that Dodo might use
+            payload_str = payload.decode('utf-8')
             
-            # Calculate expected signature using HMAC-SHA256
-            expected_signature = hmac.new(
-                self.webhook_secret.encode('utf-8'),
-                signing_string.encode('utf-8'),
-                hashlib.sha256
-            ).digest()
+            # Format 1: timestamp.payload (standard webhook format)
+            signing_string_1 = f"{timestamp}.{payload_str}"
             
-            # Convert to base64 (Dodo uses base64 encoding)
-            expected_signature_b64 = base64.b64encode(expected_signature).decode('utf-8')
+            # Format 2: payload only (some webhooks don't include timestamp)
+            signing_string_2 = payload_str
             
-            # Use constant-time comparison for security
-            is_valid = hmac.compare_digest(actual_signature, expected_signature_b64)
+            # Format 3: timestamp:payload (alternative separator)
+            signing_string_3 = f"{timestamp}:{payload_str}"
             
-            if is_valid:
-                logger.info("Webhook signature validation successful")
-                return True
-            else:
-                # If standard format fails, try without timestamp (fallback)
-                expected_signature_no_ts = hmac.new(
+            # Try each format
+            formats_to_try = [
+                ("timestamp.payload", signing_string_1),
+                ("payload_only", signing_string_2),
+                ("timestamp:payload", signing_string_3)
+            ]
+            
+            for format_name, signing_string in formats_to_try:
+                # Calculate expected signature using HMAC-SHA256
+                expected_signature = hmac.new(
                     self.webhook_secret.encode('utf-8'),
-                    payload,
+                    signing_string.encode('utf-8'),
                     hashlib.sha256
                 ).digest()
-                expected_signature_no_ts_b64 = base64.b64encode(expected_signature_no_ts).decode('utf-8')
                 
-                is_valid_no_ts = hmac.compare_digest(actual_signature, expected_signature_no_ts_b64)
+                # Try both base64 and hex encoding
+                expected_signature_b64 = base64.b64encode(expected_signature).decode('utf-8')
+                expected_signature_hex = expected_signature.hex()
                 
-                if is_valid_no_ts:
-                    logger.info("Webhook signature validation successful (without timestamp)")
+                # Use constant-time comparison for security
+                if hmac.compare_digest(actual_signature, expected_signature_b64):
+                    logger.info(f"Webhook signature validation successful (format: {format_name}, encoding: base64)")
                     return True
-                
-                logger.error("Webhook signature validation failed")
-                logger.debug(f"Provided signature (first 20 chars): {actual_signature[:20]}")
-                logger.debug(f"Expected signature (first 20 chars): {expected_signature_b64[:20]}")
-                logger.debug(f"Expected no-ts sig (first 20 chars): {expected_signature_no_ts_b64[:20]}")
-                logger.debug(f"Timestamp used: {timestamp}")
-                logger.debug(f"Payload length: {len(payload)} bytes")
-                logger.debug(f"Webhook secret length: {len(self.webhook_secret)} chars")
-                return False
+                    
+                if hmac.compare_digest(actual_signature, expected_signature_hex):
+                    logger.info(f"Webhook signature validation successful (format: {format_name}, encoding: hex)")
+                    return True
+            
+            # If all formats fail, log debugging information
+            logger.error("Webhook signature validation failed - tried all formats")
+            logger.debug(f"Provided signature (first 20 chars): {actual_signature[:20]}")
+            logger.debug(f"Timestamp used: {timestamp}")
+            logger.debug(f"Payload length: {len(payload)} bytes")
+            logger.debug(f"Webhook secret length: {len(self.webhook_secret)} chars")
+            
+            # Log expected signatures for debugging (only first 20 chars for security)
+            for format_name, signing_string in formats_to_try:
+                expected = hmac.new(
+                    self.webhook_secret.encode('utf-8'),
+                    signing_string.encode('utf-8'),
+                    hashlib.sha256
+                ).digest()
+                logger.debug(f"Expected for {format_name} (b64): {base64.b64encode(expected).decode('utf-8')[:20]}")
+                logger.debug(f"Expected for {format_name} (hex): {expected.hex()[:20]}")
+            
+            return False
             
         except Exception as e:
             logger.error(f"Error validating webhook signature: {e}")

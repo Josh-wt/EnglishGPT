@@ -2339,8 +2339,9 @@ async def handle_dodo_webhook(request: Request):
         ts_header_used, timestamp = _first_header(['webhook-timestamp', 'x-dodo-timestamp', 'dodo-timestamp', 'timestamp'])
 
         # Log all headers for debugging
+        all_headers = dict(request.headers)
         logger.debug("All webhook headers:", extra={
-            "headers": dict(request.headers),
+            "headers": all_headers,
             "component": "subscriptions"
         })
 
@@ -2351,7 +2352,8 @@ async def handle_dodo_webhook(request: Request):
             "timestamp": timestamp if timestamp else 'MISSING',
             "body_len": len(body),
             "sig_header": sig_header_used or 'NOT_FOUND',
-            "ts_header": ts_header_used or 'NOT_FOUND'
+            "ts_header": ts_header_used or 'NOT_FOUND',
+            "all_headers": str(all_headers)[:200]  # Log first 200 chars of all headers
         })
         
         # Validate webhook signature
@@ -2394,6 +2396,69 @@ async def handle_dodo_webhook(request: Request):
     except Exception as e:
         logger.error(f"Unexpected webhook error: {e}")
         raise HTTPException(status_code=500, detail=f"Webhook error: {str(e)}")
+
+@api_router.post("/debug/webhook-signature-test")
+async def test_webhook_signature(request: Request):
+    """Debug endpoint to test webhook signature validation"""
+    import hmac
+    import hashlib
+    import base64
+    
+    body = await request.body()
+    
+    # Get headers
+    signature = request.headers.get('webhook-signature', '')
+    timestamp = request.headers.get('webhook-timestamp', '')
+    
+    # Get webhook secret
+    webhook_secret = os.getenv('DODO_PAYMENTS_WEBHOOK_KEY', '')
+    
+    # Extract signature from v1, format
+    actual_sig = signature[3:] if signature.startswith('v1,') else signature
+    
+    # Generate expected signatures with different formats
+    payload_str = body.decode('utf-8')
+    
+    results = {}
+    
+    # Format 1: timestamp.payload
+    signing_1 = f"{timestamp}.{payload_str}"
+    expected_1 = base64.b64encode(
+        hmac.new(webhook_secret.encode(), signing_1.encode(), hashlib.sha256).digest()
+    ).decode()
+    results['timestamp.payload'] = {
+        'expected': expected_1[:20] + '...',
+        'matches': actual_sig == expected_1
+    }
+    
+    # Format 2: payload only
+    expected_2 = base64.b64encode(
+        hmac.new(webhook_secret.encode(), payload_str.encode(), hashlib.sha256).digest()
+    ).decode()
+    results['payload_only'] = {
+        'expected': expected_2[:20] + '...',
+        'matches': actual_sig == expected_2
+    }
+    
+    # Format 3: timestamp:payload
+    signing_3 = f"{timestamp}:{payload_str}"
+    expected_3 = base64.b64encode(
+        hmac.new(webhook_secret.encode(), signing_3.encode(), hashlib.sha256).digest()
+    ).decode()
+    results['timestamp:payload'] = {
+        'expected': expected_3[:20] + '...',
+        'matches': actual_sig == expected_3
+    }
+    
+    return {
+        'provided_signature': actual_sig[:20] + '...',
+        'timestamp': timestamp,
+        'payload_length': len(body),
+        'secret_configured': bool(webhook_secret),
+        'secret_length': len(webhook_secret),
+        'formats_tested': results,
+        'validation_bypass': os.getenv('DODO_BYPASS_WEBHOOK_VALIDATION', '').lower() == 'true'
+    }
         
 # Include the API router after all routes are defined
 app.include_router(api_router)
