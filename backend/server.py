@@ -2159,6 +2159,8 @@ async def submit_feedback(feedback: FeedbackSubmitModel):
 # Initialize subscription service if available
 if DODO_INTEGRATION_AVAILABLE and SubscriptionService:
     subscription_service = SubscriptionService(supabase)
+    # Initialize webhook validator for server webhook endpoint
+    webhook_validator = create_webhook_validator() if create_webhook_validator else WebhookValidator()
 else:
     subscription_service = None
 
@@ -2343,9 +2345,24 @@ async def handle_dodo_webhook(request: Request):
         
         # Parse webhook data
         webhook_data = json.loads(body.decode('utf-8'))
+        event_id = webhook_data.get('id')
+        event_type = webhook_data.get('type')
+        logger.info("webhook parsed", extra={
+            "component": "subscriptions",
+            "action": "webhook.parsed",
+            "event_id": event_id,
+            "event_type": event_type
+        })
         
         # Process webhook
         success = await subscription_service.handle_subscription_webhook(webhook_data)
+        logger.info("webhook handled", extra={
+            "component": "subscriptions",
+            "action": "webhook.handled",
+            "event_id": event_id,
+            "event_type": event_type,
+            "success": success
+        })
         
         if success:
             logger.info("webhook processed", extra={"component": "subscriptions", "action": "webhook.success"})

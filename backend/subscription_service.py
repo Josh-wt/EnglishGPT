@@ -217,7 +217,7 @@ class SubscriptionService:
                     )
             
             return SubscriptionStatus(has_active_subscription=False)
-                
+            
         except Exception as e:
             logger.error(f"Failed to get subscription status for user {user_id}: {e}")
             return SubscriptionStatus(has_active_subscription=False)
