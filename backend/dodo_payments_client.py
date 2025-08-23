@@ -19,8 +19,8 @@ class DodoPaymentsClient:
     
     def __init__(self):
         self.api_key = os.getenv('DODO_PAYMENTS_API_KEY')
-        self.base_url = os.getenv('DODO_PAYMENTS_BASE_URL', 'https://live.dodopayments.com')
-        self.environment = os.getenv('DODO_PAYMENTS_ENVIRONMENT', 'live')
+        self.base_url = os.getenv('DODO_PAYMENTS_BASE_URL')
+        self.environment = os.getenv('DODO_PAYMENTS_ENVIRONMENT')
         
         # Ensure we use the correct base URL for the environment
         if self.environment == 'test':
