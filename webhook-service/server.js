@@ -128,7 +128,7 @@ app.get('/status', (req, res) => {
 });
 
 // Main webhook endpoint - this is what Dodo Payments will call
-app.post('/webhook/dodo', webhookLimiter, async (req, res) => {
+app.post('/api/webhooks/dodo', webhookLimiter, async (req, res) => {
     const startTime = Date.now();
     const requestId = generateRequestId();
     
@@ -418,7 +418,7 @@ app.use((req, res) => {
     res.status(404).json({
         error: 'Endpoint not found',
         available_endpoints: {
-            'POST /webhook/dodo': 'Main webhook endpoint for Dodo Payments',
+            'POST /api/webhooks/dodo': 'Main webhook endpoint for Dodo Payments',
             'GET /health': 'Health check endpoint',
             'GET /status': 'Detailed status information'
         }
@@ -449,7 +449,7 @@ function gracefulShutdown(signal) {
 const server = app.listen(PORT, () => {
     console.log('🚀 Dodo Payments Webhook Service Started');
     console.log(`📡 Server running on port ${PORT} in ${NODE_ENV} mode`);
-    console.log(`🔗 Webhook endpoint: http://localhost:${PORT}/webhook/dodo`);
+    console.log(`🔗 Webhook endpoint: http://localhost:${PORT}/api/webhooks/dodo`);
     console.log(`🏥 Health check: http://localhost:${PORT}/health`);
     console.log(`📊 Status endpoint: http://localhost:${PORT}/status`);
     
