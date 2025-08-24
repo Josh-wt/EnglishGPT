@@ -297,7 +297,7 @@ class WebhookValidator:
         Standard Webhooks (Dodo Payments) signature format:
         - Header format: v1,<base64_encoded_signature>
         - Signing string: {webhook_id}.{webhook_timestamp}.{payload}
-        - Algorithm: HMAC-SHA256 with webhook secret
+        - Algorithm: HMAC-SHA256 with webhook secret (base64 decoded)
         
         Args:
             payload: Raw webhook payload bytes
@@ -348,19 +348,40 @@ class WebhookValidator:
             logger.debug(f"   - Signing string length: {len(signing_string)} chars")
             logger.debug(f"   - Received signature: {actual_signature[:50]}...")
             
-            # Try with the webhook secret as-is (with whsec_ prefix)
-            secret_variants = [
-                self.webhook_secret,  # As provided (with whsec_ prefix)
-            ]
+            # The webhook secret from Dodo Payments is base64 encoded
+            # We need to decode it before using it as the HMAC key
+            secret_variants = []
             
-            # If the secret has whsec_ prefix, also try without it
+            # If the secret has whsec_ prefix, remove it and decode the rest
             if self.webhook_secret.startswith('whsec_'):
-                secret_variants.append(self.webhook_secret[6:])  # Without whsec_ prefix
+                secret_base64 = self.webhook_secret[6:]  # Remove whsec_ prefix
+                try:
+                    # Decode the base64 secret to get the raw key bytes
+                    secret_raw = base64.b64decode(secret_base64)
+                    secret_variants.append(secret_raw)
+                    logger.debug(f"   - Using decoded webhook secret (removed whsec_ prefix)")
+                except Exception as e:
+                    logger.debug(f"   - Failed to decode base64 secret: {e}")
+                    # Fall back to using the secret as-is
+                    secret_variants.append(self.webhook_secret.encode('utf-8'))
+            else:
+                # Try to decode the secret as base64
+                try:
+                    secret_raw = base64.b64decode(self.webhook_secret)
+                    secret_variants.append(secret_raw)
+                    logger.debug(f"   - Using decoded webhook secret (no prefix)")
+                except Exception:
+                    # If decoding fails, use the secret as-is
+                    secret_variants.append(self.webhook_secret.encode('utf-8'))
+                    logger.debug(f"   - Using webhook secret as-is (not base64)")
             
-            for secret_variant in secret_variants:
+            # Also try the original secret as-is (for backwards compatibility)
+            secret_variants.append(self.webhook_secret.encode('utf-8'))
+            
+            for idx, secret_bytes in enumerate(secret_variants):
                 # Calculate expected signature using HMAC-SHA256
                 expected_signature_raw = hmac.new(
-                    secret_variant.encode('utf-8'),
+                    secret_bytes,
                     signing_string.encode('utf-8'),
                     hashlib.sha256
                 ).digest()
@@ -368,21 +389,13 @@ class WebhookValidator:
                 # Standard Webhooks uses base64 encoding
                 expected_signature_b64 = base64.b64encode(expected_signature_raw).decode('utf-8')
                 
-                # Also try hex encoding (some implementations use this)
-                expected_signature_hex = expected_signature_raw.hex()
-                
                 # Log for debugging
-                secret_prefix = "with whsec_" if secret_variant == self.webhook_secret else "without whsec_"
-                logger.debug(f"   - Expected signature ({secret_prefix}, base64): {expected_signature_b64[:50]}...")
-                logger.debug(f"   - Expected signature ({secret_prefix}, hex): {expected_signature_hex[:50]}...")
+                variant_desc = f"variant {idx+1}"
+                logger.debug(f"   - Expected signature ({variant_desc}, base64): {expected_signature_b64[:50]}...")
                 
                 # Use constant-time comparison for security
                 if hmac.compare_digest(actual_signature, expected_signature_b64):
-                    logger.info(f"✅ Webhook signature validation successful! (Standard Webhooks format, {secret_prefix} prefix, base64 encoding)")
-                    return True
-                    
-                if hmac.compare_digest(actual_signature, expected_signature_hex):
-                    logger.info(f"✅ Webhook signature validation successful! (Standard Webhooks format, {secret_prefix} prefix, hex encoding)")
+                    logger.info(f"✅ Webhook signature validation successful! (Standard Webhooks format, {variant_desc})")
                     return True
             
             # If validation fails, provide detailed debug info
@@ -391,7 +404,16 @@ class WebhookValidator:
             logger.error(f"   - Webhook ID: {webhook_id}")
             logger.error(f"   - Timestamp: {timestamp}")
             logger.error(f"   - Received signature: {actual_signature[:50]}...")
-            logger.error(f"   - Expected signature (with prefix, b64): {base64.b64encode(hmac.new(self.webhook_secret.encode('utf-8'), signing_string.encode('utf-8'), hashlib.sha256).digest()).decode('utf-8')[:50]}...")
+            
+            # Show expected signature with decoded secret
+            if self.webhook_secret.startswith('whsec_'):
+                try:
+                    secret_raw = base64.b64decode(self.webhook_secret[6:])
+                    expected_with_decoded = base64.b64encode(hmac.new(secret_raw, signing_string.encode('utf-8'), hashlib.sha256).digest()).decode('utf-8')
+                    logger.error(f"   - Expected signature (decoded secret): {expected_with_decoded[:50]}...")
+                except Exception:
+                    pass
+            
             logger.error(f"   - Payload length: {len(payload)} bytes")
             logger.error(f"   - Webhook secret starts with: {self.webhook_secret[:10]}...")
             logger.error(f"   - Signing string preview: {webhook_id}.{timestamp}.{payload_str[:100]}...")
