@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from fastapi import HTTPException
 import logging
 import traceback
+import os
 
 from dodo_payments_client import DodoPaymentsClient
 from supabase import Client
@@ -803,6 +804,155 @@ class SubscriptionService:
         except Exception as e:
             logger.error(f"Failed to get billing history for user {user_id}: {e}")
             return []
+    
+    async def cancel_subscription(self, user_id: str, subscription_id: str, cancel_at_period_end: bool = True) -> Dict[str, Any]:
+        """Cancel a user's subscription"""
+        try:
+            logger.info(f"Cancelling subscription {subscription_id} for user {user_id} (at_period_end={cancel_at_period_end})")
+            
+            # Get user's Dodo customer ID
+            user_response = self.supabase.table('assessment_users').select('dodo_customer_id').eq('uid', user_id).execute()
+            if not user_response.data or not user_response.data[0].get('dodo_customer_id'):
+                raise HTTPException(status_code=404, detail="No customer account found")
+            
+            # Get subscription details from database
+            sub_response = self.supabase.table('dodo_subscriptions').select('*').eq('dodo_subscription_id', subscription_id).eq('user_id', user_id).execute()
+            if not sub_response.data:
+                raise HTTPException(status_code=404, detail="Subscription not found")
+            
+            subscription = sub_response.data[0]
+            
+            if cancel_at_period_end:
+                # Mark subscription to cancel at period end
+                update_data = {
+                    'cancel_at_period_end': True,
+                    'updated_at': datetime.utcnow().isoformat()
+                }
+                
+                self.supabase.table('dodo_subscriptions').update(update_data).eq('dodo_subscription_id', subscription_id).execute()
+                
+                # Update user status
+                self.supabase.table('assessment_users').update({
+                    'subscription_status': 'cancelling',
+                    'updated_at': datetime.utcnow().isoformat()
+                }).eq('uid', user_id).execute()
+                
+                message = "Subscription will be cancelled at the end of the billing period"
+            else:
+                # Cancel immediately
+                update_data = {
+                    'status': 'cancelled',
+                    'cancel_at_period_end': False,
+                    'cancelled_at': datetime.utcnow().isoformat(),
+                    'updated_at': datetime.utcnow().isoformat()
+                }
+                
+                self.supabase.table('dodo_subscriptions').update(update_data).eq('dodo_subscription_id', subscription_id).execute()
+                
+                # Update user to free plan
+                self.supabase.table('assessment_users').update({
+                    'current_plan': 'free',
+                    'subscription_status': 'cancelled',
+                    'updated_at': datetime.utcnow().isoformat()
+                }).eq('uid', user_id).execute()
+                
+                message = "Subscription cancelled immediately"
+            
+            logger.info(f"Successfully cancelled subscription {subscription_id}: {message}")
+            return {"success": True, "message": message}
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Failed to cancel subscription {subscription_id}: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to cancel subscription: {str(e)}")
+    
+    async def reactivate_subscription(self, user_id: str, subscription_id: str) -> Dict[str, Any]:
+        """Reactivate a cancelled subscription"""
+        try:
+            logger.info(f"Reactivating subscription {subscription_id} for user {user_id}")
+            
+            # Get subscription details
+            sub_response = self.supabase.table('dodo_subscriptions').select('*').eq('dodo_subscription_id', subscription_id).eq('user_id', user_id).execute()
+            if not sub_response.data:
+                raise HTTPException(status_code=404, detail="Subscription not found")
+            
+            subscription = sub_response.data[0]
+            
+            # Check if subscription can be reactivated
+            if subscription.get('status') == 'cancelled' and not subscription.get('cancel_at_period_end'):
+                raise HTTPException(status_code=400, detail="Cannot reactivate a cancelled subscription")
+            
+            # Remove cancellation flag
+            update_data = {
+                'cancel_at_period_end': False,
+                'updated_at': datetime.utcnow().isoformat()
+            }
+            
+            self.supabase.table('dodo_subscriptions').update(update_data).eq('dodo_subscription_id', subscription_id).execute()
+            
+            # Update user status
+            self.supabase.table('assessment_users').update({
+                'subscription_status': 'active',
+                'updated_at': datetime.utcnow().isoformat()
+            }).eq('uid', user_id).execute()
+            
+            logger.info(f"Successfully reactivated subscription {subscription_id}")
+            return {"success": True, "message": "Subscription reactivated successfully"}
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Failed to reactivate subscription {subscription_id}: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to reactivate subscription: {str(e)}")
+    
+    async def create_customer_portal_session(self, user_id: str) -> Dict[str, Any]:
+        """Create a customer portal session for managing payment methods"""
+        try:
+            logger.info(f"Creating customer portal session for user {user_id}")
+            
+            # Get user's Dodo customer ID
+            user_response = self.supabase.table('assessment_users').select('dodo_customer_id, email').eq('uid', user_id).execute()
+            if not user_response.data:
+                raise HTTPException(status_code=404, detail="User not found")
+            
+            user_data = user_response.data[0]
+            dodo_customer_id = user_data.get('dodo_customer_id')
+            
+            if not dodo_customer_id:
+                # Create customer if doesn't exist
+                email = user_data.get('email')
+                if not email:
+                    raise HTTPException(status_code=400, detail="User email not found")
+                dodo_customer_id = await self.get_or_create_dodo_customer(user_id, email)
+            
+            # Create customer portal session using Dodo API
+            dodo_client = DodoPaymentsClient()
+            
+            portal_data = {
+                "customer_id": dodo_customer_id,
+                "return_url": os.getenv('CUSTOMER_PORTAL_RETURN_URL', 'https://englishgpt.everythingenglish.xyz/dashboard/subscriptions')
+            }
+            
+            response = await dodo_client.client.post("/customers/" + dodo_customer_id + "/customer-portal/session", json=portal_data)
+            response.raise_for_status()
+            portal_response = response.json()
+            
+            # Extract portal URL
+            portal_url = portal_response.get('url') or portal_response.get('portal_url')
+            
+            if not portal_url:
+                logger.error(f"No portal URL in response: {portal_response}")
+                raise HTTPException(status_code=500, detail="Failed to create customer portal session")
+            
+            logger.info(f"Successfully created customer portal session for user {user_id}")
+            return {"portal_url": portal_url, "success": True}
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Failed to create customer portal session for user {user_id}: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to create customer portal session: {str(e)}")
     
     # Main webhook entry point - maintains backwards compatibility
     async def handle_subscription_webhook(self, webhook_data: Dict[str, Any]) -> bool:
