@@ -1838,9 +1838,9 @@ async def get_user_analytics(user_id: str):
         
         user_data = user_response.data[0]
         
-        # Check if user has analytics access (Pro or Genius)
-        if user_data.get('current_plan') not in ['pro', 'genius']:
-            raise HTTPException(status_code=403, detail="Analytics access requires Pro or Genius plan")
+        # Check if user has analytics access (unlimited plan)
+        if user_data.get('current_plan') != 'unlimited':
+            raise HTTPException(status_code=403, detail="Analytics access requires Unlimited plan")
         
         # Get user's evaluations
         evaluations_response = supabase.table('assessment_evaluations').select('*').eq('user_id', user_id).execute()
