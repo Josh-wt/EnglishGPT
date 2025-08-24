@@ -4,7 +4,7 @@ backend/.env
 backend/.env.txt
 frontend/.env
 DODO_DEPLOYMENT_GUIDE.md
-
+webhook-service/.env
 # IDE and editors
 .idea/
 .vscode/
