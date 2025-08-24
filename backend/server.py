@@ -2370,7 +2370,7 @@ async def get_billing_history(user_id: str, limit: int = 50):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get billing history: {str(e)}")
-@api_router.post("/webhooks/dodo")
+@app.post("/webhooks/dodo")
 async def handle_dodo_webhook(request: Request):
     """Enhanced webhook handler with proper validation and debugging"""
     try:
