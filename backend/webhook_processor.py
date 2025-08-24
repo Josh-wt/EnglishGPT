@@ -243,11 +243,8 @@ class WebhookProcessor:
             plan_type = self._determine_plan_type(event_data)
             
             # Update user's subscription status
-            await self.subscription_service.activate_subscription(
+            await self.subscription_service._handle_subscription_activation(
                 user_id=user_id,
-                subscription_id=subscription_id,
-                plan_type=plan_type,
-                customer_id=customer_id,
                 subscription_data=event_data
             )
             
@@ -255,7 +252,7 @@ class WebhookProcessor:
             await self._update_user_subscription_info(user_id, {
                 'subscription_id': subscription_id,
                 'subscription_status': 'active',
-                'plan_type': plan_type,
+                'current_plan': 'unlimited',  # Changed from plan_type to current_plan with 'unlimited' value
                 'dodo_customer_id': customer_id,
                 'subscription_start_date': event_data.get('created_at'),
                 'current_period_end': event_data.get('current_period_end')
@@ -288,16 +285,14 @@ class WebhookProcessor:
             if not user:
                 raise ValueError(f"Could not find user for subscription {subscription_id}")
             
-            await self.subscription_service.cancel_subscription(
+            await self.subscription_service._handle_subscription_cancelled(
                 user_id=user['uid'],
-                subscription_id=subscription_id,
-                cancelled_at=cancelled_at,
-                ends_at=ends_at,
-                cancellation_reason=cancel_reason
+                subscription_data=event_data
             )
             
             await self._update_user_subscription_info(user['uid'], {
                 'subscription_status': 'cancelled',
+                'current_plan': 'free',  # Set to 'free' when cancelled
                 'cancelled_at': cancelled_at,
                 'subscription_ends_at': ends_at,
                 'cancellation_reason': cancel_reason
@@ -348,9 +343,8 @@ class WebhookProcessor:
             if subscription_id:
                 user = await self._find_user_by_subscription_id(subscription_id, request_id)
                 if user:
-                    await self.subscription_service.renew_subscription(
+                    await self.subscription_service._handle_payment_succeeded(
                         user_id=user['uid'],
-                        subscription_id=subscription_id,
                         payment_data=event_data
                     )
                     
@@ -387,10 +381,9 @@ class WebhookProcessor:
             if subscription_id:
                 user = await self._find_user_by_subscription_id(subscription_id, request_id)
                 if user:
-                    await self.subscription_service.handle_failed_payment(
+                    await self.subscription_service._handle_payment_failed(
                         user_id=user['uid'],
-                        subscription_id=subscription_id,
-                        failure_data=event_data
+                        payment_data=event_data
                     )
                     
                     result['user_id'] = user['uid']
@@ -677,15 +670,14 @@ class WebhookProcessor:
             if not user:
                 raise ValueError(f"Could not find user for subscription {subscription_id}")
             
-            await self.subscription_service.update_subscription_status(
+            await self.subscription_service._handle_subscription_update(
                 user_id=user['uid'],
-                subscription_id=subscription_id,
-                status=status,
-                event_data=event_data
+                subscription_data=event_data
             )
             
             await self._update_user_subscription_info(user['uid'], {
                 'subscription_status': status,
+                'current_plan': 'unlimited' if status == 'active' else 'free',  # Set based on status
                 'current_period_end': event_data.get('current_period_end'),
                 'updated_at': datetime.utcnow().isoformat()
             })
@@ -712,14 +704,15 @@ class WebhookProcessor:
             if not user:
                 raise ValueError(f"Could not find user for subscription {subscription_id}")
             
-            await self.subscription_service.reactivate_subscription(
+            # Reactivation is the same as activation
+            await self.subscription_service._handle_subscription_activation(
                 user_id=user['uid'],
-                subscription_id=subscription_id,
-                event_data=event_data
+                subscription_data=event_data
             )
             
             await self._update_user_subscription_info(user['uid'], {
                 'subscription_status': 'active',
+                'current_plan': 'unlimited',  # Set to unlimited when reactivated
                 'cancelled_at': None,
                 'subscription_ends_at': None,
                 'cancellation_reason': None,
@@ -748,14 +741,14 @@ class WebhookProcessor:
             if not user:
                 raise ValueError(f"Could not find user for subscription {subscription_id}")
             
-            await self.subscription_service.expire_subscription(
+            await self.subscription_service._handle_subscription_expired(
                 user_id=user['uid'],
-                subscription_id=subscription_id,
-                expired_at=expired_at
+                subscription_data=event_data
             )
             
             await self._update_user_subscription_info(user['uid'], {
                 'subscription_status': 'expired',
+                'current_plan': 'free',  # Set to free when expired
                 'expired_at': expired_at,
                 'has_access': False
             })
@@ -780,6 +773,7 @@ class WebhookProcessor:
         if user:
             await self._update_user_subscription_info(user['uid'], {
                 'subscription_status': 'paused',
+                'current_plan': 'free',  # Set to free when paused
                 'paused_at': datetime.utcnow().isoformat()
             })
         
@@ -794,6 +788,7 @@ class WebhookProcessor:
         if user:
             await self._update_user_subscription_info(user['uid'], {
                 'subscription_status': 'active',
+                'current_plan': 'unlimited',  # Set to unlimited when resumed
                 'paused_at': None,
                 'resumed_at': datetime.utcnow().isoformat()
             })
