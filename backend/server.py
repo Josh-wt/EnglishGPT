@@ -22,6 +22,9 @@ from PIL import Image
 import PyPDF2
 import io
 
+# Import billing API module
+from billing_api import router as billing_router
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -94,7 +97,10 @@ except Exception as e:
     supabase = None
 
 # Create the main app without a prefix
-app = FastAPI()
+app = FastAPI(title="Universal Service API", version="1.0.0")
+
+# Include billing router
+app.include_router(billing_router)
 
 # CORS middleware
 @app.middleware("http")

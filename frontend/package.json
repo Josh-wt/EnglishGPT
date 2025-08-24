@@ -4,16 +4,17 @@
   "private": true,
   "proxy": "http://localhost:5000",
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@supabase/supabase-js": "^2.39.0",
     "axios": "^1.8.4",
+    "date-fns": "^3.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.4.1",
     "react-router-dom": "^6.26.0",
     "react-scripts": "5.0.1",
     "recharts": "^3.1.2",
-    "web-vitals": "^3.5.0",
-    "date-fns": "^3.0.0",
-    "react-hot-toast": "^2.4.1"
+    "web-vitals": "^3.5.0"
   },
   "scripts": {
     "start": "react-scripts start",
