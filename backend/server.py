@@ -23,8 +23,31 @@ import PyPDF2
 import io
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+# Get application logger
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Suppress verbose HTTP/2 and other library debug logs
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+logging.getLogger("httpcore.http2").setLevel(logging.WARNING)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("hpack").setLevel(logging.WARNING)
+logging.getLogger("hpack.hpack").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("requests").setLevel(logging.WARNING)
+logging.getLogger("PIL").setLevel(logging.WARNING)
+logging.getLogger("supabase").setLevel(logging.INFO)
+
+# Optional: Enable debug logging for specific modules when needed
+# Uncomment the following lines to debug specific components:
+# logging.getLogger("subscription_service").setLevel(logging.DEBUG)
+# logging.getLogger("webhook_processor").setLevel(logging.DEBUG)
 
 # Supabase connection
 from supabase import create_client, Client
@@ -2143,11 +2166,8 @@ FRONTEND_BUILD_DIR = (ROOT_DIR.parent / 'frontend' / 'build')
 if FRONTEND_BUILD_DIR.exists():
     app.mount("/", StaticFiles(directory=str(FRONTEND_BUILD_DIR), html=True), name="frontend")
 
-# Configure logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+# Note: Logging is already configured at the top of the file
+# This is just getting the logger instance for this section
 logger = logging.getLogger(__name__)
 
 @app.on_event("shutdown")
