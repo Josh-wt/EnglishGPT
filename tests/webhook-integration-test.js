@@ -87,7 +87,7 @@ describe('Dodo Payments Webhook Integration', () => {
       const { payload } = createTestWebhook('subscription.created');
       
       const response = await request(WEBHOOK_SERVICE_URL)
-        .post('/webhook/dodo')
+        .post('/api/webhooks/dodo')
         .send(payload)
         .set({
           'webhook-id': 'test_id',
@@ -104,7 +104,7 @@ describe('Dodo Payments Webhook Integration', () => {
       const { payload } = createTestWebhook('subscription.created');
       
       const response = await request(WEBHOOK_SERVICE_URL)
-        .post('/webhook/dodo')
+        .post('/api/webhooks/dodo')
         .send(payload)
         .set('content-type', 'application/json')
         .expect(400);
@@ -116,7 +116,7 @@ describe('Dodo Payments Webhook Integration', () => {
       const { payload, headers } = createTestWebhook('subscription.created');
       
       const response = await request(WEBHOOK_SERVICE_URL)
-        .post('/webhook/dodo')
+        .post('/api/webhooks/dodo')
         .send(payload)
         .set(headers)
         .expect(200);
@@ -136,7 +136,7 @@ describe('Dodo Payments Webhook Integration', () => {
       });
 
       const response = await request(WEBHOOK_SERVICE_URL)
-        .post('/webhook/dodo')
+        .post('/api/webhooks/dodo')
         .send(payload)
         .set(headers)
         .expect(200);
@@ -155,7 +155,7 @@ describe('Dodo Payments Webhook Integration', () => {
       });
 
       const response = await request(WEBHOOK_SERVICE_URL)
-        .post('/webhook/dodo')
+        .post('/api/webhooks/dodo')
         .send(payload)
         .set(headers)
         .expect(200);
@@ -174,7 +174,7 @@ describe('Dodo Payments Webhook Integration', () => {
       });
 
       const response = await request(WEBHOOK_SERVICE_URL)
-        .post('/webhook/dodo')
+        .post('/api/webhooks/dodo')
         .send(payload)
         .set(headers)
         .expect(200);
@@ -192,7 +192,7 @@ describe('Dodo Payments Webhook Integration', () => {
       });
 
       const response = await request(WEBHOOK_SERVICE_URL)
-        .post('/webhook/dodo')
+        .post('/api/webhooks/dodo')
         .send(payload)
         .set(headers)
         .expect(200);
@@ -204,7 +204,7 @@ describe('Dodo Payments Webhook Integration', () => {
   describe('Error Handling', () => {
     test('should handle malformed webhook data', async () => {
       const response = await request(WEBHOOK_SERVICE_URL)
-        .post('/webhook/dodo')
+        .post('/api/webhooks/dodo')
         .send('invalid json')
         .set({
           'webhook-id': 'test_id',
@@ -224,14 +224,14 @@ describe('Dodo Payments Webhook Integration', () => {
 
       // First request
       const response1 = await request(WEBHOOK_SERVICE_URL)
-        .post('/webhook/dodo')
+        .post('/api/webhooks/dodo')
         .send(payload)
         .set(headers)
         .expect(200);
 
       // Second identical request
       const response2 = await request(WEBHOOK_SERVICE_URL)
-        .post('/webhook/dodo')
+        .post('/api/webhooks/dodo')
         .send(payload)
         .set(headers)
         .expect(200);
@@ -248,7 +248,7 @@ describe('Dodo Payments Webhook Integration', () => {
       const startTime = Date.now();
       
       const response = await request(WEBHOOK_SERVICE_URL)
-        .post('/webhook/dodo')
+        .post('/api/webhooks/dodo')
         .send(payload)
         .set(headers);
       
