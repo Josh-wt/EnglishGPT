@@ -2429,8 +2429,8 @@ async def handle_dodo_webhook(request: Request):
             logger.warning("⚠️ BYPASSING WEBHOOK VALIDATION - DEVELOPMENT MODE ONLY!")
             is_valid = True
         else:
-            # Validate webhook signature
-            is_valid = webhook_validator.validate_webhook(body, signature, timestamp)
+            # Validate webhook signature using Standard Webhooks specification
+            is_valid = webhook_validator.validate_webhook(body, signature, timestamp, webhook_id)
         
         if not is_valid:
             logger.error("❌ Webhook signature validation failed", extra={"component": "subscriptions", "action": "webhook.invalid_signature"})
