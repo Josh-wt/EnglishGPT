@@ -206,7 +206,7 @@ class SubscriptionService:
                 )
             
             # Fallback: Check user subscription status
-            user_response = self.supabase.table('assessment_users').select('subscription_status, subscription_tier, current_plan').eq('uid', user_id).execute()
+            user_response = self.supabase.table('assessment_users').select('subscription_status, subscription_type, current_plan').eq('uid', user_id).execute()
             
             if user_response.data:
                 user_data = user_response.data[0]
@@ -219,7 +219,7 @@ class SubscriptionService:
                         has_active_subscription=True,
                         subscription={
                             "status": "active",
-                            "plan_type": (user_data.get('subscription_tier') if user_data.get('subscription_tier') in ['monthly', 'yearly'] else 'monthly')
+                            "plan_type": (user_data.get('subscription_type') if user_data.get('subscription_type') in ['monthly', 'yearly'] else 'monthly')
                         }
                     )
             
@@ -643,7 +643,7 @@ class SubscriptionService:
                     user_updates = {
                         'current_plan': 'unlimited',  # This is the key field for access control
                         'subscription_status': 'active',  # Status field
-                        'subscription_tier': plan_type,  # Plan type (monthly/yearly)
+                        'subscription_type': plan_type,  # Plan type (monthly/yearly)
                         'updated_at': datetime.utcnow().isoformat()
                     }
                     
@@ -656,7 +656,7 @@ class SubscriptionService:
             user_updates = {
                 'current_plan': 'free',
                 'subscription_status': 'inactive',
-                'subscription_tier': None,
+                'subscription_type': None,
                 'updated_at': datetime.utcnow().isoformat()
             }
             
