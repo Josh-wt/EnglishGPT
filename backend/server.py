@@ -410,6 +410,34 @@ class TransactionModel(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
+# Subscription API Models
+class SubscriptionCreateRequest(BaseModel):
+    plan: str = Field(..., description="Subscription plan: 'monthly' or 'yearly'")
+    user_id: str = Field(..., description="User UUID")
+    success_url: Optional[str] = Field(None, description="Success redirect URL")
+    cancel_url: Optional[str] = Field(None, description="Cancel redirect URL")
+
+class SubscriptionCreateResponse(BaseModel):
+    success: bool
+    checkout_url: Optional[str] = None
+    session_id: Optional[str] = None
+    message: Optional[str] = None
+    error: Optional[str] = None
+
+class SubscriptionStatusResponse(BaseModel):
+    has_active_subscription: bool
+    subscription_status: str
+    current_plan: str
+    subscription_start_date: Optional[str] = None
+    subscription_end_date: Optional[str] = None
+    subscription_type: Optional[str] = None
+    dodo_customer_id: Optional[str] = None
+    cancel_at_period_end: bool = False
+
+class SubscriptionActionRequest(BaseModel):
+    user_id: str = Field(..., description="User UUID")
+    action: str = Field(..., description="Action to perform: 'cancel', 'reactivate'")
+
 # Payment Config - Ready for DodoPayments integration
 USD_TO_INR = 86.6
 MIN_USD = 3
@@ -2443,6 +2471,304 @@ async def confirm_subscription(user_id: str):
     except Exception as e:
         logger.error(f"Failed to confirm subscription: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# New comprehensive subscription endpoints
+@api_router.post("/subscriptions/create", response_model=SubscriptionCreateResponse)
+async def create_subscription_checkout(request: SubscriptionCreateRequest):
+    """
+    Create a Dodo Payments checkout session for subscription
+    
+    This endpoint:
+    1. Validates the user exists
+    2. Creates/updates Dodo customer if needed
+    3. Creates checkout session with proper product ID
+    4. Returns checkout URL for payment
+    """
+    try:
+        logger.info(f"Creating subscription checkout for user {request.user_id}, plan: {request.plan}")
+        
+        # Get user data from database
+        user_result = supabase.table('assessment_users').select('*').eq('uid', request.user_id).execute()
+        
+        if not user_result.data:
+            logger.error(f"User not found: {request.user_id}")
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user = user_result.data[0]
+        logger.info(f"Found user: {user['email']}")
+        
+        # Determine product ID based on plan
+        if request.plan == "monthly":
+            product_id = os.environ.get('DODO_MONTHLY_PRODUCT_ID')
+        elif request.plan == "yearly":
+            product_id = os.environ.get('DODO_YEARLY_PRODUCT_ID')
+        else:
+            raise HTTPException(status_code=400, detail="Invalid plan type. Must be 'monthly' or 'yearly'")
+        
+        if not product_id:
+            logger.error(f"Product ID not configured for plan: {request.plan}")
+            raise HTTPException(status_code=500, detail=f"Product ID not configured for {request.plan} plan")
+        
+        # Get Dodo Payments configuration
+        api_key = os.environ.get('DODO_PAYMENTS_API_KEY')
+        base_url = os.environ.get('DODO_PAYMENTS_BASE_URL', 'https://test.dodopayments.com')
+        
+        if not api_key:
+            logger.error("Dodo API key not configured")
+            raise HTTPException(status_code=500, detail="Payment system not configured")
+        
+        # Prepare checkout session creation
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            customer_id = user.get('dodo_customer_id')
+            
+            # Create customer if doesn't exist
+            if not customer_id:
+                logger.info(f"Creating Dodo customer for {user['email']}")
+                
+                customer_payload = {
+                    "email": user['email'],
+                    "name": user.get('display_name', user['email'].split('@')[0])
+                }
+                
+                customer_response = await client.post(
+                    f"{base_url}/customers",
+                    json=customer_payload,
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json"
+                    }
+                )
+                
+                if customer_response.status_code in [200, 201]:
+                    customer_data = customer_response.json()
+                    customer_id = customer_data.get('id') or customer_data.get('customer_id')
+                    
+                    # Update user with customer ID
+                    supabase.table('assessment_users').update({
+                        'dodo_customer_id': customer_id
+                    }).eq('uid', request.user_id).execute()
+                    
+                    logger.info(f"Created Dodo customer: {customer_id}")
+                else:
+                    error_text = customer_response.text
+                    logger.error(f"Failed to create customer: {customer_response.status_code} - {error_text}")
+                    return SubscriptionCreateResponse(
+                        success=False,
+                        error="Failed to create customer account"
+                    )
+            
+            # Create checkout session
+            checkout_payload = {
+                "product_id": product_id,
+                "customer_id": customer_id,
+                "success_url": request.success_url or os.environ.get('SUCCESS_REDIRECT_URL', 'https://englishgpt.everythingenglish.xyz/dashboard/payment-success'),
+                "cancel_url": request.cancel_url or os.environ.get('CANCEL_REDIRECT_URL', 'https://englishgpt.everythingenglish.xyz/pricing'),
+                "metadata": {
+                    "user_id": request.user_id,
+                    "plan": request.plan,
+                    "email": user['email']
+                }
+            }
+            
+            logger.info(f"Creating checkout session with payload: {checkout_payload}")
+            
+            # Try checkout-sessions endpoint first, fallback to subscriptions
+            checkout_response = await client.post(
+                f"{base_url}/checkout-sessions",
+                json=checkout_payload,
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json"
+                }
+            )
+            
+            if checkout_response.status_code in [200, 201]:
+                data = checkout_response.json()
+                checkout_url = data.get('url') or data.get('checkout_url') or data.get('payment_url')
+                
+                logger.info(f"Created checkout session: {data.get('id')}")
+                
+                return SubscriptionCreateResponse(
+                    success=True,
+                    checkout_url=checkout_url,
+                    session_id=data.get('id'),
+                    message="Checkout session created successfully"
+                )
+            else:
+                # Fallback to subscriptions endpoint
+                logger.warning(f"Checkout sessions failed ({checkout_response.status_code}), trying subscriptions endpoint")
+                
+                subscription_payload = {
+                    "customer": {"customer_id": customer_id},
+                    "product_id": product_id,
+                    "payment_link": True,
+                    "return_url": request.success_url or os.environ.get('SUCCESS_REDIRECT_URL'),
+                    "metadata": checkout_payload["metadata"]
+                }
+                
+                subscription_response = await client.post(
+                    f"{base_url}/subscriptions",
+                    json=subscription_payload,
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json"
+                    }
+                )
+                
+                if subscription_response.status_code in [200, 201]:
+                    data = subscription_response.json()
+                    checkout_url = data.get('payment_link') or data.get('checkout_url') or data.get('url')
+                    
+                    return SubscriptionCreateResponse(
+                        success=True,
+                        checkout_url=checkout_url,
+                        session_id=data.get('id'),
+                        message="Subscription created successfully"
+                    )
+                else:
+                    error_text = subscription_response.text
+                    logger.error(f"Both endpoints failed. Final error: {subscription_response.status_code} - {error_text}")
+                    return SubscriptionCreateResponse(
+                        success=False,
+                        error=f"Payment setup failed: {error_text}"
+                    )
+                
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Subscription creation error: {e}")
+        return SubscriptionCreateResponse(
+            success=False,
+            error=f"Internal error: {str(e)}"
+        )
+
+@api_router.get("/subscriptions/status/{user_id}", response_model=SubscriptionStatusResponse)
+async def get_subscription_status_by_id(user_id: str):
+    """
+    Get user's current subscription status
+    
+    Returns detailed subscription information including:
+    - Active subscription status
+    - Plan type and dates
+    - Dodo customer information
+    """
+    try:
+        logger.info(f"Getting subscription status for user: {user_id}")
+        
+        user_result = supabase.table('assessment_users').select('*').eq('uid', user_id).execute()
+        
+        if not user_result.data:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user = user_result.data[0]
+        
+        # Determine if subscription is active
+        subscription_status = user.get('subscription_status', 'free')
+        is_active = subscription_status not in ['free', 'inactive', 'cancelled', 'expired']
+        
+        return SubscriptionStatusResponse(
+            has_active_subscription=is_active,
+            subscription_status=subscription_status,
+            current_plan=user.get('current_plan', 'free'),
+            subscription_start_date=user.get('subscription_start_date'),
+            subscription_end_date=user.get('subscription_end_date'),
+            subscription_type=user.get('subscription_type'),
+            dodo_customer_id=user.get('dodo_customer_id'),
+            cancel_at_period_end=user.get('cancel_at_period_end', False)
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting subscription status: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get subscription status")
+
+@api_router.post("/subscriptions/action")
+async def subscription_action(request: SubscriptionActionRequest):
+    """
+    Perform subscription actions (cancel, reactivate)
+    
+    Supports:
+    - cancel: Cancel active subscription
+    - reactivate: Reactivate cancelled subscription
+    """
+    try:
+        logger.info(f"Performing subscription action '{request.action}' for user {request.user_id}")
+        
+        # Get user data
+        user_result = supabase.table('assessment_users').select('*').eq('uid', request.user_id).execute()
+        
+        if not user_result.data:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user = user_result.data[0]
+        
+        if request.action == "cancel":
+            # Update user subscription status to cancelled
+            supabase.table('assessment_users').update({
+                'subscription_status': 'cancelled',
+                'cancel_at_period_end': True,
+                'updated_at': datetime.utcnow().isoformat()
+            }).eq('uid', request.user_id).execute()
+            
+            return {"success": True, "message": "Subscription cancelled successfully"}
+            
+        elif request.action == "reactivate":
+            # Reactivate subscription
+            supabase.table('assessment_users').update({
+                'subscription_status': 'active',
+                'cancel_at_period_end': False,
+                'updated_at': datetime.utcnow().isoformat()
+            }).eq('uid', request.user_id).execute()
+            
+            return {"success": True, "message": "Subscription reactivated successfully"}
+            
+        else:
+            raise HTTPException(status_code=400, detail="Invalid action. Use 'cancel' or 'reactivate'")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Subscription action error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to perform action: {str(e)}")
+
+@api_router.get("/subscriptions/plans")
+async def get_subscription_plans():
+    """Get available subscription plans with pricing"""
+    return {
+        "plans": [
+            {
+                "id": "monthly",
+                "name": "Monthly Plan",
+                "price": 4.99,
+                "currency": "USD",
+                "interval": "month",
+                "product_id": os.environ.get('DODO_MONTHLY_PRODUCT_ID'),
+                "features": [
+                    "Unlimited assessments",
+                    "Advanced analytics", 
+                    "Priority support",
+                    "Export results"
+                ]
+            },
+            {
+                "id": "yearly", 
+                "name": "Yearly Plan",
+                "price": 49.00,
+                "currency": "USD", 
+                "interval": "year",
+                "product_id": os.environ.get('DODO_YEARLY_PRODUCT_ID'),
+                "features": [
+                    "Unlimited assessments",
+                    "Advanced analytics",
+                    "Priority support", 
+                    "Export results",
+                    "Save 17% annually"
+                ],
+                "popular": True
+            }
+        ]
+    }
 
 @api_router.post("/debug/webhook-signature-test")
 async def test_webhook_signature(request: Request):
