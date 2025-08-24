@@ -86,6 +86,7 @@ app.get('/health', async (req, res) => {
         uptime: process.uptime(),
         memory: process.memoryUsage(),
         environment: NODE_ENV,
+        webhookUrl: 'https://englishgpt.everythingenglish.xyz/webhooks/dodo',
         configuration: {
             webhookKeyConfigured: !!process.env.DODO_PAYMENTS_WEBHOOK_KEY,
             pythonBackendConfigured: !!process.env.PYTHON_BACKEND_URL,
