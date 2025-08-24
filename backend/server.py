@@ -2370,7 +2370,7 @@ async def get_billing_history(user_id: str, limit: int = 50):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get billing history: {str(e)}")
-@app.post("/webhooks/dodo")
+@api_router.post("/webhooks/dodo")
 async def handle_dodo_webhook(request: Request):
     """Enhanced webhook handler with proper validation and debugging"""
     try:
@@ -2392,17 +2392,6 @@ async def handle_dodo_webhook(request: Request):
         # Log the signing key being used (first few chars only for security)
         signing_key = os.environ.get('DODO_PAYMENTS_WEBHOOK_KEY', '')
         logger.info(f"🔑 Using signing key: {signing_key[:10]}..." if signing_key else "NO KEY SET!")
-        
-        # Support multiple possible header names for backwards compatibility
-        def _first_header(keys):
-            for key in keys:
-                value = request.headers.get(key)
-                if value:
-                    return key, value
-            return None, ''
-
-        sig_header_used, signature = _first_header(['webhook-signature', 'x-dodo-signature', 'dodo-signature', 'signature'])
-        ts_header_used, timestamp = _first_header(['webhook-timestamp', 'x-dodo-timestamp', 'dodo-timestamp', 'timestamp'])
 
         # Log all headers for debugging
         all_headers = dict(request.headers)
@@ -2414,11 +2403,10 @@ async def handle_dodo_webhook(request: Request):
         logger.info("webhook received", extra={
             "component": "subscriptions",
             "action": "webhook.received",
-            "sig_full": signature[:50] if signature else 'MISSING',  # Show more of signature for debugging
-            "timestamp": timestamp if timestamp else 'MISSING',
+            "sig_full": webhook_signature[:50] if webhook_signature else 'MISSING',  # Show more of signature for debugging
+            "timestamp": webhook_timestamp if webhook_timestamp else 'MISSING',
             "body_len": len(body),
-            "sig_header": sig_header_used or 'NOT_FOUND',
-            "ts_header": ts_header_used or 'NOT_FOUND',
+            "webhook_id": webhook_id if webhook_id else 'MISSING',
             "all_headers": str(all_headers)[:200]  # Log first 200 chars of all headers
         })
         
@@ -2430,13 +2418,14 @@ async def handle_dodo_webhook(request: Request):
             is_valid = True
         else:
             # Validate webhook signature using Standard Webhooks specification
-            is_valid = webhook_validator.validate_webhook(body, signature, timestamp, webhook_id)
+            is_valid = webhook_validator.validate_webhook(body, webhook_signature, webhook_timestamp, webhook_id)
         
         if not is_valid:
             logger.error("❌ Webhook signature validation failed", extra={"component": "subscriptions", "action": "webhook.invalid_signature"})
             logger.error(f"🔍 Validation error details:")
-            logger.error(f"   - Signature provided: {signature[:30]}..." if signature else "NO SIGNATURE")
-            logger.error(f"   - Timestamp provided: {timestamp}")
+            logger.error(f"   - Signature provided: {webhook_signature[:30]}..." if webhook_signature else "NO SIGNATURE")
+            logger.error(f"   - Timestamp provided: {webhook_timestamp}")
+            logger.error(f"   - Webhook ID provided: {webhook_id}")
             logger.error(f"   - Webhook key configured: {'Yes' if signing_key else 'No'}")
             raise HTTPException(status_code=400, detail="Invalid webhook signature")
         
