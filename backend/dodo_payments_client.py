@@ -407,33 +407,75 @@ class WebhookValidator:
         """Extract signature from webhook header
         
         Dodo Payments format: v1,<base64_signature>
+        Handles multiple signatures in header (space-separated)
         Also handles: v1=<signature> for compatibility
         """
         try:
             # Remove any whitespace
             signature_header = signature_header.strip()
             
-            # Handle v1,signature format (Dodo standard)
+            # Handle multiple signatures (space-separated)
+            # Each signature might be in format v1,<signature>
+            signatures = []
+            
+            # Split by spaces to handle multiple signatures
+            parts = signature_header.split()
+            
+            for part in parts:
+                part = part.strip()
+                if not part:
+                    continue
+                    
+                # Handle v1,signature format (Dodo standard)
+                if part.startswith('v1,'):
+                    sig = part[3:].strip()
+                    if sig:  # Only add non-empty signatures
+                        signatures.append(sig)
+                        logger.debug(f"Extracted signature from v1, format: {sig[:20]}...")
+                
+                # Handle v1=signature format (alternative)
+                elif part.startswith('v1='):
+                    sig = part[3:].strip()
+                    if sig:
+                        signatures.append(sig)
+                        logger.debug(f"Extracted signature from v1= format: {sig[:20]}...")
+                
+                # Handle v1:signature format (another alternative)
+                elif part.startswith('v1:'):
+                    sig = part[3:].strip()
+                    if sig:
+                        signatures.append(sig)
+                        logger.debug(f"Extracted signature from v1: format: {sig[:20]}...")
+                
+                # If no prefix and it looks like a base64 signature, use it
+                elif not any(part.startswith(prefix) for prefix in ['v1,', 'v1=', 'v1:']):
+                    # Check if it looks like base64 (contains only valid base64 chars)
+                    import re
+                    if re.match(r'^[A-Za-z0-9+/]+=*$', part):
+                        signatures.append(part)
+                        logger.debug(f"Found raw base64 signature: {part[:20]}...")
+            
+            # Return the first valid signature found
+            if signatures:
+                logger.debug(f"Found {len(signatures)} signature(s), using first one: {signatures[0][:20]}...")
+                return signatures[0]
+            
+            # Fallback: if no signatures extracted but header has v1, prefix, extract everything after it
             if signature_header.startswith('v1,'):
+                # Extract only up to the first space (if any)
                 extracted = signature_header[3:].strip()
-                logger.debug(f"Extracted signature from v1, format (first 20 chars): {extracted[:20]}")
+                if ' ' in extracted:
+                    extracted = extracted.split()[0]
+                logger.debug(f"Fallback extraction from v1, format: {extracted[:20]}...")
                 return extracted
             
-            # Handle v1=signature format (alternative)
-            elif signature_header.startswith('v1='):
-                extracted = signature_header[3:].strip()
-                logger.debug(f"Extracted signature from v1= format (first 20 chars): {extracted[:20]}")
-                return extracted
+            # If no v1 prefix and no spaces, assume it's just the signature
+            if ' ' not in signature_header:
+                logger.debug(f"No v1 prefix found, using raw signature: {signature_header[:20]}...")
+                return signature_header
             
-            # Handle v1:signature format (another alternative)
-            elif signature_header.startswith('v1:'):
-                extracted = signature_header[3:].strip()
-                logger.debug(f"Extracted signature from v1: format (first 20 chars): {extracted[:20]}")
-                return extracted
-            
-            # If no prefix, assume it's just the signature
-            logger.debug(f"No v1 prefix found, using raw signature (first 20 chars): {signature_header[:20]}")
-            return signature_header
+            logger.error(f"Could not extract valid signature from header: {signature_header[:50]}...")
+            return None
             
         except Exception as e:
             logger.error(f"Error extracting signature: {e}")
