@@ -408,77 +408,77 @@ class WebhookValidator:
         
         Dodo Payments format: v1,<base64_signature>
         Handles multiple signatures in header (space-separated)
-        Also handles: v1=<signature> for compatibility
+        Returns only the FIRST clean signature found
+        
+        Examples:
+            "v1,BqAFlPmsXlQtd62+WV8deqxtkqbWkiWlu0TLA0fihQc=" -> "BqAFlPmsXlQtd62+WV8deqxtkqbWkiWlu0TLA0fihQc="
+            "v1,sig1 v1,sig2" -> "sig1" (returns first signature only)
         """
         try:
-            # Remove any whitespace
+            import re
+            
+            # Remove any leading/trailing whitespace
             signature_header = signature_header.strip()
             
-            # Handle multiple signatures (space-separated)
-            # Each signature might be in format v1,<signature>
-            signatures = []
+            if not signature_header:
+                logger.error("Empty signature header provided")
+                return None
             
-            # Split by spaces to handle multiple signatures
-            parts = signature_header.split()
-            
-            for part in parts:
-                part = part.strip()
-                if not part:
-                    continue
-                    
-                # Handle v1,signature format (Dodo standard)
-                if part.startswith('v1,'):
-                    sig = part[3:].strip()
-                    if sig:  # Only add non-empty signatures
-                        signatures.append(sig)
-                        logger.debug(f"Extracted signature from v1, format: {sig[:20]}...")
-                
-                # Handle v1=signature format (alternative)
-                elif part.startswith('v1='):
-                    sig = part[3:].strip()
-                    if sig:
-                        signatures.append(sig)
-                        logger.debug(f"Extracted signature from v1= format: {sig[:20]}...")
-                
-                # Handle v1:signature format (another alternative)
-                elif part.startswith('v1:'):
-                    sig = part[3:].strip()
-                    if sig:
-                        signatures.append(sig)
-                        logger.debug(f"Extracted signature from v1: format: {sig[:20]}...")
-                
-                # If no prefix and it looks like a base64 signature, use it
-                elif not any(part.startswith(prefix) for prefix in ['v1,', 'v1=', 'v1:']):
-                    # Check if it looks like base64 (contains only valid base64 chars)
-                    import re
-                    if re.match(r'^[A-Za-z0-9+/]+=*$', part):
-                        signatures.append(part)
-                        logger.debug(f"Found raw base64 signature: {part[:20]}...")
-            
-            # Return the first valid signature found
-            if signatures:
-                logger.debug(f"Found {len(signatures)} signature(s), using first one: {signatures[0][:20]}...")
-                return signatures[0]
-            
-            # Fallback: if no signatures extracted but header has v1, prefix, extract everything after it
+            # First, try to extract from v1,<signature> format
+            # This is the standard format for Dodo Payments
             if signature_header.startswith('v1,'):
-                # Extract only up to the first space (if any)
-                extracted = signature_header[3:].strip()
-                if ' ' in extracted:
-                    extracted = extracted.split()[0]
-                logger.debug(f"Fallback extraction from v1, format: {extracted[:20]}...")
-                return extracted
+                # Extract everything after 'v1,'
+                remaining = signature_header[3:]
+                
+                # If there's a space, take only the part before the first space
+                # This handles cases like "v1,sig1 v1,sig2"
+                if ' ' in remaining:
+                    signature = remaining.split(' ')[0].strip()
+                else:
+                    signature = remaining.strip()
+                
+                # Validate that it looks like a base64 signature
+                if signature and re.match(r'^[A-Za-z0-9+/]+=*$', signature):
+                    logger.debug(f"Extracted signature from v1, format: {signature[:30]}...")
+                    return signature
+                else:
+                    logger.warning(f"Invalid base64 signature after v1, prefix: {signature[:30] if signature else 'empty'}...")
             
-            # If no v1 prefix and no spaces, assume it's just the signature
-            if ' ' not in signature_header:
-                logger.debug(f"No v1 prefix found, using raw signature: {signature_header[:20]}...")
+            # Handle alternative formats (v1= or v1:)
+            for prefix in ['v1=', 'v1:']:
+                if signature_header.startswith(prefix):
+                    remaining = signature_header[len(prefix):]
+                    if ' ' in remaining:
+                        signature = remaining.split(' ')[0].strip()
+                    else:
+                        signature = remaining.strip()
+                    
+                    if signature and re.match(r'^[A-Za-z0-9+/]+=*$', signature):
+                        logger.debug(f"Extracted signature from {prefix} format: {signature[:30]}...")
+                        return signature
+            
+            # If there are multiple space-separated values, check each one
+            parts = signature_header.split()
+            for part in parts:
+                # Check if this part starts with v1, and extract signature
+                if part.startswith('v1,'):
+                    signature = part[3:].strip()
+                    if signature and re.match(r'^[A-Za-z0-9+/]+=*$', signature):
+                        logger.debug(f"Extracted signature from space-separated v1, format: {signature[:30]}...")
+                        return signature
+            
+            # If no v1 prefix found and the whole thing looks like a base64 signature, use it
+            if re.match(r'^[A-Za-z0-9+/]+=*$', signature_header):
+                logger.debug(f"No v1 prefix found, using raw base64 signature: {signature_header[:30]}...")
                 return signature_header
             
+            # If we get here, we couldn't extract a valid signature
             logger.error(f"Could not extract valid signature from header: {signature_header[:50]}...")
             return None
             
         except Exception as e:
             logger.error(f"Error extracting signature: {e}")
+            logger.error(f"Exception details: {type(e).__name__}: {str(e)}")
             return None
     
     def verify_timestamp(self, timestamp: str, tolerance_seconds: int = 300) -> bool:
