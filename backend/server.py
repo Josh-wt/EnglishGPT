@@ -2372,10 +2372,28 @@ async def get_billing_history(user_id: str, limit: int = 50):
         raise HTTPException(status_code=500, detail=f"Failed to get billing history: {str(e)}")
 @api_router.post("/webhooks/dodo")
 async def handle_dodo_webhook(request: Request):
-    """Enhanced webhook handler with proper validation"""
+    """Enhanced webhook handler with proper validation and debugging"""
     try:
+        logger.info("🔔 Webhook received")
+        
         body = await request.body()
-        # Support multiple possible header names (standard and legacy)
+        
+        # Get webhook headers - Dodo uses standard webhook headers
+        webhook_id = request.headers.get('webhook-id')
+        webhook_timestamp = request.headers.get('webhook-timestamp')
+        webhook_signature = request.headers.get('webhook-signature')
+        
+        # Log webhook details for debugging
+        logger.info(f"📋 Webhook ID: {webhook_id}")
+        logger.info(f"⏰ Webhook Timestamp: {webhook_timestamp}")
+        logger.info(f"🔐 Webhook Signature: {webhook_signature[:20]}..." if webhook_signature else "None")
+        logger.info(f"📦 Body length: {len(body)} bytes")
+        
+        # Log the signing key being used (first few chars only for security)
+        signing_key = os.environ.get('DODO_PAYMENTS_WEBHOOK_KEY', '')
+        logger.info(f"🔑 Using signing key: {signing_key[:10]}..." if signing_key else "NO KEY SET!")
+        
+        # Support multiple possible header names for backwards compatibility
         def _first_header(keys):
             for key in keys:
                 value = request.headers.get(key)
@@ -2404,11 +2422,22 @@ async def handle_dodo_webhook(request: Request):
             "all_headers": str(all_headers)[:200]  # Log first 200 chars of all headers
         })
         
-        # Validate webhook signature
-        is_valid = webhook_validator.validate_webhook(body, signature, timestamp)
+        # Check for bypass mode (DEVELOPMENT ONLY)
+        bypass_validation = os.environ.get('DODO_BYPASS_WEBHOOK_VALIDATION', 'false').lower() == 'true'
+        
+        if bypass_validation:
+            logger.warning("⚠️ BYPASSING WEBHOOK VALIDATION - DEVELOPMENT MODE ONLY!")
+            is_valid = True
+        else:
+            # Validate webhook signature
+            is_valid = webhook_validator.validate_webhook(body, signature, timestamp)
         
         if not is_valid:
-            logger.error("webhook signature validation failed", extra={"component": "subscriptions", "action": "webhook.invalid_signature"})
+            logger.error("❌ Webhook signature validation failed", extra={"component": "subscriptions", "action": "webhook.invalid_signature"})
+            logger.error(f"🔍 Validation error details:")
+            logger.error(f"   - Signature provided: {signature[:30]}..." if signature else "NO SIGNATURE")
+            logger.error(f"   - Timestamp provided: {timestamp}")
+            logger.error(f"   - Webhook key configured: {'Yes' if signing_key else 'No'}")
             raise HTTPException(status_code=400, detail="Invalid webhook signature")
         
         # Parse webhook data

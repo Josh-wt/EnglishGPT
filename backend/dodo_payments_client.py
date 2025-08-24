@@ -390,10 +390,21 @@ class WebhookValidator:
             
             # If all formats fail, log debugging information
             logger.error("Webhook signature validation failed - tried all formats")
-            logger.debug(f"Provided signature: {actual_signature}")
-            logger.debug(f"Timestamp used: {timestamp}")
-            logger.debug(f"Payload length: {len(payload)} bytes")
-            logger.debug(f"Webhook secret length: {len(self.webhook_secret)} chars")
+            logger.error(f"❌ Validation Failed - Debug Info:")
+            logger.error(f"   - Provided signature: {actual_signature[:30]}...")
+            logger.error(f"   - Timestamp used: {timestamp}")
+            logger.error(f"   - Payload length: {len(payload)} bytes")
+            logger.error(f"   - Webhook secret length: {len(self.webhook_secret)} chars")
+            logger.error(f"   - Secret starts with: {self.webhook_secret[:10]}...")
+            
+            # Log a sample of what we're trying to match
+            sample_signing = f"{timestamp}.{payload.decode('utf-8')[:50]}..."
+            sample_hmac = hmac.new(
+                self.webhook_secret.encode('utf-8'),
+                sample_signing.encode('utf-8'),
+                hashlib.sha256
+            ).digest()
+            logger.error(f"   - Sample expected signature (base64): {base64.b64encode(sample_hmac).decode('utf-8')[:30]}...")
             
             return False
             
