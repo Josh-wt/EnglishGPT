@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from './supabaseClient';
-import subscriptionService from './subscriptionService';
+import subscriptionService from './services/subscriptionService';
 import toast, { Toaster } from 'react-hot-toast';
 
 const POLL_INTERVAL_MS = 3000;

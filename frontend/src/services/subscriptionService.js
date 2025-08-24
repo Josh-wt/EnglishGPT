@@ -15,12 +15,11 @@ class SubscriptionService {
    */
   async getSubscriptionStatus(userId) {
     try {
-      const response = await fetch(`${this.baseURL}/subscriptions/status`, {
+      const response = await fetch(`${this.baseURL}/subscriptions/status?user_id=${userId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.getAuthToken()}`,
-          'X-User-ID': userId
+          'Authorization': `Bearer ${this.getAuthToken()}`
         }
       });
 
@@ -29,29 +28,14 @@ class SubscriptionService {
       }
 
       const data = await response.json();
-      return {
-        success: true,
-        data: {
-          hasActiveSubscription: data.has_active_subscription,
-          subscriptionId: data.subscription?.id,
-          planType: data.subscription?.plan_type,
-          status: data.subscription?.status,
-          currentPeriodEnd: data.subscription?.current_period_end,
-          trialDaysRemaining: data.trial_days_remaining,
-          nextBillingDate: data.next_billing_date
-        }
-      };
+      return data;
     } catch (error) {
       console.error('Error fetching subscription status:', error);
       return {
-        success: false,
-        error: error.message,
-        data: {
-          hasActiveSubscription: false,
-          subscriptionId: null,
-          planType: null,
-          status: 'inactive'
-        }
+        has_active_subscription: false,
+        subscription: null,
+        next_billing_date: null,
+        trial_days_remaining: null
       };
     }
   }
@@ -98,7 +82,7 @@ class SubscriptionService {
   /**
    * Cancel user's subscription
    */
-  async cancelSubscription(userId, reason = 'user_requested') {
+  async cancelSubscription(userId, subscriptionId, cancelAtPeriodEnd = true) {
     try {
       const response = await fetch(`${this.baseURL}/subscriptions/cancel`, {
         method: 'POST',
@@ -107,8 +91,9 @@ class SubscriptionService {
           'Authorization': `Bearer ${this.getAuthToken()}`
         },
         body: JSON.stringify({
-          user_id: userId,
-          cancellation_reason: reason
+          userId: userId,
+          subscriptionId: subscriptionId,
+          cancelAtPeriodEnd: cancelAtPeriodEnd
         })
       });
 
@@ -118,24 +103,17 @@ class SubscriptionService {
       }
 
       const data = await response.json();
-      return {
-        success: true,
-        message: data.message,
-        endsAt: data.ends_at
-      };
+      return data;
     } catch (error) {
       console.error('Error cancelling subscription:', error);
-      return {
-        success: false,
-        error: error.message
-      };
+      throw error;
     }
   }
 
   /**
    * Reactivate cancelled subscription
    */
-  async reactivateSubscription(userId) {
+  async reactivateSubscription(userId, subscriptionId) {
     try {
       const response = await fetch(`${this.baseURL}/subscriptions/reactivate`, {
         method: 'POST',
@@ -144,7 +122,8 @@ class SubscriptionService {
           'Authorization': `Bearer ${this.getAuthToken()}`
         },
         body: JSON.stringify({
-          user_id: userId
+          userId: userId,
+          subscriptionId: subscriptionId
         })
       });
 
@@ -154,16 +133,10 @@ class SubscriptionService {
       }
 
       const data = await response.json();
-      return {
-        success: true,
-        message: data.message
-      };
+      return data;
     } catch (error) {
       console.error('Error reactivating subscription:', error);
-      return {
-        success: false,
-        error: error.message
-      };
+      throw error;
     }
   }
 
@@ -172,12 +145,11 @@ class SubscriptionService {
    */
   async getBillingHistory(userId, limit = 10) {
     try {
-      const response = await fetch(`${this.baseURL}/subscriptions/billing-history?limit=${limit}`, {
+      const response = await fetch(`${this.baseURL}/subscriptions/billing-history?user_id=${userId}&limit=${limit}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.getAuthToken()}`,
-          'X-User-ID': userId
+          'Authorization': `Bearer ${this.getAuthToken()}`
         }
       });
 
@@ -186,17 +158,42 @@ class SubscriptionService {
       }
 
       const data = await response.json();
-      return {
-        success: true,
-        billingHistory: data.billing_history || []
-      };
+      return data.payments || [];
     } catch (error) {
       console.error('Error fetching billing history:', error);
-      return {
-        success: false,
-        error: error.message,
-        billingHistory: []
-      };
+      return [];
+    }
+  }
+
+  /**
+   * Open Stripe customer portal for payment management
+   */
+  async openCustomerPortal(userId) {
+    try {
+      const response = await fetch(`${this.baseURL}/subscriptions/customer-portal`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getAuthToken()}`
+        },
+        body: JSON.stringify({
+          userId: userId,
+          returnUrl: window.location.href
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.portalUrl) {
+        window.location.href = data.portalUrl;
+      }
+      return data;
+    } catch (error) {
+      console.error('Error opening customer portal:', error);
+      throw error;
     }
   }
 
@@ -247,13 +244,66 @@ class SubscriptionService {
   }
 
   /**
-   * Format currency for display
+   * Get plan display name
    */
-  formatCurrency(amount, currency = 'USD') {
+  getPlanDisplayName(planType) {
+    const plans = {
+      'monthly': 'Monthly Plan',
+      'yearly': 'Annual Plan',
+      'free': 'Free Plan',
+      'unlimited': 'Premium Plan'
+    };
+    return plans[planType] || planType || 'Free Plan';
+  }
+
+  /**
+   * Get plan pricing details
+   */
+  getPlanPricing(planType) {
+    const pricing = {
+      'monthly': { price: '$4.99', period: '/month' },
+      'yearly': { price: '$49.00', period: '/year' },
+      'free': { price: 'Free', period: '' },
+      'unlimited': { price: 'Premium', period: '' }
+    };
+    return pricing[planType] || { price: 'Free', period: '' };
+  }
+
+  /**
+   * Get status badge color classes
+   */
+  getStatusBadgeColor(status) {
+    const colors = {
+      'active': 'bg-green-100 text-green-800',
+      'trialing': 'bg-blue-100 text-blue-800',
+      'past_due': 'bg-yellow-100 text-yellow-800',
+      'canceled': 'bg-gray-100 text-gray-800',
+      'unpaid': 'bg-red-100 text-red-800'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
+  }
+
+  /**
+   * Get payment status color classes
+   */
+  getPaymentStatusColor(status) {
+    const colors = {
+      'succeeded': 'bg-green-100 text-green-800',
+      'pending': 'bg-yellow-100 text-yellow-800',
+      'failed': 'bg-red-100 text-red-800',
+      'refunded': 'bg-gray-100 text-gray-800'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
+  }
+
+  /**
+   * Format price in cents to currency
+   */
+  formatPrice(amountCents, currency = 'usd') {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currency
-    }).format(amount / 100); // Convert from cents
+      currency: currency.toUpperCase()
+    }).format(amountCents / 100);
   }
 
   /**

@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import subscriptionService from './subscriptionService';
+import subscriptionService from './services/subscriptionService';
 import toast, { Toaster } from 'react-hot-toast';
 
 const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
@@ -28,6 +28,9 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
         subscriptionService.getBillingHistory(user.id, 20)
       ]);
       
+      console.log('Subscription status:', status);
+      console.log('Billing history:', history);
+      
       setSubscriptionStatus(status);
       setBillingHistory(history);
     } catch (error) {
@@ -39,34 +42,46 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
   };
 
   const handleCancelSubscription = async (cancelAtPeriodEnd = true) => {
-    if (!subscriptionStatus?.subscription?.id) return;
+    if (!subscriptionStatus?.subscription?.dodo_subscription_id && !subscriptionStatus?.subscription?.id) {
+      toast.error('No active subscription to cancel');
+      return;
+    }
 
     try {
       setActionLoading(true);
+      const subscriptionId = subscriptionStatus.subscription.dodo_subscription_id || subscriptionStatus.subscription.id;
       await subscriptionService.cancelSubscription(
         user.id, 
-        subscriptionStatus.subscription.id, 
+        subscriptionId, 
         cancelAtPeriodEnd
       );
       
+      toast.success(cancelAtPeriodEnd ? 'Subscription will be cancelled at period end' : 'Subscription cancelled immediately');
       setShowCancelModal(false);
       await loadSubscriptionData();
     } catch (error) {
       console.error('Cancellation failed:', error);
+      toast.error('Failed to cancel subscription');
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleReactivateSubscription = async () => {
-    if (!subscriptionStatus?.subscription?.id) return;
+    if (!subscriptionStatus?.subscription?.dodo_subscription_id && !subscriptionStatus?.subscription?.id) {
+      toast.error('No subscription to reactivate');
+      return;
+    }
 
     try {
       setActionLoading(true);
-      await subscriptionService.reactivateSubscription(user.id, subscriptionStatus.subscription.id);
+      const subscriptionId = subscriptionStatus.subscription.dodo_subscription_id || subscriptionStatus.subscription.id;
+      await subscriptionService.reactivateSubscription(user.id, subscriptionId);
+      toast.success('Subscription reactivated successfully');
       await loadSubscriptionData();
     } catch (error) {
       console.error('Reactivation failed:', error);
+      toast.error('Failed to reactivate subscription');
     } finally {
       setActionLoading(false);
     }
@@ -77,6 +92,7 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
       await subscriptionService.openCustomerPortal(user.id);
     } catch (error) {
       console.error('Failed to open customer portal:', error);
+      toast.error('Failed to open payment management portal');
     }
   };
 
@@ -104,8 +120,14 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
     card: darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
     text: darkMode ? 'text-white' : 'text-gray-900',
     textSecondary: darkMode ? 'text-gray-300' : 'text-gray-600',
-    textMuted: darkMode ? 'text-gray-400' : 'text-gray-500'
+    textMuted: darkMode ? 'text-gray-400' : 'text-gray-500',
+    tableHeader: darkMode ? 'bg-gray-700' : 'bg-gray-50',
+    tableRow: darkMode ? 'bg-gray-800' : 'bg-white',
+    tableBorder: darkMode ? 'divide-gray-700' : 'divide-gray-200'
   };
+
+  const hasActiveSubscription = subscriptionStatus?.has_active_subscription;
+  const subscription = subscriptionStatus?.subscription;
 
   return (
     <div className={`min-h-screen ${themeClasses.background} p-6`}>
@@ -131,24 +153,24 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
         <div className={`${themeClasses.card} border rounded-lg shadow-sm p-6 mb-6`}>
           <h2 className={`text-xl font-semibold ${themeClasses.text} mb-4`}>Current Subscription</h2>
           
-          {subscriptionStatus?.hasActiveSubscription ? (
+          {hasActiveSubscription && subscription ? (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className={`text-lg font-medium ${themeClasses.text}`}>
-                    {subscriptionService.getPlanDisplayName(subscriptionStatus.subscription.plan_type)}
+                    {subscriptionService.getPlanDisplayName(subscription.plan_type)}
                   </h3>
                   <p className={themeClasses.textSecondary}>
-                    {subscriptionService.getPlanPricing(subscriptionStatus.subscription.plan_type).price}
-                    {subscriptionService.getPlanPricing(subscriptionStatus.subscription.plan_type).period}
+                    {subscriptionService.getPlanPricing(subscription.plan_type).price}
+                    {subscriptionService.getPlanPricing(subscription.plan_type).period}
                   </p>
                 </div>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${subscriptionService.getStatusBadgeColor(subscriptionStatus.subscription.status)}`}>
-                  {subscriptionStatus.subscription.status}
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${subscriptionService.getStatusBadgeColor(subscription.status)}`}>
+                  {subscription.status}
                 </span>
               </div>
 
-              {subscriptionStatus.subscription.cancel_at_period_end && (
+              {subscription.cancel_at_period_end && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
                   <div className="flex">
                     <div className="flex-shrink-0">
@@ -161,7 +183,7 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
                         Subscription Scheduled for Cancellation
                       </h3>
                       <div className="mt-2 text-sm text-yellow-700">
-                        <p>Your subscription will end on {subscriptionService.formatDate(subscriptionStatus.subscription.current_period_end)}</p>
+                        <p>Your subscription will end on {subscriptionService.formatDate(subscription.current_period_end)}</p>
                       </div>
                     </div>
                   </div>
@@ -169,25 +191,27 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <p className={`text-sm ${themeClasses.textMuted}`}>Next Billing Date</p>
-                  <p className={`text-lg font-semibold ${themeClasses.text}`}>
-                    {subscriptionService.formatDate(subscriptionStatus.next_billing_date)}
-                  </p>
-                </div>
-                
-                {subscriptionStatus.trial_days_remaining !== null && (
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <p className={`text-sm ${themeClasses.textMuted}`}>Trial Days Remaining</p>
+                {subscriptionStatus.next_billing_date && (
+                  <div className={`text-center p-4 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg`}>
+                    <p className={`text-sm ${themeClasses.textMuted}`}>Next Billing Date</p>
                     <p className={`text-lg font-semibold ${themeClasses.text}`}>
+                      {subscriptionService.formatDate(subscriptionStatus.next_billing_date)}
+                    </p>
+                  </div>
+                )}
+                
+                {subscriptionStatus.trial_days_remaining !== null && subscriptionStatus.trial_days_remaining !== undefined && (
+                  <div className={`text-center p-4 ${darkMode ? 'bg-blue-900' : 'bg-blue-50'} rounded-lg`}>
+                    <p className={`text-sm ${themeClasses.textMuted}`}>Trial Days Remaining</p>
+                    <p className={`text-lg font-semibold ${darkMode ? 'text-blue-200' : 'text-blue-600'}`}>
                       {subscriptionStatus.trial_days_remaining}
                     </p>
                   </div>
                 )}
 
-                <div className="text-center p-4 bg-green-50 rounded-lg">
+                <div className={`text-center p-4 ${darkMode ? 'bg-green-900' : 'bg-green-50'} rounded-lg`}>
                   <p className={`text-sm ${themeClasses.textMuted}`}>Access Status</p>
-                  <p className="text-lg font-semibold text-green-600">Active</p>
+                  <p className={`text-lg font-semibold ${darkMode ? 'text-green-200' : 'text-green-600'}`}>Active</p>
                 </div>
               </div>
 
@@ -195,7 +219,7 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
               <div className="flex flex-wrap gap-4 pt-4 border-t">
                 <button
                   onClick={handleUpdatePaymentMethod}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className={`inline-flex items-center px-4 py-2 border ${darkMode ? 'border-gray-600 text-gray-200 bg-gray-700 hover:bg-gray-600' : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'} rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
                 >
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -203,7 +227,7 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
                   Update Payment Method
                 </button>
 
-                {subscriptionStatus.subscription.cancel_at_period_end ? (
+                {subscription.cancel_at_period_end ? (
                   <button
                     onClick={handleReactivateSubscription}
                     disabled={actionLoading}
@@ -223,7 +247,7 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className={`mx-auto h-12 w-12 ${themeClasses.textMuted}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
               </svg>
               <h3 className={`mt-2 text-sm font-medium ${themeClasses.text}`}>No Active Subscription</h3>
@@ -249,33 +273,33 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
         <div className={`${themeClasses.card} border rounded-lg shadow-sm p-6`}>
           <h2 className={`text-xl font-semibold ${themeClasses.text} mb-4`}>Billing History</h2>
           
-          {billingHistory.length > 0 ? (
+          {billingHistory && billingHistory.length > 0 ? (
             <div className="overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className={`min-w-full divide-y ${themeClasses.tableBorder}`}>
+                  <thead className={themeClasses.tableHeader}>
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={`px-6 py-3 text-left text-xs font-medium ${themeClasses.textMuted} uppercase tracking-wider`}>
                         Date
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={`px-6 py-3 text-left text-xs font-medium ${themeClasses.textMuted} uppercase tracking-wider`}>
                         Amount
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={`px-6 py-3 text-left text-xs font-medium ${themeClasses.textMuted} uppercase tracking-wider`}>
                         Status
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={`px-6 py-3 text-left text-xs font-medium ${themeClasses.textMuted} uppercase tracking-wider`}>
                         Payment Method
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {billingHistory.map((payment) => (
-                      <tr key={payment.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <tbody className={`${themeClasses.tableRow} divide-y ${themeClasses.tableBorder}`}>
+                    {billingHistory.map((payment, index) => (
+                      <tr key={payment.id || index}>
+                        <td className={`px-6 py-4 whitespace-nowrap text-sm ${themeClasses.text}`}>
                           {subscriptionService.formatDate(payment.created_at)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className={`px-6 py-4 whitespace-nowrap text-sm ${themeClasses.text}`}>
                           {subscriptionService.formatPrice(payment.amount_cents, payment.currency)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -283,7 +307,7 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
                             {payment.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className={`px-6 py-4 whitespace-nowrap text-sm ${themeClasses.text}`}>
                           {payment.payment_method_type || 'Card'}
                         </td>
                       </tr>
@@ -294,7 +318,7 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className={`mx-auto h-12 w-12 ${themeClasses.textMuted}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               <h3 className={`mt-2 text-sm font-medium ${themeClasses.text}`}>No Billing History</h3>

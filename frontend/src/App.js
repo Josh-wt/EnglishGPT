@@ -4,7 +4,7 @@ import axios from 'axios';
 import { supabase } from './supabaseClient';
 import { Routes, Route, useParams, useNavigate, useLocation } from 'react-router-dom';
 import PaymentSuccess from './PaymentSuccess';
-import subscriptionService from './subscriptionService';
+import subscriptionService from './services/subscriptionService';
 import toast, { Toaster } from 'react-hot-toast';
 import SubscriptionDashboard from './SubscriptionDashboard';
 // Removed charts for a clean card-based analytics UI
