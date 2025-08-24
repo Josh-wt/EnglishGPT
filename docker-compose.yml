@@ -1,0 +1,133 @@
+version: '3.8'
+
+services:
+  # Node.js Dodo Payments Webhook Service
+  dodo-webhook-service:
+    build:
+      context: ./webhook-service
+      dockerfile: Dockerfile
+    container_name: englishgpt-webhook-service
+    ports:
+      - "3001:3001"
+    environment:
+      - WEBHOOK_PORT=3001
+      - NODE_ENV=production
+      - DODO_PAYMENTS_WEBHOOK_KEY=${DODO_PAYMENTS_WEBHOOK_KEY}
+      - PYTHON_BACKEND_URL=http://englishgpt-api:8000
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY}
+      - LOG_LEVEL=info
+      - MAX_RETRIES=3
+      - REQUEST_TIMEOUT=30000
+      - ALLOWED_ORIGINS=http://localhost:3000,https://englishgpt.everythingenglish.xyz
+    volumes:
+      - ./webhook-service:/app
+      - /app/node_modules  # Prevent host node_modules from overriding container
+    networks:
+      - englishgpt-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Python FastAPI Backend
+  englishgpt-api:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: englishgpt-api
+    ports:
+      - "8000:8000"
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - DODO_PAYMENTS_API_KEY=${DODO_PAYMENTS_API_KEY}
+      - DODO_PAYMENTS_ENVIRONMENT=${DODO_PAYMENTS_ENVIRONMENT}
+      - DODO_PAYMENTS_BASE_URL=${DODO_PAYMENTS_BASE_URL}
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY}
+      - WEBHOOK_SERVICE_URL=http://dodo-webhook-service:3001
+      - NODE_ENV=production
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__  # Prevent Python cache issues
+    depends_on:
+      - dodo-webhook-service
+    networks:
+      - englishgpt-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/webhooks/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # React Frontend
+  englishgpt-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: englishgpt-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_DODO_MONTHLY_PRODUCT_ID=${DODO_MONTHLY_PRODUCT_ID}
+      - REACT_APP_DODO_YEARLY_PRODUCT_ID=${DODO_YEARLY_PRODUCT_ID}
+      - REACT_APP_ENVIRONMENT=${NODE_ENV}
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - englishgpt-api
+    networks:
+      - englishgpt-network
+    restart: unless-stopped
+
+  # Redis for caching and rate limiting
+  redis:
+    image: redis:7-alpine
+    container_name: englishgpt-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - englishgpt-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy (for production)
+  nginx:
+    image: nginx:alpine
+    container_name: englishgpt-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - englishgpt-frontend
+      - englishgpt-api
+      - dodo-webhook-service
+    networks:
+      - englishgpt-network
+    restart: unless-stopped
+
+networks:
+  englishgpt-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  redis_data:
+    driver: local
