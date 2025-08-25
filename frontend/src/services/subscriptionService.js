@@ -45,23 +45,43 @@ class SubscriptionService {
    */
   async createCheckoutSession(planType, userId) {
     try {
+      const token = this.getAuthToken();
+      const requestBody = {
+        plan: planType, // 'monthly' or 'yearly'
+        user_id: userId,
+        success_url: `${window.location.origin}/subscription/success`,
+        cancel_url: `${window.location.origin}/subscription/cancelled`
+      };
+      
+      console.log('Creating checkout session:', { planType, userId, url: `${this.baseURL}/subscriptions/create-checkout` });
+      
       const response = await fetch(`${this.baseURL}/subscriptions/create-checkout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.getAuthToken()}`
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          plan: planType, // 'monthly' or 'yearly'
-          user_id: userId,
-          success_url: `${window.location.origin}/subscription/success`,
-          cancel_url: `${window.location.origin}/subscription/cancelled`
-        })
+        body: JSON.stringify(requestBody),
+        mode: 'cors', // Explicitly set CORS mode
+        credentials: 'include' // Include credentials if needed
+      }).catch(error => {
+        console.error('Network request failed:', error);
+        throw new Error(`Network error: ${error.message}`);
       });
 
+      if (!response) {
+        throw new Error('No response received from server');
+      }
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail?.message || `HTTP error! status: ${response.status}`);
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.detail?.message || errorData.message || errorMessage;
+        } catch (jsonError) {
+          console.warn('Could not parse error response:', jsonError);
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -72,9 +92,19 @@ class SubscriptionService {
       };
     } catch (error) {
       console.error('Error creating checkout session:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = error.message;
+      if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
+        errorMessage = 'Unable to connect to server. Please check if the backend is running on port 8000.';
+      } else if (error.message.includes('CORS')) {
+        errorMessage = 'CORS error: The backend server needs to allow requests from this origin.';
+      }
+      
       return {
         success: false,
-        error: error.message
+        error: errorMessage,
+        originalError: error.message
       };
     }
   }
@@ -89,10 +119,20 @@ class SubscriptionService {
       if (result.success && result.checkoutUrl) {
         window.location.href = result.checkoutUrl;
       } else {
-        throw new Error(result.error || 'Failed to create checkout session');
+        const errorMsg = result.error || 'Failed to create checkout session';
+        console.error('Checkout session creation failed:', errorMsg);
+        if (result.originalError) {
+          console.error('Original error:', result.originalError);
+        }
+        throw new Error(errorMsg);
       }
     } catch (error) {
       console.error('Error redirecting to checkout:', error);
+      
+      // Re-throw with more context
+      if (error.message.includes('Unable to connect')) {
+        throw new Error('Backend server is not running. Please start the server on port 8000.');
+      }
       throw error;
     }
   }
@@ -258,8 +298,17 @@ class SubscriptionService {
    * Get auth token from localStorage or context
    */
   getAuthToken() {
-    // Implement based on your authentication system
-    return localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+    // Check multiple possible token locations
+    const token = localStorage.getItem('auth_token') || 
+                  sessionStorage.getItem('auth_token') ||
+                  localStorage.getItem('token') ||
+                  sessionStorage.getItem('token');
+    
+    if (!token) {
+      console.warn('No authentication token found');
+    }
+    
+    return token || 'dummy_token_for_dev'; // Fallback for development
   }
 
   /**

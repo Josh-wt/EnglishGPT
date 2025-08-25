@@ -34,6 +34,21 @@ const PricingPage = ({ onBack, user }) => {
       await subscriptionService.redirectToCheckout(user.id, planType);
     } catch (error) {
       console.error('Plan selection failed:', error);
+      
+      // Show user-friendly error message
+      let errorMessage = 'Failed to start checkout process. ';
+      if (error.message.includes('Backend server is not running')) {
+        errorMessage += 'The backend server is not available. Please ensure it is running on port 8000.';
+      } else if (error.message.includes('CORS')) {
+        errorMessage += 'Cross-origin request blocked. Please check server CORS configuration.';
+      } else if (error.message.includes('Unable to connect')) {
+        errorMessage += 'Cannot connect to the payment server. Please try again later.';
+      } else {
+        errorMessage += error.message;
+      }
+      
+      // Display error to user (you might want to use a toast notification or modal)
+      alert(errorMessage);
     } finally {
       setLoading(false);
       setSelectedPlan(null);

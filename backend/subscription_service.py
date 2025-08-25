@@ -42,7 +42,15 @@ class SubscriptionService:
             import os
             SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://zwrwtqspeyajttnuzwkl.supabase.co')
             SUPABASE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY') or os.environ.get('SUPABASE_KEY')
-            self.supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+            if SUPABASE_URL and SUPABASE_KEY and SUPABASE_URL != 'your_supabase_url_here':
+                try:
+                    self.supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+                except Exception as e:
+                    logger.warning(f"Failed to initialize Supabase client: {e}")
+                    self.supabase = None
+            else:
+                logger.warning("Supabase credentials not properly configured")
+                self.supabase = None
         else:
             self.supabase = supabase
         logger.info("Initialized SubscriptionService")
