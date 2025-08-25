@@ -4268,6 +4268,13 @@ const handleSignOut = async () => {
             onPricing={() => setCurrentPage('pricing')}
           />
         )}
+        
+        {/* Sign In Modal for unauthenticated users on results page */}
+        <SignInModal
+          isOpen={showSignInModal}
+          onClose={() => setShowSignInModal(false)}
+          darkMode={darkMode}
+        />
       </div>
     );
   };
@@ -4479,6 +4486,11 @@ const handleSignOut = async () => {
           evaluation={publicEval}
           onNewEvaluation={handleNewEvaluation}
           userPlan={userStats.currentPlan}
+          darkMode={darkMode}
+        />
+        <SignInModal
+          isOpen={showSignInModal}
+          onClose={() => setShowSignInModal(false)}
           darkMode={darkMode}
         />
       </div>
