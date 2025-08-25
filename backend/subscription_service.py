@@ -36,8 +36,15 @@ class BillingHistoryItem(BaseModel):
 class SubscriptionService:
     """Enhanced service for managing subscriptions and payments with robust webhook processing"""
     
-    def __init__(self, supabase: Client):
-        self.supabase = supabase
+    def __init__(self, supabase: Client = None):
+        if supabase is None:
+            from supabase import create_client
+            import os
+            SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://zwrwtqspeyajttnuzwkl.supabase.co')
+            SUPABASE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY') or os.environ.get('SUPABASE_KEY')
+            self.supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        else:
+            self.supabase = supabase
         logger.info("Initialized SubscriptionService")
     
     async def get_or_create_dodo_customer(self, user_id: str, email: str, name: Optional[str] = None) -> str:
