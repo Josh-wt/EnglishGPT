@@ -32,7 +32,8 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
       console.log('Billing history:', history);
       
       setSubscriptionStatus(status);
-      setBillingHistory(history);
+      // Handle both array and object with data property
+      setBillingHistory(Array.isArray(history) ? history : (history?.data || history?.payments || []));
     } catch (error) {
       console.error('Failed to load subscription data:', error);
       toast.error('Failed to load subscription information');
@@ -128,6 +129,11 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
 
   const hasActiveSubscription = subscriptionStatus?.has_active_subscription;
   const subscription = subscriptionStatus?.subscription;
+  
+  // Log for debugging
+  console.log('Subscription Status:', subscriptionStatus);
+  console.log('Has Active Subscription:', hasActiveSubscription);
+  console.log('Subscription Details:', subscription);
 
   return (
     <div className={`min-h-screen ${themeClasses.background} p-6`}>
@@ -158,11 +164,11 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className={`text-lg font-medium ${themeClasses.text}`}>
-                    {subscriptionService.getPlanDisplayName(subscription.plan_type)}
+                    {subscription.current_plan === 'unlimited' ? 'Unlimited Plan' : subscriptionService.getPlanDisplayName(subscription.plan_type)}
                   </h3>
                   <p className={themeClasses.textSecondary}>
-                    {subscriptionService.getPlanPricing(subscription.plan_type).price}
-                    {subscriptionService.getPlanPricing(subscription.plan_type).period}
+                    {subscription.current_plan === 'unlimited' ? 'Premium Access' : 
+                      `${subscriptionService.getPlanPricing(subscription.plan_type).price}${subscriptionService.getPlanPricing(subscription.plan_type).period}`}
                   </p>
                 </div>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${subscriptionService.getStatusBadgeColor(subscription.status)}`}>
@@ -200,6 +206,15 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
                   </div>
                 )}
                 
+                {subscription.current_plan === 'unlimited' && !subscriptionStatus.next_billing_date && (
+                  <div className={`text-center p-4 ${darkMode ? 'bg-purple-900' : 'bg-purple-50'} rounded-lg`}>
+                    <p className={`text-sm ${themeClasses.textMuted}`}>Plan Type</p>
+                    <p className={`text-lg font-semibold ${darkMode ? 'text-purple-200' : 'text-purple-600'}`}>
+                      Lifetime Access
+                    </p>
+                  </div>
+                )}
+                
                 {subscriptionStatus.trial_days_remaining !== null && subscriptionStatus.trial_days_remaining !== undefined && (
                   <div className={`text-center p-4 ${darkMode ? 'bg-blue-900' : 'bg-blue-50'} rounded-lg`}>
                     <p className={`text-sm ${themeClasses.textMuted}`}>Trial Days Remaining</p>
@@ -217,31 +232,47 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-4 pt-4 border-t">
-                <button
-                  onClick={handleUpdatePaymentMethod}
-                  className={`inline-flex items-center px-4 py-2 border ${darkMode ? 'border-gray-600 text-gray-200 bg-gray-700 hover:bg-gray-600' : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'} rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                  Update Payment Method
-                </button>
+                {/* Only show payment method button if not unlimited plan or has real subscription */}
+                {(subscription.current_plan !== 'unlimited' || subscription.dodo_subscription_id?.indexOf('unlimited_') !== 0) && (
+                  <button
+                    onClick={handleUpdatePaymentMethod}
+                    className={`inline-flex items-center px-4 py-2 border ${darkMode ? 'border-gray-600 text-gray-200 bg-gray-700 hover:bg-gray-600' : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'} rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    Update Payment Method
+                  </button>
+                )}
 
-                {subscription.cancel_at_period_end ? (
-                  <button
-                    onClick={handleReactivateSubscription}
-                    disabled={actionLoading}
-                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
-                  >
-                    {actionLoading ? 'Processing...' : 'Reactivate Subscription'}
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setShowCancelModal(true)}
-                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                  >
-                    Cancel Subscription
-                  </button>
+                {/* Only show cancel/reactivate for non-unlimited plans or real subscriptions */}
+                {(subscription.current_plan !== 'unlimited' || subscription.dodo_subscription_id?.indexOf('unlimited_') !== 0) && (
+                  subscription.cancel_at_period_end ? (
+                    <button
+                      onClick={handleReactivateSubscription}
+                      disabled={actionLoading}
+                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                    >
+                      {actionLoading ? 'Processing...' : 'Reactivate Subscription'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setShowCancelModal(true)}
+                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    >
+                      Cancel Subscription
+                    </button>
+                  )
+                )}
+                
+                {/* Show special message for unlimited lifetime plans */}
+                {subscription.current_plan === 'unlimited' && subscription.dodo_subscription_id?.indexOf('unlimited_') === 0 && (
+                  <div className={`inline-flex items-center px-4 py-2 ${themeClasses.textSecondary}`}>
+                    <svg className="w-5 h-5 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Lifetime access - No recurring charges
+                  </div>
                 )}
               </div>
             </div>
