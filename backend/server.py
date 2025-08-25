@@ -150,6 +150,8 @@ async def create_subscription_checkout(request: Request):
         user_id = request_data.get('userId')
         plan_type = request_data.get('planType')
         metadata = request_data.get('metadata', {})
+        billing_address = request_data.get('billingAddress')
+        discount_code = request_data.get('discountCode')
         
 
         
@@ -158,7 +160,9 @@ async def create_subscription_checkout(request: Request):
         if not plan_type or plan_type not in ['monthly', 'yearly']:
             raise HTTPException(status_code=400, detail="Valid plan type is required")
         
-        result = await subscription_service.create_checkout_session(user_id, plan_type, metadata)
+        result = await subscription_service.create_checkout_session(
+            user_id, plan_type, metadata, billing_address, discount_code
+        )
         return result
         
     except HTTPException as he:
@@ -2241,20 +2245,26 @@ async def create_subscription_checkout(request: Request):
         user_id = request_data.get('userId')
         plan_type = request_data.get('planType')
         metadata = request_data.get('metadata', {})
+        billing_address = request_data.get('billingAddress')
+        discount_code = request_data.get('discountCode')
         
         logger.info("create-checkout request", extra={
             "component": "subscriptions",
             "action": "create_checkout",
             "user_id": user_id,
             "plan_type": plan_type,
-            "has_metadata": bool(metadata)
+            "has_metadata": bool(metadata),
+            "has_billing": bool(billing_address),
+            "has_discount": bool(discount_code)
         })
         if not user_id:
             raise HTTPException(status_code=400, detail="User ID is required")
         if not plan_type or plan_type not in ['monthly', 'yearly']:
             raise HTTPException(status_code=400, detail="Valid plan type is required")
         
-        result = await subscription_service.create_checkout_session(user_id, plan_type, metadata)
+        result = await subscription_service.create_checkout_session(
+            user_id, plan_type, metadata, billing_address, discount_code
+        )
         logger.info("create-checkout response", extra={
             "component": "subscriptions",
             "action": "create_checkout.success",
