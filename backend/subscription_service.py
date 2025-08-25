@@ -773,7 +773,7 @@ class SubscriptionService:
             # Don't fail webhook processing if we can't store the event
     
     async def _store_payment_record(self, payment_id: str, user_id: str, payment_data: Dict[str, Any]) -> None:
-        """Store payment record"""
+        """Store payment record with correct column names matching existing table"""
         try:
             # Check if payment already exists
             existing = self.supabase.table('dodo_payments').select('id').eq('dodo_payment_id', payment_id).execute()
@@ -782,16 +782,22 @@ class SubscriptionService:
                 logger.info(f"Payment {payment_id} already exists")
                 return
             
+            # FIXED: Use column names that match your existing table structure
             payment_record = {
-                'id': str(uuid.uuid4()),
-                'user_id': user_id,
+                'user_id': str(user_id),  # Convert to string since column is TEXT
                 'dodo_payment_id': payment_id,
                 'subscription_id': payment_data.get('subscription_id'),
-                'amount': payment_data.get('total_amount') or payment_data.get('amount', 0),
+                'dodo_invoice_id': payment_data.get('invoice_id'),
+                'amount_cents': payment_data.get('total_amount') or payment_data.get('amount', 0),
                 'currency': payment_data.get('currency', 'USD'),
                 'status': payment_data.get('status', 'succeeded'),
                 'payment_method_type': payment_data.get('payment_method', {}).get('type') if payment_data.get('payment_method') else None,
+                'failure_reason': payment_data.get('failure_reason'),
+                'refund_amount_cents': payment_data.get('refund_amount', 0),
+                'metadata': payment_data.get('metadata', {}),
                 'created_at': payment_data.get('created_at', datetime.utcnow().isoformat()),
+                'updated_at': datetime.utcnow().isoformat(),
+                # Keep the raw_data for debugging
                 'raw_data': payment_data
             }
             
@@ -800,28 +806,37 @@ class SubscriptionService:
             
         except Exception as e:
             logger.warning(f"Could not store payment record: {e}")
+            logger.warning(f"Payment data: {payment_data}")
+            # Don't fail webhook processing if we can't store the payment
     
-    async def get_billing_history(self, user_id: str) -> List[BillingHistoryItem]:
-        """Get billing history for a user"""
+    async def get_billing_history(self, user_id: str, limit: int = 50) -> List[BillingHistoryItem]:
+        """Get billing history for a user - FIXED column mapping"""
         try:
-            payments_response = self.supabase.table('dodo_payments').select('*').eq('user_id', user_id).order('created_at', desc=True).execute()
+            logger.info(f"Fetching billing history for user {user_id} with limit {limit}")
+            
+            # Query the dodo_payments table with proper limit handling
+            payments_response = self.supabase.table('dodo_payments').select('*').eq('user_id', user_id).order('created_at', desc=True).limit(limit).execute()
             
             history = []
             for payment in payments_response.data:
+                # FIXED: Map database columns to BillingHistoryItem fields correctly
                 history.append(BillingHistoryItem(
-                    id=payment['dodo_payment_id'],
-                    amount_cents=payment.get('amount', 0),
+                    id=payment.get('dodo_payment_id', 'unknown'),
+                    amount_cents=payment.get('amount_cents', 0),  # FIXED: was 'amount', now 'amount_cents'
                     currency=payment.get('currency', 'USD'),
                     status=payment.get('status', 'unknown'),
                     payment_method_type=payment.get('payment_method_type'),
-                    created_at=payment['created_at'],
+                    created_at=payment.get('created_at', ''),
                     failure_reason=payment.get('failure_reason')
                 ))
             
+            logger.info(f"Retrieved {len(history)} billing records for user {user_id}")
             return history
             
         except Exception as e:
             logger.error(f"Failed to get billing history for user {user_id}: {e}")
+            logger.error(f"Error details: {str(e)}")
+            # Return empty list instead of raising exception to prevent 500 error
             return []
     
     async def cancel_subscription(self, user_id: str, subscription_id: str, cancel_at_period_end: bool = True) -> Dict[str, Any]:

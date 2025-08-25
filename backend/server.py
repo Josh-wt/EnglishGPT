@@ -2359,22 +2359,33 @@ async def create_customer_portal_session(request: dict):
 
 @api_router.get("/subscriptions/billing-history")
 async def get_billing_history(user_id: str, limit: int = 50):
-    """Get user's billing history"""
+    """Get user's billing history with proper error handling"""
     if not subscription_service:
         raise HTTPException(status_code=503, detail="Subscription service unavailable")
     try:
-        logger.debug("billing-history request", extra={"component": "subscriptions", "action": "billing_history", "user_id": user_id, "limit": limit})
+        logger.info(f"Billing history request: user_id={user_id}, limit={limit}")
+        
         if not user_id:
             raise HTTPException(status_code=400, detail="User ID is required")
         
+        # Validate limit parameter
+        if limit < 1 or limit > 100:
+            limit = 50  # Default to reasonable limit
+        
+        # Call the corrected method with both parameters
         history = await subscription_service.get_billing_history(user_id, limit)
+        
         result = {"data": [item.dict() for item in history]}
-        logger.debug("billing-history response", extra={"component": "subscriptions", "action": "billing_history.success", "user_id": user_id, "count": len(result["data"])})
+        logger.info(f"Billing history response: user_id={user_id}, count={len(result['data'])}")
         return result
         
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"Failed to get billing history for user {user_id}: {str(e)}")
+        logger.error(f"Error type: {type(e).__name__}")
+        import traceback
+        logger.error(f"Stack trace: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Failed to get billing history: {str(e)}")
 @api_router.post("/webhooks/dodo")
 async def handle_dodo_webhook(request: Request):
