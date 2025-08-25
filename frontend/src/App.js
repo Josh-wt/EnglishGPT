@@ -4422,9 +4422,18 @@ const handleSignOut = async () => {
     }
     
     // For authenticated users, navigate to question types
-    setSelectedQuestionType(null);
-    setEvaluation(null);
-    setCurrentPage('questionTypes');
+    // Check if we're on a public results page (routed component)
+    const isPublicResultsPage = window.location.pathname.startsWith('/results/');
+    
+    if (isPublicResultsPage) {
+      // Navigate using window.location for public results pages
+      window.location.href = '/dashboard';
+    } else {
+      // Use state-based navigation for main app
+      setSelectedQuestionType(null);
+      setEvaluation(null);
+      setCurrentPage('questionTypes');
+    }
   };
 
   // Public Result route wrapper component to fetch by ID and render ResultsPage

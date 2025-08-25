@@ -41,6 +41,22 @@ CREATE TABLE assessment_evaluations (
 ALTER TABLE assessment_evaluations ADD COLUMN short_id text UNIQUE;
 CREATE INDEX IF NOT EXISTS idx_assessment_evaluations_short_id ON assessment_evaluations(short_id);
 
+-- Assessment Feedback table
+CREATE TABLE assessment_feedback (
+  id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+  evaluation_id text NOT NULL,
+  user_id text NOT NULL REFERENCES assessment_users(uid) ON DELETE CASCADE,
+  category text NOT NULL CHECK (category IN ('overall', 'strengths', 'improvements')),
+  accurate boolean NOT NULL,
+  comments text,
+  created_at timestamp with time zone DEFAULT now()
+);
+
+-- Create indexes for assessment_feedback
+CREATE INDEX idx_assessment_feedback_evaluation_id ON assessment_feedback(evaluation_id);
+CREATE INDEX idx_assessment_feedback_user_id ON assessment_feedback(user_id);
+CREATE INDEX idx_assessment_feedback_created_at ON assessment_feedback(created_at);
+
 -- Assessment Badges table
 CREATE TABLE assessment_badges (
   id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
