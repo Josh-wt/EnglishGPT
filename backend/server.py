@@ -2203,14 +2203,30 @@ async def submit_feedback(feedback: FeedbackSubmitModel):
         if feedback.category not in ["overall", "strengths", "improvements"]:
             raise HTTPException(status_code=400, detail="Invalid feedback category")
 
+        if not supabase:
+            logger.error("Supabase client not initialized")
+            raise HTTPException(status_code=500, detail="Database connection error")
+
         record = feedback.dict()
         record["created_at"] = record["created_at"].isoformat()
-
-        supabase.table("assessment_feedback").insert(record).execute()
-        return {"success": True}
+        
+        logger.info(f"Attempting to insert feedback: {record}")
+        
+        try:
+            result = supabase.table("assessment_feedback").insert(record).execute()
+            logger.info(f"Feedback inserted successfully: {result}")
+            return {"success": True}
+        except Exception as supabase_error:
+            logger.error(f"Supabase insert error: {str(supabase_error)}")
+            # Check if it's a table not found error
+            if "assessment_feedback" in str(supabase_error):
+                logger.error("Table 'assessment_feedback' may not exist")
+            raise HTTPException(status_code=500, detail=f"Database insert error: {str(supabase_error)}")
+            
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"Unexpected error in submit_feedback: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Feedback save error: {str(e)}")
 
 # Subscription API endpoints
