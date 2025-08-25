@@ -31,9 +31,15 @@ const PricingPage = ({ onBack, user }) => {
     setLoading(true);
 
     try {
-      await subscriptionService.redirectToCheckout(user.id, planType);
+      const result = await subscriptionService.createCheckoutSession(planType, user.id);
+      if (result.success && result.checkoutUrl) {
+        window.location.href = result.checkoutUrl;
+      } else {
+        toast.error(result.error || 'Failed to create checkout session');
+      }
     } catch (error) {
       console.error('Plan selection failed:', error);
+      toast.error('Failed to start checkout process');
     } finally {
       setLoading(false);
       setSelectedPlan(null);
