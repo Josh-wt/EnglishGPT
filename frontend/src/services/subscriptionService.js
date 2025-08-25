@@ -158,7 +158,8 @@ class SubscriptionService {
       }
 
       const data = await response.json();
-      return data.payments || [];
+      // Handle both direct array and object with data/payments property
+      return data.data || data.payments || data || [];
     } catch (error) {
       console.error('Error fetching billing history:', error);
       return [];

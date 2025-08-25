@@ -195,7 +195,44 @@ class SubscriptionService:
     async def get_subscription_status(self, user_id: str) -> SubscriptionStatus:
         """Get the subscription status for a user"""
         try:
-            # Check for active subscriptions
+            # First check user's current_plan - this is the primary source of truth
+            user_response = self.supabase.table('assessment_users').select('subscription_status, subscription_type, current_plan, dodo_customer_id').eq('uid', user_id).execute()
+            
+            if user_response.data:
+                user_data = user_response.data[0]
+                current_plan = user_data.get('current_plan')
+                subscription_status = user_data.get('subscription_status')
+                
+                # Check if user has unlimited access
+                if current_plan == 'unlimited' or subscription_status in ['premium', 'active']:
+                    # Try to get subscription details from dodo_subscriptions table
+                    sub_response = self.supabase.table('dodo_subscriptions').select('*').eq('user_id', user_id).in_('status', ['active', 'trialing']).order('created_at', desc=True).limit(1).execute()
+                    
+                    if sub_response.data:
+                        subscription = sub_response.data[0]
+                        return SubscriptionStatus(
+                            has_active_subscription=True,
+                            subscription=subscription,
+                            next_billing_date=subscription.get('next_billing_date') or subscription.get('current_period_end')
+                        )
+                    else:
+                        # User has unlimited plan but no subscription record (might be manual grant)
+                        # Create a synthetic subscription object
+                        return SubscriptionStatus(
+                            has_active_subscription=True,
+                            subscription={
+                                "id": f"unlimited_{user_id[:8]}",
+                                "dodo_subscription_id": f"unlimited_{user_id[:8]}",
+                                "status": "active",
+                                "plan_type": user_data.get('subscription_type') or 'unlimited',
+                                "current_plan": "unlimited",
+                                "cancel_at_period_end": False,
+                                "user_id": user_id
+                            },
+                            next_billing_date=None
+                        )
+            
+            # Check for active subscriptions in dodo_subscriptions table
             sub_response = self.supabase.table('dodo_subscriptions').select('*').eq('user_id', user_id).in_('status', ['active', 'trialing']).order('created_at', desc=True).limit(1).execute()
             
             if sub_response.data:
@@ -203,26 +240,8 @@ class SubscriptionService:
                 return SubscriptionStatus(
                     has_active_subscription=True,
                     subscription=subscription,
-                    next_billing_date=subscription.get('next_billing_date')
+                    next_billing_date=subscription.get('next_billing_date') or subscription.get('current_period_end')
                 )
-            
-            # Fallback: Check user subscription status
-            user_response = self.supabase.table('assessment_users').select('subscription_status, subscription_type, current_plan').eq('uid', user_id).execute()
-            
-            if user_response.data:
-                user_data = user_response.data[0]
-                subscription_status = user_data.get('subscription_status')
-                current_plan = user_data.get('current_plan')
-                
-                # Check if user has unlimited access
-                if current_plan == 'unlimited' or subscription_status in ['premium', 'active']:
-                    return SubscriptionStatus(
-                        has_active_subscription=True,
-                        subscription={
-                            "status": "active",
-                            "plan_type": (user_data.get('subscription_type') if user_data.get('subscription_type') in ['monthly', 'yearly'] else 'monthly')
-                        }
-                    )
             
             return SubscriptionStatus(has_active_subscription=False)
             
