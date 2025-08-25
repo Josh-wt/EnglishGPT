@@ -102,7 +102,7 @@ class SubscriptionService:
             logger.error(f"Failed to get/create Dodo customer for user {user_id}: {e}")
             raise HTTPException(status_code=500, detail=f"Failed to initialize customer account: {str(e)}")
     
-    async def create_checkout_session(self, user_id: str, plan_type: str, metadata: Optional[Dict] = None) -> Dict[str, Any]:
+    async def create_checkout_session(self, user_id: str, plan_type: str, metadata: Optional[Dict] = None, billing_address: Optional[Dict] = None, discount_code: Optional[str] = None) -> Dict[str, Any]:
         """Create a checkout session for subscription"""
         try:
             logger.debug("create_checkout_session.start", extra={
@@ -174,7 +174,9 @@ class SubscriptionService:
                 product_id=product_id,
                 customer_id=dodo_customer_id,
                 return_url='https://englishgpt.everythingenglish.xyz/dashboard/payment-success',
-                metadata=checkout_metadata
+                metadata=checkout_metadata,
+                billing_address=billing_address,
+                discount_code=discount_code
             )
             
             logger.info(f"Created checkout session for user {user_id}: {session_data.get('subscription_id', 'N/A')}")

@@ -331,7 +331,7 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
                           {subscriptionService.formatDate(payment.created_at)}
                         </td>
                         <td className={`px-6 py-4 whitespace-nowrap text-sm ${themeClasses.text}`}>
-                          {subscriptionService.formatPrice(payment.amount_cents, payment.currency)}
+                          {subscriptionService.formatPrice(payment.amount_cents, payment.currency || 'USD')}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${subscriptionService.getPaymentStatusColor(payment.status)}`}>

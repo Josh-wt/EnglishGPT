@@ -120,18 +120,14 @@ class DodoPaymentsClient:
         customer_id: str, 
         return_url: str,
         metadata: Optional[Dict[str, Any]] = None,
-        quantity: int = 1
+        quantity: int = 1,
+        billing_address: Optional[Dict[str, Any]] = None,
+        discount_code: Optional[str] = None
     ) -> Dict[str, Any]:
         """Create a checkout session for a subscription"""
         try:
+            # Use provided billing address or let Dodo collect it at checkout
             payload = {
-                "billing": {
-                    "city": "Default City",
-                    "country": "IN",
-                    "state": "Default State", 
-                    "street": "Default Street",
-                    "zipcode": 110001
-                },
                 "customer": {
                     "customer_id": customer_id
                 },
@@ -140,6 +136,14 @@ class DodoPaymentsClient:
                 "payment_link": True,
                 "return_url": return_url
             }
+            
+            # Only add billing if provided, otherwise Dodo will collect at checkout
+            if billing_address:
+                payload["billing"] = billing_address
+            
+            # Add discount code if provided
+            if discount_code:
+                payload["discount_code"] = discount_code
             
             if metadata:
                 payload["metadata"] = metadata
@@ -282,13 +286,9 @@ class WebhookValidator:
     
     def __init__(self):
         self.webhook_secret = os.getenv('DODO_PAYMENTS_WEBHOOK_KEY')
-        self.bypass_validation = os.getenv('DODO_BYPASS_WEBHOOK_VALIDATION', '').lower() == 'true'
-        # TEMPORARY: Enable bypass for production until signature validation is fixed
         if not self.webhook_secret:
-            logger.warning("DODO_PAYMENTS_WEBHOOK_KEY not set - webhook validation disabled")
-            self.bypass_validation = True
-        if self.bypass_validation:
-            logger.warning("WEBHOOK VALIDATION BYPASS ENABLED - FOR TESTING ONLY!")
+            logger.error("DODO_PAYMENTS_WEBHOOK_KEY not set - webhook validation required in production")
+            raise ValueError("DODO_PAYMENTS_WEBHOOK_KEY environment variable is required")
     
     def validate_webhook(self, payload: bytes, signature: str, timestamp: str, webhook_id: str) -> bool:
         """
@@ -308,14 +308,9 @@ class WebhookValidator:
         Returns:
             bool: True if signature is valid, False otherwise
         """
-        # TEMPORARY: Allow bypassing validation for testing
-        if self.bypass_validation:
-            logger.warning("BYPASSING WEBHOOK VALIDATION - TESTING MODE")
-            return True
-            
         if not self.webhook_secret:
-            logger.warning("Webhook validation skipped - no webhook secret configured")
-            return True
+            logger.error("Webhook validation failed - no webhook secret configured")
+            return False
         
         if not signature or not timestamp or not webhook_id:
             logger.error(f"Missing required webhook headers - signature: {bool(signature)}, timestamp: {bool(timestamp)}, webhook_id: {bool(webhook_id)}")
