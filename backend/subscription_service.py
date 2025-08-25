@@ -200,32 +200,47 @@ class SubscriptionService:
             raise HTTPException(status_code=500, detail=f"Checkout creation failed: {str(e)}")
     
     async def get_subscription_status(self, user_id: str) -> SubscriptionStatus:
-        """Get the subscription status for a user"""
+        """Get the subscription status for a user with debugging"""
         try:
+            logger.info(f"=== SUBSCRIPTION STATUS DEBUG START ===")
+            logger.info(f"Getting subscription status for user: {user_id}")
+            
             # First check user's current_plan - this is the primary source of truth
             user_response = self.supabase.table('assessment_users').select('subscription_status, subscription_type, current_plan, dodo_customer_id').eq('uid', user_id).execute()
+            
+            logger.info(f"User data response: {user_response.data}")
             
             if user_response.data:
                 user_data = user_response.data[0]
                 current_plan = user_data.get('current_plan')
                 subscription_status = user_data.get('subscription_status')
+                dodo_customer_id = user_data.get('dodo_customer_id')
+                
+                logger.info(f"User plan info - current_plan: {current_plan}, status: {subscription_status}, dodo_customer: {dodo_customer_id}")
                 
                 # Check if user has unlimited access
                 if current_plan == 'unlimited' or subscription_status in ['premium', 'active']:
                     # Try to get subscription details from dodo_subscriptions table
                     sub_response = self.supabase.table('dodo_subscriptions').select('*').eq('user_id', user_id).in_('status', ['active', 'trialing']).order('created_at', desc=True).limit(1).execute()
                     
+                    logger.info(f"Active subscription search result: {len(sub_response.data) if sub_response.data else 0} subscriptions")
+                    if sub_response.data:
+                        logger.info(f"Subscription details: {sub_response.data[0]}")
+                    
                     if sub_response.data:
                         subscription = sub_response.data[0]
-                        return SubscriptionStatus(
+                        result = SubscriptionStatus(
                             has_active_subscription=True,
                             subscription=subscription,
                             next_billing_date=subscription.get('next_billing_date') or subscription.get('current_period_end')
                         )
+                        logger.info(f"Returning active subscription status")
+                        return result
                     else:
                         # User has unlimited plan but no subscription record (might be manual grant)
                         # Create a synthetic subscription object
-                        return SubscriptionStatus(
+                        logger.info(f"Creating synthetic subscription for unlimited user without subscription record")
+                        result = SubscriptionStatus(
                             has_active_subscription=True,
                             subscription={
                                 "id": f"unlimited_{user_id[:8]}",
@@ -238,6 +253,7 @@ class SubscriptionService:
                             },
                             next_billing_date=None
                         )
+                        return result
             
             # Check for active subscriptions in dodo_subscriptions table
             sub_response = self.supabase.table('dodo_subscriptions').select('*').eq('user_id', user_id).in_('status', ['active', 'trialing']).order('created_at', desc=True).limit(1).execute()
@@ -817,34 +833,65 @@ class SubscriptionService:
             # Don't fail webhook processing if we can't store the payment
     
     async def get_billing_history(self, user_id: str, limit: int = 50) -> List[BillingHistoryItem]:
-        """Get billing history for a user - FIXED column mapping"""
+        """Get billing history for a user with extensive debugging"""
         try:
+            logger.info(f"=== BILLING HISTORY DEBUG START ===")
             logger.info(f"Fetching billing history for user {user_id} with limit {limit}")
             
+            # First check if user exists
+            user_check = self.supabase.table('assessment_users').select('uid, dodo_customer_id').eq('uid', user_id).execute()
+            logger.info(f"User check result: {user_check.data if user_check.data else 'User not found'}")
+            
             # Query the dodo_payments table with proper limit handling
+            logger.info(f"Querying dodo_payments table for user_id={user_id}")
             payments_response = self.supabase.table('dodo_payments').select('*').eq('user_id', user_id).order('created_at', desc=True).limit(limit).execute()
             
-            history = []
-            for payment in payments_response.data:
-                # FIXED: Map database columns to BillingHistoryItem fields correctly
-                history.append(BillingHistoryItem(
-                    id=payment.get('dodo_payment_id', 'unknown'),
-                    amount_cents=payment.get('amount_cents', 0),  # FIXED: was 'amount', now 'amount_cents'
-                    currency=payment.get('currency', 'USD'),
-                    status=payment.get('status', 'unknown'),
-                    payment_method_type=payment.get('payment_method_type'),
-                    created_at=payment.get('created_at', ''),
-                    failure_reason=payment.get('failure_reason')
-                ))
+            logger.info(f"Raw payments response: {payments_response}")
+            logger.info(f"Payments data: {payments_response.data}")
+            logger.info(f"Number of payments found: {len(payments_response.data) if payments_response.data else 0}")
             
-            logger.info(f"Retrieved {len(history)} billing records for user {user_id}")
+            # If no payments, check subscriptions for context
+            if not payments_response.data:
+                logger.info("No payments found, checking subscriptions...")
+                subs_response = self.supabase.table('dodo_subscriptions').select('*').eq('user_id', user_id).execute()
+                logger.info(f"Subscriptions found: {len(subs_response.data) if subs_response.data else 0}")
+                if subs_response.data:
+                    logger.info(f"Subscription details: {subs_response.data[0]}")
+            
+            history = []
+            for idx, payment in enumerate(payments_response.data or []):
+                logger.debug(f"Processing payment {idx}: {payment}")
+                # Map database columns to BillingHistoryItem fields
+                try:
+                    item = BillingHistoryItem(
+                        id=payment.get('dodo_payment_id', payment.get('id', f'unknown_{idx}')),
+                        amount_cents=payment.get('amount_cents', payment.get('amount', 0)),
+                        currency=payment.get('currency', 'USD'),
+                        status=payment.get('status', 'unknown'),
+                        payment_method_type=payment.get('payment_method_type'),
+                        created_at=payment.get('created_at', ''),
+                        failure_reason=payment.get('failure_reason')
+                    )
+                    history.append(item)
+                    logger.debug(f"Created history item: {item.dict()}")
+                except Exception as item_error:
+                    logger.error(f"Error creating history item {idx}: {item_error}")
+                    logger.error(f"Payment data causing error: {payment}")
+            
+            logger.info(f"Successfully retrieved {len(history)} billing records for user {user_id}")
+            logger.info(f"=== BILLING HISTORY DEBUG END ===")
             return history
             
         except Exception as e:
+            logger.error(f"=== BILLING HISTORY ERROR ===")
             logger.error(f"Failed to get billing history for user {user_id}: {e}")
+            logger.error(f"Error type: {type(e).__name__}")
             logger.error(f"Error details: {str(e)}")
-            # Return empty list instead of raising exception to prevent 500 error
-            return []
+            import traceback
+            logger.error(f"Stack trace:\n{traceback.format_exc()}")
+            logger.error(f"=== END ERROR ===")
+            # Re-raise the exception to properly return 500 error
+            raise
     
     async def cancel_subscription(self, user_id: str, subscription_id: str, cancel_at_period_end: bool = True) -> Dict[str, Any]:
         """Cancel a user's subscription"""
