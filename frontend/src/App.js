@@ -18,154 +18,76 @@ const API = `${BACKEND_URL}/api`;
 
 // Pricing Page Component
 const PricingPage = ({ onBack, user }) => {
-  const [loading, setLoading] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState(null);
-
-  const handlePlanSelect = async (planType) => {
-    if (!user?.id) {
-      toast.error('Please sign in to subscribe');
-      return;
-    }
-
-    setSelectedPlan(planType);
-    setLoading(true);
-
-    try {
-      await subscriptionService.redirectToCheckout(user.id, planType);
-    } catch (error) {
-      console.error('Plan selection failed:', error);
-      
-      // Show user-friendly error message
-      let errorMessage = 'Failed to start checkout process. ';
-      if (error.message.includes('Backend server is not running')) {
-        errorMessage += 'The backend server is not available. Please ensure it is running on port 5000.';
-      } else if (error.message.includes('CORS')) {
-        errorMessage += 'Cross-origin request blocked. Please check server CORS configuration.';
-      } else if (error.message.includes('Unable to connect')) {
-        errorMessage += 'Cannot connect to the payment server. Please try again later.';
-      } else {
-        errorMessage += error.message;
-      }
-      
-      // Display error to user (you might want to use a toast notification or modal)
-      alert(errorMessage);
-    } finally {
-      setLoading(false);
-      setSelectedPlan(null);
-    }
-  };
-  const sharedFeatures = [
-    "Unlimited essay marking",
-    "Advanced analytics and insights",
-    "Detailed feedback and suggestions",
-    "Progress tracking",
-    "Priority support"
-  ];
-
-  const monthlyPlan = {
-    id: 'unlimited_monthly',
-    name: 'Unlimited Monthly',
-    price: '$4.99',
-    period: '/month',
-    features: sharedFeatures
-  };
-
-  const yearlyPlan = {
-    id: 'unlimited_yearly',
-    name: 'Unlimited Yearly',
-    price: '$49',
-    period: '/year',
-    // Yearly has higher priority support emphasis
-    features: [
-      ...sharedFeatures.slice(0, -1),
-      'Priority support (higher priority)'
-    ]
-  };
-
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Header */}
       <div className="text-center mb-10">
-        <h1 className="text-4xl font-fredoka font-bold mb-3">Choose your plan</h1>
-        {/* Keep only one subtle launch indicator */}
-        <span className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-fredoka">
-          Intro pricing
+        <h1 className="text-4xl font-fredoka font-bold mb-3">Pricing Coming Soon</h1>
+        <span className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-fredoka">
+          🎉 Launch Event: Enjoy unlimited access for free!
         </span>
       </div>
 
-      {/* Plans */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-        {/* Monthly */}
+      {/* Coming Soon Card */}
+      <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-fredoka font-bold text-gray-900 mb-2">{monthlyPlan.name}</h2>
-            <div className="flex items-end justify-center gap-2">
-              <span className="text-4xl font-bold text-blue-600">{monthlyPlan.price}</span>
-              <span className="text-gray-600 mb-1">{monthlyPlan.period}</span>
-            </div>
-            <p className="text-gray-600 font-fredoka mt-2">Unlimited access, billed monthly</p>
-          </div>
-
-          <div className="space-y-3 mb-6">
-            {monthlyPlan.features.map((feature, index) => (
-              <div key={index} className="flex items-start">
-                <div className="flex-shrink-0 w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">
-                  ✓
-                </div>
-                <span className="text-gray-700 font-fredoka">{feature}</span>
+          <div className="text-center">
+            <div className="mb-6">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full text-white mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
-            ))}
-          </div>
-
-          <button 
-            onClick={() => handlePlanSelect('monthly')}
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-4 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 font-fredoka text-lg"
-          >
-            Get Unlimited - $4.99/m
-          </button>
-
-          <p className="text-sm text-gray-500 font-fredoka text-center mt-4">
-            🔒 Secure payment • Cancel anytime • No setup fees
-          </p>
-        </div>
-
-        {/* Yearly */}
-        <div className="bg-white rounded-2xl shadow-xl border-2 border-blue-500 p-8 relative overflow-hidden">
-          {/* Best value badge */}
-          <div className="absolute top-0 right-0 bg-blue-500 text-white px-4 py-2 rounded-bl-lg font-bold text-sm">
-            BEST VALUE
-          </div>
-
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-fredoka font-bold text-gray-900 mb-2">{yearlyPlan.name}</h2>
-            <div className="flex items-end justify-center gap-2">
-              <span className="text-4xl font-bold text-blue-600">{yearlyPlan.price}</span>
-              <span className="text-gray-600 mb-1">{yearlyPlan.period}</span>
+              <h2 className="text-2xl font-fredoka font-bold mb-4">Pricing Plans Are Coming Soon!</h2>
+              <p className="text-gray-600 mb-6 text-lg">
+                We're working on bringing you the best pricing options. 
+                In the meantime, all users get <span className="font-semibold text-green-600">unlimited access for free</span> as part of our launch event!
+              </p>
             </div>
-            <p className="text-gray-600 font-fredoka mt-2">Same features, billed yearly</p>
+            
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-6">
+              <h3 className="font-fredoka font-semibold text-lg mb-3">Your Current Benefits:</h3>
+              <ul className="text-left space-y-2">
+                <li className="flex items-center">
+                  <svg className="h-5 w-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Unlimited essay marking</span>
+                </li>
+                <li className="flex items-center">
+                  <svg className="h-5 w-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Advanced analytics and insights</span>
+                </li>
+                <li className="flex items-center">
+                  <svg className="h-5 w-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Detailed feedback and suggestions</span>
+                </li>
+                <li className="flex items-center">
+                  <svg className="h-5 w-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Progress tracking</span>
+                </li>
+                <li className="flex items-center">
+                  <svg className="h-5 w-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Priority support</span>
+                </li>
+              </ul>
+            </div>
+
+            <button 
+              onClick={onBack}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-lg font-fredoka font-semibold hover:shadow-lg transition-all"
+            >
+              Back to Dashboard
+            </button>
           </div>
-
-          <div className="space-y-3 mb-6">
-            {yearlyPlan.features.map((feature, index) => (
-              <div key={index} className="flex items-start">
-                <div className="flex-shrink-0 w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">
-                  ✓
-                </div>
-                <span className="text-gray-700 font-fredoka">{feature}</span>
-              </div>
-            ))}
-          </div>
-
-          <button 
-            onClick={() => handlePlanSelect('yearly')}
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-4 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 font-fredoka text-lg"
-          >
-            Get Unlimited - $49/year
-          </button>
-
-          <p className="text-sm text-gray-500 font-fredoka text-center mt-4">
-            Includes higher priority support
-          </p>
         </div>
       </div>
     </div>
@@ -1340,11 +1262,15 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="font-fredoka font-semibold text-gray-900">Current Plan</h3>
-                  <p className="font-fredoka text-sm text-gray-600 capitalize">{userStats.currentPlan || 'Basic'}</p>
+                  <p className="font-fredoka text-sm text-gray-600 capitalize">
+                    {userStats.currentPlan === 'unlimited' ? '🎉 Unlimited (Launch)' : (userStats.currentPlan || 'Basic')}
+                  </p>
                 </div>
                 <div className="text-right">
                   <p className="font-fredoka text-sm text-gray-600">Credits Remaining</p>
-                  <p className="font-fredoka font-bold text-blue-600">{userStats.credits}</p>
+                  <p className="font-fredoka font-bold text-blue-600">
+                    {userStats.currentPlan === 'unlimited' ? 'Unlimited' : userStats.credits}
+                  </p>
                 </div>
               </div>
             </div>
@@ -1506,7 +1432,9 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                 ) : (
                   <>
                   <div className="text-center">
-                    <div className="text-lg font-fredoka font-bold text-blue-600">{userStats.credits}</div>
+                    <div className="text-lg font-fredoka font-bold text-blue-600">
+                      {userStats.currentPlan === 'unlimited' ? '∞' : userStats.credits}
+                    </div>
                     <div className={`text-xs font-fredoka ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Credits</div>
                   </div>
                   <div className="text-center">
@@ -1551,8 +1479,10 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                 ) : (
                   <>
                     <div className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                      <span className="font-fredoka font-bold">{userStats.credits}</span>
-                </div>
+                      <span className="font-fredoka font-bold">
+                        {userStats.currentPlan === 'unlimited' ? '∞' : userStats.credits}
+                      </span>
+                    </div>
                     <div className="bg-green-100 text-green-700 px-2 py-1 rounded-full">
                       <span className="font-fredoka font-bold">Free</span>
                     </div>
@@ -1683,12 +1613,15 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                           <div className="px-4 py-2 border-t border-gray-100">
                             <div className="flex justify-between text-sm">
                               <span className="font-fredoka text-gray-600">Credits:</span>
-                              <span className="font-fredoka font-medium text-blue-600">{userStats.credits}</span>
+                              <span className="font-fredoka font-medium text-blue-600">
+                                {userStats.currentPlan === 'unlimited' ? 'Unlimited' : userStats.credits}
+                              </span>
                             </div>
                             <div className="flex justify-between text-sm">
                               <span className="font-fredoka text-gray-600">Plan:</span>
                               <span className="font-fredoka font-medium text-green-600">
-                                {userStats.currentPlan === 'basic' ? 'No Plan' : userStats.currentPlan}
+                                {userStats.currentPlan === 'unlimited' ? '🎉 Unlimited' : 
+                                 userStats.currentPlan === 'basic' ? 'No Plan' : userStats.currentPlan}
                               </span>
                             </div>
                             <div className="flex justify-between text-sm">
@@ -3240,6 +3173,85 @@ const ErrorModal = ({ isOpen, onClose, message, darkMode }) => {
   );
 };
 
+// Launch Event Modal Component
+const LaunchEventModal = ({ isOpen, onClose, darkMode }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className={`${darkMode ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-gray-900'} rounded-2xl p-8 max-w-lg mx-4 shadow-2xl`}>
+        <div className="text-center">
+          {/* Celebration Icon */}
+          <div className="mb-6">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-400 to-blue-500 rounded-full text-white">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Title */}
+          <h2 className={`text-3xl font-fredoka font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            🎉 Welcome to Our Launch Event!
+          </h2>
+
+          {/* Message */}
+          <div className={`${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-6 space-y-3`}>
+            <p className="text-lg">
+              Great news! As part of our exclusive launch event, you've been granted:
+            </p>
+            
+            <div className={`${darkMode ? 'bg-gray-700' : 'bg-gradient-to-r from-green-50 to-blue-50'} rounded-xl p-4 my-4`}>
+              <p className="text-2xl font-fredoka font-bold text-green-600 mb-2">
+                Unlimited Plan Access
+              </p>
+              <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                Completely FREE during our launch period!
+              </p>
+            </div>
+
+            <div className="text-left space-y-2">
+              <p className="font-semibold mb-2">Your benefits include:</p>
+              <ul className="space-y-1">
+                <li className="flex items-center">
+                  <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Unlimited essay marking</span>
+                </li>
+                <li className="flex items-center">
+                  <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Advanced analytics & insights</span>
+                </li>
+                <li className="flex items-center">
+                  <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Priority support</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Action Button */}
+          <button
+            onClick={onClose}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-lg font-fredoka font-semibold hover:shadow-lg transition-all transform hover:scale-105"
+          >
+            Start Using Your Benefits!
+          </button>
+
+          <p className={`text-xs mt-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            No credit card required • No hidden charges
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Main App Component
 const App = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -3254,6 +3266,8 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
+  const [showLaunchEventModal, setShowLaunchEventModal] = useState(false);
+  const [hasShownLaunchModal, setHasShownLaunchModal] = useState(false);
   const [userStats, setUserStats] = useState({
     questionsMarked: 0,
     credits: 3,
@@ -3992,6 +4006,19 @@ const App = () => {
         currentPlan: userInfo.current_plan || 'free'
       });
       
+      // Show launch event modal for users with unlimited plan (new or upgraded)
+      if (userInfo.current_plan === 'unlimited' && !hasShownLaunchModal) {
+        // Check if this is their first time seeing the modal
+        const modalShownKey = `launch_modal_shown_${userInfo.uid || userInfo.id}`;
+        const hasSeenModal = localStorage.getItem(modalShownKey);
+        
+        if (!hasSeenModal) {
+          setShowLaunchEventModal(true);
+          setHasShownLaunchModal(true);
+          localStorage.setItem(modalShownKey, 'true');
+        }
+      }
+      
       // Load dark mode preference
       setDarkMode(userInfo.dark_mode || false);
       
@@ -4609,6 +4636,11 @@ const handleSignOut = async () => {
               isOpen={showErrorModal} 
               onClose={() => setShowErrorModal(false)}
               message={errorMessage}
+              darkMode={darkMode}
+            />
+            <LaunchEventModal
+              isOpen={showLaunchEventModal}
+              onClose={() => setShowLaunchEventModal(false)}
               darkMode={darkMode}
             />
             <KeyboardShortcutsHelp 

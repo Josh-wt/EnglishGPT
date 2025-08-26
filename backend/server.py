@@ -1049,23 +1049,39 @@ async def create_or_get_user(user_data: dict):
         logger.debug(f"DEBUG: Check existing user response: {response}")
         
         if response.data:
-            # User exists, return the data
+            # User exists, check if they need upgrade to unlimited (launch event)
             existing_user = response.data[0]
+            
+            # If user is on free plan, upgrade them to unlimited
+            if existing_user.get('current_plan') == 'free':
+                update_data = {
+                    "current_plan": "unlimited",
+                    "credits": 999999,  # Effectively unlimited
+                    "updated_at": datetime.utcnow().isoformat(),
+                    "is_launch_user": True
+                }
+                
+                update_response = supabase.table('assessment_users').update(update_data).eq('uid', user_id).execute()
+                if update_response.data:
+                    existing_user = update_response.data[0]
+                    logger.info(f"Upgraded user {user_id} to unlimited plan (launch event)")
+            
             existing_user['id'] = existing_user['uid']  # For compatibility
             logger.debug(f"DEBUG: Returning existing user: {existing_user}")
             return {"user": existing_user}
         
-        # Create new user with 3 free credits
+        # Create new user with unlimited plan (launch event)
         new_user_data = {
             "uid": user_id,
             "email": email,
             "display_name": name,
-            "credits": 3,
-            "current_plan": "free",
+            "credits": 999999,  # Effectively unlimited
+            "current_plan": "unlimited",
             "questions_marked": 0,
             "academic_level": "N/A",  # Default to N/A
             "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat()
+            "updated_at": datetime.utcnow().isoformat(),
+            "is_launch_user": True  # Track users who got the launch benefit
         }
         
         logger.debug(f"DEBUG: Creating new user with data: {new_user_data}")
