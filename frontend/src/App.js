@@ -1405,6 +1405,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                 src="/logo.png" 
                 alt="EnglishGPT Logo" 
                 className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+                style={{ background: 'transparent' }}
               />
               <span className={`ml-1 sm:ml-2 text-base sm:text-xl font-fredoka ${darkMode ? 'text-white' : 'text-gray-900'} font-bold`}>EnglishGPT</span>
             </div>
@@ -1743,6 +1744,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
               src="/logo.png" 
               alt="EnglishGPT Logo" 
               className="w-20 h-20 object-contain"
+              style={{ background: 'transparent' }}
             />
           </div>
           
@@ -3549,7 +3551,7 @@ const App = () => {
         <header className="relative">
           <div className="max-w-7xl mx-auto flex items-center justify-between py-5 px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3">
-              <img src={LOGO_URL} alt="EnglishGPT logo" className="w-9 h-9 object-contain" />
+              <img src={LOGO_URL} alt="EnglishGPT logo" className="w-9 h-9 object-contain" style={{ background: 'transparent' }} />
               <span className="font-fredoka font-bold text-xl text-gray-900">EnglishGPT</span>
             </div>
             <nav className="hidden md:flex items-center gap-6 text-gray-700">
@@ -3740,7 +3742,7 @@ const App = () => {
         <footer className="relative border-t border-purple-200/50 bg-white/60 backdrop-blur-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img src={LOGO_URL} alt="EnglishGPT logo" className="w-8 h-8 object-contain" />
+              <img src={LOGO_URL} alt="EnglishGPT logo" className="w-8 h-8 object-contain" style={{ background: 'transparent' }} />
               <span className="font-fredoka font-semibold text-gray-900">EnglishGPT</span>
             </div>
             <div className="text-sm text-gray-600">© {new Date().getFullYear()} EnglishGPT. All rights reserved.</div>
@@ -3755,7 +3757,7 @@ const App = () => {
               <div className="px-6 pt-6 pb-4 border-b border-purple-200/60 bg-gradient-to-br from-white/60 to-purple-50/40">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <img src={LOGO_URL} alt="EnglishGPT logo" className="w-8 h-8 object-contain" />
+                    <img src={LOGO_URL} alt="EnglishGPT logo" className="w-8 h-8 object-contain" style={{ background: 'transparent' }} />
                     <div>
                       <div className="font-fredoka font-semibold text-gray-900">Welcome</div>
                       <div className="text-xs text-gray-600">Sign in to continue to your dashboard</div>
