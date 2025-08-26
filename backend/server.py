@@ -2232,11 +2232,17 @@ async def submit_feedback(feedback: FeedbackSubmitModel):
 # Subscription API endpoints
 # Initialize subscription service if available
 if DODO_INTEGRATION_AVAILABLE and SubscriptionService:
-    subscription_service = SubscriptionService(supabase)
-    # Initialize webhook validator for server webhook endpoint
-    webhook_validator = create_webhook_validator() if create_webhook_validator else WebhookValidator()
+    try:
+        subscription_service = SubscriptionService(supabase)
+        # Initialize webhook validator for server webhook endpoint
+        webhook_validator = create_webhook_validator() if create_webhook_validator else WebhookValidator()
+    except Exception as e:
+        logger.warning(f"Failed to initialize subscription service: {e}")
+        subscription_service = None
+        webhook_validator = None
 else:
     subscription_service = None
+    webhook_validator = None
 
 @api_router.get("/subscriptions/test")
 async def test_subscription_endpoint():
