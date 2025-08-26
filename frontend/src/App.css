@@ -650,3 +650,22 @@ button:active {
 .text-error {
   @apply text-red-600;
 }
+
+/* Remove any background from logo images */
+img[src*="logo"] {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Ensure logo containers have no background */
+img[alt*="Logo"], img[alt*="logo"] {
+  background: none !important;
+  background-color: transparent !important;
+}
+
+/* Specific rule for the EnglishGPT logo */
+img[src="/logo.png"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  border-radius: 0 !important;
+}
