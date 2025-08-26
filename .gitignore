@@ -1,5 +1,13 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+frontend/build/
+frontend/node_modules/
+frontend/package-lock.json
+frontend/yarn.lock
+*.log
+.env
+.DS_Store
+
 backend/.env
 backend/.env.txt
 frontend/.env
