@@ -1403,7 +1403,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
             <div className="flex items-center space-x-4 sm:space-x-6">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden">
                 <img 
-                  src="https://ik.imagekit.io/lqf8a8nmt/ChatGPT%20Image%20Aug%2026,%202025,%2002_39_16%20PM.png?updatedAt=1756199401133" 
+                  src="/logo.png" 
                   alt="EnglishGPT Logo" 
                   className="w-full h-full object-contain"
                 />
@@ -1742,10 +1742,12 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
         <div className="text-center mb-12">
           <div className="flex justify-center mb-6">
             <div className="relative">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-xl">
-                <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
-                </svg>
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-xl p-3">
+                <img 
+                  src="/logo.png" 
+                  alt="EnglishGPT Logo" 
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full animate-pulse"></div>
             </div>
