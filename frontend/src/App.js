@@ -1949,17 +1949,30 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
 
   const WordCountRing = ({ count, goal }) => {
     const pct = Math.max(0, Math.min(100, Math.floor((count / goal) * 100)));
-    const ring = `conic-gradient(#3b82f6 ${pct}%, ${darkMode ? '#374151' : '#e5e7eb'} ${pct}% 100%)`;
+    const ringColor = pct >= 100 ? '#10b981' : pct >= 75 ? '#3b82f6' : pct >= 50 ? '#f59e0b' : '#ec4899';
+    const ring = `conic-gradient(${ringColor} ${pct}%, ${darkMode ? '#374151' : '#f3e8ff'} ${pct}% 100%)`;
+    
     return (
-      <div className="flex items-center gap-3">
-        <div className="relative w-12 h-12" aria-label="Word count progress">
-          <div className="w-12 h-12 rounded-full" style={{ backgroundImage: ring }} />
-          <div className={`absolute inset-1 rounded-full flex items-center justify-center text-xs ${darkMode ? 'bg-black text-white' : 'bg-white text-gray-800'}`}>{pct}%</div>
+      <div className={`flex items-center gap-4 ${darkMode ? 'bg-gray-800' : 'bg-gradient-to-r from-purple-50 to-pink-50'} px-4 py-3 rounded-xl`}>
+        <div className="relative w-14 h-14" aria-label="Word count progress">
+          <div className="w-14 h-14 rounded-full shadow-lg" style={{ backgroundImage: ring }} />
+          <div className={`absolute inset-1.5 rounded-full flex items-center justify-center text-xs font-bold ${
+            darkMode ? 'bg-gray-900 text-white' : 'bg-white text-purple-700 shadow-inner'
+          }`}>
+            {pct}%
+          </div>
         </div>
-        <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-          <div className="font-semibold">{count} / {goal} words</div>
+        <div>
+          <div className={`font-fredoka font-bold text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+            {count} / {goal} words
+          </div>
           {lastSavedAt && (
-            <div className="text-xs">Saved {Math.max(0, Math.floor((Date.now() - lastSavedAt) / 60000))} min ago</div>
+            <div className={`text-xs flex items-center gap-1 ${darkMode ? 'text-gray-400' : 'text-purple-600'}`}>
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Auto-saved {Math.max(0, Math.floor((Date.now() - lastSavedAt) / 60000))} min ago
+            </div>
           )}
         </div>
       </div>
@@ -2108,11 +2121,37 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   };
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-gray-50'} p-4`}>
-      <div className="max-w-7xl mx-auto">
+    <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50'}`}>
+      {/* Header with Back Button */}
+      <div className={`${darkMode ? 'bg-gray-900 border-gray-800' : 'bg-white/80 backdrop-blur-lg border-purple-100'} border-b sticky top-0 z-10 shadow-sm`}>
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={onBack}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-fredoka font-medium transition-all ${
+                darkMode 
+                  ? 'text-gray-300 hover:text-white hover:bg-gray-800' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-purple-50'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back to Dashboard
+            </button>
+            <div className="flex items-center gap-3">
+              <div className={`px-4 py-2 rounded-xl ${darkMode ? 'bg-gray-800 text-gray-300' : 'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700'}`}>
+                <span className="font-fredoka font-medium">✍️ Write Mode</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto p-4 pt-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left: Choose Question Type */}
-          <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-6 shadow-sm border`}>
+          <div className={`${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-purple-100'} rounded-2xl p-6 shadow-xl border backdrop-blur-lg`}>
             <h2 className={`text-lg font-fredoka font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>📚 Choose Question Type</h2>
             <div className="mb-4 flex items-center">
               <div className={`bg-gradient-to-r ${levelData.gradient} text-white px-2 py-1 rounded-md mr-2`}>
@@ -2155,88 +2194,307 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                 </div>
               )}
             </div>
-            <div className={`${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'} rounded-2xl p-4 border mt-6`}>
-              <h3 className={`font-fredoka font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Getting Started</h3>
-              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm mb-3`}>Use these tips to improve your {selectedQuestionType?.name || levelData.levelName} response:</p>
-              <ul className={`list-disc pl-6 space-y-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'} text-sm`}>
-                <li>Plan briefly: outline intro, key points, and conclusion.</li>
-                <li>Use precise vocabulary and vary sentence structure.</li>
-                <li>Keep a consistent tone and answer the prompt directly.</li>
-                <li>Target word goal shown on the progress ring.</li>
-              </ul>
-              <div className="mt-4 flex gap-3">
-                <button onClick={() => setShowExample(true)} className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">View Example</button>
-                <button onClick={() => setStudentResponse((v) => (v ? v + '\n\n' : '') + generatePrompt())} className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Generate Prompt</button>
+            <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700' : 'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200'} rounded-2xl p-5 border mt-6`}>
+              <h3 className={`font-fredoka font-bold mb-3 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                <span className="text-xl">💡</span> Getting Started
+              </h3>
+              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm mb-4`}>
+                Tips for your {selectedQuestionType?.name || levelData.levelName} response:
+              </p>
+              <div className="space-y-2">
+                {[
+                  { icon: '📝', text: 'Plan briefly: outline intro, key points, conclusion' },
+                  { icon: '✨', text: 'Use precise vocabulary and vary sentences' },
+                  { icon: '🎯', text: 'Keep consistent tone and answer directly' },
+                  { icon: '📊', text: 'Target the word goal shown above' }
+                ].map((tip, idx) => (
+                  <div key={idx} className={`flex items-start gap-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'} text-sm`}>
+                    <span className="text-base mt-0.5">{tip.icon}</span>
+                    <span>{tip.text}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-5 flex gap-3">
+                <button 
+                  onClick={() => setShowExample(true)} 
+                  className={`flex-1 px-4 py-2.5 rounded-lg font-fredoka font-medium transition-all transform hover:scale-105 ${
+                    darkMode 
+                      ? 'bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600' 
+                      : 'bg-white hover:bg-purple-50 text-purple-700 border border-purple-300 shadow-sm hover:shadow-md'
+                  }`}
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <span>👁️</span> View Example
+                  </span>
+                </button>
+                <button 
+                  onClick={() => setStudentResponse((v) => (v ? v + '\n\n' : '') + generatePrompt())} 
+                  className={`flex-1 px-4 py-2.5 rounded-lg font-fredoka font-medium text-white transition-all transform hover:scale-105 shadow-md hover:shadow-lg`}
+                  style={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                  }}
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <span>✨</span> Generate Prompt
+                  </span>
+                </button>
               </div>
             </div>
           </div>
 
           {/* Right: Essay Input */}
-          <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-6 shadow-sm border lg:col-span-2`}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className={`text-2xl font-fredoka font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>📝 Your Essay</h2>
-              {selectedQuestionType && (
-                <div className={`flex items-center ${darkMode ? 'bg-gray-800' : 'bg-blue-50'} px-3 py-1 rounded-full`}>
-                  <span className="text-2xl mr-2">{selectedQuestionType.icon}</span>
-                  <span className={`font-fredoka text-sm font-medium ${darkMode ? 'text-blue-400' : 'text-blue-700'}`}>{selectedQuestionType.name}</span>
+          <div className={`${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-purple-100'} rounded-2xl shadow-xl border lg:col-span-2 backdrop-blur-lg overflow-hidden`}>
+            {/* Essay Header */}
+            <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-100'} border-b px-6 py-4`}>
+              <div className="flex items-center justify-between">
+                <h2 className={`text-2xl font-fredoka font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <span className="inline-block animate-bounce" style={{animationDelay: '0.1s'}}>📝</span> Your Essay
+                </h2>
+                {selectedQuestionType && (
+                  <div className={`flex items-center ${darkMode ? 'bg-gray-700' : 'bg-white'} px-4 py-2 rounded-full shadow-sm`}>
+                    <span className="text-xl mr-2">{selectedQuestionType.icon}</span>
+                    <span className={`font-fredoka text-sm font-medium ${darkMode ? 'text-blue-400' : 'text-purple-700'}`}>{selectedQuestionType.name}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="p-6">
+              {restoredDraft && (
+                <div className="mb-4 flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span className="font-fredoka">Draft restored successfully!</span>
                 </div>
               )}
-            </div>
 
-            {restoredDraft && (
-              <div className="mb-3 text-xs text-green-700 bg-green-50 border border-green-200 rounded px-3 py-2">
-                Restored unsaved draft.
+              {/* Beautiful Formatting Toolbar */}
+              <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200'} rounded-xl p-3 mb-4 border`}>
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div className="flex items-center gap-2">
+                    {/* Bold Button */}
+                    <button
+                      onClick={() => applyFormat('**')}
+                      className={`group relative px-4 py-2 rounded-lg font-medium transition-all transform hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' 
+                          : 'bg-white hover:bg-purple-100 text-gray-700 shadow-sm hover:shadow-md'
+                      }`}
+                      title="Bold (Ctrl+B)"
+                    >
+                      <span className="font-bold">B</span>
+                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        Bold
+                      </span>
+                    </button>
+
+                    {/* Italic Button */}
+                    <button
+                      onClick={() => applyFormat('*')}
+                      className={`group relative px-4 py-2 rounded-lg font-medium transition-all transform hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' 
+                          : 'bg-white hover:bg-pink-100 text-gray-700 shadow-sm hover:shadow-md'
+                      }`}
+                      title="Italic (Ctrl+I)"
+                    >
+                      <span className="italic">I</span>
+                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        Italic
+                      </span>
+                    </button>
+
+                    {/* Underline Button */}
+                    <button
+                      onClick={() => applyFormat('<u>', '</u>')}
+                      className={`group relative px-4 py-2 rounded-lg font-medium transition-all transform hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' 
+                          : 'bg-white hover:bg-blue-100 text-gray-700 shadow-sm hover:shadow-md'
+                      }`}
+                      title="Underline"
+                    >
+                      <span className="underline">U</span>
+                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        Underline
+                      </span>
+                    </button>
+
+                    <div className={`w-px h-6 ${darkMode ? 'bg-gray-600' : 'bg-purple-200'}`} />
+
+                    {/* Paragraph Break */}
+                    <button
+                      onClick={insertParagraphBreak}
+                      className={`group relative px-4 py-2 rounded-lg font-medium transition-all transform hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' 
+                          : 'bg-white hover:bg-green-100 text-gray-700 shadow-sm hover:shadow-md'
+                      }`}
+                      title="New Paragraph"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        Paragraph
+                      </span>
+                    </button>
+
+                    {/* Quote Button */}
+                    <button
+                      onClick={() => applyFormat('"', '"')}
+                      className={`group relative px-4 py-2 rounded-lg font-medium transition-all transform hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' 
+                          : 'bg-white hover:bg-orange-100 text-gray-700 shadow-sm hover:shadow-md'
+                      }`}
+                      title="Add Quotes"
+                    >
+                      <span className="text-lg">"</span>
+                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        Quote
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Right side tools */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        const textarea = essayRef.current;
+                        if (textarea) {
+                          textarea.select();
+                          document.execCommand('copy');
+                        }
+                      }}
+                      className={`group relative px-3 py-2 rounded-lg transition-all ${
+                        darkMode 
+                          ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
+                          : 'bg-purple-100 hover:bg-purple-200 text-purple-700'
+                      }`}
+                      title="Copy All"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setStudentResponse('')}
+                      className={`group relative px-3 py-2 rounded-lg transition-all ${
+                        darkMode 
+                          ? 'bg-red-900 hover:bg-red-800 text-red-300' 
+                          : 'bg-red-100 hover:bg-red-200 text-red-700'
+                      }`}
+                      title="Clear All"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </div>
-            )}
 
-            {/* Formatting toolbar */}
-            <div className="flex items-center gap-2 mb-3">
-              <button onClick={() => applyFormat('**')} className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-100">Bold</button>
-              <button onClick={() => applyFormat('*')} className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-100">Italic</button>
-              <button onClick={insertParagraphBreak} className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-100">Paragraph</button>
-              <button onClick={onBack} className="ml-auto px-3 py-1 text-sm rounded border border-blue-300 text-blue-700 hover:bg-blue-50">← Back</button>
-            </div>
+              {/* Beautiful Textarea */}
+              <div className={`relative rounded-xl overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-gradient-to-br from-purple-50 via-white to-pink-50'}`}>
+                <textarea
+                  value={studentResponse}
+                  onChange={(e) => setStudentResponse(e.target.value)}
+                  placeholder={`Type or paste your ${levelData.levelName} essay answer here...\n\n✨ Select a question type from the left panel and write your response to get instant AI feedback!`}
+                  className={`w-full h-96 p-6 rounded-xl focus:outline-none resize-none font-fredoka leading-relaxed transition-all ${
+                    darkMode 
+                      ? 'bg-gray-800 text-gray-100 placeholder-gray-500 border-2 border-gray-700 focus:border-purple-500' 
+                      : 'bg-white/70 text-gray-700 placeholder-gray-400 border-2 border-purple-200 focus:border-purple-400 focus:shadow-lg'
+                  }`}
+                  aria-label="Essay input"
+                  ref={essayRef}
+                  style={{
+                    backgroundImage: darkMode ? 'none' : 'linear-gradient(0deg, transparent 24%, rgba(147, 51, 234, 0.04) 25%, rgba(147, 51, 234, 0.04) 26%, transparent 27%, transparent 74%, rgba(147, 51, 234, 0.04) 75%, rgba(147, 51, 234, 0.04) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(147, 51, 234, 0.04) 25%, rgba(147, 51, 234, 0.04) 26%, transparent 27%, transparent 74%, rgba(147, 51, 234, 0.04) 75%, rgba(147, 51, 234, 0.04) 76%, transparent 77%, transparent)',
+                    backgroundSize: '30px 30px'
+                  }}
+                />
+                {/* Character count indicator */}
+                <div className={`absolute bottom-2 right-2 text-xs ${darkMode ? 'text-gray-500' : 'text-purple-400'}`}>
+                  {studentResponse.length} characters
+                </div>
+              </div>
 
-            <textarea
-              value={studentResponse}
-              onChange={(e) => setStudentResponse(e.target.value)}
-              placeholder={`Type or paste your ${levelData.levelName} essay answer here...\n\n✨ Select a question type from the left panel and write your response to get instant AI feedback!`}
-              className="w-full h-80 p-6 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none font-fredoka text-gray-700 placeholder-gray-400 leading-relaxed"
-              aria-label="Essay input"
-              ref={essayRef}
-            />
-
-            <div className="mt-4 flex justify-between items-center">
+              <div className="mt-6 flex justify-between items-center">
               <WordCountRing count={wordCount} goal={getWordGoal()} />
 
-              {showMarkingSchemeChoice && selectedQuestionType && studentResponse.trim() && (
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleProceed(false)}
-                    className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-2 rounded-lg font-fredoka font-bold hover:from-green-600 hover:to-blue-600 transition-all duration-300 shadow-md"
-                  >
-                    🚀 Skip Scheme
-                  </button>
-                  <button
-                    onClick={() => handleProceed(true)}
-                    className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-6 py-2 rounded-lg font-fredoka font-bold hover:from-yellow-600 hover:to-orange-600 transition-all duration-300 shadow-md"
-                  >
-                    📋 Add Scheme
-                  </button>
-                </div>
-              )}
+                {showMarkingSchemeChoice && selectedQuestionType && studentResponse.trim() && (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => handleProceed(false)}
+                      className="relative group px-6 py-3 rounded-xl font-fredoka font-bold text-white overflow-hidden transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+                      style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                      }}
+                    >
+                      <span className="relative z-10 flex items-center gap-2">
+                        <span className="text-xl">🚀</span>
+                        Skip Scheme
+                      </span>
+                      <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity" />
+                    </button>
+                    <button
+                      onClick={() => handleProceed(true)}
+                      className="relative group px-6 py-3 rounded-xl font-fredoka font-bold text-white overflow-hidden transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+                      style={{
+                        background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+                      }}
+                    >
+                      <span className="relative z-10 flex items-center gap-2">
+                        <span className="text-xl">📋</span>
+                        Add Scheme
+                      </span>
+                      <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity" />
+                    </button>
+                  </div>
+                )}
 
-              {showNextButton && selectedQuestionType && studentResponse.trim() && !showMarkingSchemeChoice && (
-                <button
-                  onClick={handleProceed}
-                  className="bg-gradient-to-r from-pink-500 to-blue-500 text-white px-8 py-3 rounded-xl font-fredoka font-bold hover:from-pink-600 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-                >
-                  {selectedQuestionType.requiresScheme === true ? 'Add Marking Scheme →' : '🚀 Get AI Feedback Now →'}
-                </button>
-              )}
+                {showNextButton && selectedQuestionType && studentResponse.trim() && !showMarkingSchemeChoice && (
+                  <button
+                    onClick={handleProceed}
+                    className="relative group px-8 py-4 rounded-xl font-fredoka font-bold text-white overflow-hidden transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl"
+                    style={{
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                    }}
+                  >
+                    <span className="relative z-10 flex items-center gap-2 text-lg">
+                      {selectedQuestionType.requiresScheme === true ? (
+                        <>
+                          <span>Add Marking Scheme</span>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                          </svg>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-xl">🚀</span>
+                          <span>Get AI Feedback Now</span>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                          </svg>
+                        </>
+                      )}
+                    </span>
+                    <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity" />
+                    {/* Animated gradient shine effect */}
+                    <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                      style={{
+                        background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.3) 50%, transparent 60%)',
+                        transform: 'translateX(-100%)',
+                        animation: 'group-hover:shine 1s ease-out'
+                      }}
+                    />
+                  </button>
+                )}
             </div>
 
-            {/* Helper section moved to left; removed duplicate from right */}
+              </div>
+            </div>
 
             {/* Example modal */}
             {showExample && (
