@@ -359,9 +359,18 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
         // Try to get cached recommendations if not a milestone
         setIsLoadingRecommendations(true);
         try {
-          const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/analytics?user_id=${user.id}`, {
+          // Get the current session for auth token
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session?.access_token) {
+            console.error('No valid session found');
+            setIsLoadingRecommendations(false);
+            return;
+          }
+          
+          const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/analytics/${user.id}`, {
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`,
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
             }
           });
           
@@ -1766,7 +1775,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center space-x-4 sm:space-x-6">
               <img 
-                src="/logo.png" 
+                src="https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143" 
                 alt="EnglishGPT Logo" 
                 className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
                 style={{ background: 'transparent' }}
@@ -2105,7 +2114,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
         <div className="text-center mb-12">
           <div className="flex justify-center mb-6">
             <img 
-              src="/logo.png" 
+              src="https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143" 
               alt="EnglishGPT Logo" 
               className="w-20 h-20 object-contain"
               style={{ background: 'transparent' }}
@@ -3016,6 +3025,14 @@ const AssessmentPage = ({ selectedQuestionType, onBack, onEvaluate, darkMode }) 
     return (
       <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-main'} flex items-center justify-center`}>
         <div className="text-center max-w-md">
+          <div className="mb-8">
+            <img 
+              src="https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143" 
+              alt="EnglishGPT Logo" 
+              className="w-20 h-20 mx-auto object-contain animate-pulse"
+              style={{ background: 'transparent' }}
+            />
+          </div>
           <div className="loading-animation">
             <div className="loading-dots">
               <div className="loading-dot"></div>
@@ -3892,7 +3909,7 @@ const App = () => {
   // --- Landing Page (public) ---
   const LandingPage = ({ onDiscord, onGoogle }) => {
     // Product screenshots (defined explicitly as requested)
-    const LOGO_URL = '/logo.png';
+    const LOGO_URL = 'https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143';
     const [showAuthModal, setShowAuthModal] = useState(false);
     const IMG_STRENGTHS = 'https://ik.imagekit.io/lqf8a8nmt/Screenshot%202025-08-17%20at%2012-17-17%20EnglishGPT%20-%20AI%20English%20Marking.png?updatedAt=1755509276805';
     const IMG_PRICING = 'https://ik.imagekit.io/lqf8a8nmt/Screenshot%202025-08-17%20at%2012-11-06%20EnglishGPT%20-%20AI%20English%20Marking.png?updatedAt=1755509276757';
@@ -4815,6 +4832,14 @@ const handleSignOut = async () => {
       return (
         <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-main'} flex items-center justify-center`}>
           <div className="text-center">
+            <div className="mb-8">
+              <img 
+                src="https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143" 
+                alt="EnglishGPT Logo" 
+                className="w-20 h-20 mx-auto object-contain animate-pulse"
+                style={{ background: 'transparent' }}
+              />
+            </div>
             <div className="loading-animation">
               <div className="loading-dots">
                 <div className="loading-dot"></div>
@@ -5121,6 +5146,14 @@ const handleSignOut = async () => {
       return (
         <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-main'} flex items-center justify-center`}>
           <div className="text-center">
+            <div className="mb-8">
+              <img 
+                src="https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143" 
+                alt="EnglishGPT Logo" 
+                className="w-20 h-20 mx-auto object-contain animate-pulse"
+                style={{ background: 'transparent' }}
+              />
+            </div>
             <div className="loading-animation">
               <div className="loading-dots">
                 <div className="loading-dot"></div>
@@ -5210,6 +5243,14 @@ const handleSignOut = async () => {
     return (
       <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-main'} flex items-center justify-center`}>
         <div className="text-center max-w-md">
+          <div className="mb-8">
+            <img 
+              src="https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143" 
+              alt="EnglishGPT Logo" 
+              className="w-20 h-20 mx-auto object-contain animate-pulse"
+              style={{ background: 'transparent' }}
+            />
+          </div>
           <div className="loading-animation">
             <div className="loading-dots">
               <div className="loading-dot"></div>

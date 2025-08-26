@@ -1974,24 +1974,64 @@ async def get_user_analytics(user_id: str):
                             "improvementSuggestions": improvements_sample,
                         })
 
-                    # Compose prompt
+                    # Compose enhanced prompt aligned with KimiK2 evaluation style
                     guide = (
-                        "-Understand this syllabus, what does each paper evaluate and what you need to learn\n"
-                        "-Make a study goal of x topics per day/week that need to be completed. Then learn from notes accordingly.\n"
-                        "-Read novels (booker prize list) if you can\n"
-                        "-Review example candidate responses, high and low, to understand what works and what doesn't. And incorporate the former in your essays.\n"
-                        "-Practice with past papers\n"
-                        "-Understand the feedback you're given, where exactly you lose marks, why do you lose marks etc. Also compare your essays with high ecr's and understand where you went wrong\n"
-                        "-Keep practicing and improving\n"
+                        "CRITICAL FOCUS AREAS:\n"
+                        "1. Vocabulary Enhancement: Focus on advanced vocabulary that demonstrates sophistication\n"
+                        "2. Structure & Organization: Clear progression of ideas with effective paragraphing\n"
+                        "3. Evidence & Analysis: Use specific textual evidence and detailed analysis\n"
+                        "4. Writing Techniques: Employ varied sentence structures and literary devices\n"
+                        "5. Time Management: Practice completing responses within allocated time\n"
+                        "6. Marking Criteria Mastery: Understand exactly what examiners look for\n"
+                        "7. Comparative Analysis: For comparative essays, balance discussion between texts\n"
+                        "8. Critical Thinking: Develop original insights and interpretations\n"
                     )
-                    user_prompt = (
-                        "Based on the averageScore and improvementSuggestions of questionType for this student please Womend the future steps this student should take to improve, "
-                        "use this knowledge of how to improve in english guide below, to guide you, answer in bullet points and write talking like a human talking to another human, so say words like \"you should\":\n\n"
-                        f"Data: {json.dumps(summaries)}\n\nGuide:\n{guide}"
-                    )
+                    
+                    user_prompt = f"""
+You are analyzing a student's English assessment performance using the KimiK2 evaluation methodology.
 
-                    # Call OpenRouter for recommendations
+STUDENT PERFORMANCE DATA:
+{json.dumps(summaries, indent=2)}
+
+EVALUATION APPROACH (KimiK2 Style):
+- Give specific, actionable recommendations
+- Focus on vocabulary improvement as a priority (highest marks for good vocabulary)
+- Identify patterns across multiple assessments
+- Provide concrete examples of how to improve
+- Be encouraging while being honest about areas needing work
+
+{guide}
+
+Based on this student's specific performance patterns, generate personalized recommendations following this structure:
+
+1. **Immediate Priority Areas** (2-3 most critical improvements needed)
+   - Be specific about WHAT to improve and HOW
+
+2. **Vocabulary Development Strategy**
+   - Specific vocabulary areas to focus on based on their weak question types
+   - Resources and techniques for vocabulary enhancement
+
+3. **Question-Type Specific Improvements**
+   - For each weak question type, provide targeted advice
+   - Include specific techniques that work for that question type
+
+4. **Study Plan** (Weekly structure)
+   - Concrete daily/weekly goals
+   - Balance between practice and learning new concepts
+
+5. **Success Indicators**
+   - What improvements to look for in next 5 assessments
+   - Measurable goals to track progress
+
+Remember: This student has completed {len(evaluations)} assessments. Tailor your advice to their current level and progression.
+
+Format your response in clear bullet points, using "you" to address the student directly. Be encouraging but specific - avoid generic advice."""
+
+                    # Call OpenRouter API for recommendations using OPENROUTER_GPT_OSS_120B_KEY
                     async def call_recommendations(prompt: str) -> str:
+                        if not RECOMMENDATIONS_API_KEY:
+                            raise Exception("OPENROUTER_GPT_OSS_120B_KEY not configured for recommendations")
+                        
                         async with httpx.AsyncClient() as client:
                             headers = {
                                 "Authorization": f"Bearer {RECOMMENDATIONS_API_KEY}",
@@ -1999,15 +2039,23 @@ async def get_user_analytics(user_id: str):
                                 "HTTP-Referer": "https://englishgpt.org",
                                 "X-Title": "EnglishGPT Recommendations"
                             }
+                            
+                            # Enhanced system prompt with KimiK2-style evaluation approach
+                            system_prompt = """You are an expert English language tutor using the KimiK2 evaluation methodology. 
+                            Generate practical, encouraging study recommendations based on student performance data. 
+                            Focus heavily on vocabulary improvement as it yields the highest marks.
+                            Be specific, actionable, and personalized to the student's weaknesses."""
+                            
                             payload = {
                                 "model": RECOMMENDATIONS_MODEL,
                                 "messages": [
-                                    {"role": "system", "content": "You generate practical, encouraging study recommendations for English exam preparation. Keep it concise and actionable."},
-                                    {"role": "user", "content": user_prompt}
+                                    {"role": "system", "content": system_prompt},
+                                    {"role": "user", "content": prompt}
                                 ],
-                                "max_tokens": 600,
+                                "max_tokens": 800,
                                 "temperature": 0.5
                             }
+                            
                             r = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=60.0)
                             r.raise_for_status()
                             res = r.json()
