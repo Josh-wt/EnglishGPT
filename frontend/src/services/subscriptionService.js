@@ -166,7 +166,7 @@ class SubscriptionService {
       
       // Re-throw with more context
       if (error.message.includes('Unable to connect')) {
-        throw new Error('Backend server is not running. Please start the server on port 8000.');
+        throw new Error('Backend server is not running. Please start the server on port 5000.');
       }
       throw error;
     }
