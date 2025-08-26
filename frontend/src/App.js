@@ -1401,13 +1401,11 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center space-x-4 sm:space-x-6">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden">
-                <img 
-                  src="/logo.png" 
-                  alt="EnglishGPT Logo" 
-                  className="w-full h-full object-contain"
-                />
-              </div>
+              <img 
+                src="/logo.png" 
+                alt="EnglishGPT Logo" 
+                className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+              />
               <span className={`ml-1 sm:ml-2 text-base sm:text-xl font-fredoka ${darkMode ? 'text-white' : 'text-gray-900'} font-bold`}>EnglishGPT</span>
             </div>
             
@@ -1741,16 +1739,11 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
         {/* Hero Section - Balanced between old and new */}
         <div className="text-center mb-12">
           <div className="flex justify-center mb-6">
-            <div className="relative">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-xl p-3">
-                <img 
-                  src="/logo.png" 
-                  alt="EnglishGPT Logo" 
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full animate-pulse"></div>
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="EnglishGPT Logo" 
+              className="w-20 h-20 object-contain"
+            />
           </div>
           
           <h1 className="text-4xl font-bold text-gray-900 mb-4 font-fredoka">EnglishGPT</h1>
@@ -3533,7 +3526,7 @@ const App = () => {
   // --- Landing Page (public) ---
   const LandingPage = ({ onDiscord, onGoogle }) => {
     // Product screenshots (defined explicitly as requested)
-    const LOGO_URL = 'https://ik.imagekit.io/lqf8a8nmt/ChatGPT%20Image%20Aug%2026,%202025,%2002_39_16%20PM.png?updatedAt=1756199401133';
+    const LOGO_URL = '/logo.png';
     const [showAuthModal, setShowAuthModal] = useState(false);
     const IMG_STRENGTHS = 'https://ik.imagekit.io/lqf8a8nmt/Screenshot%202025-08-17%20at%2012-17-17%20EnglishGPT%20-%20AI%20English%20Marking.png?updatedAt=1755509276805';
     const IMG_PRICING = 'https://ik.imagekit.io/lqf8a8nmt/Screenshot%202025-08-17%20at%2012-11-06%20EnglishGPT%20-%20AI%20English%20Marking.png?updatedAt=1755509276757';
@@ -3556,7 +3549,7 @@ const App = () => {
         <header className="relative">
           <div className="max-w-7xl mx-auto flex items-center justify-between py-5 px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3">
-              <img src={LOGO_URL} alt="EnglishGPT logo" className="w-9 h-9 rounded-xl object-cover shadow-lg shadow-purple-600/20" />
+              <img src={LOGO_URL} alt="EnglishGPT logo" className="w-9 h-9 object-contain" />
               <span className="font-fredoka font-bold text-xl text-gray-900">EnglishGPT</span>
             </div>
             <nav className="hidden md:flex items-center gap-6 text-gray-700">
@@ -3747,7 +3740,7 @@ const App = () => {
         <footer className="relative border-t border-purple-200/50 bg-white/60 backdrop-blur-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img src={LOGO_URL} alt="EnglishGPT logo" className="w-8 h-8 rounded-xl object-cover shadow-md shadow-purple-600/30" />
+              <img src={LOGO_URL} alt="EnglishGPT logo" className="w-8 h-8 object-contain" />
               <span className="font-fredoka font-semibold text-gray-900">EnglishGPT</span>
             </div>
             <div className="text-sm text-gray-600">© {new Date().getFullYear()} EnglishGPT. All rights reserved.</div>
@@ -3762,7 +3755,7 @@ const App = () => {
               <div className="px-6 pt-6 pb-4 border-b border-purple-200/60 bg-gradient-to-br from-white/60 to-purple-50/40">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <img src={LOGO_URL} alt="EnglishGPT logo" className="w-8 h-8 rounded-lg object-cover" />
+                    <img src={LOGO_URL} alt="EnglishGPT logo" className="w-8 h-8 object-contain" />
                     <div>
                       <div className="font-fredoka font-semibold text-gray-900">Welcome</div>
                       <div className="text-xs text-gray-600">Sign in to continue to your dashboard</div>
