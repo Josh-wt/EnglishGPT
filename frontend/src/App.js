@@ -1738,125 +1738,122 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
+        {/* Hero Section - Balanced between old and new */}
         <div className="text-center mb-12">
           <div className="flex justify-center mb-6">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center relative">
-              <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
-              </svg>
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full"></div>
+            <div className="relative">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-xl">
+                <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
+                </svg>
+              </div>
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full animate-pulse"></div>
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">EnglishGPT</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+          
+          <h1 className="text-4xl font-bold text-gray-900 mb-4 font-fredoka">EnglishGPT</h1>
+          
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8 font-fredoka">
             Get instant, professional feedback on your English essays and assignments
           </p>
+          
+          {/* Main CTA Button - Prominent but fitting the original style */}
           <button
             onClick={onStartQuestion}
-            className="bg-black text-white px-8 py-4 rounded-xl font-semibold hover:bg-gray-800 transition-colors text-lg"
+            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-10 py-5 rounded-xl font-fredoka font-semibold hover:shadow-xl transform hover:scale-105 transition-all duration-200 text-lg"
           >
-            Mark a Question
+            <span className="flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Mark a Question
+            </span>
           </button>
+          
+          {/* Quick features - smaller, simpler */}
+          <div className="mt-8 flex justify-center gap-6 text-sm font-fredoka">
+            <span className="text-gray-600">✨ Instant Results</span>
+            <span className="text-gray-600">📚 All Levels</span>
+            <span className="text-gray-600">🎯 Professional Feedback</span>
+          </div>
         </div>
         
-        {/* Question Types - Rendered explicitly */}
+        {/* Question Types - Clean cards with original pink theme */}
         <div className="space-y-12">
           {/* IGCSE Section */}
-          <div className="mb-12">
+          <div>
             <div className="flex items-center mb-6">
               <div className="bg-gradient-to-r from-blue-500 to-green-500 text-white px-4 py-2 rounded-lg mr-4">
-                <span className="font-bold">IGCSE</span>
+                <span className="font-fredoka font-bold">IGCSE</span>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">International General Certificate of Secondary Education</h2>
+              <h2 className="text-2xl font-fredoka font-bold text-gray-900">International General Certificate of Secondary Education</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
               {/* Summary */}
               <div className="bg-pink-50 rounded-xl p-4 sm:p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-white mb-3 sm:mb-4 text-xl sm:text-2xl" style={{background:'#3b82f6'}}>📄</div>
                 <h3 className="font-fredoka text-base sm:text-lg text-gray-900 mb-2 font-semibold">Summary</h3>
-                <p className="font-fredoka text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4">Condensing key information from texts</p>
-                <div className="flex items-center space-x-1 sm:space-x-2 flex-wrap gap-1">
-                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
-                  <span className="font-fredoka text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-100">Mark scheme required</span>
-                </div>
+                <p className="font-fredoka text-gray-600 text-xs sm:text-sm">Condensing key information from texts</p>
               </div>
+              
               {/* Narrative */}
-              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
-                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#8b5cf6'}}>📖</div>
-                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Narrative</h3>
-                <p className="font-fredoka text-gray-600 text-sm mb-4">Creative storytelling and structure</p>
-                <div className="flex items-center space-x-2">
-                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
-                </div>
+              <div className="bg-pink-50 rounded-xl p-4 sm:p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-white mb-3 sm:mb-4 text-xl sm:text-2xl" style={{background:'#8b5cf6'}}>📖</div>
+                <h3 className="font-fredoka text-base sm:text-lg text-gray-900 mb-2 font-semibold">Narrative</h3>
+                <p className="font-fredoka text-gray-600 text-xs sm:text-sm">Creative storytelling and structure</p>
               </div>
+              
               {/* Descriptive */}
-              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
-                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#22c55e'}}>🖼️</div>
-                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Descriptive</h3>
-                <p className="font-fredoka text-gray-600 text-sm mb-4">Vivid imagery and atmospheric writing</p>
-                <div className="flex items-center space-x-2">
-                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
-                </div>
+              <div className="bg-pink-50 rounded-xl p-4 sm:p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-white mb-3 sm:mb-4 text-xl sm:text-2xl" style={{background:'#22c55e'}}>🖼️</div>
+                <h3 className="font-fredoka text-base sm:text-lg text-gray-900 mb-2 font-semibold">Descriptive</h3>
+                <p className="font-fredoka text-gray-600 text-xs sm:text-sm">Vivid imagery and atmospheric writing</p>
               </div>
+              
               {/* Writer's Effect */}
-              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
-                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#f59e42'}}>⚡</div>
-                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Writer's Effect</h3>
-                <p className="font-fredoka text-gray-600 text-sm mb-4">Language analysis and impact</p>
-                <div className="flex items-center space-x-2">
-                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
-                  <span className="font-fredoka text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-100">Mark scheme optional</span>
-                </div>
+              <div className="bg-pink-50 rounded-xl p-4 sm:p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-white mb-3 sm:mb-4 text-xl sm:text-2xl" style={{background:'#f59e42'}}>⚡</div>
+                <h3 className="font-fredoka text-base sm:text-lg text-gray-900 mb-2 font-semibold">Writer's Effect</h3>
+                <p className="font-fredoka text-gray-600 text-xs sm:text-sm">Language analysis and impact</p>
               </div>
-              {/* IGCSE Directed Writing */}
-              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
-                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#6366f1'}}>✍️</div>
-                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Directed Writing</h3>
-                <p className="font-fredoka text-gray-600 text-sm mb-4">Transform text into specific formats</p>
-                <div className="flex items-center space-x-2">
-                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
-                </div>
+              
+              {/* Directed Writing */}
+              <div className="bg-pink-50 rounded-xl p-4 sm:p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-white mb-3 sm:mb-4 text-xl sm:text-2xl" style={{background:'#6366f1'}}>✍️</div>
+                <h3 className="font-fredoka text-base sm:text-lg text-gray-900 mb-2 font-semibold">Directed Writing</h3>
+                <p className="font-fredoka text-gray-600 text-xs sm:text-sm">Transform text into specific formats</p>
               </div>
             </div>
           </div>
+          
           {/* A-Level Section */}
           <div>
             <div className="flex items-center mb-6">
               <div className="bg-gradient-to-r from-purple-500 to-red-500 text-white px-4 py-2 rounded-lg mr-4">
-                <span className="font-bold">A-Level</span>
+                <span className="font-fredoka font-bold">A-Level</span>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">Advanced Level English</h2>
+              <h2 className="text-2xl font-fredoka font-bold text-gray-900">Advanced Level English</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Reflective Commentary */}
               <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
                 <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#ef4444'}}>📊</div>
                 <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Reflective Commentary</h3>
-                <p className="font-fredoka text-gray-600 text-sm mb-4">Critical reflection and personal response</p>
-                <div className="flex items-center space-x-2">
-                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">A-Level English (9093)</span>
-                  <span className="font-fredoka text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-100">Mark scheme required</span>
-                </div>
+                <p className="font-fredoka text-gray-600 text-sm">Critical reflection and personal response</p>
               </div>
+              
               {/* Directed Writing */}
               <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
                 <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#22c55e'}}>✏️</div>
                 <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Directed Writing</h3>
-                <p className="font-fredoka text-gray-600 text-sm mb-4">Task-specific writing with audience awareness</p>
-                <div className="flex items-center space-x-2">
-                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">A-Level English (9093)</span>
-                </div>
+                <p className="font-fredoka text-gray-600 text-sm">Task-specific writing with audience awareness</p>
               </div>
+              
               {/* Text Analysis */}
               <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
                 <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#ec4899'}}>🔍</div>
                 <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Text Analysis</h3>
-                <p className="font-fredoka text-gray-600 text-sm mb-4">Literary analysis and critical interpretation</p>
-                <div className="flex items-center space-x-2">
-                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">A-Level English (9093)</span>
-                  <span className="font-fredoka text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-100">Mark scheme required</span>
-                </div>
+                <p className="font-fredoka text-gray-600 text-sm">Literary analysis and critical interpretation</p>
               </div>
             </div>
           </div>
