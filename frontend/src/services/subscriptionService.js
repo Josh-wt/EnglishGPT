@@ -3,7 +3,7 @@
  * Handles all subscription-related API calls and state management
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 class SubscriptionService {
   constructor() {
@@ -85,10 +85,27 @@ class SubscriptionService {
       }
 
       const data = await response.json();
+      console.log('✅ API Response received:', {
+        hasCheckoutUrl: !!data.checkout_url,
+        hasCheckoutURL: !!data.checkoutUrl,
+        hasSessionId: !!data.session_id,
+        dataKeys: Object.keys(data),
+        rawData: data
+      });
+      
+      // Handle both possible response formats (checkout_url and checkoutUrl)
+      const checkoutUrl = data.checkout_url || data.checkoutUrl || data.url;
+      const sessionId = data.session_id || data.sessionId || data.id;
+      
+      console.log('Extracted values:', {
+        checkoutUrl: checkoutUrl || 'NOT FOUND',
+        sessionId: sessionId || 'NOT FOUND'
+      });
+      
       return {
         success: true,
-        checkoutUrl: data.checkout_url,
-        sessionId: data.session_id
+        checkoutUrl: checkoutUrl,
+        sessionId: sessionId
       };
     } catch (error) {
       console.error('Error creating checkout session:', error);
@@ -96,7 +113,7 @@ class SubscriptionService {
       // Provide more specific error messages
       let errorMessage = error.message;
       if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
-        errorMessage = 'Unable to connect to server. Please check if the backend is running on port 8000.';
+        errorMessage = 'Unable to connect to server. Please check if the backend is running on port 5000.';
       } else if (error.message.includes('CORS')) {
         errorMessage = 'CORS error: The backend server needs to allow requests from this origin.';
       }
@@ -113,21 +130,39 @@ class SubscriptionService {
    * Redirect to checkout for subscription
    */
   async redirectToCheckout(userId, planType) {
+    console.log('=== Starting checkout redirect ===');
+    console.log('User ID:', userId);
+    console.log('Plan Type:', planType);
+    console.log('API Base URL:', this.baseURL);
+    
     try {
+      console.log('Calling createCheckoutSession...');
       const result = await this.createCheckoutSession(planType, userId);
       
+      console.log('Checkout session result:', {
+        success: result.success,
+        hasCheckoutUrl: !!result.checkoutUrl,
+        checkoutUrl: result.checkoutUrl || 'NOT PROVIDED',
+        sessionId: result.sessionId || 'NOT PROVIDED',
+        error: result.error || 'NONE',
+        originalError: result.originalError || 'NONE'
+      });
+      
       if (result.success && result.checkoutUrl) {
+        console.log('✅ Success! Redirecting to:', result.checkoutUrl);
         window.location.href = result.checkoutUrl;
       } else {
         const errorMsg = result.error || 'Failed to create checkout session';
-        console.error('Checkout session creation failed:', errorMsg);
+        console.error('❌ Checkout session creation failed:', errorMsg);
+        console.error('Full result object:', JSON.stringify(result, null, 2));
         if (result.originalError) {
-          console.error('Original error:', result.originalError);
+          console.error('Original error details:', result.originalError);
         }
         throw new Error(errorMsg);
       }
     } catch (error) {
-      console.error('Error redirecting to checkout:', error);
+      console.error('❌ Error redirecting to checkout:', error);
+      console.error('Error stack:', error.stack);
       
       // Re-throw with more context
       if (error.message.includes('Unable to connect')) {
