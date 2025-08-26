@@ -2493,7 +2493,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                 )}
             </div>
 
-              </div>
             </div>
 
             {/* Example modal */}
