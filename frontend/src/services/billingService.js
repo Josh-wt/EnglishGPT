@@ -4,7 +4,7 @@
  * subscriptions, payments, refunds, and more.
  */
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 // Helper function for API calls
 const makeApiCall = async (method, endpoint, data = null, options = {}) => {
