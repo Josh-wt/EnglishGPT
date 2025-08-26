@@ -359,9 +359,18 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
         // Try to get cached recommendations if not a milestone
         setIsLoadingRecommendations(true);
         try {
-          const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/analytics?user_id=${user.id}`, {
+          // Get the current session for auth token
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session?.access_token) {
+            console.error('No valid session found');
+            setIsLoadingRecommendations(false);
+            return;
+          }
+          
+          const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/analytics/${user.id}`, {
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`,
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
             }
           });
           
