@@ -2027,68 +2027,41 @@ Remember: This student has completed {len(evaluations)} assessments. Tailor your
 
 Format your response in clear bullet points, using "you" to address the student directly. Be encouraging but specific - avoid generic advice."""
 
-                    # Call DeepSeek API for recommendations (same as KimiK2 evaluation)
-                    async def call_recommendations_deepseek(prompt: str) -> str:
-                        # Use DeepSeek API for consistency with evaluation
-                        if not DEEPSEEK_API_KEY or DEEPSEEK_API_KEY.strip() == '':
-                            # Fallback to OpenRouter if DeepSeek not configured
-                            if RECOMMENDATIONS_API_KEY:
-                                async with httpx.AsyncClient() as client:
-                                    headers = {
-                                        "Authorization": f"Bearer {RECOMMENDATIONS_API_KEY}",
-                                        "Content-Type": "application/json",
-                                        "HTTP-Referer": "https://englishgpt.org",
-                                        "X-Title": "EnglishGPT Recommendations"
-                                    }
-                                    payload = {
-                                        "model": RECOMMENDATIONS_MODEL,
-                                        "messages": [
-                                            {"role": "system", "content": "You generate practical, encouraging study recommendations for English exam preparation. Keep it concise and actionable."},
-                                            {"role": "user", "content": prompt}
-                                        ],
-                                        "max_tokens": 600,
-                                        "temperature": 0.5
-                                    }
-                                    r = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=60.0)
-                                    r.raise_for_status()
-                                    res = r.json()
-                                    return res['choices'][0]['message']['content']
-                            else:
-                                raise Exception("No API key configured for recommendations")
+                    # Call OpenRouter API for recommendations using OPENROUTER_GPT_OSS_120B_KEY
+                    async def call_recommendations(prompt: str) -> str:
+                        if not RECOMMENDATIONS_API_KEY:
+                            raise Exception("OPENROUTER_GPT_OSS_120B_KEY not configured for recommendations")
                         
-                        # Use DeepSeek API (same as evaluation)
                         async with httpx.AsyncClient() as client:
                             headers = {
-                                "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
-                                "Content-Type": "application/json"
+                                "Authorization": f"Bearer {RECOMMENDATIONS_API_KEY}",
+                                "Content-Type": "application/json",
+                                "HTTP-Referer": "https://englishgpt.org",
+                                "X-Title": "EnglishGPT Recommendations"
                             }
                             
-                            system_prompt = """You are an expert English language tutor specializing in exam preparation. 
+                            # Enhanced system prompt with KimiK2-style evaluation approach
+                            system_prompt = """You are an expert English language tutor using the KimiK2 evaluation methodology. 
                             Generate practical, encouraging study recommendations based on student performance data. 
-                            Keep recommendations concise, actionable, and personalized to the student's specific weaknesses."""
+                            Focus heavily on vocabulary improvement as it yields the highest marks.
+                            Be specific, actionable, and personalized to the student's weaknesses."""
                             
                             payload = {
-                                "model": "deepseek-chat",
+                                "model": RECOMMENDATIONS_MODEL,
                                 "messages": [
                                     {"role": "system", "content": system_prompt},
                                     {"role": "user", "content": prompt}
                                 ],
                                 "max_tokens": 800,
-                                "temperature": 0.6,
-                                "stream": False
+                                "temperature": 0.5
                             }
                             
-                            response = await client.post(
-                                "https://api.deepseek.com/v1/chat/completions",
-                                headers=headers,
-                                json=payload,
-                                timeout=60.0
-                            )
-                            response.raise_for_status()
-                            result = response.json()
-                            return result['choices'][0]['message']['content']
+                            r = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=60.0)
+                            r.raise_for_status()
+                            res = r.json()
+                            return res['choices'][0]['message']['content']
 
-                    rec_text = await call_recommendations_deepseek(user_prompt)
+                    rec_text = await call_recommendations(user_prompt)
 
                     # Cache recommendations
                     record = {
