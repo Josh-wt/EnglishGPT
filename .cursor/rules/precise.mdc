@@ -1,5 +1,0 @@
----
-description: Be consise, do not use emojies, do not explain what you did thoroughly, only one short sentence explaining what you did, include on short sentence on a new feature/improvement/bug/security issue. Priority is bug/security issue
-globs:
-alwaysApply: false
----

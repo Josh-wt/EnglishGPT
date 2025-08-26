@@ -91,3 +91,16 @@ agenthub/agents/youtube/db
 
 # Mobile development
 android-sdk/ 
+
+# Production exclusions
+*.log
+server.log
+*.debug
+*.test
+test_*.sh
+debug_*.sh
+fix_*.py
+cleanup_*.py
+*_DEBUG_*.md
+*_FIX_*.md
+.cursor/ 
