@@ -1738,191 +1738,122 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section - Redesigned with modern gradient and animation */}
-        <div className="text-center mb-16">
-          <div className="flex justify-center mb-8">
+        {/* Hero Section - Balanced between old and new */}
+        <div className="text-center mb-12">
+          <div className="flex justify-center mb-6">
             <div className="relative">
-              <div className="w-24 h-24 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 rounded-3xl flex items-center justify-center transform rotate-3 shadow-2xl">
-                <svg className="w-12 h-12 text-white transform -rotate-3" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-xl">
+                <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
                 </svg>
               </div>
-              <div className="absolute -top-1 -right-1 w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
-                <span className="text-white text-xs font-bold">AI</span>
-              </div>
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full animate-pulse"></div>
             </div>
           </div>
           
-          <h1 className="text-5xl font-extrabold mb-6 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 bg-clip-text text-transparent">
-            Welcome to EnglishGPT
-          </h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4 font-fredoka">EnglishGPT</h1>
           
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-10 leading-relaxed">
-            Transform your English writing with AI-powered feedback. Get instant, detailed analysis and improve your essays in seconds.
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8 font-fredoka">
+            Get instant, professional feedback on your English essays and assignments
           </p>
           
-          {/* Main CTA Button - Prominent and beautiful */}
-          <div className="relative inline-block">
-            <button
-              onClick={onStartQuestion}
-              className="group relative px-12 py-6 text-xl font-bold text-white bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 rounded-2xl shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300"
-            >
-              <span className="relative z-10 flex items-center gap-3">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                Mark Your Essay Now
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 rounded-2xl opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-300"></div>
-            </button>
-          </div>
+          {/* Main CTA Button - Prominent but fitting the original style */}
+          <button
+            onClick={onStartQuestion}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-10 py-5 rounded-xl font-fredoka font-semibold hover:shadow-xl transform hover:scale-105 transition-all duration-200 text-lg"
+          >
+            <span className="flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Mark a Question
+            </span>
+          </button>
           
-          {/* Quick stats */}
-          <div className="mt-10 flex justify-center gap-8 flex-wrap">
-            <div className="flex items-center gap-2 text-gray-600">
-              <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span className="text-sm font-medium">Instant Feedback</span>
-            </div>
-            <div className="flex items-center gap-2 text-gray-600">
-              <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.669 0-3.218.51-4.5 1.385V4.804z" />
-              </svg>
-              <span className="text-sm font-medium">All Levels Supported</span>
-            </div>
-            <div className="flex items-center gap-2 text-gray-600">
-              <svg className="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-              <span className="text-sm font-medium">Professional Grade</span>
-            </div>
+          {/* Quick features - smaller, simpler */}
+          <div className="mt-8 flex justify-center gap-6 text-sm font-fredoka">
+            <span className="text-gray-600">✨ Instant Results</span>
+            <span className="text-gray-600">📚 All Levels</span>
+            <span className="text-gray-600">🎯 Professional Feedback</span>
           </div>
         </div>
         
-        {/* Question Types - Redesigned with modern cards */}
-        <div className="space-y-16">
-          {/* Features Section */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            <div className="text-center group">
-              <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Lightning Fast</h3>
-              <p className="text-gray-600">Get comprehensive feedback in under 30 seconds</p>
-            </div>
-            
-            <div className="text-center group">
-              <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <svg className="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Smart Analysis</h3>
-              <p className="text-gray-600">AI-powered insights tailored to your level</p>
-            </div>
-            
-            <div className="text-center group">
-              <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">All Levels</h3>
-              <p className="text-gray-600">IGCSE to A-Level curriculum coverage</p>
-            </div>
-          </div>
-          
-          {/* IGCSE Section - Modernized */}
+        {/* Question Types - Clean cards with original pink theme */}
+        <div className="space-y-12">
+          {/* IGCSE Section */}
           <div>
-            <div className="flex items-center justify-center mb-8">
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-                IGCSE Question Types
-              </h2>
+            <div className="flex items-center mb-6">
+              <div className="bg-gradient-to-r from-blue-500 to-green-500 text-white px-4 py-2 rounded-lg mr-4">
+                <span className="font-fredoka font-bold">IGCSE</span>
+              </div>
+              <h2 className="text-2xl font-fredoka font-bold text-gray-900">International General Certificate of Secondary Education</h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
               {/* Summary */}
-              <div className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-blue-400">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">📄</span>
-                </div>
-                <h3 className="font-bold text-xl text-gray-900 mb-2">Summary</h3>
-                <p className="text-gray-600 text-sm">Master the art of condensing key information from complex texts</p>
+              <div className="bg-pink-50 rounded-xl p-4 sm:p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-white mb-3 sm:mb-4 text-xl sm:text-2xl" style={{background:'#3b82f6'}}>📄</div>
+                <h3 className="font-fredoka text-base sm:text-lg text-gray-900 mb-2 font-semibold">Summary</h3>
+                <p className="font-fredoka text-gray-600 text-xs sm:text-sm">Condensing key information from texts</p>
               </div>
               
               {/* Narrative */}
-              <div className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-purple-400">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">📖</span>
-                </div>
-                <h3 className="font-bold text-xl text-gray-900 mb-2">Narrative</h3>
-                <p className="text-gray-600 text-sm">Craft compelling stories with strong structure and character development</p>
+              <div className="bg-pink-50 rounded-xl p-4 sm:p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-white mb-3 sm:mb-4 text-xl sm:text-2xl" style={{background:'#8b5cf6'}}>📖</div>
+                <h3 className="font-fredoka text-base sm:text-lg text-gray-900 mb-2 font-semibold">Narrative</h3>
+                <p className="font-fredoka text-gray-600 text-xs sm:text-sm">Creative storytelling and structure</p>
               </div>
               
               {/* Descriptive */}
-              <div className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-green-400">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">🖼️</span>
-                </div>
-                <h3 className="font-bold text-xl text-gray-900 mb-2">Descriptive</h3>
-                <p className="text-gray-600 text-sm">Paint vivid pictures with words using sensory details and imagery</p>
+              <div className="bg-pink-50 rounded-xl p-4 sm:p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-white mb-3 sm:mb-4 text-xl sm:text-2xl" style={{background:'#22c55e'}}>🖼️</div>
+                <h3 className="font-fredoka text-base sm:text-lg text-gray-900 mb-2 font-semibold">Descriptive</h3>
+                <p className="font-fredoka text-gray-600 text-xs sm:text-sm">Vivid imagery and atmospheric writing</p>
               </div>
               
               {/* Writer's Effect */}
-              <div className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-orange-400">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">⚡</span>
-                </div>
-                <h3 className="font-bold text-xl text-gray-900 mb-2">Writer's Effect</h3>
-                <p className="text-gray-600 text-sm">Analyze language techniques and their impact on readers</p>
+              <div className="bg-pink-50 rounded-xl p-4 sm:p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-white mb-3 sm:mb-4 text-xl sm:text-2xl" style={{background:'#f59e42'}}>⚡</div>
+                <h3 className="font-fredoka text-base sm:text-lg text-gray-900 mb-2 font-semibold">Writer's Effect</h3>
+                <p className="font-fredoka text-gray-600 text-xs sm:text-sm">Language analysis and impact</p>
               </div>
               
               {/* Directed Writing */}
-              <div className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-indigo-400">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">✍️</span>
-                </div>
-                <h3 className="font-bold text-xl text-gray-900 mb-2">Directed Writing</h3>
-                <p className="text-gray-600 text-sm">Transform texts into specific formats for target audiences</p>
+              <div className="bg-pink-50 rounded-xl p-4 sm:p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-white mb-3 sm:mb-4 text-xl sm:text-2xl" style={{background:'#6366f1'}}>✍️</div>
+                <h3 className="font-fredoka text-base sm:text-lg text-gray-900 mb-2 font-semibold">Directed Writing</h3>
+                <p className="font-fredoka text-gray-600 text-xs sm:text-sm">Transform text into specific formats</p>
               </div>
             </div>
           </div>
           
-          {/* A-Level Section - Modernized */}
+          {/* A-Level Section */}
           <div>
-            <div className="flex items-center justify-center mb-8">
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-red-600 bg-clip-text text-transparent">
-                A-Level Question Types
-              </h2>
+            <div className="flex items-center mb-6">
+              <div className="bg-gradient-to-r from-purple-500 to-red-500 text-white px-4 py-2 rounded-lg mr-4">
+                <span className="font-fredoka font-bold">A-Level</span>
+              </div>
+              <h2 className="text-2xl font-fredoka font-bold text-gray-900">Advanced Level English</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Reflective Commentary */}
-              <div className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-red-400">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">📊</span>
-                </div>
-                <h3 className="font-bold text-xl text-gray-900 mb-2">Reflective Commentary</h3>
-                <p className="text-gray-600 text-sm">Develop critical thinking through personal response and analysis</p>
+              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#ef4444'}}>📊</div>
+                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Reflective Commentary</h3>
+                <p className="font-fredoka text-gray-600 text-sm">Critical reflection and personal response</p>
               </div>
               
               {/* Directed Writing */}
-              <div className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-emerald-400">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">✏️</span>
-                </div>
-                <h3 className="font-bold text-xl text-gray-900 mb-2">Directed Writing</h3>
-                <p className="text-gray-600 text-sm">Advanced task-specific writing with sophisticated audience awareness</p>
+              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#22c55e'}}>✏️</div>
+                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Directed Writing</h3>
+                <p className="font-fredoka text-gray-600 text-sm">Task-specific writing with audience awareness</p>
               </div>
               
               {/* Text Analysis */}
-              <div className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-pink-400">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">🔍</span>
-                </div>
-                <h3 className="font-bold text-xl text-gray-900 mb-2">Text Analysis</h3>
-                <p className="text-gray-600 text-sm">Deep literary analysis with critical interpretation skills</p>
+              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#ec4899'}}>🔍</div>
+                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Text Analysis</h3>
+                <p className="font-fredoka text-gray-600 text-sm">Literary analysis and critical interpretation</p>
               </div>
             </div>
           </div>
