@@ -1403,7 +1403,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
             <div className="flex items-center space-x-4 sm:space-x-6">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden">
                 <img 
-                  src="https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143" 
+                  src="https://ik.imagekit.io/lqf8a8nmt/ChatGPT%20Image%20Aug%2026,%202025,%2002_39_16%20PM.png?updatedAt=1756199401133" 
                   alt="EnglishGPT Logo" 
                   className="w-full h-full object-contain"
                 />
@@ -3274,7 +3274,7 @@ const App = () => {
   // --- Landing Page (public) ---
   const LandingPage = ({ onDiscord, onGoogle }) => {
     // Product screenshots (defined explicitly as requested)
-    const LOGO_URL = 'https://ik.imagekit.io/lqf8a8nmt/ChatGPT%20Image%20Aug%2018,%202025,%2003_21_43%20PM.png?updatedAt=1755510822988';
+    const LOGO_URL = 'https://ik.imagekit.io/lqf8a8nmt/ChatGPT%20Image%20Aug%2026,%202025,%2002_39_16%20PM.png?updatedAt=1756199401133';
     const [showAuthModal, setShowAuthModal] = useState(false);
     const IMG_STRENGTHS = 'https://ik.imagekit.io/lqf8a8nmt/Screenshot%202025-08-17%20at%2012-17-17%20EnglishGPT%20-%20AI%20English%20Marking.png?updatedAt=1755509276805';
     const IMG_PRICING = 'https://ik.imagekit.io/lqf8a8nmt/Screenshot%202025-08-17%20at%2012-11-06%20EnglishGPT%20-%20AI%20English%20Marking.png?updatedAt=1755509276757';
@@ -3488,7 +3488,7 @@ const App = () => {
         <footer className="relative border-t border-purple-200/50 bg-white/60 backdrop-blur-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 shadow-md shadow-purple-600/30" />
+              <img src={LOGO_URL} alt="EnglishGPT logo" className="w-8 h-8 rounded-xl object-cover shadow-md shadow-purple-600/30" />
               <span className="font-fredoka font-semibold text-gray-900">EnglishGPT</span>
             </div>
             <div className="text-sm text-gray-600">© {new Date().getFullYear()} EnglishGPT. All rights reserved.</div>
