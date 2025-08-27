@@ -669,3 +669,107 @@ img[src="/logo.png"] {
   background-color: transparent !important;
   border-radius: 0 !important;
 }
+
+/* Print-optimized styles */
+@media print {
+  /* Hide navigation, buttons, and interactive elements */
+  nav,
+  .navigation,
+  button:not(.print-show),
+  .modal,
+  .feedback-modal,
+  [role="dialog"],
+  .actions-row,
+  .flex.gap-2 button {
+    display: none !important;
+  }
+  
+  /* Ensure content uses full width */
+  body,
+  .container,
+  .main-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 10px !important;
+  }
+  
+  /* Optimize text for printing */
+  * {
+    color: black !important;
+    background: white !important;
+  }
+  
+  /* Keep important backgrounds for context */
+  .bg-green-50,
+  .bg-yellow-50,
+  .bg-gray-50,
+  .bg-blue-50,
+  .bg-red-50 {
+    background-color: #f9f9f9 !important;
+    border: 1px solid #ddd !important;
+  }
+  
+  /* Ensure grade badges are visible */
+  .grade-badge,
+  .letter-grade {
+    border: 2px solid black !important;
+    padding: 5px 10px !important;
+  }
+  
+  /* Page breaks */
+  .page-break {
+    page-break-after: always;
+  }
+  
+  .avoid-break {
+    page-break-inside: avoid;
+  }
+  
+  /* Keep feedback cards together */
+  .rounded-2xl,
+  .rounded-lg {
+    page-break-inside: avoid;
+  }
+  
+  /* Show all tabs content when printing */
+  .tab-content {
+    display: block !important;
+  }
+  
+  /* Add labels for sections */
+  .tab-content::before {
+    content: attr(data-tab-label);
+    font-size: 18px;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 10px;
+  }
+  
+  /* Ensure charts and visualizations print well */
+  svg,
+  canvas {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  
+  /* Add page margins */
+  @page {
+    margin: 1cm;
+  }
+  
+  /* Header/footer for printed pages */
+  .print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .print-footer {
+    display: block !important;
+    text-align: center;
+    margin-top: 20px;
+    font-size: 12px;
+    color: #666 !important;
+  }
+}

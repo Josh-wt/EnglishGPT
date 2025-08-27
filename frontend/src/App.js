@@ -1017,7 +1017,7 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
       if (metric === 'WRITING') raw = evaluation.writing_marks || '';
       if (metric === 'AO1') raw = evaluation.ao1_marks || '';
       if (metric === 'AO2') raw = evaluation.ao2_marks || '';
-      if (metric === 'AO3') raw = evaluation.ao2_marks || evaluation.ao1_marks || '';
+      if (metric === 'AO3') raw = evaluation.ao3_marks || evaluation.ao2_marks || evaluation.ao1_marks || '';
       const value = formatValue(raw, defaultMax[type]?.[metric]);
       if (value) results.push({ label: metric, value });
     });
@@ -3222,7 +3222,16 @@ const AssessmentPage = ({ selectedQuestionType, onBack, onEvaluate, darkMode }) 
 
 // Results Page
 const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
-  const [activeTab, setActiveTab] = useState('Summary');
+  // Initialize activeTab from URL hash or default to 'Summary'
+  const getTabFromHash = () => {
+    const hash = window.location.hash.slice(1).toLowerCase();
+    if (hash === 'summary' || hash === 'strengths' || hash === 'improvements') {
+      return hash.charAt(0).toUpperCase() + hash.slice(1);
+    }
+    return 'Summary';
+  };
+  
+  const [activeTab, setActiveTab] = useState(getTabFromHash());
   // Full Chat removed
   const [feedbackModal, setFeedbackModal] = useState({ open: false, category: 'overall' });
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
@@ -3232,6 +3241,23 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
   const modalRef = useRef(null);
   const firstModalButtonRef = useRef(null);
 
+  // Handle hash changes for deep linking
+  useEffect(() => {
+    const handleHashChange = () => {
+      const newTab = getTabFromHash();
+      setActiveTab(newTab);
+    };
+    
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+  
+  // Update URL hash when tab changes
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    window.location.hash = tab.toLowerCase();
+  };
+  
   useEffect(() => {
     // Keyboard shortcuts: 1/2/3 switch tabs; Esc closes modal; Enter submits when modal open
     const handler = (e) => {
@@ -3266,9 +3292,9 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
         }
         return;
       }
-      if (e.key === '1') setActiveTab('Summary');
-      if (e.key === '2') setActiveTab('Strengths');
-      if (e.key === '3') setActiveTab('Improvements');
+      if (e.key === '1') handleTabChange('Summary');
+      if (e.key === '2') handleTabChange('Strengths');
+      if (e.key === '3') handleTabChange('Improvements');
       if (e.key === 'ArrowLeft') {
         setActiveTab((prev) => prev === 'Strengths' ? 'Summary' : prev === 'Improvements' ? 'Strengths' : 'Improvements');
       }
@@ -3319,7 +3345,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
     return 'U';
   };
   
-  const letterGrade = getLetterGrade(gradeInfo.percentage);
+  const letterGrade = getLetterGrade(Number(gradeInfo.percentage));
   
   // Extract submarks dynamically per question type and present as "xx/xx"
   const getSubmarks = (evaluation) => {
@@ -3369,7 +3395,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
       if (metric === 'WRITING') raw = evaluation.writing_marks || '';
       if (metric === 'AO1') raw = evaluation.ao1_marks || '';
       if (metric === 'AO2') raw = evaluation.ao2_marks || '';
-      if (metric === 'AO3') raw = evaluation.ao2_marks || evaluation.ao1_marks || '';
+      if (metric === 'AO3') raw = evaluation.ao3_marks || evaluation.ao2_marks || evaluation.ao1_marks || '';
       const value = formatValue(raw, defaultMax[type]?.[metric]);
       if (value) results.push({ label: metric === 'READING' || metric === 'WRITING' ? metric.charAt(0) + metric.slice(1).toLowerCase() : metric, value });
     });
@@ -3461,6 +3487,42 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
         <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-6 mb-6 shadow-sm border`}>
           <div className="flex items-center justify-between mb-4">
             <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Detailed Feedback</h2>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  const feedbackText = activeTab === 'Summary' 
+                    ? parseFeedbackToBullets(evaluation.feedback).join('\n• ')
+                    : activeTab === 'Strengths'
+                    ? (Array.isArray(evaluation.strengths) ? evaluation.strengths : [evaluation.strengths]).filter(s => s).join('\n• ')
+                    : (Array.isArray(evaluation.improvements) ? evaluation.improvements : [evaluation.improvements]).filter(s => s).join('\n• ');
+                  navigator.clipboard.writeText(`${activeTab}:\n• ${feedbackText}`);
+                  alert(`${activeTab} copied to clipboard!`);
+                }}
+                className={`px-3 py-1.5 text-sm rounded-lg ${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} transition-colors`}
+                title="Copy to clipboard"
+              >
+                Copy
+              </button>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  alert('Link copied to clipboard!');
+                }}
+                className={`px-3 py-1.5 text-sm rounded-lg ${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} transition-colors`}
+                title="Share link"
+              >
+                Share
+              </button>
+              <button
+                onClick={() => {
+                  window.print();
+                }}
+                className={`px-3 py-1.5 text-sm rounded-lg ${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} transition-colors`}
+                title="Print or export as PDF"
+              >
+                Export
+              </button>
+            </div>
           </div>
           
           {/* Tabs */}
@@ -3468,7 +3530,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
             {['Summary', 'Strengths', 'Improvements'].map((tab) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => handleTabChange(tab)}
                 className={`px-6 py-3 font-medium transition-colors border-b-2 ${
                   activeTab === tab
                     ? 'border-blue-500 text-blue-600'
@@ -3487,7 +3549,9 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
                 <h4 className="font-semibold text-gray-800 mb-4">Detailed Feedback</h4>
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                   <ul className="list-disc pl-5 text-gray-700 leading-relaxed space-y-2">
-                    {parseFeedbackToBullets(evaluation.feedback)}
+                    {parseFeedbackToBullets(evaluation.feedback).map((point, i) => (
+                      <li key={i}>{point}</li>
+                    ))}
                   </ul>
                 </div>
               </div>
