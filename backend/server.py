@@ -840,6 +840,7 @@ QUESTION_TOTALS = {
     "igcse_directed": {"total": 40, "components": {"reading": 15, "writing": 25}},
     # A-Level
     "alevel_directed": {"total": 10, "components": {"ao1": 5, "ao2": 5}},
+    "alevel_directed_writing": {"total": 10, "components": {"ao1": 5, "ao2": 5}},
     "alevel_comparative": {"total": 15, "components": {"ao1": 5, "ao3": 10}},
     "alevel_text_analysis": {"total": 25, "components": {"ao1": 5, "ao3": 20}},
 }
@@ -876,7 +877,9 @@ def compute_overall_grade(question_type: str, reading_marks: Optional[str], writ
         achieved += parse_marks_value(writing_marks)
     if "ao1" in components:
         achieved += parse_marks_value(ao1_marks)
-    # For AO3 we will pass in through ao2_or_ao3_marks parameter
+    # For AO2 and AO3 we will pass in through ao2_or_ao3_marks parameter
+    if "ao2" in components:
+        achieved += parse_marks_value(ao2_or_ao3_marks)
     if "ao3" in components:
         achieved += parse_marks_value(ao2_or_ao3_marks)
 
