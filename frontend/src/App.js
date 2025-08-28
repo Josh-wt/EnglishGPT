@@ -984,7 +984,7 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
       igcse_summary: ['READING', 'WRITING'],
       alevel_directed: ['AO1', 'AO2'],
       alevel_directed_writing: ['AO1', 'AO2'],
-      alevel_comparative: ['AO1', 'AO3'],
+      alevel_comparative: ['AO1', 'AO2'],
       alevel_text_analysis: ['AO1', 'AO3'],
     };
     const defaultMax = {
@@ -994,7 +994,7 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
       igcse_summary: { READING: 10, WRITING: 5 },
       alevel_directed: { AO1: 5, AO2: 5 },
       alevel_directed_writing: { AO1: 5, AO2: 5 },
-      alevel_comparative: { AO1: 5, AO3: 10 },
+      alevel_comparative: { AO1: 5, AO2: 10 },
       alevel_text_analysis: { AO1: 5, AO3: 20 },
     };
     const formatValue = (raw, fallbackMax) => {
@@ -3360,7 +3360,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
       igcse_summary: ['READING', 'WRITING'],
       alevel_directed: ['AO1', 'AO2'],
       alevel_directed_writing: ['AO1', 'AO2'],
-      alevel_comparative: ['AO1', 'AO3'],
+      alevel_comparative: ['AO1', 'AO2'],
       alevel_text_analysis: ['AO1', 'AO3'],
     };
 
@@ -3371,7 +3371,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
       igcse_summary: { READING: 10, WRITING: 5 },
       alevel_directed: { AO1: 5, AO2: 5 },
       alevel_directed_writing: { AO1: 5, AO2: 5 },
-      alevel_comparative: { AO1: 5, AO3: 10 },
+      alevel_comparative: { AO1: 5, AO2: 10 },
       alevel_text_analysis: { AO1: 5, AO3: 20 },
     };
 
