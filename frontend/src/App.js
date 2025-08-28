@@ -3719,7 +3719,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
       )}
     </div>
   );
-});
+};
 
 // Sign In Modal Component
 const SignInModal = ({ isOpen, onClose, darkMode }) => {
