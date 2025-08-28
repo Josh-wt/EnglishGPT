@@ -3232,6 +3232,18 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
   const modalRef = useRef(null);
   const firstModalButtonRef = useRef(null);
 
+  // Helper function to get tab from URL hash
+  const getTabFromHash = () => {
+    const hash = window.location.hash.slice(1).toLowerCase();
+    const validTabs = ['summary', 'strengths', 'improvements'];
+    const tabMap = {
+      'summary': 'Summary',
+      'strengths': 'Strengths', 
+      'improvements': 'Improvements'
+    };
+    return validTabs.includes(hash) ? tabMap[hash] : 'Summary';
+  };
+
   // Handle hash changes for deep linking
   useEffect(() => {
     const handleHashChange = () => {
