@@ -3192,9 +3192,9 @@ const AssessmentPage = ({ selectedQuestionType, onBack, onEvaluate, darkMode }) 
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.98-.833-2.75 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Upload File Warning</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">DO NOT UPLOAD MARK SCHEMES</h3>
               <p className="text-gray-600 mb-6">
-                Uploading a file is not recommended for accuracy reasons. Text pasting provides better results and more reliable AI evaluation. Are you sure you want to continue with file upload?
+                Uploading a mark scheme does not yet work, please paste the text instead.
               </p>
               <div className="flex space-x-3">
                 <button
@@ -3222,16 +3222,7 @@ const AssessmentPage = ({ selectedQuestionType, onBack, onEvaluate, darkMode }) 
 
 // Results Page
 const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
-  // Initialize activeTab from URL hash or default to 'Summary'
-  const getTabFromHash = () => {
-    const hash = window.location.hash.slice(1).toLowerCase();
-    if (hash === 'summary' || hash === 'strengths' || hash === 'improvements') {
-      return hash.charAt(0).toUpperCase() + hash.slice(1);
-    }
-    return 'Summary';
-  };
-  
-  const [activeTab, setActiveTab] = useState(getTabFromHash());
+  const [activeTab, setActiveTab] = useState('Summary');
   // Full Chat removed
   const [feedbackModal, setFeedbackModal] = useState({ open: false, category: 'overall' });
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
@@ -3259,7 +3250,6 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
   };
   
   useEffect(() => {
-    // Keyboard shortcuts: 1/2/3 switch tabs; Esc closes modal; Enter submits when modal open
     const handler = (e) => {
       if (feedbackModal.open) {
         if (e.key === 'Escape') {
@@ -3729,7 +3719,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
       )}
     </div>
   );
-};
+});
 
 // Sign In Modal Component
 const SignInModal = ({ isOpen, onClose, darkMode }) => {
@@ -4598,7 +4588,7 @@ const App = () => {
     // console.log('DEBUG: Session error:', error);
         if (session?.user?.id) {
           setUser(session.user);
-          loadUserData(session.user);
+          loadUserData(session.user, true);
           // If already signed in and currently on landing, go to dashboard
           if (typeof window !== 'undefined' && window.location.pathname === '/') {
             window.location.href = 'https://englishgpt.everythingenglish.xyz/dashboard';
@@ -4630,16 +4620,24 @@ const App = () => {
       switch (event) {
         case 'SIGNED_IN':
         case 'INITIAL_SESSION':
-        case 'TOKEN_REFRESHED':
           if (session?.user?.id) {
             setUser(session.user);
-            loadUserData(session.user);
+            // Force reload user data on sign-in and initial session
+            loadUserData(session.user, true);
             // Ensure clean URL after sign-in
             window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
             // Only redirect from landing to dashboard
             if (typeof window !== 'undefined' && window.location.pathname === '/') {
               window.location.href = 'https://englishgpt.everythingenglish.xyz/dashboard';
             }
+          }
+          break;
+        case 'TOKEN_REFRESHED':
+          if (session?.user?.id) {
+            setUser(session.user);
+            // Only reload user data if it's been a while since last load
+            // TOKEN_REFRESHED happens frequently and shouldn't trigger full data reload every time
+            loadUserData(session.user, false);
           }
           break;
         case 'SIGNED_OUT':
@@ -4654,11 +4652,21 @@ const App = () => {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      // Clean up user data timeout on unmount
+      if (userDataTimeout.current) {
+        clearTimeout(userDataTimeout.current);
+      }
+    };
   }, []);
   
-  // Load user data from backend
-  const loadUserData = async (supabaseUser) => {
+  // Cache for preventing unnecessary loadUserData calls
+  const lastUserDataLoad = useRef(null);
+  const userDataTimeout = useRef(null);
+  
+  // Load user data from backend with debouncing and caching
+  const loadUserData = async (supabaseUser, force = false) => {
     // Debug logging removed for production
     // console.log('DEBUG: loadUserData called with:', supabaseUser);
     
@@ -4677,21 +4685,42 @@ const App = () => {
       return;
     }
 
-    setLoadingState('dataLoad', true);
-    try {
-      // Debug logging removed for production
-    // console.log('DEBUG: Loading user data for:', supabaseUser.id);
-      
-      const userData = {
-        user_id: supabaseUser.id,
-        email: supabaseUser.email,
-        name: supabaseUser.user_metadata?.full_name || supabaseUser.email
-      };
-      
-      // Debug logging removed for production
-    // console.log('DEBUG: Sending user data to backend:', userData);
-      const response = await axios.post(`${API}/users`, userData);
-      const userInfo = response.data.user;
+    // Prevent unnecessary calls - only reload if it's been more than 5 minutes or forced
+    const now = Date.now();
+    const lastLoad = lastUserDataLoad.current;
+    const timeSinceLastLoad = lastLoad ? now - lastLoad : Infinity;
+    const shouldLoad = force || !lastLoad || timeSinceLastLoad > 5 * 60 * 1000; // 5 minutes
+    
+    if (!shouldLoad) {
+      // console.log('DEBUG: Skipping loadUserData - recent load detected');
+      return;
+    }
+
+    // Clear any existing timeout
+    if (userDataTimeout.current) {
+      clearTimeout(userDataTimeout.current);
+    }
+
+    // Debounce - wait 100ms before actually loading
+    userDataTimeout.current = setTimeout(async () => {
+      setLoadingState('dataLoad', true);
+      try {
+        // Debug logging removed for production
+      // console.log('DEBUG: Loading user data for:', supabaseUser.id);
+        
+        const userData = {
+          user_id: supabaseUser.id,
+          email: supabaseUser.email,
+          name: supabaseUser.user_metadata?.full_name || supabaseUser.email
+        };
+        
+        // Debug logging removed for production
+      // console.log('DEBUG: Sending user data to backend:', userData);
+        const response = await axios.post(`${API}/users`, userData);
+        const userInfo = response.data.user;
+        
+        // Update last load time
+        lastUserDataLoad.current = Date.now();
       
       // Set the user state with backend user data
       setUser(userInfo);
@@ -4724,15 +4753,21 @@ const App = () => {
       setEvaluations(historyResponse.data.evaluations || []);
       setLoadingState('historyLoad', false);
       
-      // Debug logging removed for production
-    // console.log('DEBUG: User data loaded successfully');
-      
-    } catch (error) {
-      console.error('Error loading user data:', error);
-      console.error('Error details:', error.response?.data);
-    } finally {
-      setLoadingState('dataLoad', false);
-    }
+        // Debug logging removed for production
+      // console.log('DEBUG: User data loaded successfully');
+        
+      } catch (error) {
+        console.error('Error loading user data:', error);
+        console.error('Error details:', error.response?.data);
+        // Handle authentication errors gracefully
+        if (error.response?.status === 401) {
+          // Token might be expired, let Supabase handle re-authentication
+          console.log('Authentication error, will retry on next auth event');
+        }
+      } finally {
+        setLoadingState('dataLoad', false);
+      }
+    }, 100); // 100ms debounce
   };
   
   // Toggle dark mode
@@ -4912,10 +4947,10 @@ const handleSignOut = async () => {
               </div>
             </div>
             <p className="mt-4 font-fredoka">
-              Authenticating...
+              Starting the magic...
             </p>
             <p className="mt-2 text-sm opacity-75">
-              Please wait while we set up your account
+              Please wait while we make your english prep effortless
             </p>
           </div>
         </div>
