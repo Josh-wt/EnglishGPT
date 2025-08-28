@@ -859,7 +859,7 @@ def parse_marks_value(marks_text: Optional[str]) -> int:
     except Exception:
         return 0
 
-def compute_overall_grade(question_type: str, reading_marks: Optional[str], writing_marks: Optional[str], ao1_marks: Optional[str], ao2_or_ao3_marks: Optional[str]) -> str:
+def compute_overall_grade(question_type: str, reading_marks: Optional[str], writing_marks: Optional[str], ao1_marks: Optional[str], ao2_marks: Optional[str], ao3_marks: Optional[str] = None) -> str:
     """Compute a dynamic overall grade string 'score/total' for the given question type.
     Uses QUESTION_TOTALS and the extracted component marks.
     """
@@ -877,11 +877,15 @@ def compute_overall_grade(question_type: str, reading_marks: Optional[str], writ
         achieved += parse_marks_value(writing_marks)
     if "ao1" in components:
         achieved += parse_marks_value(ao1_marks)
-    # For AO2 and AO3 we will pass in through ao2_or_ao3_marks parameter
     if "ao2" in components:
-        achieved += parse_marks_value(ao2_or_ao3_marks)
+        achieved += parse_marks_value(ao2_marks)
     if "ao3" in components:
-        achieved += parse_marks_value(ao2_or_ao3_marks)
+        # For A-level comparative and text analysis, AO3 marks might be stored in ao2_marks field
+        # if ao3_marks is not provided separately
+        if ao3_marks:
+            achieved += parse_marks_value(ao3_marks)
+        else:
+            achieved += parse_marks_value(ao2_marks)
 
     total = cfg["total"]
     return f"{achieved}/{total}"
@@ -1584,10 +1588,10 @@ Student Response: {sanitized_response}
                 if "AO3_MARKS:" in ai_response:
                     ao3_part = ai_response.split("AO3_MARKS:")[1]
                     next_sections = ["IMPROVEMENTS:", "STRENGTHS:"]
-                    ao1_marks = ao3_part.strip()  # Store AO3 in ao1_marks field for now
+                    ao2_marks = ao3_part.strip()  # Store AO3 in ao2_marks field for now
                     for section in next_sections:
                         if section in ao3_part:
-                            ao1_marks = ao3_part.split(section)[0].strip()
+                            ao2_marks = ao3_part.split(section)[0].strip()
                             break
             elif submission.question_type in ['alevel_text_analysis']:
                 # A-Level text analysis needs AO1 and AO3 marks
