@@ -3342,14 +3342,46 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
     }
   }, [feedbackModal.open]);
   
-  // Parse grade to get score
-  const parseGrade = (gradeString) => {
+  // Parse grade to get score - enhanced to handle backend grade issues
+  const parseGrade = (gradeString, evaluation) => {
+    console.log('DEBUG: parseGrade input:', gradeString);
+    console.log('DEBUG: parseGrade evaluation object:', evaluation);
+    
     if (!gradeString) {
       return { score: 0, maxScore: 40, percentage: 0 };
     }
     
-    // Debug log to see what format we're getting
-    console.log('DEBUG: parseGrade input:', gradeString);
+    // If backend sends "0/40" but we have individual marks, calculate from those
+    if (gradeString === "0/40" && evaluation) {
+      console.log('DEBUG: parseGrade - backend sent 0/40, trying to calculate from individual marks');
+      
+      let totalScore = 0;
+      let maxScore = 0;
+      
+      // Extract scores from reading_marks and writing_marks
+      if (evaluation.reading_marks) {
+        const readingMatch = evaluation.reading_marks.match(/(\d+)\/(\d+)/);
+        if (readingMatch) {
+          totalScore += parseInt(readingMatch[1]);
+          maxScore += parseInt(readingMatch[2]);
+          console.log('DEBUG: parseGrade - extracted reading:', readingMatch[1], '/', readingMatch[2]);
+        }
+      }
+      
+      if (evaluation.writing_marks) {
+        const writingMatch = evaluation.writing_marks.match(/(\d+)\/(\d+)/);
+        if (writingMatch) {
+          totalScore += parseInt(writingMatch[1]);
+          maxScore += parseInt(writingMatch[2]);
+          console.log('DEBUG: parseGrade - extracted writing:', writingMatch[1], '/', writingMatch[2]);
+        }
+      }
+      
+      if (maxScore > 0) {
+        console.log('DEBUG: parseGrade - calculated from individual marks:', { totalScore, maxScore, percentage: (totalScore / maxScore * 100).toFixed(1) });
+        return { score: totalScore, maxScore, percentage: (totalScore / maxScore * 100).toFixed(1) };
+      }
+    }
     
     // Extract numbers from grade string - handle multiple formats
     const matches = gradeString.match(/(\d+)\/(\d+)/g);
@@ -3364,7 +3396,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
         }
       });
       
-      console.log('DEBUG: parseGrade result:', { totalScore, maxScore, percentage: (totalScore / maxScore * 100).toFixed(1) });
+      console.log('DEBUG: parseGrade result from matches:', { totalScore, maxScore, percentage: (totalScore / maxScore * 100).toFixed(1) });
       
       if (maxScore > 0) {
         return { score: totalScore, maxScore, percentage: (totalScore / maxScore * 100).toFixed(1) };
@@ -3376,6 +3408,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
     if (singleMatch) {
       const score = parseInt(singleMatch[1]);
       const maxScore = 40; // Default for IGCSE narrative/descriptive
+      console.log('DEBUG: parseGrade single match result:', { score, maxScore, percentage: (score / maxScore * 100).toFixed(1) });
       return { score, maxScore, percentage: (score / maxScore * 100).toFixed(1) };
     }
     
@@ -3383,7 +3416,9 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
     return { score: 0, maxScore: 40, percentage: 0 };
   };
   
-  const gradeInfo = parseGrade(evaluation.grade);
+  console.log('DEBUG: About to call parseGrade with:', evaluation.grade);
+  const gradeInfo = parseGrade(evaluation.grade, evaluation);
+  console.log('DEBUG: parseGrade returned:', gradeInfo);
   
   // Determine letter grade
   const getLetterGrade = (percentage) => {
