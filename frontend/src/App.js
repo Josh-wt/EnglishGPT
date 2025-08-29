@@ -991,7 +991,20 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
   };
 
   const getSubmarks = (evaluation) => {
-    if (!evaluation) return [];
+    console.log('DEBUG: getSubmarks called with evaluation:', evaluation);
+    
+    if (!evaluation) {
+      console.log('DEBUG: getSubmarks - no evaluation provided');
+      return [];
+    }
+    
+    console.log('DEBUG: getSubmarks - question_type:', evaluation.question_type);
+    console.log('DEBUG: getSubmarks - reading_marks:', evaluation.reading_marks);
+    console.log('DEBUG: getSubmarks - writing_marks:', evaluation.writing_marks);
+    console.log('DEBUG: getSubmarks - ao1_marks:', evaluation.ao1_marks);
+    console.log('DEBUG: getSubmarks - ao2_marks:', evaluation.ao2_marks);
+    console.log('DEBUG: getSubmarks - ao3_marks:', evaluation.ao3_marks);
+    
     const metricsByType = {
       igcse_writers_effect: ['READING'],
       igcse_descriptive: ['READING', 'WRITING'],
@@ -1013,6 +1026,7 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
       alevel_text_analysis: { AO1: 5, AO3: 20 },
     };
     const formatValue = (raw, fallbackMax) => {
+      console.log('DEBUG: formatValue called with raw:', raw, 'fallbackMax:', fallbackMax);
       if (!raw || typeof raw !== 'string') return '';
       const text = raw.replace(/\|/g, ' ').replace(/\s+/g, ' ').trim();
       const slash = text.match(/(\d+)\s*\/\s*(\d+)/);
@@ -1025,6 +1039,8 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
     };
     const type = evaluation.question_type;
     const metrics = metricsByType[type] || [];
+    console.log('DEBUG: getSubmarks - metrics for type:', metrics);
+    
     const results = [];
     metrics.forEach((metric) => {
       let raw = '';
@@ -1033,19 +1049,29 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
       if (metric === 'AO1') raw = evaluation.ao1_marks || '';
       if (metric === 'AO2') raw = evaluation.ao2_marks || '';
       if (metric === 'AO3') raw = evaluation.ao3_marks || evaluation.ao2_marks || evaluation.ao1_marks || '';
+      
+      console.log('DEBUG: getSubmarks - processing metric:', metric, 'raw value:', raw);
+      
       const value = formatValue(raw, defaultMax[type]?.[metric]);
+      console.log('DEBUG: getSubmarks - formatted value:', value);
       
       // Map labels for IGCSE narrative/descriptive
       let displayLabel = metric;
       if (type === 'igcse_narrative' || type === 'igcse_descriptive') {
         if (metric === 'READING') displayLabel = 'Content and structure';
         if (metric === 'WRITING') displayLabel = 'Style and accuracy';
+        console.log('DEBUG: getSubmarks - mapped label for', metric, 'to:', displayLabel);
       } else if (metric === 'READING' || metric === 'WRITING') {
         displayLabel = metric.charAt(0) + metric.slice(1).toLowerCase();
       }
       
-      if (value) results.push({ label: displayLabel, value });
+      if (value) {
+        console.log('DEBUG: getSubmarks - adding result:', { label: displayLabel, value });
+        results.push({ label: displayLabel, value });
+      }
     });
+    
+    console.log('DEBUG: getSubmarks - final results:', results);
     return results;
   };
 
@@ -3216,6 +3242,11 @@ const AssessmentPage = ({ selectedQuestionType, onBack, onEvaluate, darkMode }) 
 
 // Results Page
 const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
+  console.log('DEBUG: ResultsPage component received evaluation:', evaluation);
+  console.log('DEBUG: ResultsPage - evaluation.grade:', evaluation?.grade);
+  console.log('DEBUG: ResultsPage - evaluation.reading_marks:', evaluation?.reading_marks);
+  console.log('DEBUG: ResultsPage - evaluation.writing_marks:', evaluation?.writing_marks);
+  console.log('DEBUG: ResultsPage - evaluation.question_type:', evaluation?.question_type);
   const [activeTab, setActiveTab] = useState('Summary');
   // Full Chat removed
   const [feedbackModal, setFeedbackModal] = useState({ open: false, category: 'overall' });
@@ -3369,7 +3400,17 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
   
   // Extract submarks dynamically per question type and present as "xx/xx"
   const getSubmarks = (evaluation) => {
-    if (!evaluation) return [];
+    console.log('DEBUG: ResultsPage getSubmarks called with evaluation:', evaluation);
+    
+    if (!evaluation) {
+      console.log('DEBUG: ResultsPage getSubmarks - no evaluation provided');
+      return [];
+    }
+    
+    console.log('DEBUG: ResultsPage getSubmarks - question_type:', evaluation.question_type);
+    console.log('DEBUG: ResultsPage getSubmarks - reading_marks:', evaluation.reading_marks);
+    console.log('DEBUG: ResultsPage getSubmarks - writing_marks:', evaluation.writing_marks);
+    console.log('DEBUG: ResultsPage getSubmarks - grade:', evaluation.grade);
 
     const metricsByType = {
       igcse_writers_effect: ['READING'],
@@ -3394,6 +3435,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
     };
 
     const formatValue = (raw, fallbackMax) => {
+      console.log('DEBUG: ResultsPage formatValue called with raw:', raw, 'fallbackMax:', fallbackMax);
       if (!raw || typeof raw !== 'string') return '';
       const text = raw.replace(/\|/g, ' ').replace(/\s+/g, ' ').trim();
       const slash = text.match(/(\d+)\s*\/\s*(\d+)/);
@@ -3407,6 +3449,8 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
 
     const type = evaluation.question_type;
     const metrics = metricsByType[type] || [];
+    console.log('DEBUG: ResultsPage getSubmarks - metrics for type:', metrics);
+    
     const results = [];
 
     metrics.forEach((metric) => {
@@ -3416,20 +3460,29 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
       if (metric === 'AO1') raw = evaluation.ao1_marks || '';
       if (metric === 'AO2') raw = evaluation.ao2_marks || '';
       if (metric === 'AO3') raw = evaluation.ao3_marks || evaluation.ao2_marks || evaluation.ao1_marks || '';
+      
+      console.log('DEBUG: ResultsPage getSubmarks - processing metric:', metric, 'raw value:', raw);
+      
       const value = formatValue(raw, defaultMax[type]?.[metric]);
+      console.log('DEBUG: ResultsPage getSubmarks - formatted value:', value);
       
       // Map labels for IGCSE narrative/descriptive
       let displayLabel = metric;
       if (type === 'igcse_narrative' || type === 'igcse_descriptive') {
         if (metric === 'READING') displayLabel = 'Content and structure';
         if (metric === 'WRITING') displayLabel = 'Style and accuracy';
+        console.log('DEBUG: ResultsPage getSubmarks - mapped label for', metric, 'to:', displayLabel);
       } else if (metric === 'READING' || metric === 'WRITING') {
         displayLabel = metric.charAt(0) + metric.slice(1).toLowerCase();
       }
       
-      if (value) results.push({ label: displayLabel, value });
+      if (value) {
+        console.log('DEBUG: ResultsPage getSubmarks - adding result:', { label: displayLabel, value });
+        results.push({ label: displayLabel, value });
+      }
     });
 
+    console.log('DEBUG: ResultsPage getSubmarks - final results:', results);
     return results;
   };
   
