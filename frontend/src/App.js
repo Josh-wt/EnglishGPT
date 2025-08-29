@@ -1034,7 +1034,17 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
       if (metric === 'AO2') raw = evaluation.ao2_marks || '';
       if (metric === 'AO3') raw = evaluation.ao3_marks || evaluation.ao2_marks || evaluation.ao1_marks || '';
       const value = formatValue(raw, defaultMax[type]?.[metric]);
-      if (value) results.push({ label: metric, value });
+      
+      // Map labels for IGCSE narrative/descriptive
+      let displayLabel = metric;
+      if (type === 'igcse_narrative' || type === 'igcse_descriptive') {
+        if (metric === 'READING') displayLabel = 'Content and structure';
+        if (metric === 'WRITING') displayLabel = 'Style and accuracy';
+      } else if (metric === 'READING' || metric === 'WRITING') {
+        displayLabel = metric.charAt(0) + metric.slice(1).toLowerCase();
+      }
+      
+      if (value) results.push({ label: displayLabel, value });
     });
     return results;
   };
@@ -3303,18 +3313,42 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
   
   // Parse grade to get score
   const parseGrade = (gradeString) => {
-    // Extract numbers from grade string
+    if (!gradeString) {
+      return { score: 0, maxScore: 40, percentage: 0 };
+    }
+    
+    // Debug log to see what format we're getting
+    console.log('DEBUG: parseGrade input:', gradeString);
+    
+    // Extract numbers from grade string - handle multiple formats
     const matches = gradeString.match(/(\d+)\/(\d+)/g);
-    if (matches) {
+    if (matches && matches.length > 0) {
       let totalScore = 0;
       let maxScore = 0;
       matches.forEach(match => {
         const [score, max] = match.split('/').map(Number);
-        totalScore += score;
-        maxScore += max;
+        if (!isNaN(score) && !isNaN(max)) {
+          totalScore += score;
+          maxScore += max;
+        }
       });
-      return { score: totalScore, maxScore, percentage: (totalScore / maxScore * 100).toFixed(1) };
+      
+      console.log('DEBUG: parseGrade result:', { totalScore, maxScore, percentage: (totalScore / maxScore * 100).toFixed(1) });
+      
+      if (maxScore > 0) {
+        return { score: totalScore, maxScore, percentage: (totalScore / maxScore * 100).toFixed(1) };
+      }
     }
+    
+    // Try alternative format: look for just numbers
+    const singleMatch = gradeString.match(/(\d+)/);
+    if (singleMatch) {
+      const score = parseInt(singleMatch[1]);
+      const maxScore = 40; // Default for IGCSE narrative/descriptive
+      return { score, maxScore, percentage: (score / maxScore * 100).toFixed(1) };
+    }
+    
+    console.log('DEBUG: parseGrade fallback to 0/40');
     return { score: 0, maxScore: 40, percentage: 0 };
   };
   
@@ -3383,7 +3417,17 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
       if (metric === 'AO2') raw = evaluation.ao2_marks || '';
       if (metric === 'AO3') raw = evaluation.ao3_marks || evaluation.ao2_marks || evaluation.ao1_marks || '';
       const value = formatValue(raw, defaultMax[type]?.[metric]);
-      if (value) results.push({ label: metric === 'READING' || metric === 'WRITING' ? metric.charAt(0) + metric.slice(1).toLowerCase() : metric, value });
+      
+      // Map labels for IGCSE narrative/descriptive
+      let displayLabel = metric;
+      if (type === 'igcse_narrative' || type === 'igcse_descriptive') {
+        if (metric === 'READING') displayLabel = 'Content and structure';
+        if (metric === 'WRITING') displayLabel = 'Style and accuracy';
+      } else if (metric === 'READING' || metric === 'WRITING') {
+        displayLabel = metric.charAt(0) + metric.slice(1).toLowerCase();
+      }
+      
+      if (value) results.push({ label: displayLabel, value });
     });
 
     return results;
