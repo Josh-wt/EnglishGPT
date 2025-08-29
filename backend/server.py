@@ -831,8 +831,8 @@ That being said, PLEASE give the student the highest marks possible if the user'
 # --- Mark totals configuration for dynamic grade computation ---
 QUESTION_TOTALS = {
     "igcse_writers_effect": {"total": 15, "components": {"reading": 15}},
-    "igcse_narrative": {"total": 40, "components": {"reading": 16, "writing": 24}},
-    "igcse_descriptive": {"total": 40, "components": {"reading": 16, "writing": 24}},
+    "igcse_narrative": {"total": 40, "components": {"content and structure": 16, "style and accuracy": 24}},
+    "igcse_descriptive": {"total": 40, "components": {"content and structure": 16, "style and accuracy": 24}},
     # Summary is 10 (reading) + 5 (writing) = 15 total
     "igcse_summary": {"total": 15, "components": {"reading": 10, "writing": 5}},
     # Directed writing in IGCSE typically 15 + 25 = 40
@@ -1391,7 +1391,7 @@ async def evaluate_submission(submission: SubmissionRequest):
             'alevel_directed': 'AO1_MARKS: [AO1 marks out of 5] | AO2_MARKS: [AO2 marks out of 5]',
             'igcse_narrative': 'READING_MARKS: [Content and Structure marks out of 16] | WRITING_MARKS: [Style and Accuracy marks out of 24]',
             'igcse_descriptive': 'READING_MARKS: [Content and Structure marks out of 16] | WRITING_MARKS: [Style and Accuracy marks out of 24]',
-            'alevel_comparative': 'AO1_MARKS: [AO1 marks out of 5] | AO3_MARKS: [AO3 marks out of 10]',
+            'alevel_comparative': 'AO1_MARKS: [AO1 marks out of 5] | AO2_MARKS: [AO2 marks out of 10]',
             'alevel_directed_writing': 'AO1_MARKS: [AO1 marks out of 5] | AO2_MARKS: [AO2 marks out of 5]',
             'alevel_text_analysis': 'AO1_MARKS: [AO1 marks out of 5] | AO3_MARKS: [AO3 marks out of 20]'
         }
@@ -1532,7 +1532,7 @@ Student Response: {sanitized_response}
                             reading_marks = reading_part.split(section)[0].strip()
                             break
             elif submission.question_type in ['igcse_narrative', 'igcse_descriptive']:
-                # IGCSE narrative/descriptive need reading and writing marks
+                # IGCSE narrative/descriptive need Content and Structure (16 marks) and Style and Accuracy (24 marks)
                 if "READING_MARKS:" in ai_response:
                     reading_part = ai_response.split("READING_MARKS:")[1]
                     next_sections = ["WRITING_MARKS:", "IMPROVEMENTS:", "STRENGTHS:"]

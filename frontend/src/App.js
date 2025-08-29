@@ -965,14 +965,29 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
   const parseFeedbackToBullets = (feedback) => {
     if (!feedback) return [];
     
-    // Split by common delimiters
-    const sentences = feedback
-      .split(/[.!?]+/)
-      .map(sentence => sentence.trim())
-      .filter(sentence => sentence.length > 10) // Only meaningful sentences
-      .slice(0, 10); // Limit to 10 points
+    // First try to split by existing bullet points or numbered lists
+    let points = [];
     
-    return sentences;
+    // Check for existing bullet points (•, -, *, numbers)
+    if (feedback.match(/^[\s]*[-•*]\s+/m) || feedback.match(/^[\s]*\d+\.\s+/m)) {
+      points = feedback
+        .split(/\n/)
+        .map(line => line.trim())
+        .filter(line => line.match(/^[-•*]\s+/) || line.match(/^\d+\.\s+/))
+        .map(line => line.replace(/^[-•*]\s+/, '').replace(/^\d+\.\s+/, ''))
+        .filter(point => point.length > 5);
+    }
+    
+    // If no bullet points found, split by sentences but preserve complete thoughts
+    if (points.length === 0) {
+      points = feedback
+        .split(/(?<=[.!?])\s+(?=[A-Z])/) // Split on sentence boundaries
+        .map(sentence => sentence.trim())
+        .filter(sentence => sentence.length > 15) // Only meaningful sentences
+        .slice(0, 8); // Limit to 8 points
+    }
+    
+    return points;
   };
 
   const getSubmarks = (evaluation) => {
@@ -2317,37 +2332,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     return map[selectedQuestionType.id] || 300;
   };
 
-  const WordCountRing = ({ count, goal }) => {
-    const pct = Math.max(0, Math.min(100, Math.floor((count / goal) * 100)));
-    const ringColor = pct >= 100 ? '#10b981' : pct >= 75 ? '#3b82f6' : pct >= 50 ? '#f59e0b' : '#ec4899';
-    const ring = `conic-gradient(${ringColor} ${pct}%, ${darkMode ? '#374151' : '#f3e8ff'} ${pct}% 100%)`;
-    
-    return (
-      <div className={`flex items-center gap-4 ${darkMode ? 'bg-gray-800' : 'bg-gradient-to-r from-purple-50 to-pink-50'} px-4 py-3 rounded-xl`}>
-        <div className="relative w-14 h-14" aria-label="Word count progress">
-          <div className="w-14 h-14 rounded-full shadow-lg" style={{ backgroundImage: ring }} />
-          <div className={`absolute inset-1.5 rounded-full flex items-center justify-center text-xs font-bold ${
-            darkMode ? 'bg-gray-900 text-white' : 'bg-white text-purple-700 shadow-inner'
-          }`}>
-            {pct}%
-          </div>
-        </div>
-        <div>
-          <div className={`font-fredoka font-bold text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-            {count} / {goal} words
-          </div>
-          {lastSavedAt && (
-            <div className={`text-xs flex items-center gap-1 ${darkMode ? 'text-gray-400' : 'text-purple-600'}`}>
-              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              Auto-saved {Math.max(0, Math.floor((Date.now() - lastSavedAt) / 60000))} min ago
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
+
 
   const handleQuestionSelect = (questionType) => {
     setSelectedQuestionType(questionType);
@@ -2791,7 +2776,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
               </div>
 
               <div className="mt-6 flex justify-between items-center">
-              <WordCountRing count={wordCount} goal={getWordGoal()} />
 
                 {showMarkingSchemeChoice && selectedQuestionType && studentResponse.trim() && (
                   <div className="flex gap-3">
@@ -3409,14 +3393,29 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
   const parseFeedbackToBullets = (feedback) => {
     if (!feedback) return [];
     
-    // Split by common delimiters
-    const sentences = feedback
-      .split(/[.!?]+/)
-      .map(sentence => sentence.trim())
-      .filter(sentence => sentence.length > 10) // Only meaningful sentences
-      .slice(0, 10); // Limit to 10 points
+    // First try to split by existing bullet points or numbered lists
+    let points = [];
     
-    return sentences;
+    // Check for existing bullet points (•, -, *, numbers)
+    if (feedback.match(/^[\s]*[-•*]\s+/m) || feedback.match(/^[\s]*\d+\.\s+/m)) {
+      points = feedback
+        .split(/\n/)
+        .map(line => line.trim())
+        .filter(line => line.match(/^[-•*]\s+/) || line.match(/^\d+\.\s+/))
+        .map(line => line.replace(/^[-•*]\s+/, '').replace(/^\d+\.\s+/, ''))
+        .filter(point => point.length > 5);
+    }
+    
+    // If no bullet points found, split by sentences but preserve complete thoughts
+    if (points.length === 0) {
+      points = feedback
+        .split(/(?<=[.!?])\s+(?=[A-Z])/) // Split on sentence boundaries
+        .map(sentence => sentence.trim())
+        .filter(sentence => sentence.length > 15) // Only meaningful sentences
+        .slice(0, 8); // Limit to 8 points
+    }
+    
+    return points;
   };
 
   const submitFeedback = async () => {
@@ -3498,7 +3497,15 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
                     ? (Array.isArray(evaluation.strengths) ? evaluation.strengths : [evaluation.strengths]).filter(s => s).join('\n• ')
                     : (Array.isArray(evaluation.improvements) ? evaluation.improvements : [evaluation.improvements]).filter(s => s).join('\n• ');
                   navigator.clipboard.writeText(`${activeTab}:\n• ${feedbackText}`);
-                  alert(`${activeTab} copied to clipboard!`);
+                  // Show a brief success message instead of alert
+                  const button = document.activeElement;
+                  const originalText = button.textContent;
+                  button.textContent = 'Copied!';
+                  button.style.background = '#10b981';
+                  setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '';
+                  }, 2000);
                 }}
                 className={`px-3 py-1.5 text-sm rounded-lg ${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} transition-colors`}
                 title="Copy to clipboard"
@@ -3508,7 +3515,15 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(window.location.href);
-                  alert('Link copied to clipboard!');
+                  // Show a brief success message instead of alert
+                  const button = document.activeElement;
+                  const originalText = button.textContent;
+                  button.textContent = 'Copied!';
+                  button.style.background = '#10b981';
+                  setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '';
+                  }, 2000);
                 }}
                 className={`px-3 py-1.5 text-sm rounded-lg ${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} transition-colors`}
                 title="Share link"
@@ -3734,7 +3749,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
 };
 
 // Sign In Modal Component
-const SignInModal = ({ isOpen, onClose, darkMode }) => {
+const SignInModal = ({ isOpen, onClose, darkMode, setErrorMessage, setShowErrorModal }) => {
   if (!isOpen) return null;
 
   const handleSignIn = async (provider) => {
@@ -3755,7 +3770,8 @@ const SignInModal = ({ isOpen, onClose, darkMode }) => {
       onClose();
     } catch (error) {
       console.error(`Error signing in with ${provider}:`, error);
-      alert(`${provider} sign-in failed. Please try again.`);
+      setErrorMessage(`${provider} sign-in failed. Please try again.`);
+      setShowErrorModal(true);
     }
   };
 
@@ -3838,33 +3854,135 @@ const SignInModal = ({ isOpen, onClose, darkMode }) => {
   );
 };
 
-// Custom Error Modal Component
-const ErrorModal = ({ isOpen, onClose, message, darkMode }) => {
+// Enhanced Error Modal Component with different types
+const ErrorModal = ({ isOpen, onClose, message, darkMode, type = 'general' }) => {
   if (!isOpen) return null;
 
+  // Determine error type and styling
+  const getErrorConfig = () => {
+    if (message.includes('too short') || message.includes('words')) {
+      return {
+        type: 'word_count',
+        icon: '📝',
+        title: 'Essay Too Short',
+        color: 'orange',
+        bgGradient: 'from-orange-400 to-amber-500',
+        iconBg: 'bg-orange-100',
+        iconColor: 'text-orange-600',
+        suggestion: 'Try writing more detailed paragraphs with examples and analysis.'
+      };
+    }
+    if (message.includes('No credits remaining') || message.includes('credits')) {
+      return {
+        type: 'credits',
+        icon: '💳',
+        title: 'No Credits Remaining',
+        color: 'purple',
+        bgGradient: 'from-purple-400 to-indigo-500',
+        iconBg: 'bg-purple-100',
+        iconColor: 'text-purple-600',
+        suggestion: 'Upgrade to unlimited for unlimited essay marking and feedback.'
+      };
+    }
+    if (message.includes('repetitive') || message.includes('test content')) {
+      return {
+        type: 'repetitive',
+        icon: '🔄',
+        title: 'Repetitive Content Detected',
+        color: 'red',
+        bgGradient: 'from-red-400 to-pink-500',
+        iconBg: 'bg-red-100',
+        iconColor: 'text-red-600',
+        suggestion: 'Write original content with varied vocabulary and sentence structures.'
+      };
+    }
+    if (message.includes('Rate limit')) {
+      return {
+        type: 'rate_limit',
+        icon: '⏱️',
+        title: 'Rate Limit Exceeded',
+        color: 'yellow',
+        bgGradient: 'from-yellow-400 to-orange-500',
+        iconBg: 'bg-yellow-100',
+        iconColor: 'text-yellow-600',
+        suggestion: 'Please wait a moment before submitting another essay.'
+      };
+    }
+    // Default error
+    return {
+      type: 'general',
+      icon: '⚠️',
+      title: 'Something Went Wrong',
+      color: 'gray',
+      bgGradient: 'from-gray-400 to-gray-600',
+      iconBg: 'bg-gray-100',
+      iconColor: 'text-gray-600',
+      suggestion: 'Please try again or contact support if the issue persists.'
+    };
+  };
+
+  const config = getErrorConfig();
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className={`${darkMode ? 'bg-black text-white border border-gray-700' : 'bg-white text-gray-900'} rounded-2xl p-6 max-w-md mx-4 shadow-xl`}>
-        <div className="flex items-center mb-4">
-          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-3">
-            <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.98-.833-2.75 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+      <div className={`${darkMode ? 'bg-gray-900 text-white border border-gray-700' : 'bg-white text-gray-900'} rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden transform transition-all`}>
+        
+        {/* Header with gradient background */}
+        <div className={`bg-gradient-to-r ${config.bgGradient} p-6 text-white relative overflow-hidden`}>
+          <div className="absolute inset-0 bg-black bg-opacity-10"></div>
+          <div className="relative flex items-center">
+            <div className="text-4xl mr-4">
+              {config.icon}
+            </div>
+            <div>
+              <h3 className="text-xl font-bold mb-1">{config.title}</h3>
+              <p className="text-white text-opacity-90 text-sm">We need your help to fix this</p>
+            </div>
           </div>
-          <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Essay Error</h3>
         </div>
-        
-        <p className={`${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-6 leading-relaxed`}>
-          {message}
-        </p>
-        
-        <div className="flex justify-end">
-          <button
-            onClick={onClose}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-          >
-            Got it
-          </button>
+
+        {/* Content */}
+        <div className="p-6">
+          <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'} rounded-lg p-4 mb-4 border`}>
+            <p className={`${darkMode ? 'text-gray-200' : 'text-gray-700'} leading-relaxed mb-3`}>
+              {message}
+            </p>
+            
+            {config.suggestion && (
+              <div className={`flex items-start ${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>
+                <svg className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <span><strong>Tip:</strong> {config.suggestion}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-3 justify-end">
+            {config.type === 'credits' && (
+              <button
+                onClick={() => {
+                  onClose();
+                  if (typeof setCurrentPage === 'function') {
+                    setCurrentPage('pricing');
+                  } else {
+                    // Fallback for components that don't have setCurrentPage
+                    window.location.href = '/dashboard?tab=pricing';
+                  }
+                }}
+                className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2.5 rounded-lg font-medium hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 shadow-lg"
+              >
+                Upgrade Now
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className={`${darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'} px-6 py-2.5 rounded-lg font-medium transition-colors`}
+            >
+              {config.type === 'credits' ? 'Maybe Later' : 'Got it'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -4897,7 +5015,8 @@ const signInWithDiscord = async () => {
     if (error) throw error;
   } catch (error) {
     console.error('Error signing in with Discord:', error);
-    alert('Discord sign-in is not configured. Please try Google sign-in.');
+    setErrorMessage('Discord sign-in is not configured. Please try Google sign-in.');
+    setShowErrorModal(true);
   }
 };
 
@@ -4919,7 +5038,8 @@ const signInWithGoogle = async () => {
     if (error) throw error;
   } catch (error) {
     console.error('Error signing in with Google:', error);
-    alert('Google sign-in is not configured. Please try Discord sign-in.');
+    setErrorMessage('Google sign-in is not configured. Please try Discord sign-in.');
+    setShowErrorModal(true);
   }
 };
 
@@ -5067,6 +5187,8 @@ const handleSignOut = async () => {
           isOpen={showSignInModal}
           onClose={() => setShowSignInModal(false)}
           darkMode={darkMode}
+          setErrorMessage={setErrorMessage}
+          setShowErrorModal={setShowErrorModal}
         />
       </div>
     );
@@ -5302,6 +5424,8 @@ const handleSignOut = async () => {
           isOpen={showSignInModal}
           onClose={() => setShowSignInModal(false)}
           darkMode={darkMode}
+          setErrorMessage={setErrorMessage}
+          setShowErrorModal={setShowErrorModal}
         />
       </div>
     );
