@@ -3855,7 +3855,7 @@ const SignInModal = ({ isOpen, onClose, darkMode, setErrorMessage, setShowErrorM
 };
 
 // Enhanced Error Modal Component with different types
-const ErrorModal = ({ isOpen, onClose, message, darkMode, type = 'general' }) => {
+const ErrorModal = ({ isOpen, onClose, message, darkMode, type = 'general', onUpgrade }) => {
   if (!isOpen) return null;
 
   // Determine error type and styling
@@ -3964,10 +3964,10 @@ const ErrorModal = ({ isOpen, onClose, message, darkMode, type = 'general' }) =>
               <button
                 onClick={() => {
                   onClose();
-                  if (typeof setCurrentPage === 'function') {
-                    setCurrentPage('pricing');
+                  if (onUpgrade) {
+                    onUpgrade();
                   } else {
-                    // Fallback for components that don't have setCurrentPage
+                    // Fallback for components that don't have onUpgrade
                     window.location.href = '/dashboard?tab=pricing';
                   }
                 }}
@@ -5528,6 +5528,7 @@ const handleSignOut = async () => {
               onClose={() => setShowErrorModal(false)}
               message={errorMessage}
               darkMode={darkMode}
+              onUpgrade={() => setCurrentPage('pricing')}
             />
             <LaunchEventModal
               isOpen={showLaunchEventModal}
