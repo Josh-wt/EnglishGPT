@@ -1014,6 +1014,7 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
       alevel_directed_writing: ['AO1', 'AO2'],
       alevel_comparative: ['AO1', 'AO2'],
       alevel_text_analysis: ['AO1', 'AO3'],
+      alevel_language_change: ['AO2', 'AO4', 'AO5']
     };
     const defaultMax = {
       igcse_writers_effect: { READING: 15 },
@@ -1024,6 +1025,7 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
       alevel_directed_writing: { AO1: 5, AO2: 5 },
       alevel_comparative: { AO1: 5, AO2: 10 },
       alevel_text_analysis: { AO1: 5, AO3: 20 },
+      alevel_language_change: { AO2: 5, AO4: 5, AO5: 15 }
     };
     const formatValue = (raw, fallbackMax) => {
       console.log('DEBUG: formatValue called with raw:', raw, 'fallbackMax:', fallbackMax);
@@ -1049,6 +1051,12 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
       if (metric === 'AO1') raw = evaluation.ao1_marks || '';
       if (metric === 'AO2') raw = evaluation.ao2_marks || '';
       if (metric === 'AO3') raw = evaluation.ao3_marks || evaluation.ao2_marks || evaluation.ao1_marks || '';
+      
+      // Special handling for Language Change Analysis
+      if (type === 'alevel_language_change') {
+        if (metric === 'AO4') raw = evaluation.ao1_marks || '';  // AO4 stored in ao1_marks
+        if (metric === 'AO5') raw = evaluation.reading_marks || '';  // AO5 stored in reading_marks
+      }
       
       console.log('DEBUG: getSubmarks - processing metric:', metric, 'raw value:', raw);
       
@@ -2364,6 +2372,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       alevel_directed: 300,
       alevel_text_analysis: 400,
       alevel_comparative: 500,
+      alevel_language_change: 600,
     };
     return map[selectedQuestionType.id] || 300;
   };
@@ -2476,7 +2485,8 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       'igcse_directed': '✍️',
       'alevel_comparative': '📊',
       'alevel_directed': '✏️',
-      'alevel_text_analysis': '🔍'
+      'alevel_text_analysis': '🔍',
+      'alevel_language_change': '📈'
     };
     return iconMap[questionId] || '📝';
   };
@@ -2492,7 +2502,8 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       igcse_directed: 'Write a letter to your local council proposing a new community garden.',
       alevel_directed: 'Write a speech arguing for the benefits of gap years before university.',
       alevel_text_analysis: 'Analyze how the writer presents memory and identity in an unseen prose extract.',
-      alevel_comparative: 'Compare how two poets explore the theme of loss.'
+      alevel_comparative: 'Compare how two poets explore the theme of loss.',
+      alevel_language_change: 'Analyze how Text A demonstrates English language change, using supporting data from the n-gram graph (Text B) and word frequency table (Text C).'
     };
     return map[selectedQuestionType?.id] || 'Write about a meaningful experience and what you learned from it.';
   };
@@ -2505,8 +2516,9 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       igcse_writers_effect: 'Example analysis: The simile “like a coiled spring” compresses tension...',
       igcse_directed: 'Example directed writing: Dear Councillors, I propose establishing a community garden...',
       alevel_directed: 'Example directed: Esteemed audience, today I contend that...',
-      alevel_text_analysis: 'Example analysis: The narrator’s fragmented syntax mirrors her fractured memory...',
-      alevel_comparative: 'Example comparative: While Poet A elegizes loss with restraint, Poet B embraces raw immediacy...'
+      alevel_text_analysis: 'Example analysis: The narrator's fragmented syntax mirrors her fractured memory...',
+      alevel_comparative: 'Example comparative: While Poet A elegizes loss with restraint, Poet B embraces raw immediacy...',
+      alevel_language_change: 'Example analysis: Text A demonstrates semantic broadening through the evolution of "silly" from "blessed" (1400s) to "foolish" (modern usage). The n-gram data in Text B shows declining frequency of archaic constructions like "thou art" from 1600-1900, while Text C reveals the emergence of modal auxiliaries. This lexical shift reflects the democratization of English during the Early Modern period...'
     };
     return examples[id] || 'A focused, well-structured response illustrating expectations for this task type.';
   };
@@ -3456,6 +3468,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
       alevel_directed_writing: ['AO1', 'AO2'],
       alevel_comparative: ['AO1', 'AO2'],
       alevel_text_analysis: ['AO1', 'AO3'],
+      alevel_language_change: ['AO2', 'AO4', 'AO5']
     };
 
     const defaultMax = {
@@ -3467,6 +3480,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
       alevel_directed_writing: { AO1: 5, AO2: 5 },
       alevel_comparative: { AO1: 5, AO2: 10 },
       alevel_text_analysis: { AO1: 5, AO3: 20 },
+      alevel_language_change: { AO2: 5, AO4: 5, AO5: 15 }
     };
 
     const formatValue = (raw, fallbackMax) => {
@@ -3495,6 +3509,12 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
       if (metric === 'AO1') raw = evaluation.ao1_marks || '';
       if (metric === 'AO2') raw = evaluation.ao2_marks || '';
       if (metric === 'AO3') raw = evaluation.ao3_marks || evaluation.ao2_marks || evaluation.ao1_marks || '';
+      
+      // Special handling for Language Change Analysis
+      if (type === 'alevel_language_change') {
+        if (metric === 'AO4') raw = evaluation.ao1_marks || '';  // AO4 stored in ao1_marks
+        if (metric === 'AO5') raw = evaluation.reading_marks || '';  // AO5 stored in reading_marks
+      }
       
       console.log('DEBUG: ResultsPage getSubmarks - processing metric:', metric, 'raw value:', raw);
       

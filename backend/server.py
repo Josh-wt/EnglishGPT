@@ -536,6 +536,13 @@ QUESTION_TYPES = [
         "category": "A-Level English (9093)",
         "requires_marking_scheme": True,
         "description": "Analyze form, structure, and language in texts"
+    },
+    {
+        "id": "alevel_language_change",
+        "name": "Language Change Analysis (P3, Section A)",
+        "category": "A-Level English (9093)",
+        "requires_marking_scheme": True,
+        "description": "Analyze historical prose extract demonstrating English language change using quantitative data"
     }
 ]
 
@@ -825,6 +832,73 @@ Mark boundaries for AO3 are Level 5 achieving 17-20 marks, Level 4 achieving 13-
 Mark boundaries for AO3: Level 5 (17-20 marks), Level 4 (13-16 marks), Level 3 (9-12 marks).
 
 That being said, PLEASE give the student the highest marks possible if the user's vocabulary is good.
+""",
+    "alevel_language_change": """
+Task Overview
+
+Evaluate a candidate's analytical essay on how Text A (a historical prose extract of 300 to 400 words, dating from approximately 1500 to the present) demonstrates English language change over time, drawing on supporting quantitative data from Text B (an n-gram graph) and Text C (a word frequency table).
+
+Candidates must:
+
+    Perform an in-depth linguistic analysis of Text A's features of language change, including lexis, semantics, grammar, orthography, pragmatics, and phonology.
+
+    Cross-reference quantitative data from Texts B and C to support or extend their analysis.
+
+    Apply relevant linguistic theories and concepts relating to language change.
+
+    Write clearly and coherently using precise and accurate linguistic terminology.
+
+Marking Criteria Breakdown
+
+You must assess three areas:
+
+First, AO2: Effective Writing (worth 5 marks). Score based on fluency, accuracy, idea development, and relevance.
+
+Five marks indicate sophisticated expression with fluent and accurate writing, and fully developed ideas throughout. Four marks correspond to effective communication with minor, non-impeding errors and well-developed ideas. Three marks represent clear expression with occasional errors that do not impede communication and clear ideas. Two marks reflect mostly clear expression but with more frequent errors and limited idea development. One mark indicates basic expression prone to frequent errors that sometimes impede communication and minimal idea development. Zero marks mean no credible written response.
+
+Deductions in this objective come from persistent grammar or punctuation issues, unclear organization, and communication that hinders understanding.
+
+Second, AO4: Linguistic Understanding (worth 5 marks). Evaluate candidates' understanding of linguistic concepts, methods, and theories.
+
+Full marks are awarded for profound, insightful understanding demonstrated through accurate and precise use of linguistic terminology and theoretical frameworks. Four marks are given where understanding is detailed but slightly less insightful. Three marks correspond to clear and appropriate conceptual references. Two marks indicate limited but partial conceptual references, and one mark signals minimal understanding with poor or missing references. Zero is for no creditable response.
+
+Mark down where candidates show vague, superficial, or incorrect theory applications, or misuse terminology.
+
+Third, AO5: Data Analysis and Synthesis (worth 15 marks). This is the most heavily weighted and nuanced objective.
+
+At the highest levels (13 to 15 marks), candidates show insightful, fully appropriate selection of language features supported by sophisticated, well-integrated analysis and a nuanced argument drawing evidence from all three sources – the prose text, the n-gram graph, and the word frequency table.
+
+Marks from 10 to 12 indicate effective and mostly appropriate selection from all three sources, with detailed logical analysis and competent synthesis, but with minor gaps.
+
+Marks from 7 to 9 represent clear selection from at least two sources with clear but sometimes descriptive analysis and basic synthesis.
+
+Between 4 and 6 marks, candidates offer unequal or limited selection of data with basic or fragmented analytic attempts, weak synthesis, and often neglect one or more sources.
+
+Marks from 1 to 3 indicate minimal or inappropriate data selection, basic or incorrect analysis, and little synthesis.
+
+Zero marks mean no creditable analysis.
+
+Deductions in AO5 arise from ignoring any critical data source (resulting in 2 to 4 marks lost), describing features without analytical development (1 to 3 marks deducted), weak or no synthesis of evidence (1 to 3 marks lost), imprecise or incorrect use of terminology (1 to 2 marks), chronological or factual inaccuracies (1 to 2 marks), unsupported generalizations (1 to 2 marks), and repetitive or redundant arguments (1 to 2 marks).
+
+Examiner Expectations and Guidance
+
+To assign high marks, candidates must incorporate all three data sources meaningfully—Text A's prose, Text B's n-gram quantitative data, and Text C's word frequency information. Evidence and analysis should move beyond feature spotting or simple listing to provide clear, insightful linguistic interpretation explaining how these features illustrate English language change.
+
+Precise and consistent use of technical linguistic vocabulary is essential, alongside well-structured essays typically arranged by linguistic features such as lexis, semantics, grammar, orthography, pragmatics, and phonology rather than source-by-source description.
+
+Candidates should avoid chronological history narration or direct translation of archaic terms without linguistic analysis. Effective essays show complex synthesis of data, clearly linking quantitative trends with qualitative textual evidence.
+
+Typical errors that lead to mark reduction include description without analysis, neglecting one or more data sources (especially quantitative evidence), inaccurate terminology (e.g., calling archaisms 'old-fashioned'), unsubstantiated general claims, repetitive arguments, and chronological mistakes that reveal misunderstanding of language evolution.
+
+Summary of Marking Practice
+
+When marking, first assess AO2, AO4, and AO5 individually, then combine scores for a holistic result.
+
+Prioritize candidates' ability to synthesize data from all sources, deliver sustained analytical writing, and apply linguistic theory precisely.
+
+Mark deductions must align with common examiner comments, including penalizing superficial analysis, missing data integration, and imprecise terminology use.
+
+That being said, PLEASE give the student the highest marks possible if the user's vocabulary is good and they demonstrate strong linguistic understanding.
 """
 }
 
@@ -842,6 +916,7 @@ QUESTION_TOTALS = {
     "alevel_directed_writing": {"total": 10, "components": {"ao1": 5, "ao2": 5}},
     "alevel_comparative": {"total": 15, "components": {"ao1": 5, "ao3": 10}},
     "alevel_text_analysis": {"total": 25, "components": {"ao1": 5, "ao3": 20}},
+    "alevel_language_change": {"total": 25, "components": {"ao2": 5, "ao4": 5, "ao5": 15}},
 }
 
 def parse_marks_value(marks_text: Optional[str]) -> int:
@@ -870,17 +945,29 @@ def compute_overall_grade(question_type: str, reading_marks: Optional[str], writ
     achieved = 0
     # Map component values based on type
     components = cfg["components"]
-    if "reading" in components:
-        achieved += parse_marks_value(reading_marks)
-    if "writing" in components:
-        achieved += parse_marks_value(writing_marks)
-    if "ao1" in components:
-        achieved += parse_marks_value(ao1_marks)
-    # For AO2 and AO3 we will pass in through ao2_or_ao3_marks parameter
-    if "ao2" in components:
-        achieved += parse_marks_value(ao2_or_ao3_marks)
-    if "ao3" in components:
-        achieved += parse_marks_value(ao2_or_ao3_marks)
+    
+    # Special handling for alevel_language_change which uses AO2/AO4/AO5
+    if question_type == "alevel_language_change":
+        # For language change: ao2_or_ao3_marks contains AO2, ao1_marks contains AO4, reading_marks contains AO5
+        if "ao2" in components:
+            achieved += parse_marks_value(ao2_or_ao3_marks)  # AO2 marks
+        if "ao4" in components:
+            achieved += parse_marks_value(ao1_marks)  # AO4 marks stored in ao1_marks field
+        if "ao5" in components:
+            achieved += parse_marks_value(reading_marks)  # AO5 marks stored in reading_marks field
+    else:
+        # Standard handling for other question types
+        if "reading" in components:
+            achieved += parse_marks_value(reading_marks)
+        if "writing" in components:
+            achieved += parse_marks_value(writing_marks)
+        if "ao1" in components:
+            achieved += parse_marks_value(ao1_marks)
+        # For AO2 and AO3 we will pass in through ao2_or_ao3_marks parameter
+        if "ao2" in components:
+            achieved += parse_marks_value(ao2_or_ao3_marks)
+        if "ao3" in components:
+            achieved += parse_marks_value(ao2_or_ao3_marks)
 
     total = cfg["total"]
     return f"{achieved}/{total}"
@@ -1335,7 +1422,7 @@ async def evaluate_submission(submission: SubmissionRequest):
         # Users with active subscription have unlimited access
         
         # Check if question type requires marking scheme
-        requires_marking_scheme = submission.question_type in ['igcse_summary', 'alevel_comparative', 'alevel_text_analysis']
+        requires_marking_scheme = submission.question_type in ['igcse_summary', 'alevel_comparative', 'alevel_text_analysis', 'alevel_language_change']
         has_optional_marking_scheme = submission.question_type in ['igcse_writers_effect']
         
         if requires_marking_scheme and not submission.marking_scheme:
@@ -1393,7 +1480,8 @@ async def evaluate_submission(submission: SubmissionRequest):
             'igcse_descriptive': 'READING_MARKS: [Content and Structure marks out of 16] | WRITING_MARKS: [Style and Accuracy marks out of 24]',
             'alevel_comparative': 'AO1_MARKS: [AO1 marks out of 5] | AO2_MARKS: [AO2 marks out of 10]',
             'alevel_directed_writing': 'AO1_MARKS: [AO1 marks out of 5] | AO2_MARKS: [AO2 marks out of 5]',
-            'alevel_text_analysis': 'AO1_MARKS: [AO1 marks out of 5] | AO3_MARKS: [AO3 marks out of 20]'
+            'alevel_text_analysis': 'AO1_MARKS: [AO1 marks out of 5] | AO3_MARKS: [AO3 marks out of 20]',
+            'alevel_language_change': 'AO2_MARKS: [AO2 marks out of 5] | AO4_MARKS: [AO4 marks out of 5] | AO5_MARKS: [AO5 marks out of 15]'
         }
         
         sub_marks_requirement = sub_marks_requirements.get(submission.question_type, '')
@@ -1606,6 +1694,36 @@ Student Response: {sanitized_response}
                     for section in next_sections:
                         if section in ao3_part:
                             ao2_marks = ao3_part.split(section)[0].strip()
+                            break
+            elif submission.question_type in ['alevel_language_change']:
+                # A-Level language change needs AO2, AO4, and AO5 marks
+                if "AO2_MARKS:" in ai_response:
+                    ao2_part = ai_response.split("AO2_MARKS:")[1]
+                    next_sections = ["AO4_MARKS:", "AO5_MARKS:", "IMPROVEMENTS:", "STRENGTHS:"]
+                    ao2_marks = ao2_part.strip()
+                    for section in next_sections:
+                        if section in ao2_part:
+                            ao2_marks = ao2_part.split(section)[0].strip()
+                            break
+                
+                # Store AO4 marks in ao1_marks field (reusing existing field)
+                if "AO4_MARKS:" in ai_response:
+                    ao4_part = ai_response.split("AO4_MARKS:")[1]
+                    next_sections = ["AO5_MARKS:", "IMPROVEMENTS:", "STRENGTHS:"]
+                    ao1_marks = ao4_part.strip()  # Store AO4 in ao1_marks field
+                    for section in next_sections:
+                        if section in ao4_part:
+                            ao1_marks = ao4_part.split(section)[0].strip()
+                            break
+                
+                # Extract AO5 marks and store in reading_marks field (reusing existing field)
+                if "AO5_MARKS:" in ai_response:
+                    ao5_part = ai_response.split("AO5_MARKS:")[1]
+                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:"]
+                    reading_marks = ao5_part.strip()  # Store AO5 in reading_marks field
+                    for section in next_sections:
+                        if section in ao5_part:
+                            reading_marks = ao5_part.split(section)[0].strip()
                             break
             else:
                 # Fallback: try to extract all marks
