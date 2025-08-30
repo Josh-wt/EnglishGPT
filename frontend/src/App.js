@@ -7,6 +7,8 @@ import PaymentSuccess from './PaymentSuccess';
 import subscriptionService from './services/subscriptionService';
 import toast, { Toaster } from 'react-hot-toast';
 import SubscriptionDashboard from './SubscriptionDashboard';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useSpring, animated } from '@react-spring/web';
 // Removed charts for a clean card-based analytics UI
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -16,10 +18,11 @@ const API = `${BACKEND_URL}/api`;
 
 // PayU modals removed - ready for DodoPayments integration
 
-// Pricing Page Component
+// Enhanced Pricing Page Component with Launch Offer
 const PricingPage = ({ onBack, user }) => {
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const [showLaunchModal, setShowLaunchModal] = useState(true);
 
   const handlePlanSelect = async (planType) => {
     if (!user?.id) {
@@ -39,121 +42,358 @@ const PricingPage = ({ onBack, user }) => {
       setSelectedPlan(null);
     }
   };
+  
   const sharedFeatures = [
     "Unlimited essay marking",
-    "Advanced analytics and insights",
+    "Advanced analytics and insights", 
     "Detailed feedback and suggestions",
     "Progress tracking",
     "Priority support"
   ];
 
-  const monthlyPlan = {
-    id: 'unlimited_monthly',
-    name: 'Unlimited Monthly',
-    price: '$4.99',
-    period: '/month',
-    features: sharedFeatures
-  };
-
-  const yearlyPlan = {
-    id: 'unlimited_yearly',
-    name: 'Unlimited Yearly',
-    price: '$49',
-    period: '/year',
-    // Yearly has higher priority support emphasis
-    features: [
-      ...sharedFeatures.slice(0, -1),
-      'Priority support (higher priority)'
-    ]
-  };
-
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      {/* Header */}
-      <div className="text-center mb-10">
-        <h1 className="text-4xl font-fredoka font-bold mb-3">Choose your plan</h1>
-        {/* Keep only one subtle launch indicator */}
-        <span className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-fredoka">
-          Intro pricing
-        </span>
-      </div>
+    <motion.div 
+      className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
+      {/* Enhanced Header with back button */}
+      <motion.div 
+        className="bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 shadow-xl"
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <motion.button
+              onClick={onBack}
+              className="text-white hover:text-purple-100 flex items-center font-fredoka font-semibold"
+              whileHover={{ scale: 1.05, x: -5 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <motion.svg 
+                className="w-5 h-5 mr-2" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+                whileHover={{ x: -3 }}
+                transition={{ duration: 0.2 }}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </motion.svg>
+              Back to Dashboard
+            </motion.button>
+            
+            <motion.div 
+              className="flex items-center gap-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+            >
+              <motion.img 
+                src="https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143" 
+                alt="EnglishGPT logo" 
+                className="w-10 h-10 rounded-xl object-cover shadow-lg"
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.6 }}
+              />
+              <h1 className="text-2xl font-fredoka font-bold text-white">💎 Pricing Plans</h1>
+            </motion.div>
+            
+            <div className="w-32" /> {/* Spacer for centering */}
+          </div>
+        </div>
+      </motion.div>
 
-      {/* Plans */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-        {/* Monthly */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-fredoka font-bold text-gray-900 mb-2">{monthlyPlan.name}</h2>
-            <div className="flex items-end justify-center gap-2">
-              <span className="text-4xl font-bold text-blue-600">{monthlyPlan.price}</span>
-              <span className="text-gray-600 mb-1">{monthlyPlan.period}</span>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Launch Offer Banner */}
+        <motion.div 
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+        >
+          <motion.div 
+            className="inline-flex items-center gap-3 bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-300 px-6 py-4 rounded-2xl mb-6"
+            animate={{ scale: [1, 1.02, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <motion.span 
+              className="text-2xl"
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+            >
+              🎉
+            </motion.span>
+            <div className="text-left">
+              <div className="text-lg font-fredoka font-bold text-green-800">Launch Special!</div>
+              <div className="text-sm font-fredoka text-green-700">Unlimited access is completely FREE during our launch period</div>
+            </div>
+          </motion.div>
+          
+          <motion.h1 
+            className="text-5xl font-fredoka font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+          >
+            Choose Your Plan
+          </motion.h1>
+          <motion.p 
+            className="text-xl font-fredoka text-gray-600"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+          >
+            Start with unlimited free access, upgrade when you're ready
+          </motion.p>
+        </motion.div>
+
+        {/* Enhanced Plans */}
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8, duration: 0.8 }}
+        >
+          {/* FREE LAUNCH PLAN */}
+          <motion.div 
+            className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl shadow-2xl border-3 border-green-300 p-8 relative overflow-hidden"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1.0, duration: 0.6 }}
+            whileHover={{ 
+              scale: 1.05,
+              boxShadow: "0 25px 50px rgba(34, 197, 94, 0.2)"
+            }}
+          >
+            {/* FREE badge */}
+            <motion.div 
+              className="absolute top-0 right-0 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-bl-2xl font-fredoka font-bold text-lg shadow-lg"
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              🎉 FREE NOW!
+            </motion.div>
+
+            <div className="text-center mb-8">
+              <motion.div 
+                className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white text-2xl shadow-lg"
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.6 }}
+              >
+                🚀
+              </motion.div>
+              <h2 className="text-3xl font-fredoka font-bold text-gray-900 mb-3">Launch Special</h2>
+              <div className="flex items-end justify-center gap-2 mb-2">
+                <span className="text-5xl font-fredoka font-bold text-green-600">FREE</span>
               </div>
-            <p className="text-gray-600 font-fredoka mt-2">Unlimited access, billed monthly</p>
+              <p className="text-gray-600 font-fredoka">Everything unlimited during launch</p>
             </div>
             
-          <div className="space-y-3 mb-6">
-            {monthlyPlan.features.map((feature, index) => (
-              <div key={index} className="flex items-start">
-                <div className="flex-shrink-0 w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">
-                  ✓
-                </div>
-                <span className="text-gray-700 font-fredoka">{feature}</span>
-              </div>
-            ))}
+            <div className="space-y-4 mb-8">
+              {sharedFeatures.map((feature, index) => (
+                <motion.div 
+                  key={index} 
+                  className="flex items-start"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1.2 + index * 0.1, duration: 0.4 }}
+                >
+                  <motion.div 
+                    className="flex-shrink-0 w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5"
+                    whileHover={{ scale: 1.2, rotate: 360 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    ✓
+                  </motion.div>
+                  <span className="text-gray-700 font-fredoka font-medium">{feature}</span>
+                </motion.div>
+              ))}
             </div>
 
-            <button 
-            onClick={() => handlePlanSelect('monthly')}
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-4 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 font-fredoka text-lg"
+            <motion.button 
+              onClick={() => toast.success('You already have unlimited access! 🎉')}
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white font-fredoka font-bold py-4 px-6 rounded-2xl shadow-lg text-lg relative overflow-hidden"
+              whileHover={{ scale: 1.05, y: -3 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 300 }}
             >
-            Get Unlimited - $4.99/m
-            </button>
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-green-500"
+                initial={{ x: "-100%" }}
+                whileHover={{ x: "0%" }}
+                transition={{ duration: 0.4 }}
+              />
+              <span className="relative z-10">✨ Already Active!</span>
+            </motion.button>
 
-          <p className="text-sm text-gray-500 font-fredoka text-center mt-4">
-            🔒 Secure payment • Cancel anytime • No setup fees
-          </p>
+            <p className="text-sm text-green-700 font-fredoka text-center mt-4 font-medium">
+              🎯 Limited time • No payment required • Full access
+            </p>
           </div>
 
-        {/* Yearly */}
-        <div className="bg-white rounded-2xl shadow-xl border-2 border-blue-500 p-8 relative overflow-hidden">
-          {/* Best value badge */}
-          <div className="absolute top-0 right-0 bg-blue-500 text-white px-4 py-2 rounded-bl-lg font-bold text-sm">
-            BEST VALUE
-        </div>
-
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-fredoka font-bold text-gray-900 mb-2">{yearlyPlan.name}</h2>
-            <div className="flex items-end justify-center gap-2">
-              <span className="text-4xl font-bold text-blue-600">{yearlyPlan.price}</span>
-              <span className="text-gray-600 mb-1">{yearlyPlan.period}</span>
-            </div>
-            <p className="text-gray-600 font-fredoka mt-2">Same features, billed yearly</p>
-          </div>
-
-          <div className="space-y-3 mb-6">
-            {yearlyPlan.features.map((feature, index) => (
-              <div key={index} className="flex items-start">
-                <div className="flex-shrink-0 w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">
-                  ✓
-                </div>
-                <span className="text-gray-700 font-fredoka">{feature}</span>
-              </div>
-            ))}
-          </div>
-
-          <button 
-            onClick={() => handlePlanSelect('yearly')}
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-4 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 font-fredoka text-lg"
+          {/* Future Monthly Plan */}
+          <motion.div 
+            className="bg-white rounded-3xl shadow-xl border border-gray-200 p-8 relative opacity-75"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 0.75, scale: 1 }}
+            transition={{ delay: 1.2, duration: 0.6 }}
           >
-            Get Unlimited - $49/year
-          </button>
+            <div className="absolute inset-0 bg-gray-50/50 rounded-3xl" />
+            <div className="relative">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-fredoka font-bold text-gray-600 mb-2">Monthly Plan</h2>
+                <div className="flex items-end justify-center gap-2">
+                  <span className="text-4xl font-fredoka font-bold text-gray-500 line-through">$4.99</span>
+                  <span className="text-gray-500 mb-1">/month</span>
+                </div>
+                <p className="text-gray-500 font-fredoka mt-2">After launch period</p>
+              </div>
+              
+              <div className="space-y-3 mb-6">
+                {sharedFeatures.map((feature, index) => (
+                  <div key={index} className="flex items-start">
+                    <div className="flex-shrink-0 w-5 h-5 bg-gray-400 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">
+                      ✓
+                    </div>
+                    <span className="text-gray-500 font-fredoka">{feature}</span>
+                  </div>
+                ))}
+              </div>
 
-          <p className="text-sm text-gray-500 font-fredoka text-center mt-4">
-            Includes higher priority support
-          </p>
-        </div>
+              <button 
+                disabled
+                className="w-full bg-gray-300 text-gray-500 font-fredoka font-bold py-4 px-6 rounded-2xl text-lg cursor-not-allowed"
+              >
+                Coming After Launch
+              </button>
+            </div>
+          </div>
+
+          {/* Future Yearly Plan */}
+          <motion.div 
+            className="bg-white rounded-3xl shadow-xl border border-gray-200 p-8 relative opacity-75"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 0.75, scale: 1 }}
+            transition={{ delay: 1.4, duration: 0.6 }}
+          >
+            <div className="absolute inset-0 bg-gray-50/50 rounded-3xl" />
+            <div className="relative">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-fredoka font-bold text-gray-600 mb-2">Yearly Plan</h2>
+                <div className="flex items-end justify-center gap-2">
+                  <span className="text-4xl font-fredoka font-bold text-gray-500 line-through">$49</span>
+                  <span className="text-gray-500 mb-1">/year</span>
+                </div>
+                <p className="text-gray-500 font-fredoka mt-2">After launch period</p>
+              </div>
+
+              <div className="space-y-3 mb-6">
+                {[...sharedFeatures.slice(0, -1), 'Priority support (higher priority)'].map((feature, index) => (
+                  <div key={index} className="flex items-start">
+                    <div className="flex-shrink-0 w-5 h-5 bg-gray-400 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">
+                      ✓
+                    </div>
+                    <span className="text-gray-500 font-fredoka">{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              <button 
+                disabled
+                className="w-full bg-gray-300 text-gray-500 font-fredoka font-bold py-4 px-6 rounded-2xl text-lg cursor-not-allowed"
+              >
+                Coming After Launch
+              </button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Launch Modal */}
+        <AnimatePresence>
+          {showLaunchModal && (
+            <motion.div 
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.div 
+                className="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl"
+                initial={{ scale: 0.8, opacity: 0, y: 50 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.8, opacity: 0, y: 50 }}
+                transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+              >
+                <div className="text-center">
+                  <motion.div 
+                    className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl mx-auto mb-6 flex items-center justify-center text-white text-3xl shadow-lg"
+                    animate={{ rotate: [0, 10, -10, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    🎉
+                  </motion.div>
+                  
+                  <h2 className="text-3xl font-fredoka font-bold text-gray-900 mb-4">
+                    🚀 Launch Special Offer!
+                  </h2>
+                  
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-200 mb-6">
+                    <p className="text-xl font-fredoka font-bold text-green-800 mb-2">
+                      Unlimited Access - Completely FREE
+                    </p>
+                    <p className="text-green-700 font-fredoka">
+                      During our launch period, enjoy all premium features at no cost. 
+                      No credit card required, no hidden fees, just pure unlimited access!
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    {[
+                      { icon: '📝', label: 'Unlimited Essays' },
+                      { icon: '📊', label: 'Full Analytics' },
+                      { icon: '⚡', label: 'Instant Feedback' },
+                      { icon: '🎯', label: 'Progress Tracking' }
+                    ].map((feature, index) => (
+                      <motion.div 
+                        key={feature.label}
+                        className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.4 + index * 0.1, duration: 0.4 }}
+                      >
+                        <span className="text-xl">{feature.icon}</span>
+                        <span className="font-fredoka font-medium text-gray-700">{feature.label}</span>
+                      </motion.div>
+                    ))}
+                  </div>
+                  
+                  <motion.button
+                    onClick={() => setShowLaunchModal(false)}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white font-fredoka font-bold py-4 px-8 rounded-2xl text-lg shadow-lg relative overflow-hidden"
+                    whileHover={{ scale: 1.05, y: -3 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-green-500"
+                      initial={{ x: "-100%" }}
+                      whileHover={{ x: "0%" }}
+                      transition={{ duration: 0.4 }}
+                    />
+                    <span className="relative z-10">🎯 Got it! Let's start writing</span>
+                  </motion.button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -254,8 +494,18 @@ const LockedAnalyticsPage = ({ onBack, upgradeType, page = 'analytics' }) => {
                 <circle cx="12" cy="14" r="1.5" fill="currentColor" />
               </svg>
             </div>
-            {/* Floating elements */}
-            <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full animate-bounce"></div>
+            {/* Floating elements - replaced with actual logo */}
+            <motion.div 
+              className="absolute -top-2 -right-2 w-8 h-8 rounded-full overflow-hidden shadow-lg"
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <img 
+                src="https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143" 
+                alt="EnglishGPT logo" 
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
             <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-pink-400 rounded-full animate-bounce" style={{animationDelay: '0.5s'}}></div>
           </div>
 
@@ -636,7 +886,7 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
   );
 };
 
-// History Page
+// Enhanced History Page - Analytics-style
 const HistoryPage = ({ onBack, evaluations, userPlan }) => {
   const [selectedEvaluation, setSelectedEvaluation] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -644,12 +894,40 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
   const [sortBy, setSortBy] = useState('newest');
   const [selectedForCompare, setSelectedForCompare] = useState([]);
   const [showCompare, setShowCompare] = useState(false);
+  const [viewMode, setViewMode] = useState('grid'); // grid or list
   
   // Helper function for unlimited plan checking
   const hasUnlimitedAccess = () => {
     const plan = userPlan?.toLowerCase();
     return plan === 'unlimited';
   };
+  
+  // Calculate analytics from evaluations
+  const getAnalytics = () => {
+    if (!evaluations.length) return { avgScore: 0, totalEssays: 0, improvement: 0, recentActivity: [] };
+    
+    const scores = evaluations.map(e => {
+      const match = e.grade.match(/(\d+)/);
+      return match ? parseInt(match[1]) : 0;
+    });
+    
+    const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+    const recentScores = scores.slice(0, 5);
+    const olderScores = scores.slice(5, 10);
+    const improvement = recentScores.length > 0 && olderScores.length > 0 
+      ? ((recentScores.reduce((a, b) => a + b, 0) / recentScores.length) - 
+         (olderScores.reduce((a, b) => a + b, 0) / olderScores.length))
+      : 0;
+    
+    return {
+      avgScore: Math.round(avgScore * 10) / 10,
+      totalEssays: evaluations.length,
+      improvement: Math.round(improvement * 10) / 10,
+      recentActivity: evaluations.slice(0, 5)
+    };
+  };
+  
+  const analytics = getAnalytics();
   
   // Parse feedback text into bullet points
   const parseFeedbackToBullets = (feedback) => {
@@ -917,51 +1195,153 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
+    <motion.div 
+      className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
+      {/* Enhanced Header with gradient */}
+      <motion.div 
+        className="bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 shadow-xl"
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <button
+          <div className="flex items-center justify-between h-20">
+            <motion.button
               onClick={onBack}
-              className="text-blue-600 hover:text-blue-800 flex items-center"
+              className="text-white hover:text-purple-100 flex items-center font-fredoka font-semibold"
+              whileHover={{ scale: 1.05, x: -5 }}
+              transition={{ type: "spring", stiffness: 300 }}
             >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <motion.svg 
+                className="w-5 h-5 mr-2" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+                whileHover={{ x: -3 }}
+                transition={{ duration: 0.2 }}
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
+              </motion.svg>
               Back to Dashboard
-            </button>
-            <h1 className="text-xl font-bold text-gray-900">Marking History</h1>
-            <div className="flex items-center gap-3">
-              <button
+            </motion.button>
+            
+            <motion.div 
+              className="flex items-center gap-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+            >
+              <motion.img 
+                src="https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143" 
+                alt="EnglishGPT logo" 
+                className="w-10 h-10 rounded-xl object-cover shadow-lg"
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.6 }}
+              />
+              <h1 className="text-2xl font-fredoka font-bold text-white">📚 Marking History</h1>
+            </motion.div>
+            
+            <motion.div 
+              className="flex items-center gap-3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
+            >
+              <motion.button
                 onClick={openCompare}
                 disabled={selectedForCompare.length !== 2}
-                className={`px-3 py-2 rounded-lg ${selectedForCompare.length === 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600 cursor-not-allowed'}`}
-                aria-label="Compare selected evaluations"
+                className={`px-4 py-2 rounded-xl font-fredoka font-semibold transition-all ${
+                  selectedForCompare.length === 2 
+                    ? 'bg-white text-purple-600 shadow-lg hover:shadow-xl' 
+                    : 'bg-white/20 text-white/60 cursor-not-allowed'
+                }`}
+                whileHover={selectedForCompare.length === 2 ? { scale: 1.05, y: -2 } : {}}
+                transition={{ type: "spring", stiffness: 300 }}
               >
-                Compare (2)
-              </button>
+                Compare ({selectedForCompare.length}/2)
+              </motion.button>
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search and Filter Controls */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Search Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Analytics Overview Cards */}
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+        >
+          {[
+            { label: 'Total Essays', value: analytics.totalEssays, icon: '📝', color: 'from-blue-500 to-blue-600' },
+            { label: 'Average Score', value: analytics.avgScore, icon: '📊', color: 'from-green-500 to-green-600' },
+            { label: 'Improvement', value: analytics.improvement > 0 ? `+${analytics.improvement}` : analytics.improvement, icon: '📈', color: 'from-purple-500 to-purple-600' },
+            { label: 'Recent Activity', value: analytics.recentActivity.length, icon: '⚡', color: 'from-pink-500 to-pink-600' }
+          ].map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.4 + index * 0.1, duration: 0.4 }}
+              whileHover={{ 
+                scale: 1.05,
+                boxShadow: "0 20px 40px rgba(0,0,0,0.1)"
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-fredoka font-medium text-gray-600">{stat.label}</p>
+                  <p className="text-3xl font-fredoka font-bold text-gray-900 mt-1">{stat.value}</p>
+                </div>
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-white text-xl shadow-lg`}>
+                  {stat.icon}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Enhanced Search and Filter Controls */}
+        <motion.div 
+          className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-8"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.6 }}
+        >
+          <div className="flex flex-col md:flex-row items-center justify-between mb-6">
+            <h2 className="text-xl font-fredoka font-bold text-gray-900">Your Essay History</h2>
+            <div className="flex items-center gap-3 mt-4 md:mt-0">
+              <motion.button
+                onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {viewMode === 'grid' ? '📋' : '⊞'}
+              </motion.button>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Enhanced Search Input */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-fredoka font-medium text-gray-700 mb-2">Search Essays</label>
               <div className="relative">
-                <input
+                <motion.input
                   type="text"
                   placeholder="Search essays, feedback, or grades..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent font-fredoka transition-all"
+                  whileFocus={{ scale: 1.02 }}
                 />
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
@@ -969,13 +1349,14 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
               </div>
             </div>
             
-            {/* Filter by Type */}
+            {/* Enhanced Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Type</label>
-              <select
+              <label className="block text-sm font-fredoka font-medium text-gray-700 mb-2">Filter Type</label>
+              <motion.select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full py-3 px-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent font-fredoka"
+                whileFocus={{ scale: 1.02 }}
               >
                 <option value="all">All Types</option>
                 <option value="igcse">IGCSE</option>
@@ -984,157 +1365,391 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
                 <option value="narrative">Narrative</option>
                 <option value="descriptive">Descriptive</option>
                 <option value="directed">Directed Writing</option>
-              </select>
+              </motion.select>
             </div>
             
-            {/* Sort Options */}
+            {/* Enhanced Sort */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Sort by</label>
-              <select
+              <label className="block text-sm font-fredoka font-medium text-gray-700 mb-2">Sort By</label>
+              <motion.select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full py-3 px-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent font-fredoka"
+                whileFocus={{ scale: 1.02 }}
               >
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
                 <option value="grade_high">Highest Grade</option>
                 <option value="grade_low">Lowest Grade</option>
-              </select>
+              </motion.select>
             </div>
           </div>
           
-          {/* Results Count and Selection */}
-          <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
-            <div>
-              Showing {filteredEvaluations.length} of {evaluations.length} evaluations
+          {/* Enhanced Results Summary */}
+          <motion.div 
+            className="mt-6 flex items-center justify-between bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-xl"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8, duration: 0.4 }}
+          >
+            <div className="flex items-center gap-4">
+              <span className="font-fredoka font-semibold text-gray-900">
+                Showing {filteredEvaluations.length} of {evaluations.length} evaluations
+              </span>
               {searchTerm && (
-                <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">"{searchTerm}"</span>
+                <motion.span 
+                  className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-fredoka"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", duration: 0.4 }}
+                >
+                  "{searchTerm}"
+                </motion.span>
               )}
             </div>
-            <div className="text-xs text-gray-500">
-              Selected: {selectedForCompare.length} / 2
+            <div className="flex items-center gap-2 text-sm font-fredoka text-gray-600">
+              <span>Selected for comparison:</span>
+              <span className={`font-bold ${selectedForCompare.length === 2 ? 'text-green-600' : 'text-gray-400'}`}>
+                {selectedForCompare.length} / 2
+              </span>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {filteredEvaluations.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">📝</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">No evaluations yet</h2>
-            <p className="text-gray-600">Start your first assessment to see your history here.</p>
-          </div>
+          <motion.div 
+            className="text-center py-20"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+          >
+            <motion.div 
+              className="text-8xl mb-6"
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              📝
+            </motion.div>
+            <h2 className="text-3xl font-fredoka font-bold text-gray-900 mb-4">No evaluations yet</h2>
+            <p className="text-xl font-fredoka text-gray-600 mb-8">Start your first assessment to see your history here.</p>
+            <motion.button
+              onClick={onBack}
+              className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-fredoka font-bold text-lg shadow-lg hover:shadow-xl transition-all"
+              whileHover={{ scale: 1.05, y: -3 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Start Writing →
+            </motion.button>
+          </motion.div>
         ) : (
-          <div className="space-y-4">
-            {filteredEvaluations.map((evaluation) => {
+          <motion.div 
+            className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8, duration: 0.6 }}
+          >
+            {filteredEvaluations.map((evaluation, index) => {
               const isSelected = !!selectedForCompare.find((e) => e.id === evaluation.id);
+              const score = parseInt(evaluation.grade.match(/(\d+)/)?.[1] || 0);
+              const maxScore = parseInt(evaluation.grade.match(/\/(\d+)/)?.[1] || 100);
+              const percentage = maxScore ? (score / maxScore) * 100 : 0;
+              
               return (
-                <div
+                <motion.div
                   key={evaluation.id}
-                  className={`bg-white rounded-xl p-6 shadow-sm border ${isSelected ? 'border-blue-400 ring-2 ring-blue-200' : 'border-gray-200 hover:shadow-md'} transition-shadow`}
+                  className={`bg-white rounded-2xl p-6 shadow-lg border-2 transition-all duration-300 ${
+                    isSelected 
+                      ? 'border-purple-400 ring-4 ring-purple-100 shadow-purple-200' 
+                      : 'border-gray-100 hover:border-purple-200 hover:shadow-xl'
+                  }`}
+                  initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ delay: 0.1 * index, duration: 0.4 }}
+                  whileHover={{ 
+                    y: -5,
+                    scale: 1.02,
+                    boxShadow: "0 20px 40px rgba(147, 51, 234, 0.15)"
+                  }}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900 mr-4">
-                          {evaluation.question_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                        </h3>
-                        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                          {evaluation.grade}
-                        </span>
-                      </div>
-                      <p className="text-gray-600 text-sm mb-2">
-                        {new Date(evaluation.timestamp).toLocaleDateString()}
-                      </p>
-                      <p className="text-gray-700 text-sm">
-                        {evaluation.student_response.substring(0, 100)}...
-                      </p>
+                  {/* Header with grade badge */}
+                  <div className="flex items-center justify-between mb-4">
+                    <motion.div 
+                      className="flex items-center gap-3"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 + 0.1 * index, duration: 0.4 }}
+                    >
+                      <div className={`w-3 h-3 rounded-full ${percentage >= 80 ? 'bg-green-500' : percentage >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`} />
+                      <h3 className="text-lg font-fredoka font-bold text-gray-900">
+                        {evaluation.question_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </h3>
+                    </motion.div>
+                    <motion.span 
+                      className={`px-3 py-1 rounded-full text-sm font-fredoka font-bold ${
+                        percentage >= 80 ? 'bg-green-100 text-green-800' :
+                        percentage >= 60 ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.3 + 0.1 * index, type: "spring", duration: 0.4 }}
+                    >
+                      {evaluation.grade}
+                    </motion.span>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="mb-4">
+                    <div className="flex justify-between text-sm font-fredoka text-gray-600 mb-2">
+                      <span>Performance</span>
+                      <span>{Math.round(percentage)}%</span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <label className="flex items-center gap-2 text-sm text-gray-700">
-                        <input
-                          type="checkbox"
-                          aria-label="Select for compare"
-                          checked={isSelected}
-                          onChange={() => toggleSelectForCompare(evaluation)}
-                          className="w-4 h-4"
-                        />
-                        Compare
-                      </label>
-                      <button
-                        onClick={() => setSelectedEvaluation(evaluation)}
-                        className="text-blue-600 hover:text-blue-800 font-medium"
-                        aria-label="View details"
-                      >
-                        View Details
-                      </button>
+                    <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                      <motion.div 
+                        className={`h-full rounded-full ${
+                          percentage >= 80 ? 'bg-gradient-to-r from-green-400 to-green-500' :
+                          percentage >= 60 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' :
+                          'bg-gradient-to-r from-red-400 to-red-500'
+                        }`}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${percentage}%` }}
+                        transition={{ delay: 0.5 + 0.1 * index, duration: 0.8, ease: "easeOut" }}
+                      />
                     </div>
                   </div>
-                </div>
+
+                  {/* Date and preview */}
+                  <motion.div 
+                    className="mb-4"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.4 + 0.1 * index, duration: 0.4 }}
+                  >
+                    <p className="text-sm font-fredoka font-medium text-gray-500 mb-2">
+                      📅 {new Date(evaluation.timestamp).toLocaleDateString('en-US', { 
+                        weekday: 'short', 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric' 
+                      })}
+                    </p>
+                    <p className="text-gray-700 text-sm font-fredoka line-clamp-2">
+                      {evaluation.student_response.substring(0, 120)}...
+                    </p>
+                  </motion.div>
+
+                  {/* Action buttons */}
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <motion.label 
+                      className="flex items-center gap-2 text-sm font-fredoka font-medium text-gray-700 cursor-pointer"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSelectForCompare(evaluation)}
+                        className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                      />
+                      Compare
+                    </motion.label>
+                    <motion.button
+                      onClick={() => setSelectedEvaluation(evaluation)}
+                      className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-fredoka font-semibold text-sm shadow-md hover:shadow-lg transition-all"
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      View Details →
+                    </motion.button>
+                  </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
 
       </div>
 
-      {/* Evaluation Detail Modal */}
-      {selectedEvaluation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-label="Evaluation Details">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-semibold">Evaluation Details</h2>
-              <button
-                onClick={() => setSelectedEvaluation(null)}
-                className="text-gray-500 hover:text-gray-700"
-                aria-label="Close details"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              <div className="space-y-6">
-                <div>
-                  <h3 className="font-semibold mb-2">Grade</h3>
-                  <p className="text-blue-600 font-medium">{selectedEvaluation.grade}</p>
-                </div>
-                <div>
-                  <div className="bg-gray-50 p-4 rounded-xl">
-                    <ul className="list-disc pl-5 text-gray-700">
-                      {parseFeedbackToBullets(selectedEvaluation.feedback)}
-                    </ul>
-                  </div>
-                </div>
-                {selectedEvaluation.strengths && selectedEvaluation.strengths.length > 0 && (
-                  <div>
-                    <h3 className="font-semibold mb-2">Strengths</h3>
-                    <div className="space-y-2">
-                      {selectedEvaluation.strengths.map((strength, index) => (
-                        <div key={index} className="bg-green-50 p-3 rounded-xl">
-                          <p className="text-green-800 text-sm">{strength}</p>
-                        </div>
-                      ))}
+      {/* Enhanced Evaluation Detail Modal */}
+      <AnimatePresence>
+        {selectedEvaluation && (
+          <motion.div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" 
+            role="dialog" 
+            aria-modal="true" 
+            aria-label="Evaluation Details"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div 
+              className="bg-white rounded-3xl max-w-5xl w-full max-h-[90vh] overflow-hidden shadow-2xl"
+              initial={{ scale: 0.8, opacity: 0, y: 50 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.8, opacity: 0, y: 50 }}
+              transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+            >
+              {/* Enhanced Header */}
+              <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <motion.img 
+                      src="https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143" 
+                      alt="EnglishGPT logo" 
+                      className="w-10 h-10 rounded-xl object-cover shadow-lg"
+                      whileHover={{ rotate: 360 }}
+                      transition={{ duration: 0.6 }}
+                    />
+                    <div>
+                      <h2 className="text-2xl font-fredoka font-bold text-white">Evaluation Details</h2>
+                      <p className="text-purple-100 font-fredoka">
+                        {selectedEvaluation.question_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </p>
                     </div>
                   </div>
-                )}
-                {selectedEvaluation.improvement_suggestions && selectedEvaluation.improvement_suggestions.length > 0 && (
-                  <div>
-                    <h3 className="font-semibold mb-2">Improvement Suggestions</h3>
-                    <div className="space-y-2">
-                      {selectedEvaluation.improvement_suggestions.map((suggestion, index) => (
-                        <div key={index} className="bg-yellow-50 p-3 rounded-xl">
-                          <p className="text-yellow-800 text-sm">{suggestion}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  <motion.button
+                    onClick={() => setSelectedEvaluation(null)}
+                    className="text-white hover:text-purple-100 p-2 rounded-xl hover:bg-white/10 transition-colors"
+                    whileHover={{ scale: 1.1, rotate: 90 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </motion.button>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
+              
+              <div className="p-8 overflow-y-auto max-h-[calc(90vh-140px)]">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Grade Section */}
+                  <motion.div 
+                    className="lg:col-span-1"
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2, duration: 0.6 }}
+                  >
+                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-2xl border border-purple-100">
+                      <h3 className="font-fredoka font-bold text-gray-900 mb-4 text-lg">📊 Grade Overview</h3>
+                      <div className="text-center">
+                        <div className="text-4xl font-fredoka font-bold text-purple-600 mb-2">
+                          {selectedEvaluation.grade}
+                        </div>
+                        <div className="text-sm font-fredoka text-gray-600">
+                          📅 {new Date(selectedEvaluation.timestamp).toLocaleDateString('en-US', { 
+                            weekday: 'long', 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Content Section */}
+                  <motion.div 
+                    className="lg:col-span-2 space-y-6"
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4, duration: 0.6 }}
+                  >
+                    {/* Feedback */}
+                    <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+                      <h3 className="font-fredoka font-bold text-gray-900 mb-4 text-lg flex items-center gap-2">
+                        💬 Detailed Feedback
+                      </h3>
+                      <div className="space-y-3">
+                        {parseFeedbackToBullets(selectedEvaluation.feedback).map((point, index) => (
+                          <motion.div 
+                            key={index}
+                            className="flex items-start gap-3 p-3 bg-white rounded-xl shadow-sm"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.6 + index * 0.1, duration: 0.4 }}
+                          >
+                            <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
+                              {index + 1}
+                            </div>
+                            <p className="text-gray-700 font-fredoka">{point}</p>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Strengths */}
+                    {selectedEvaluation.strengths && selectedEvaluation.strengths.length > 0 && (
+                      <motion.div 
+                        className="bg-green-50 p-6 rounded-2xl border border-green-100"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.8, duration: 0.6 }}
+                      >
+                        <h3 className="font-fredoka font-bold text-gray-900 mb-4 text-lg flex items-center gap-2">
+                          ✨ Strengths
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {selectedEvaluation.strengths.map((strength, index) => (
+                            <motion.div 
+                              key={index} 
+                              className="bg-white p-4 rounded-xl shadow-sm border border-green-200"
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: 1.0 + index * 0.1, duration: 0.4 }}
+                              whileHover={{ scale: 1.02 }}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
+                                  ✓
+                                </div>
+                                <p className="text-green-800 font-fredoka text-sm">{strength}</p>
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* Improvement Suggestions */}
+                    {selectedEvaluation.improvement_suggestions && selectedEvaluation.improvement_suggestions.length > 0 && (
+                      <motion.div 
+                        className="bg-yellow-50 p-6 rounded-2xl border border-yellow-100"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1.0, duration: 0.6 }}
+                      >
+                        <h3 className="font-fredoka font-bold text-gray-900 mb-4 text-lg flex items-center gap-2">
+                          🎯 Areas for Improvement
+                        </h3>
+                        <div className="space-y-3">
+                          {selectedEvaluation.improvement_suggestions.map((suggestion, index) => (
+                            <motion.div 
+                              key={index} 
+                              className="bg-white p-4 rounded-xl shadow-sm border border-yellow-200"
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: 1.2 + index * 0.1, duration: 0.4 }}
+                              whileHover={{ scale: 1.02 }}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="w-6 h-6 bg-yellow-500 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
+                                  {index + 1}
+                                </div>
+                                <p className="text-yellow-800 font-fredoka text-sm">{suggestion}</p>
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </motion.div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Compare Modal */}
       {showCompare && selectedForCompare.length === 2 && (
@@ -1811,18 +2426,44 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
           <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
             Get instant, professional feedback on your English essays and assignments
           </p>
-          <button
+          <motion.button
             onClick={onStartQuestion}
-            className="group bg-gradient-to-r from-pink-500 to-purple-600 text-white px-12 py-6 rounded-2xl font-bold hover:shadow-2xl hover:scale-105 transition-all duration-300 text-xl"
+            className="group bg-gradient-to-r from-pink-500 via-pink-600 to-rose-600 text-white px-16 py-8 rounded-3xl font-bold hover:shadow-2xl hover:scale-105 transition-all duration-300 text-2xl relative overflow-hidden"
+            whileHover={{ 
+              scale: 1.08, 
+              y: -5,
+              boxShadow: "0 25px 50px rgba(236, 72, 153, 0.3)"
+            }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 300 }}
           >
-            <span className="flex items-center space-x-3">
-              <span className="text-2xl">✨</span>
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-rose-500 to-pink-500"
+              initial={{ x: "-100%" }}
+              whileHover={{ x: "0%" }}
+              transition={{ duration: 0.4 }}
+            />
+            <span className="flex items-center space-x-4 relative z-10">
+              <motion.img 
+                src={LOGO_URL} 
+                alt="EnglishGPT logo" 
+                className="w-8 h-8 rounded-lg object-cover"
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.6 }}
+              />
               <span>Mark a Question</span>
-              <svg className="w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <motion.svg 
+                className="w-8 h-8 group-hover:translate-x-1 transition-transform" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+                whileHover={{ x: 5 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
+              </motion.svg>
             </span>
-          </button>
+          </motion.button>
         </div>
         
         {/* Question Types - Rendered explicitly */}
@@ -3130,11 +3771,17 @@ const SignInModal = ({ isOpen, onClose, darkMode }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className={`${darkMode ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-gray-900'} rounded-2xl p-8 max-w-md mx-4 shadow-xl w-full`}>
         <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl mx-auto mb-4 flex items-center justify-center">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </div>
+          <motion.div 
+            className="w-16 h-16 rounded-2xl mx-auto mb-4 overflow-hidden shadow-lg"
+            whileHover={{ rotate: 360, scale: 1.1 }}
+            transition={{ duration: 0.6 }}
+          >
+            <img 
+              src="https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143" 
+              alt="EnglishGPT logo" 
+              className="w-full h-full object-cover"
+            />
+          </motion.div>
           <h3 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             Sign in to Continue
           </h3>
@@ -3263,182 +3910,814 @@ const App = () => {
     // Product screenshots (defined explicitly as requested)
     const LOGO_URL = 'https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143';
     const [showAuthModal, setShowAuthModal] = useState(false);
+    
+    // Animation hooks for enhanced effects
+    const fadeInUp = {
+      initial: { opacity: 0, y: 60 },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration: 0.6, ease: "easeOut" }
+    };
+    
+    const staggerContainer = {
+      animate: {
+        transition: {
+          staggerChildren: 0.1
+        }
+      }
+    };
+    
+    const floatingAnimation = useSpring({
+      from: { transform: 'translateY(0px)' },
+      to: async (next) => {
+        while (true) {
+          await next({ transform: 'translateY(-10px)' });
+          await next({ transform: 'translateY(0px)' });
+        }
+      },
+      config: { duration: 3000 }
+    });
     const IMG_STRENGTHS = 'https://ik.imagekit.io/lqf8a8nmt/Screenshot%202025-08-17%20at%2012-17-17%20EnglishGPT%20-%20AI%20English%20Marking.png?updatedAt=1755509276805';
     const IMG_PRICING = 'https://ik.imagekit.io/lqf8a8nmt/Screenshot%202025-08-17%20at%2012-11-06%20EnglishGPT%20-%20AI%20English%20Marking.png?updatedAt=1755509276757';
     const IMG_WRITE = 'https://ik.imagekit.io/lqf8a8nmt/Screenshot%202025-08-17%20at%2012-10-47%20EnglishGPT%20-%20AI%20English%20Marking.png?updatedAt=1755509276693';
     const IMG_MARKING = 'https://ik.imagekit.io/lqf8a8nmt/Screenshot%202025-08-17%20at%2012-17-35%20EnglishGPT%20-%20AI%20English%20Marking.png?updatedAt=1755509276578';
     return (
-      <div className="min-h-screen relative overflow-hidden">
-        {/* Background gradient + floating transparent purple boxes */}
+      <motion.div 
+        className="min-h-screen relative overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+      >
+        {/* Enhanced Background with animated elements */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-gradient-to-br from-white via-[#F7F2FF] to-white" />
           <div className="pointer-events-none select-none">
-            <div className="absolute -top-16 -left-10 h-72 w-72 rounded-3xl bg-purple-500/20 backdrop-blur-md border border-purple-300/30 shadow-2xl shadow-purple-500/10 rotate-6" />
-            <div className="absolute top-40 left-1/3 h-40 w-40 rounded-2xl bg-purple-400/20 backdrop-blur-md border border-purple-300/30 shadow-xl shadow-purple-400/10 -rotate-6" />
-            <div className="absolute -right-12 top-20 h-80 w-80 rounded-3xl bg-purple-600/20 backdrop-blur-md border border-purple-300/30 shadow-2xl shadow-purple-600/10 rotate-12" />
-            <div className="absolute bottom-10 right-1/4 h-56 w-56 rounded-3xl bg-purple-500/15 backdrop-blur-md border border-purple-300/30 shadow-2xl shadow-purple-500/10 -rotate-3" />
+            <motion.div 
+              className="absolute -top-16 -left-10 h-72 w-72 rounded-3xl bg-purple-500/20 backdrop-blur-md border border-purple-300/30 shadow-2xl shadow-purple-500/10 rotate-6"
+              animate={{ 
+                rotate: [6, 12, 6],
+                scale: [1, 1.05, 1]
+              }}
+              transition={{ 
+                duration: 8,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+            <motion.div 
+              className="absolute top-40 left-1/3 h-40 w-40 rounded-2xl bg-purple-400/20 backdrop-blur-md border border-purple-300/30 shadow-xl shadow-purple-400/10 -rotate-6"
+              animate={{ 
+                rotate: [-6, 0, -6],
+                y: [0, -15, 0]
+              }}
+              transition={{ 
+                duration: 6,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+            <motion.div 
+              className="absolute -right-12 top-20 h-80 w-80 rounded-3xl bg-purple-600/20 backdrop-blur-md border border-purple-300/30 shadow-2xl shadow-purple-600/10 rotate-12"
+              animate={{ 
+                rotate: [12, 18, 12],
+                scale: [1, 1.02, 1]
+              }}
+              transition={{ 
+                duration: 10,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+            <motion.div 
+              className="absolute bottom-10 right-1/4 h-56 w-56 rounded-3xl bg-purple-500/15 backdrop-blur-md border border-purple-300/30 shadow-2xl shadow-purple-500/10 -rotate-3"
+              animate={{ 
+                rotate: [-3, 3, -3],
+                x: [0, 10, 0]
+              }}
+              transition={{ 
+                duration: 7,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
           </div>
         </div>
 
-        {/* Header */}
-        <header className="relative">
+        {/* Enhanced Animated Header */}
+        <motion.header 
+          className="relative"
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
           <div className="max-w-7xl mx-auto flex items-center justify-between py-5 px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-3">
-              <img src={LOGO_URL} alt="EnglishGPT logo" className="w-9 h-9 rounded-xl object-cover shadow-lg shadow-purple-600/20" />
-              <span className="font-fredoka font-bold text-xl text-gray-900">EnglishGPT</span>
-            </div>
-            <nav className="hidden md:flex items-center gap-6 text-gray-700">
-              <a href="#features" className="hover:text-gray-900">Features</a>
-              <a href="#how" className="hover:text-gray-900">How it works</a>
-              <a href="#testimonials" className="hover:text-gray-900">Testimonials</a>
-              <a href="#faq" className="hover:text-gray-900">FAQ</a>
-            </nav>
-            <div className="flex items-center gap-3">
-              <button onClick={() => setShowAuthModal(true)} className="px-4 py-2 rounded-xl text-white bg-gradient-to-br from-purple-500 to-purple-700 shadow-lg shadow-purple-600/30 hover:shadow-purple-600/40">Get Started</button>
-            </div>
+            <motion.div 
+              className="flex items-center gap-3"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <motion.img 
+                src={LOGO_URL} 
+                alt="EnglishGPT logo" 
+                className="w-9 h-9 rounded-xl object-cover shadow-lg shadow-purple-600/20" 
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.6 }}
+              />
+              <motion.span 
+                className="font-fredoka font-bold text-xl text-gray-900"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3, duration: 0.6 }}
+              >
+                EnglishGPT
+              </motion.span>
+            </motion.div>
+            <motion.nav 
+              className="hidden md:flex items-center gap-6 text-gray-700"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
+            >
+              {['Features', 'How it works', 'Testimonials', 'FAQ'].map((item, index) => (
+                <motion.a 
+                  key={item}
+                  href={`#${item.toLowerCase().replace(' ', '')}`} 
+                  className="hover:text-gray-900 transition-colors relative"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 + index * 0.1, duration: 0.4 }}
+                  whileHover={{ scale: 1.1 }}
+                >
+                  {item}
+                  <motion.div
+                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-purple-500"
+                    initial={{ scaleX: 0 }}
+                    whileHover={{ scaleX: 1 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </motion.a>
+              ))}
+            </motion.nav>
+            <motion.div 
+              className="flex items-center gap-3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.7, duration: 0.6 }}
+            >
+              <motion.button 
+                onClick={() => setShowAuthModal(true)} 
+                className="px-4 py-2 rounded-xl text-white bg-gradient-to-br from-purple-500 to-purple-700 shadow-lg shadow-purple-600/30 hover:shadow-purple-600/40 relative overflow-hidden"
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600"
+                  initial={{ x: "-100%" }}
+                  whileHover={{ x: "0%" }}
+                  transition={{ duration: 0.3 }}
+                />
+                <span className="relative z-10">Get Started</span>
+              </motion.button>
+            </motion.div>
           </div>
-        </header>
+        </motion.header>
 
-        {/* Hero */}
+        {/* Enhanced Animated Hero */}
         <section className="relative">
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+          <motion.div 
+            className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
+          >
             <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-300/40 text-purple-700 text-xs mb-4 backdrop-blur-md">
-                  <span className="h-2 w-2 rounded-full bg-purple-600"></span>
+              <motion.div
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+              >
+                <motion.div 
+                  className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-300/40 text-purple-700 text-xs mb-4 backdrop-blur-md"
+                  variants={fadeInUp}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <motion.span 
+                    className="h-2 w-2 rounded-full bg-purple-600"
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
                   IGCSE & A-Level aligned
-                </div>
-                <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-gray-900">
-                  AI English Marking
-                </h1>
-                <p className="text-lg text-gray-700/90 mb-6">
+                </motion.div>
+                
+                <motion.h1 
+                  className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-gray-900"
+                  variants={fadeInUp}
+                >
+                  <motion.span
+                    className="inline-block"
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, duration: 0.6 }}
+                  >
+                    AI English
+                  </motion.span>{" "}
+                  <motion.span
+                    className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent"
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6, duration: 0.6 }}
+                  >
+                    Marking
+                  </motion.span>
+                </motion.h1>
+                
+                <motion.p 
+                  className="text-lg text-gray-700/90 mb-6"
+                  variants={fadeInUp}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.8, duration: 0.6 }}
+                >
                   Master English with transparent, AI‑powered marking
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <button onClick={() => setShowAuthModal(true)} className="px-6 py-3 rounded-xl text-white bg-gradient-to-br from-purple-500 to-purple-700 shadow-lg shadow-purple-600/30 hover:shadow-purple-600/40">Get Started</button>
-                  <button onClick={() => setShowAuthModal(true)} className="px-6 py-3 rounded-xl border border-purple-300/60 text-purple-700 hover:bg-purple-50/70 backdrop-blur-md">Start Marking</button>
-                </div>
-                <p className="text-xs text-gray-500 mt-3">No credit card required. Cheap & Simple .</p>
-                <div className="mt-8 grid grid-cols-3 gap-6">
+                </motion.p>
+                
+                <motion.div 
+                  className="flex flex-col sm:flex-row gap-3"
+                  variants={fadeInUp}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.0, duration: 0.6 }}
+                >
+                  <motion.button 
+                    onClick={() => setShowAuthModal(true)} 
+                    className="px-6 py-3 rounded-xl text-white bg-gradient-to-br from-purple-500 to-purple-700 shadow-lg shadow-purple-600/30 hover:shadow-purple-600/40 relative overflow-hidden"
+                    whileHover={{ scale: 1.05, y: -3 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600"
+                      initial={{ x: "-100%" }}
+                      whileHover={{ x: "0%" }}
+                      transition={{ duration: 0.4 }}
+                    />
+                    <span className="relative z-10">Get Started</span>
+                  </motion.button>
+                  <motion.button 
+                    onClick={() => setShowAuthModal(true)} 
+                    className="px-6 py-3 rounded-xl border border-purple-300/60 text-purple-700 hover:bg-purple-50/70 backdrop-blur-md relative overflow-hidden"
+                    whileHover={{ scale: 1.05, y: -3 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <motion.div
+                      className="absolute inset-0 bg-purple-50"
+                      initial={{ scale: 0 }}
+                      whileHover={{ scale: 1 }}
+                      transition={{ duration: 0.3 }}
+                    />
+                    <span className="relative z-10">Start Marking</span>
+                  </motion.button>
+                </motion.div>
+                
+                <motion.p 
+                  className="text-xs text-gray-500 mt-3"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.2, duration: 0.6 }}
+                >
+                  No credit card required. Cheap & Simple.
+                </motion.p>
+                
+                <motion.div 
+                  className="mt-8 grid grid-cols-3 gap-6"
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.4, duration: 0.6 }}
+                >
                   {[{label:'Avg. improvement', value:'+27%'},{label:'Marking speed', value:'< 30s'},{label:'Simple Pricing', value:'Just $4.99/m'}]
                   .map((s,i)=> (
-                    <div key={i} className="rounded-2xl p-4 bg-purple-400/10 border border-purple-300/40 backdrop-blur-md">
+                    <motion.div 
+                      key={i} 
+                      className="rounded-2xl p-4 bg-purple-400/10 border border-purple-300/40 backdrop-blur-md"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 1.6 + i * 0.1, duration: 0.4 }}
+                      whileHover={{ 
+                        scale: 1.05,
+                        boxShadow: "0 10px 25px rgba(147, 51, 234, 0.15)"
+                      }}
+                    >
                       <div className="text-sm text-gray-600">{s.label}</div>
-                      <div className="text-xl font-bold text-gray-900 mt-1">{s.value}</div>
-                    </div>
+                      <motion.div 
+                        className="text-xl font-bold text-gray-900 mt-1"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1.8 + i * 0.1, duration: 0.4 }}
+                      >
+                        {s.value}
+                      </motion.div>
+                    </motion.div>
                   ))}
-                </div>
-              </div>
-              <div>
+                </motion.div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.8, duration: 0.8 }}
+              >
                 <div className="relative h-[420px] md:h-[460px]">
-                  {/* Strengths (primary) */}
-                  <div className="absolute left-0 top-0 right-6 rounded-3xl p-2 sm:p-4 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-xl shadow-purple-600/10">
-                    <img src={IMG_STRENGTHS} alt="Detailed strengths preview" loading="lazy" className="w-full h-auto rounded-2xl border border-purple-200/60" onError={(e)=>{e.currentTarget.style.display='none';}} />
-                  </div>
-                  {/* Marking overlay */}
-                  <div className="absolute -right-2 md:-right-6 top-24 w-1/2 rounded-2xl p-2 bg-purple-500/10 border border-purple-300/40 backdrop-blur-md shadow-lg shadow-purple-600/10 rotate-3">
+                  {/* Strengths (primary) with floating animation */}
+                  <motion.div 
+                    className="absolute left-0 top-0 right-6 rounded-3xl p-2 sm:p-4 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-xl shadow-purple-600/10"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 1.2, duration: 0.6 }}
+                    whileHover={{ 
+                      scale: 1.02,
+                      boxShadow: "0 20px 40px rgba(147, 51, 234, 0.15)"
+                    }}
+                  >
+                    <animated.img 
+                      src={IMG_STRENGTHS} 
+                      alt="Detailed strengths preview" 
+                      loading="lazy" 
+                      className="w-full h-auto rounded-2xl border border-purple-200/60" 
+                      onError={(e)=>{e.currentTarget.style.display='none';}}
+                      style={floatingAnimation}
+                    />
+                  </motion.div>
+                  {/* Marking overlay with rotation animation */}
+                  <motion.div 
+                    className="absolute -right-2 md:-right-6 top-24 w-1/2 rounded-2xl p-2 bg-purple-500/10 border border-purple-300/40 backdrop-blur-md shadow-lg shadow-purple-600/10 rotate-3"
+                    initial={{ opacity: 0, scale: 0.8, rotate: 0 }}
+                    animate={{ opacity: 1, scale: 1, rotate: 3 }}
+                    transition={{ delay: 1.6, duration: 0.8, type: "spring" }}
+                    whileHover={{ 
+                      scale: 1.05,
+                      rotate: 6,
+                      boxShadow: "0 15px 30px rgba(147, 51, 234, 0.2)"
+                    }}
+                  >
                     <img src={IMG_MARKING} alt="Marking interface preview" loading="lazy" className="w-full h-auto rounded-xl border border-purple-200/60" onError={(e)=>{e.currentTarget.style.display='none';}} />
-                  </div>
-                  {/* Write overlay */}
-                  <div className="absolute left-3 bottom-2 w-2/3 rounded-2xl p-2 bg-purple-500/10 border border-purple-300/40 backdrop-blur-md shadow-lg shadow-purple-600/10 -rotate-3">
+                  </motion.div>
+                  {/* Write overlay with bounce animation */}
+                  <motion.div 
+                    className="absolute left-3 bottom-2 w-2/3 rounded-2xl p-2 bg-purple-500/10 border border-purple-300/40 backdrop-blur-md shadow-lg shadow-purple-600/10 -rotate-3"
+                    initial={{ opacity: 0, scale: 0.8, rotate: 0 }}
+                    animate={{ opacity: 1, scale: 1, rotate: -3 }}
+                    transition={{ delay: 2.0, duration: 0.8, type: "spring", bounce: 0.4 }}
+                    whileHover={{ 
+                      scale: 1.05,
+                      rotate: -6,
+                      boxShadow: "0 15px 30px rgba(147, 51, 234, 0.2)"
+                    }}
+                  >
                     <img src={IMG_WRITE} alt="Write page preview" loading="lazy" className="w-full h-auto rounded-xl border border-purple-200/60" onError={(e)=>{e.currentTarget.style.display='none';}} />
-                  </div>
+                  </motion.div>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </section>
         
-        {/* Feature rows (alternating) */}
+        {/* Enhanced Animated Feature rows */}
         <section id="features" className="relative py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-            {/* Row 1 */}
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div>
-                <h3 className="text-2xl font-fredoka font-bold text-gray-900 mb-3">Write with clarity and confidence</h3>
-                <p className="text-gray-700 mb-4">Draft directly in a distraction‑free editor. Auto‑save, undo/redo, and structured prompts help you start fast and stay focused.</p>
-                <ul className="space-y-2 text-sm text-gray-700">
+            {/* Row 1 - Enhanced with animations */}
+            <motion.div 
+              className="grid md:grid-cols-2 gap-8 items-center"
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8 }}
+            >
+              <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2, duration: 0.6 }}
+              >
+                <motion.h3 
+                  className="text-2xl font-fredoka font-bold text-gray-900 mb-3"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.4, duration: 0.6 }}
+                >
+                  Write with clarity and confidence
+                </motion.h3>
+                <motion.p 
+                  className="text-gray-700 mb-4"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.6, duration: 0.6 }}
+                >
+                  Draft directly in a distraction‑free editor. Auto‑save, undo/redo, and structured prompts help you start fast and stay focused.
+                </motion.p>
+                <motion.ul 
+                  className="space-y-2 text-sm text-gray-700"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.8, duration: 0.6 }}
+                >
                   {['Clean, student‑friendly editor','Keyboard shortcuts for speed','Instant evaluate when ready'].map((b,i)=>(
-                    <li key={i} className="flex items-start gap-2"><span className="h-5 w-5 rounded-full bg-green-500 text-white text-xs flex items-center justify-center mt-0.5">✓</span>{b}</li>
+                    <motion.li 
+                      key={i} 
+                      className="flex items-start gap-2"
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 1.0 + i * 0.1, duration: 0.4 }}
+                      whileHover={{ x: 5 }}
+                    >
+                      <motion.span 
+                        className="h-5 w-5 rounded-full bg-green-500 text-white text-xs flex items-center justify-center mt-0.5"
+                        whileHover={{ scale: 1.2, rotate: 360 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        ✓
+                      </motion.span>
+                      {b}
+                    </motion.li>
                   ))}
-                </ul>
-              </div>
-              <div className="rounded-3xl p-3 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-xl shadow-purple-600/10">
-                <img src={IMG_WRITE} alt="Write" loading="lazy" className="w-full h-auto rounded-2xl border border-purple-200/60" />
-              </div>
-            </div>
-            {/* Row 2 */}
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="order-2 md:order-1 rounded-3xl p-3 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-xl shadow-purple-600/10">
-                <img src={IMG_STRENGTHS} alt="Strengths" loading="lazy" className="w-full h-auto rounded-2xl border border-purple-200/60" />
-              </div>
-              <div className="order-1 md:order-2">
-                <h3 className="text-2xl font-fredoka font-bold text-gray-900 mb-3">Crystal‑clear, criteria‑aligned feedback</h3>
-                <p className="text-gray-700 mb-4">Understand exactly what worked with strengths pulled straight from exam standards, and know what to do next.</p>
-                <ul className="space-y-2 text-sm text-gray-700">
+                </motion.ul>
+              </motion.div>
+              <motion.div 
+                className="rounded-3xl p-3 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-xl shadow-purple-600/10"
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4, duration: 0.8 }}
+                whileHover={{ 
+                  scale: 1.02,
+                  boxShadow: "0 25px 50px rgba(147, 51, 234, 0.15)"
+                }}
+              >
+                <motion.img 
+                  src={IMG_WRITE} 
+                  alt="Write" 
+                  loading="lazy" 
+                  className="w-full h-auto rounded-2xl border border-purple-200/60"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ duration: 0.3 }}
+                />
+              </motion.div>
+            </motion.div>
+            {/* Row 2 - Enhanced with animations */}
+            <motion.div 
+              className="grid md:grid-cols-2 gap-8 items-center"
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8 }}
+            >
+              <motion.div 
+                className="order-2 md:order-1 rounded-3xl p-3 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-xl shadow-purple-600/10"
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2, duration: 0.8 }}
+                whileHover={{ 
+                  scale: 1.02,
+                  boxShadow: "0 25px 50px rgba(147, 51, 234, 0.15)"
+                }}
+              >
+                <motion.img 
+                  src={IMG_STRENGTHS} 
+                  alt="Strengths" 
+                  loading="lazy" 
+                  className="w-full h-auto rounded-2xl border border-purple-200/60"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ duration: 0.3 }}
+                />
+              </motion.div>
+              <motion.div 
+                className="order-1 md:order-2"
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4, duration: 0.6 }}
+              >
+                <motion.h3 
+                  className="text-2xl font-fredoka font-bold text-gray-900 mb-3"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.6, duration: 0.6 }}
+                >
+                  Crystal‑clear, criteria‑aligned feedback
+                </motion.h3>
+                <motion.p 
+                  className="text-gray-700 mb-4"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.8, duration: 0.6 }}
+                >
+                  Understand exactly what worked with strengths pulled straight from exam standards, and know what to do next.
+                </motion.p>
+                <motion.ul 
+                  className="space-y-2 text-sm text-gray-700"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 1.0, duration: 0.6 }}
+                >
                   {['Transparent marks across components','Short, actionable strengths','Improvement suggestions that compound'].map((b,i)=>(
-                    <li key={i} className="flex items-start gap-2"><span className="h-5 w-5 rounded-full bg-green-500 text-white text-xs flex items-center justify-center mt-0.5">✓</span>{b}</li>
+                    <motion.li 
+                      key={i} 
+                      className="flex items-start gap-2"
+                      initial={{ opacity: 0, x: 20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 1.2 + i * 0.1, duration: 0.4 }}
+                      whileHover={{ x: -5 }}
+                    >
+                      <motion.span 
+                        className="h-5 w-5 rounded-full bg-green-500 text-white text-xs flex items-center justify-center mt-0.5"
+                        whileHover={{ scale: 1.2, rotate: 360 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        ✓
+                      </motion.span>
+                      {b}
+                    </motion.li>
                   ))}
-                </ul>
-              </div>
-            </div>
-            {/* Row 3 */}
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div>
-                <h3 className="text-2xl font-fredoka font-bold text-gray-900 mb-3">A marking view that builds confidence</h3>
-                <p className="text-gray-700 mb-4">See where your marks come from and how to reach the next band. Progress tracking keeps you motivated.</p>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  {['Band descriptors made visual','Trend lines for your progress','Sharable results when you’re proud'].map((b,i)=>(
-                    <li key={i} className="flex items-start gap-2"><span className="h-5 w-5 rounded-full bg-green-500 text-white text-xs flex items-center justify-center mt-0.5">✓</span>{b}</li>
+                </motion.ul>
+              </motion.div>
+            </motion.div>
+            
+            {/* Row 3 - Enhanced with animations */}
+            <motion.div 
+              className="grid md:grid-cols-2 gap-8 items-center"
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8 }}
+            >
+              <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2, duration: 0.6 }}
+              >
+                <motion.h3 
+                  className="text-2xl font-fredoka font-bold text-gray-900 mb-3"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.4, duration: 0.6 }}
+                >
+                  A marking view that builds confidence
+                </motion.h3>
+                <motion.p 
+                  className="text-gray-700 mb-4"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.6, duration: 0.6 }}
+                >
+                  See where your marks come from and how to reach the next band. Progress tracking keeps you motivated.
+                </motion.p>
+                <motion.ul 
+                  className="space-y-2 text-sm text-gray-700"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.8, duration: 0.6 }}
+                >
+                  {['Band descriptors made visual','Trend lines for your progress','Sharable results when you're proud'].map((b,i)=>(
+                    <motion.li 
+                      key={i} 
+                      className="flex items-start gap-2"
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 1.0 + i * 0.1, duration: 0.4 }}
+                      whileHover={{ x: 5 }}
+                    >
+                      <motion.span 
+                        className="h-5 w-5 rounded-full bg-green-500 text-white text-xs flex items-center justify-center mt-0.5"
+                        whileHover={{ scale: 1.2, rotate: 360 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        ✓
+                      </motion.span>
+                      {b}
+                    </motion.li>
                   ))}
-                </ul>
-              </div>
-              <div className="rounded-3xl p-3 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-xl shadow-purple-600/10">
-                <img src={IMG_MARKING} alt="Marking" loading="lazy" className="w-full h-auto rounded-2xl border border-purple-200/60" />
-              </div>
-            </div>
-            {/* Row 4 */}
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="order-2 md:order-1 rounded-3xl p-3 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-xl shadow-purple-600/10">
-                <img src={IMG_PRICING} alt="Pricing" loading="lazy" className="w-full h-auto rounded-2xl border border-purple-200/60" />
-              </div>
-              <div className="order-1 md:order-2">
-                <h3 className="text-2xl font-fredoka font-bold text-gray-900 mb-3">Simple pricing, built for students</h3>
-                <p className="text-gray-700 mb-4">Unlimited marking with monthly or yearly options. Cancel anytime — no hidden fees.</p>
-                <ul className="space-y-2 text-sm text-gray-700">
+                </motion.ul>
+              </motion.div>
+              <motion.div 
+                className="rounded-3xl p-3 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-xl shadow-purple-600/10"
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4, duration: 0.8 }}
+                whileHover={{ 
+                  scale: 1.02,
+                  boxShadow: "0 25px 50px rgba(147, 51, 234, 0.15)"
+                }}
+              >
+                <motion.img 
+                  src={IMG_MARKING} 
+                  alt="Marking" 
+                  loading="lazy" 
+                  className="w-full h-auto rounded-2xl border border-purple-200/60"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ duration: 0.3 }}
+                />
+              </motion.div>
+            </motion.div>
+            
+            {/* Row 4 - Enhanced with animations */}
+            <motion.div 
+              className="grid md:grid-cols-2 gap-8 items-center"
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8 }}
+            >
+              <motion.div 
+                className="order-2 md:order-1 rounded-3xl p-3 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-xl shadow-purple-600/10"
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2, duration: 0.8 }}
+                whileHover={{ 
+                  scale: 1.02,
+                  boxShadow: "0 25px 50px rgba(147, 51, 234, 0.15)"
+                }}
+              >
+                <motion.img 
+                  src={IMG_PRICING} 
+                  alt="Pricing" 
+                  loading="lazy" 
+                  className="w-full h-auto rounded-2xl border border-purple-200/60"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ duration: 0.3 }}
+                />
+              </motion.div>
+              <motion.div 
+                className="order-1 md:order-2"
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4, duration: 0.6 }}
+              >
+                <motion.h3 
+                  className="text-2xl font-fredoka font-bold text-gray-900 mb-3"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.6, duration: 0.6 }}
+                >
+                  Simple pricing, built for students
+                </motion.h3>
+                <motion.p 
+                  className="text-gray-700 mb-4"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.8, duration: 0.6 }}
+                >
+                  Unlimited marking with monthly or yearly options. Cancel anytime — no hidden fees.
+                </motion.p>
+                <motion.ul 
+                  className="space-y-2 text-sm text-gray-700"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 1.0, duration: 0.6 }}
+                >
                   {['Unlimited submissions','Priority support on yearly','Secure payments'].map((b,i)=>(
-                    <li key={i} className="flex items-start gap-2"><span className="h-5 w-5 rounded-full bg-green-500 text-white text-xs flex items-center justify-center mt-0.5">✓</span>{b}</li>
+                    <motion.li 
+                      key={i} 
+                      className="flex items-start gap-2"
+                      initial={{ opacity: 0, x: 20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 1.2 + i * 0.1, duration: 0.4 }}
+                      whileHover={{ x: -5 }}
+                    >
+                      <motion.span 
+                        className="h-5 w-5 rounded-full bg-green-500 text-white text-xs flex items-center justify-center mt-0.5"
+                        whileHover={{ scale: 1.2, rotate: 360 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        ✓
+                      </motion.span>
+                      {b}
+                    </motion.li>
                   ))}
-                </ul>
-              </div>
-            </div>
+                </motion.ul>
+              </motion.div>
+            </motion.div>
           </div>
         </section>
 
-        {/* Testimonials upgraded */}
+        {/* Enhanced Animated Testimonials */}
         <section id="testimonials" className="relative py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div 
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8 }}
+          >
+            <motion.h2 
+              className="text-3xl font-fredoka font-bold text-center text-gray-900 mb-12"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+            >
+              What our users say
+            </motion.h2>
             <div className="grid md:grid-cols-3 gap-6">
               {[
                 {q:'I went from a C to an A in 6 weeks. The feedback was clear and motivating.', name:'Student, IGCSE'},
                 {q:'The marks map perfectly to our rubrics. Saves me hours of grading.', name:'Teacher, A‑Level'},
-                {q:'Finally understood what “analysis” really meant. The step‑by‑step tips are gold.', name:'Student, A‑Level'},
+                {q:'Finally understood what "analysis" really meant. The step‑by‑step tips are gold.', name:'Student, A‑Level'},
               ].map((t,i)=> (
-                <div key={i} className="rounded-2xl p-6 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-md shadow-purple-600/10">
-                  <div className="flex items-center gap-1 text-yellow-500 mb-2">
-                    {Array.from({length:5}).map((_,s)=> <span key={s}>★</span>)}
-                  </div>
-                  <p className="text-gray-800">“{t.q}”</p>
-                  <div className="text-xs text-gray-500 mt-3">{t.name}</div>
-                </div>
+                <motion.div 
+                  key={i} 
+                  className="rounded-2xl p-6 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-md shadow-purple-600/10"
+                  initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.4 + i * 0.2, duration: 0.6 }}
+                  whileHover={{ 
+                    y: -10,
+                    scale: 1.03,
+                    boxShadow: "0 20px 40px rgba(147, 51, 234, 0.15)"
+                  }}
+                >
+                  <motion.div 
+                    className="flex items-center gap-1 text-yellow-500 mb-2"
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.6 + i * 0.2, duration: 0.4 }}
+                  >
+                    {Array.from({length:5}).map((_,s)=> (
+                      <motion.span 
+                        key={s}
+                        initial={{ opacity: 0, scale: 0 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.8 + i * 0.2 + s * 0.05, duration: 0.3 }}
+                        whileHover={{ scale: 1.3 }}
+                      >
+                        ★
+                      </motion.span>
+                    ))}
+                  </motion.div>
+                  <motion.p 
+                    className="text-gray-800"
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 1.0 + i * 0.2, duration: 0.6 }}
+                  >
+                    "{t.q}"
+                  </motion.p>
+                  <motion.div 
+                    className="text-xs text-gray-500 mt-3"
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 1.2 + i * 0.2, duration: 0.4 }}
+                  >
+                    {t.name}
+                  </motion.div>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         </section>
 
-        {/* FAQ with accordion */}
+        {/* Enhanced Animated FAQ */}
         <section id="faq" className="relative py-12">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div 
+            className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8 }}
+          >
+            <motion.h2 
+              className="text-3xl font-fredoka font-bold text-center text-gray-900 mb-12"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+            >
+              Frequently Asked Questions
+            </motion.h2>
             <div className="grid md:grid-cols-2 gap-6">
               {[
                 {q:'Is this aligned to exam criteria?', a:'Yes. We align to IGCSE and A‑Level descriptors and show transparent marks.'},
@@ -3446,46 +4725,184 @@ const App = () => {
                 {q:'How fast is the feedback?', a:'You usually get marks and guidance in under 10 seconds.'},
                 {q:'Can teachers use this?', a:'Yes. Many teachers use it to save time and guide students faster.'},
               ].map((f,i)=> (
-                <details key={i} className="rounded-2xl p-5 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-md shadow-purple-600/10">
-                  <summary className="cursor-pointer list-none font-semibold text-gray-900">{f.q}</summary>
-                  <div className="text-gray-700 text-sm mt-2">{f.a}</div>
-                </details>
+                <motion.details 
+                  key={i} 
+                  className="rounded-2xl p-5 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-md shadow-purple-600/10"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.4 + i * 0.1, duration: 0.6 }}
+                  whileHover={{ 
+                    scale: 1.02,
+                    boxShadow: "0 15px 30px rgba(147, 51, 234, 0.1)"
+                  }}
+                >
+                  <motion.summary 
+                    className="cursor-pointer list-none font-semibold text-gray-900"
+                    whileHover={{ color: "#7c3aed" }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {f.q}
+                  </motion.summary>
+                  <motion.div 
+                    className="text-gray-700 text-sm mt-2"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {f.a}
+                  </motion.div>
+                </motion.details>
               ))}
             </div>
-          </div>
+          </motion.div>
         </section>
 
-        {/* Final CTA */}
+        {/* Enhanced Animated Final CTA */}
         <section className="relative py-14">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="rounded-3xl p-8 md:p-12 bg-gradient-to-br from-purple-500/20 to-purple-700/20 border border-purple-300/40 backdrop-blur-xl shadow-xl shadow-purple-600/20 flex flex-col md:flex-row items-center justify-between">
-              <div>
-                <h3 className="font-bold text-2xl mb-2 text-gray-900">Ready to improve faster?</h3>
-                <p className="text-gray-700">Sign in and start marking in under a minute.</p>
-              </div>
-              <div className="mt-6 md:mt-0 flex gap-3">
-                <button onClick={() => setShowAuthModal(true)} className="px-6 py-3 rounded-xl text-white bg-gradient-to-br from-purple-500 to-purple-700 shadow-lg shadow-purple-600/30 hover:shadow-purple-600/40">Get Started</button>
-                <button onClick={() => setShowAuthModal(true)} className="px-6 py-3 rounded-xl border border-purple-300/60 text-purple-700 hover:bg-purple-50/70 backdrop-blur-md">Start Marking</button>
-              </div>
-            </div>
-          </div>
+          <motion.div 
+            className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8 }}
+          >
+            <motion.div 
+              className="rounded-3xl p-8 md:p-12 bg-gradient-to-br from-purple-500/20 to-purple-700/20 border border-purple-300/40 backdrop-blur-xl shadow-xl shadow-purple-600/20 flex flex-col md:flex-row items-center justify-between"
+              whileHover={{ 
+                scale: 1.02,
+                boxShadow: "0 30px 60px rgba(147, 51, 234, 0.2)"
+              }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2, duration: 0.6 }}
+              >
+                <motion.h3 
+                  className="font-bold text-2xl mb-2 text-gray-900"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.4, duration: 0.6 }}
+                >
+                  Ready to improve faster?
+                </motion.h3>
+                <motion.p 
+                  className="text-gray-700"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.6, duration: 0.6 }}
+                >
+                  Sign in and start marking in under a minute.
+                </motion.p>
+              </motion.div>
+              <motion.div 
+                className="mt-6 md:mt-0 flex gap-3"
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4, duration: 0.6 }}
+              >
+                <motion.button 
+                  onClick={() => setShowAuthModal(true)} 
+                  className="px-6 py-3 rounded-xl text-white bg-gradient-to-br from-purple-500 to-purple-700 shadow-lg shadow-purple-600/30 hover:shadow-purple-600/40 relative overflow-hidden"
+                  whileHover={{ scale: 1.05, y: -3 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600"
+                    initial={{ x: "-100%" }}
+                    whileHover={{ x: "0%" }}
+                    transition={{ duration: 0.4 }}
+                  />
+                  <span className="relative z-10">Get Started</span>
+                </motion.button>
+                <motion.button 
+                  onClick={() => setShowAuthModal(true)} 
+                  className="px-6 py-3 rounded-xl border border-purple-300/60 text-purple-700 hover:bg-purple-50/70 backdrop-blur-md relative overflow-hidden"
+                  whileHover={{ scale: 1.05, y: -3 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <motion.div
+                    className="absolute inset-0 bg-purple-50"
+                    initial={{ scale: 0 }}
+                    whileHover={{ scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                  <span className="relative z-10">Start Marking</span>
+                </motion.button>
+              </motion.div>
+            </motion.div>
+          </motion.div>
         </section>
 
-        {/* Footer */}
-        <footer className="relative border-t border-purple-200/50 bg-white/60 backdrop-blur-xl">
+        {/* Enhanced Animated Footer */}
+        <motion.footer 
+          className="relative border-t border-purple-200/50 bg-white/60 backdrop-blur-xl"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+        >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 shadow-md shadow-purple-600/30" />
+            <motion.div 
+              className="flex items-center gap-3"
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              whileHover={{ scale: 1.05 }}
+            >
+              <motion.img 
+                src={LOGO_URL} 
+                alt="EnglishGPT logo" 
+                className="w-8 h-8 rounded-xl object-cover shadow-md shadow-purple-600/30"
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.6 }}
+              />
               <span className="font-fredoka font-semibold text-gray-900">EnglishGPT</span>
-            </div>
-            <div className="text-sm text-gray-600">© {new Date().getFullYear()} EnglishGPT. All rights reserved.</div>
+            </motion.div>
+            <motion.div 
+              className="text-sm text-gray-600"
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+            >
+              © {new Date().getFullYear()} EnglishGPT. All rights reserved.
+            </motion.div>
           </div>
-        </footer>
-        {/* Auth Modal */}
-        {showAuthModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setShowAuthModal(false)} />
-            <div className="relative w-full max-w-xl mx-4 rounded-2xl bg-white/95 backdrop-blur-xl border border-purple-200/60 shadow-2xl p-0 overflow-hidden auth-modal">
+        </motion.footer>
+        {/* Enhanced Animated Auth Modal */}
+        <AnimatePresence>
+          {showAuthModal && (
+            <motion.div 
+              className="fixed inset-0 z-50 flex items-center justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.div 
+                className="absolute inset-0 bg-black/40" 
+                onClick={() => setShowAuthModal(false)}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              />
+              <motion.div 
+                className="relative w-full max-w-xl mx-4 rounded-2xl bg-white/95 backdrop-blur-xl border border-purple-200/60 shadow-2xl p-0 overflow-hidden auth-modal"
+                initial={{ scale: 0.8, opacity: 0, y: 50 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.8, opacity: 0, y: 50 }}
+                transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+              >
               {/* Decorative header */}
               <div className="px-6 pt-6 pb-4 border-b border-purple-200/60 bg-gradient-to-br from-white/60 to-purple-50/40">
                 <div className="flex items-center justify-between">
@@ -3577,10 +4994,11 @@ const App = () => {
                 .auth-modal .google-btn:hover .blue{animation:disappear 0.1s forwards;animation-delay:1.1s}
                 @keyframes disappear{from{filter:brightness(1)}to{filter:brightness(100)}}
               `}</style>
-            </div>
-          </div>
-        )}
-      </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     );
   };
   const [evaluations, setEvaluations] = useState([]);
