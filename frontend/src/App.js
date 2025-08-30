@@ -7,7 +7,7 @@ import PaymentSuccess from './PaymentSuccess';
 import subscriptionService from './services/subscriptionService';
 import toast, { Toaster } from 'react-hot-toast';
 import SubscriptionDashboard from './SubscriptionDashboard';
-// Removed charts for a clean card-based analytics UI
+import { LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -1239,134 +1239,6 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
             <div className="text-3xl font-bold text-orange-600 mb-2">{Math.max(...parsedEvaluations.map(e => e.score), 0)}</div>
             <div className="text-gray-600">Best Score</div>
           </div>
-        </div>
-
-        {/* AI-Powered Recommendations */}
-        <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-fredoka font-semibold text-gray-900">AI Study Recommendations</h3>
-            <div className="flex items-center gap-2">
-              {isLoadingRecommendations && (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
-              )}
-              <span className="text-xs bg-pink-50 text-pink-700 px-2 py-1 rounded-full">
-                {aiRecommendations ? 'Personalized' : isLoadingRecommendations ? 'Loading...' : 'Fallback'}
-              </span>
-              {!aiRecommendations && !isLoadingRecommendations && evaluations.length >= 5 && (
-                <button
-                  onClick={fetchRecommendations}
-                  className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full hover:bg-purple-200 transition-colors"
-                >
-                  Retry AI
-                </button>
-              )}
-            </div>
-          </div>
-          
-          {aiRecommendations ? (
-            <div className="prose prose-sm max-w-none">
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200">
-                <div className="whitespace-pre-wrap text-gray-700">
-                  {aiRecommendations.split('\n').map((line, idx) => {
-                    // Format bullet points nicely
-                    if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
-                      return (
-                        <div key={idx} className="flex items-start gap-2 mb-2">
-                          <span className="text-purple-600 mt-1">•</span>
-                          <span className="flex-1">{line.replace(/^[•\-]\s*/, '')}</span>
-                        </div>
-                      );
-                    }
-                    // Format headers
-                    if (line.trim() && !line.startsWith(' ') && line.endsWith(':')) {
-                      return <div key={idx} className="font-semibold text-gray-900 mt-4 mb-2">{line}</div>;
-                    }
-                    // Regular text
-                    return line.trim() ? <div key={idx} className="mb-2">{line}</div> : null;
-                  })}
-                </div>
-              </div>
-            </div>
-          ) : isLoadingRecommendations ? (
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
-              <div className="flex items-center justify-center space-x-3">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
-                <span className="text-purple-700 font-medium">Generating personalized recommendations...</span>
-              </div>
-            </div>
-          ) : evaluations.length < 5 ? (
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
-              <div className="text-center">
-                <h4 className="font-semibold text-blue-900 mb-2">AI Recommendations Coming Soon!</h4>
-                <p className="text-blue-700 text-sm mb-4">
-                  Complete {5 - evaluations.length} more assessment{evaluations.length === 4 ? '' : 's'} to unlock personalized AI recommendations.
-                </p>
-                <div className="bg-white rounded-lg p-3 inline-block">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-32 bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${(evaluations.length / 5) * 100}%` }}
-                      ></div>
-                    </div>
-                    <span className="text-xs font-medium text-gray-600">{evaluations.length}/5</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {/* AI Recommendations Unavailable Notice */}
-              <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-4 border border-orange-200">
-                <div className="flex items-center space-x-3 mb-3">
-                  <span className="text-2xl">🤖</span>
-                  <div>
-                    <h4 className="font-bold text-orange-800">AI Recommendations Unavailable</h4>
-                    <p className="text-orange-600 text-sm">Using data-based recommendations instead</p>
-                  </div>
-                </div>
-                <div className="text-xs text-orange-700 bg-white rounded-lg p-2">
-                  <strong>Possible reasons:</strong> Backend API key not configured, network issues, or service temporarily unavailable
-                </div>
-              </div>
-              
-              {/* Fallback recommendations based on data */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {byType.sort((a,b)=>a.average-b.average).slice(0,2).map(t => (
-                <div key={t.type} className="rounded-xl border border-gray-100 p-4 bg-gradient-to-br from-gray-50 to-white">
-                  <div className="font-semibold capitalize text-gray-900 mb-2">
-                      <span className="text-orange-500">📊</span> Focus Area: {t.type.replace(/_/g, ' ')}
-                  </div>
-                  <div className="text-sm text-gray-600 mb-2">
-                    Current Average: <span className="font-bold text-red-600">{t.average}%</span>
-                  </div>
-                  <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                    <li>Review exemplar answers for this question type</li>
-                    <li>Practice time management - aim for completion in allocated time</li>
-                    <li>Focus on addressing all marking criteria</li>
-                  </ul>
-                </div>
-              ))}
-              
-              {/* Strengths */}
-                {byType.sort((a,b)=>b.average-a.average).slice(0,1).map(t => (
-                <div key={`strength-${t.type}`} className="rounded-xl border border-gray-100 p-4 bg-gradient-to-br from-green-50 to-white">
-                  <div className="font-semibold capitalize text-gray-900 mb-2">
-                      <span className="text-green-500">✓</span> Strength: {t.type.replace(/_/g, ' ')}
-                  </div>
-                  <div className="text-sm text-gray-600 mb-2">
-                    Current Average: <span className="font-bold text-green-600">{t.average}%</span>
-                  </div>
-                  <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                    <li>Maintain consistency in this area</li>
-                    <li>Challenge yourself with harder prompts</li>
-                    <li>Help peers by sharing your approach</li>
-                  </ul>
-                </div>
-              ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Comprehensive Analytics Modals */}
