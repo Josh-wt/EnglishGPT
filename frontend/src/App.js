@@ -2956,11 +2956,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
               <div className={`bg-gradient-to-r ${levelData.gradient} text-white px-4 py-2 rounded-xl shadow-lg`}>
                 <span className="font-bold text-sm">{levelData.levelName}</span>
               </div>
-              {studentResponse.trim() && (
-                <div className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">
-                  {studentResponse.trim().split(/\s+/).filter(w => w.length > 0).length} words
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -3096,17 +3091,16 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                       <span className="text-sm font-bold text-purple-700">{selectedQuestionType.name}</span>
                     </div>
                   </div>
-                  <WordCountRing count={wordCount} goal={getWordGoal()} />
+                  {studentResponse.trim() && (
+                    <div className="bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm">
+                      <span className="text-sm font-medium text-gray-700">{wordCount} words</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
 
-            {restoredDraft && (
-              <div className="mb-4 flex items-center space-x-3 text-sm text-green-700 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl px-4 py-3">
-                <span className="text-lg">✨</span>
-                <span className="font-medium">Draft restored successfully!</span>
-              </div>
-            )}
+
 
             {/* Enhanced Formatting Toolbar */}
             <div className="flex items-center justify-between mb-6">
@@ -3137,15 +3131,8 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                   🗑️ Clear
                 </button>
               </div>
-              <div className="flex items-center space-x-3">
-                {lastSavedAt && (
-                  <div className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                    Saved {Math.max(0, Math.floor((Date.now() - lastSavedAt) / 60000))} min ago
-                  </div>
-                )}
-                <div className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
-                  Auto-save enabled
-                </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-500">Format your text:</span>
               </div>
             </div>
 
@@ -3154,39 +3141,23 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
               <textarea
                 value={studentResponse}
                 onChange={(e) => setStudentResponse(e.target.value)}
-                placeholder={`Start writing your ${levelData.levelName} essay here...\n\n💡 Tips:\n• Select a question type from the left panel\n• Use the formatting tools above\n• Your work is automatically saved\n• Click "Evaluate Essay" when ready for AI feedback!`}
+                placeholder={`Start writing your ${levelData.levelName} essay here...\n\nSelect a question type from the left panel and begin writing your response.`}
                 className="w-full h-96 p-6 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 resize-none text-gray-700 placeholder-gray-400 leading-relaxed bg-gradient-to-br from-white to-gray-50 transition-all duration-200"
                 aria-label="Essay input"
                 ref={essayRef}
               />
               {studentResponse.trim() && (
                 <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg border border-gray-200">
-                  <div className="text-xs text-gray-600">
-                    <span className="font-bold text-purple-600">{wordCount}</span> words • 
-                    <span className="font-bold text-green-600"> {Math.max(0, studentResponse.length - 200)}</span> chars above minimum
+                  <div className="text-sm text-gray-700 font-medium">
+                    {wordCount} words
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="mt-6 flex justify-between items-center">
-
-              {/* Enhanced Action Buttons */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  {selectedQuestionType && (
-                    <div className="bg-gradient-to-r from-gray-50 to-purple-50 rounded-xl p-3 border border-purple-200">
-                      <div className="text-xs text-gray-600 mb-1">Selected Question</div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-lg">{selectedQuestionType.icon}</span>
-                        <span className="font-bold text-purple-700 text-sm">{selectedQuestionType.name}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-center space-x-3">
-                  {showMarkingSchemeChoice && selectedQuestionType && studentResponse.trim() && (
+            {/* Enhanced Action Buttons */}
+            <div className="mt-6 flex items-center justify-end space-x-3">
+              {showMarkingSchemeChoice && selectedQuestionType && studentResponse.trim() && (
                     <>
                       <button
                         onClick={() => handleProceed(false)}
@@ -3225,14 +3196,12 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                     </div>
                   )}
 
-                  {selectedQuestionType && !studentResponse.trim() && (
-                    <div className="bg-gradient-to-r from-blue-100 to-purple-100 text-purple-700 px-8 py-4 rounded-xl font-bold flex items-center space-x-2">
-                      <span>✍️</span>
-                      <span>Start writing to continue</span>
-                    </div>
-                  )}
+              {selectedQuestionType && !studentResponse.trim() && (
+                <div className="bg-gradient-to-r from-blue-100 to-purple-100 text-purple-700 px-8 py-4 rounded-xl font-bold flex items-center space-x-2">
+                  <span>✍️</span>
+                  <span>Start writing to continue</span>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Helper section moved to left; removed duplicate from right */}
