@@ -2156,7 +2156,7 @@ Format your response in clear bullet points, using "you" to address the student 
                             headers = {
                                 "Authorization": f"Bearer {RECOMMENDATIONS_API_KEY}",
                                 "Content-Type": "application/json",
-                                "HTTP-Referer": "https://englishgpt.org",
+                                "HTTP-Referer": "https://englishgpt.everythingenglish.xyz",
                                 "X-Title": "EnglishGPT Recommendations"
                             }
                             
