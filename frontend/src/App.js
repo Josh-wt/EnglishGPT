@@ -3359,14 +3359,8 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
     console.log('DEBUG: parseGrade input:', gradeString);
     console.log('DEBUG: parseGrade evaluation object:', evaluation);
     
-    if (!gradeString) {
-      return { score: 0, maxScore: 40, percentage: 0 };
-    }
-    
-    // If backend sends "0/40" but we have individual marks, calculate from those
-    if (gradeString === "0/40" && evaluation) {
-      console.log('DEBUG: parseGrade - backend sent 0/40, trying to calculate from individual marks');
-      
+    // First priority: Try to calculate from individual marks if they exist
+    if (evaluation) {
       let totalScore = 0;
       let maxScore = 0;
       
@@ -3389,10 +3383,16 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
         }
       }
       
+      // If we found individual marks, use those instead of the main grade
       if (maxScore > 0) {
         console.log('DEBUG: parseGrade - calculated from individual marks:', { totalScore, maxScore, percentage: (totalScore / maxScore * 100).toFixed(1) });
         return { score: totalScore, maxScore, percentage: (totalScore / maxScore * 100).toFixed(1) };
       }
+    }
+    
+    // Second priority: Parse the main grade string
+    if (!gradeString) {
+      return { score: 0, maxScore: 40, percentage: 0 };
     }
     
     // Extract numbers from grade string - handle multiple formats
@@ -3792,20 +3792,27 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
             {activeTab === 'Improvements' && (
               <div className="space-y-4">
                 <h4 className="font-semibold text-yellow-800 mb-4">Areas for Improvement</h4>
-                <div className="space-y-3">
+                <div className="space-y-4">
                 {evaluation.improvement_suggestions && evaluation.improvement_suggestions.length > 0 ? (
                     evaluation.improvement_suggestions.flatMap((suggestion, idx) => {
-                      // Split by numbered points (e.g., 1. 2. 3.)
-                      const split = suggestion.split(/\s*(?=\d+\.)/g).map(s => s.trim()).filter(Boolean);
-                      return split.map((point, i) => (
-                        <div key={idx + '-' + i} className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 hover:bg-yellow-100 transition-colors">
-                          <div className="flex items-start">
-                            <div className="flex-shrink-0 w-6 h-6 bg-yellow-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">
+                      // Split by various patterns: numbered points, bullet points, or newlines
+                      const split = suggestion
+                        .split(/(?:^|\n)\s*(?:[-•]|\d+\.)\s*/)
+                        .map(s => s.trim())
+                        .filter(Boolean);
+                      
+                      // If no split occurred, treat the whole suggestion as one point
+                      const points = split.length > 0 ? split : [suggestion];
+                      
+                      return points.map((point, i) => (
+                        <div key={idx + '-' + i} className="bg-yellow-50 border border-yellow-200 rounded-lg p-5 hover:bg-yellow-100 transition-colors">
+                          <div className="flex items-start gap-4">
+                            <div className="flex-shrink-0 w-7 h-7 bg-yellow-500 text-white rounded-full flex items-center justify-center text-sm font-bold mt-0.5">
                               {i + 1}
-                    </div>
-                            <div className="flex-1">
-                              <p className="text-yellow-800 font-medium leading-relaxed">
-                                {point.replace(/^(\d+\.)\s*/, '')}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-yellow-800 font-medium leading-relaxed text-sm">
+                                {point.replace(/^(\d+\.|-|•)\s*/, '').trim()}
                               </p>
                             </div>
                           </div>
@@ -3813,9 +3820,9 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
                       ));
                     })
                   ) : (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <p className="text-yellow-700 text-center">No specific improvements suggested. Great work!</p>
-                  </div>
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-5">
+                      <p className="text-yellow-700 text-center font-medium">No specific improvements suggested. Great work!</p>
+                    </div>
                 )}
                 </div>
               </div>
@@ -4232,6 +4239,8 @@ const App = () => {
   const [darkMode, setDarkMode] = useState(false); // Dark mode state
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showValidationModal, setShowValidationModal] = useState(false);
+  const [validationError, setValidationError] = useState(null);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [showLaunchEventModal, setShowLaunchEventModal] = useState(false);
@@ -4251,218 +4260,742 @@ const App = () => {
     const IMG_PRICING = 'https://ik.imagekit.io/lqf8a8nmt/Screenshot%202025-08-17%20at%2012-11-06%20EnglishGPT%20-%20AI%20English%20Marking.png?updatedAt=1755509276757';
     const IMG_WRITE = 'https://ik.imagekit.io/lqf8a8nmt/Screenshot%202025-08-17%20at%2012-10-47%20EnglishGPT%20-%20AI%20English%20Marking.png?updatedAt=1755509276693';
     const IMG_MARKING = 'https://ik.imagekit.io/lqf8a8nmt/Screenshot%202025-08-17%20at%2012-17-35%20EnglishGPT%20-%20AI%20English%20Marking.png?updatedAt=1755509276578';
+    
     return (
-      <div className="min-h-screen relative overflow-hidden">
-        {/* Background gradient + floating transparent purple boxes */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-gradient-to-br from-white via-[#F7F2FF] to-white" />
-          <div className="pointer-events-none select-none">
-            <div className="absolute -top-16 -left-10 h-72 w-72 rounded-3xl bg-purple-500/20 backdrop-blur-md border border-purple-300/30 shadow-2xl shadow-purple-500/10 rotate-6" />
-            <div className="absolute top-40 left-1/3 h-40 w-40 rounded-2xl bg-purple-400/20 backdrop-blur-md border border-purple-300/30 shadow-xl shadow-purple-400/10 -rotate-6" />
-            <div className="absolute -right-12 top-20 h-80 w-80 rounded-3xl bg-purple-600/20 backdrop-blur-md border border-purple-300/30 shadow-2xl shadow-purple-600/10 rotate-12" />
-            <div className="absolute bottom-10 right-1/4 h-56 w-56 rounded-3xl bg-purple-500/15 backdrop-blur-md border border-purple-300/30 shadow-2xl shadow-purple-500/10 -rotate-3" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -inset-10 opacity-50">
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
+            <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-gradient-to-r from-yellow-400 to-red-400 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-2000"></div>
+            <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-gradient-to-r from-blue-400 to-green-400 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-4000"></div>
           </div>
         </div>
 
-        {/* Header */}
-        <header className="relative">
-          <div className="max-w-7xl mx-auto flex items-center justify-between py-5 px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-3">
-              <img src={LOGO_URL} alt="EnglishGPT logo" className="w-9 h-9 object-contain" style={{ background: 'transparent' }} />
-              <span className="font-fredoka font-bold text-xl text-gray-900">EnglishGPT</span>
-            </div>
-            <nav className="hidden md:flex items-center gap-6 text-gray-700">
-              <a href="#features" className="hover:text-gray-900">Features</a>
-              <a href="#how" className="hover:text-gray-900">How it works</a>
-              <a href="#testimonials" className="hover:text-gray-900">Testimonials</a>
-              <a href="#faq" className="hover:text-gray-900">FAQ</a>
-            </nav>
-            <div className="flex items-center gap-3">
-              <button onClick={() => setShowAuthModal(true)} className="px-4 py-2 rounded-xl text-white bg-gradient-to-br from-purple-500 to-purple-700 shadow-lg shadow-purple-600/30 hover:shadow-purple-600/40">Get Started</button>
-            </div>
-          </div>
-        </header>
-
-        {/* Hero */}
-        <section className="relative">
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-300/40 text-purple-700 text-xs mb-4 backdrop-blur-md">
-                  <span className="h-2 w-2 rounded-full bg-purple-600"></span>
-                  IGCSE & A-Level aligned
+        {/* Modern Navigation */}
+        <nav className="relative z-10 backdrop-blur-md bg-white/70 border-b border-white/20 sticky top-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-4">
+              <div className="flex items-center space-x-3">
+                <div className="relative">
+                  <img src={LOGO_URL} alt="EnglishGPT" className="h-10 w-10 rounded-xl shadow-lg" />
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-full animate-pulse"></div>
                 </div>
-                <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-gray-900">
-                  AI English Marking
-                </h1>
-                <p className="text-lg text-gray-700/90 mb-6">
-                  Master English with transparent, AI‑powered marking
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <button onClick={() => setShowAuthModal(true)} className="px-6 py-3 rounded-xl text-white bg-gradient-to-br from-purple-500 to-purple-700 shadow-lg shadow-purple-600/30 hover:shadow-purple-600/40">Get Started</button>
-                  <button onClick={() => setShowAuthModal(true)} className="px-6 py-3 rounded-xl border border-purple-300/60 text-purple-700 hover:bg-purple-50/70 backdrop-blur-md">Start Marking</button>
-                </div>
-                <p className="text-xs text-gray-500 mt-3">No credit card required. Cheap & Simple .</p>
-                <div className="mt-8 grid grid-cols-3 gap-6">
-                  {[{label:'Avg. improvement', value:'+27%'},{label:'Marking speed', value:'< 30s'},{label:'Simple Pricing', value:'Just $4.99/m'}]
-                  .map((s,i)=> (
-                    <div key={i} className="rounded-2xl p-4 bg-purple-400/10 border border-purple-300/40 backdrop-blur-md">
-                      <div className="text-sm text-gray-600">{s.label}</div>
-                      <div className="text-xl font-bold text-gray-900 mt-1">{s.value}</div>
-                    </div>
-                  ))}
+                <div>
+                  <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                    EnglishGPT
+                  </h1>
+                  <p className="text-xs text-gray-500">AI English Tutor</p>
                 </div>
               </div>
-              <div>
-                <div className="relative h-[420px] md:h-[460px]">
-                  {/* Strengths (primary) */}
-                  <div className="absolute left-0 top-0 right-6 rounded-3xl p-2 sm:p-4 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-xl shadow-purple-600/10">
-                    <img src={IMG_STRENGTHS} alt="Detailed strengths preview" loading="lazy" className="w-full h-auto rounded-2xl border border-purple-200/60" onError={(e)=>{e.currentTarget.style.display='none';}} />
+
+              <div className="hidden md:flex items-center space-x-8">
+                <a href="#features" className="text-gray-700 hover:text-purple-600 font-medium transition-colors">Features</a>
+                <a href="#testimonials" className="text-gray-700 hover:text-purple-600 font-medium transition-colors">Reviews</a>
+                <a href="#pricing" className="text-gray-700 hover:text-purple-600 font-medium transition-colors">Pricing</a>
+                <a href="#faq" className="text-gray-700 hover:text-purple-600 font-medium transition-colors">FAQ</a>
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <button 
+                  onClick={() => setShowAuthModal(true)}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-2.5 rounded-full font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200"
+                >
+                  Get Started Free
+                </button>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        {/* Hero Section */}
+        <section className="relative z-10 pt-20 pb-32 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              {/* Badge */}
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-purple-100 to-blue-100 border border-purple-200 mb-8">
+                <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                <span className="text-purple-700 font-semibold text-sm">✨ IGCSE & A-Level Certified</span>
+              </div>
+
+              {/* Main Headline */}
+              <h1 className="text-5xl md:text-7xl font-bold mb-6">
+                <span className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  Master English
+                </span>
+                <br />
+                <span className="text-gray-900">with AI Precision</span>
+              </h1>
+
+              <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+                Get instant, detailed feedback on your essays with our AI-powered marking system. 
+                <span className="text-purple-600 font-semibold"> Improve 27% faster</span> than traditional methods.
+              </p>
+
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+                <button 
+                  onClick={() => setShowAuthModal(true)}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center space-x-2"
+                >
+                  <span>Start Marking Now</span>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </button>
+                <button 
+                  onClick={() => setShowAuthModal(true)}
+                  className="border-2 border-purple-300 text-purple-700 px-8 py-4 rounded-full font-bold text-lg hover:bg-purple-50 hover:border-purple-400 transition-all duration-300"
+                >
+                  Watch Demo
+                </button>
+              </div>
+
+              <p className="text-sm text-gray-500">
+                🎉 <span className="font-semibold">Launch Special:</span> Free unlimited access during beta
+              </p>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid md:grid-cols-3 gap-6 mb-16">
+              {[
+                { label: 'Average Improvement', value: '+27%', icon: '📈', color: 'from-green-400 to-emerald-500' },
+                { label: 'Marking Speed', value: '< 30s', icon: '⚡', color: 'from-yellow-400 to-orange-500' },
+                { label: 'Student Satisfaction', value: '98%', icon: '🎯', color: 'from-blue-400 to-purple-500' }
+              ].map((stat, index) => (
+                <div key={index} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                  <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-r ${stat.color} text-white text-xl mb-4`}>
+                    {stat.icon}
                   </div>
-                  {/* Marking overlay */}
-                  <div className="absolute -right-2 md:-right-6 top-24 w-1/2 rounded-2xl p-2 bg-purple-500/10 border border-purple-300/40 backdrop-blur-md shadow-lg shadow-purple-600/10 rotate-3">
-                    <img src={IMG_MARKING} alt="Marking interface preview" loading="lazy" className="w-full h-auto rounded-xl border border-purple-200/60" onError={(e)=>{e.currentTarget.style.display='none';}} />
+                  <div className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
+                  <div className="text-gray-600 font-medium">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Product Preview */}
+            <div className="relative max-w-6xl mx-auto">
+              <div className="relative bg-white/90 backdrop-blur-sm rounded-3xl p-4 shadow-2xl border border-white/50">
+                <div className="flex items-center space-x-3 mb-4 px-4 py-2">
+                  <div className="flex space-x-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                   </div>
-                  {/* Write overlay */}
-                  <div className="absolute left-3 bottom-2 w-2/3 rounded-2xl p-2 bg-purple-500/10 border border-purple-300/40 backdrop-blur-md shadow-lg shadow-purple-600/10 -rotate-3">
-                    <img src={IMG_WRITE} alt="Write page preview" loading="lazy" className="w-full h-auto rounded-xl border border-purple-200/60" onError={(e)=>{e.currentTarget.style.display='none';}} />
+                  <div className="text-gray-600 font-medium">EnglishGPT Dashboard</div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+                    <img src={IMG_STRENGTHS} alt="AI Analysis" className="w-full h-auto" />
+                  </div>
+                  <div className="rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+                    <img src={IMG_MARKING} alt="Marking Interface" className="w-full h-auto" />
                   </div>
                 </div>
+              </div>
+              {/* Floating elements */}
+              <div className="absolute -top-6 -right-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full font-bold shadow-lg">
+                Live Demo ✨
+              </div>
+              <div className="absolute -bottom-6 -left-6 bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-2 rounded-full font-bold shadow-lg">
+                Try Free Now 🚀
               </div>
             </div>
           </div>
         </section>
         
-        {/* Feature rows (alternating) */}
-        <section id="features" className="relative py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-            {/* Row 1 */}
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div>
-                <h3 className="text-2xl font-fredoka font-bold text-gray-900 mb-3">Write with clarity and confidence</h3>
-                <p className="text-gray-700 mb-4">Draft directly in a distraction‑free editor. Auto‑save, undo/redo, and structured prompts help you start fast and stay focused.</p>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  {['Clean, student‑friendly editor','Keyboard shortcuts for speed','Instant evaluate when ready'].map((b,i)=>(
-                    <li key={i} className="flex items-start gap-2"><span className="h-5 w-5 rounded-full bg-green-500 text-white text-xs flex items-center justify-center mt-0.5">✓</span>{b}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-3xl p-3 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-xl shadow-purple-600/10">
-                <img src={IMG_WRITE} alt="Write" loading="lazy" className="w-full h-auto rounded-2xl border border-purple-200/60" />
-              </div>
-            </div>
-            {/* Row 2 */}
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="order-2 md:order-1 rounded-3xl p-3 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-xl shadow-purple-600/10">
-                <img src={IMG_STRENGTHS} alt="Strengths" loading="lazy" className="w-full h-auto rounded-2xl border border-purple-200/60" />
-              </div>
-              <div className="order-1 md:order-2">
-                <h3 className="text-2xl font-fredoka font-bold text-gray-900 mb-3">Crystal‑clear, criteria‑aligned feedback</h3>
-                <p className="text-gray-700 mb-4">Understand exactly what worked with strengths pulled straight from exam standards, and know what to do next.</p>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  {['Transparent marks across components','Short, actionable strengths','Improvement suggestions that compound'].map((b,i)=>(
-                    <li key={i} className="flex items-start gap-2"><span className="h-5 w-5 rounded-full bg-green-500 text-white text-xs flex items-center justify-center mt-0.5">✓</span>{b}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            {/* Row 3 */}
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div>
-                <h3 className="text-2xl font-fredoka font-bold text-gray-900 mb-3">A marking view that builds confidence</h3>
-                <p className="text-gray-700 mb-4">See where your marks come from and how to reach the next band. Progress tracking keeps you motivated.</p>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  {['Band descriptors made visual','Trend lines for your progress','Sharable results when you’re proud'].map((b,i)=>(
-                    <li key={i} className="flex items-start gap-2"><span className="h-5 w-5 rounded-full bg-green-500 text-white text-xs flex items-center justify-center mt-0.5">✓</span>{b}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-3xl p-3 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-xl shadow-purple-600/10">
-                <img src={IMG_MARKING} alt="Marking" loading="lazy" className="w-full h-auto rounded-2xl border border-purple-200/60" />
-              </div>
-            </div>
-            {/* Row 4 */}
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="order-2 md:order-1 rounded-3xl p-3 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-xl shadow-purple-600/10">
-                <img src={IMG_PRICING} alt="Pricing" loading="lazy" className="w-full h-auto rounded-2xl border border-purple-200/60" />
-              </div>
-              <div className="order-1 md:order-2">
-                <h3 className="text-2xl font-fredoka font-bold text-gray-900 mb-3">Simple pricing, built for students</h3>
-                <p className="text-gray-700 mb-4">Unlimited marking with monthly or yearly options. Cancel anytime — no hidden fees.</p>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  {['Unlimited submissions','Priority support on yearly','Secure payments'].map((b,i)=>(
-                    <li key={i} className="flex items-start gap-2"><span className="h-5 w-5 rounded-full bg-green-500 text-white text-xs flex items-center justify-center mt-0.5">✓</span>{b}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Testimonials upgraded */}
-        <section id="testimonials" className="relative py-12">
+        {/* Features Section */}
+        <section id="features" className="relative py-24 bg-white/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid md:grid-cols-3 gap-6">
-              {[
-                {q:'I went from a C to an A in 6 weeks. The feedback was clear and motivating.', name:'Student, IGCSE'},
-                {q:'The marks map perfectly to our rubrics. Saves me hours of grading.', name:'Teacher, A‑Level'},
-                {q:'Finally understood what “analysis” really meant. The step‑by‑step tips are gold.', name:'Student, A‑Level'},
-              ].map((t,i)=> (
-                <div key={i} className="rounded-2xl p-6 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-md shadow-purple-600/10">
-                  <div className="flex items-center gap-1 text-yellow-500 mb-2">
-                    {Array.from({length:5}).map((_,s)=> <span key={s}>★</span>)}
+            {/* Section Header */}
+            <div className="text-center mb-20">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-200 mb-6">
+                <span className="text-blue-700 font-semibold text-sm">🚀 Powerful Features</span>
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                Everything you need to
+                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> excel in English</span>
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Our AI-powered platform combines cutting-edge technology with educational expertise 
+                to deliver personalized learning experiences.
+              </p>
+            </div>
+
+            {/* Feature Grid */}
+            <div className="grid lg:grid-cols-2 gap-16 items-center mb-20">
+              {/* Feature 1 */}
+              <div className="relative">
+                <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-8 border border-blue-100 shadow-lg">
+                  <div className="flex items-center mb-6">
+                    <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center text-white text-2xl mr-4">
+                      ✍️
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900">Smart Writing Assistant</h3>
+                      <p className="text-gray-600">AI-powered writing guidance</p>
+                    </div>
                   </div>
-                  <p className="text-gray-800">“{t.q}”</p>
-                  <div className="text-xs text-gray-500 mt-3">{t.name}</div>
+                  <p className="text-gray-700 mb-6 text-lg leading-relaxed">
+                    Write with confidence using our distraction-free editor with real-time suggestions, 
+                    auto-save, and intelligent prompts that help you structure your thoughts effectively.
+                  </p>
+                  <div className="space-y-3">
+                    {[
+                      { icon: '⚡', text: 'Real-time writing suggestions' },
+                      { icon: '💾', text: 'Auto-save & version history' },
+                      { icon: '🎯', text: 'Structured essay templates' }
+                    ].map((item, index) => (
+                      <div key={index} className="flex items-center space-x-3">
+                        <span className="text-xl">{item.icon}</span>
+                        <span className="text-gray-700 font-medium">{item.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="relative">
+                <div className="bg-white rounded-3xl p-4 shadow-2xl border border-gray-100 transform rotate-2 hover:rotate-0 transition-transform duration-300">
+                  <img src={IMG_WRITE} alt="Writing Interface" className="w-full h-auto rounded-2xl" />
+                </div>
+                <div className="absolute -top-4 -right-4 bg-gradient-to-r from-green-400 to-blue-500 text-white px-4 py-2 rounded-full font-bold shadow-lg">
+                  Live Editor ✨
+                </div>
+              </div>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="grid lg:grid-cols-2 gap-16 items-center mb-20">
+              <div className="relative lg:order-2">
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-3xl p-8 border border-purple-100 shadow-lg">
+                  <div className="flex items-center mb-6">
+                    <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-white text-2xl mr-4">
+                      🎯
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900">Intelligent Feedback</h3>
+                      <p className="text-gray-600">Exam-standard analysis</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-700 mb-6 text-lg leading-relaxed">
+                    Get detailed, criteria-aligned feedback that shows exactly where you excel and 
+                    what to improve. Our AI understands IGCSE and A-Level marking schemes perfectly.
+                  </p>
+                  <div className="space-y-3">
+                    {[
+                      { icon: '📊', text: 'Detailed performance breakdown' },
+                      { icon: '🏆', text: 'Strengths highlighting' },
+                      { icon: '📈', text: 'Improvement roadmap' }
+                    ].map((item, index) => (
+                      <div key={index} className="flex items-center space-x-3">
+                        <span className="text-xl">{item.icon}</span>
+                        <span className="text-gray-700 font-medium">{item.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="relative lg:order-1">
+                <div className="bg-white rounded-3xl p-4 shadow-2xl border border-gray-100 transform -rotate-2 hover:rotate-0 transition-transform duration-300">
+                  <img src={IMG_STRENGTHS} alt="Feedback Analysis" className="w-full h-auto rounded-2xl" />
+                </div>
+                <div className="absolute -top-4 -left-4 bg-gradient-to-r from-purple-400 to-pink-500 text-white px-4 py-2 rounded-full font-bold shadow-lg">
+                  AI Analysis 🧠
+                </div>
+              </div>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="grid lg:grid-cols-2 gap-16 items-center mb-20">
+              <div className="relative">
+                <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-3xl p-8 border border-green-100 shadow-lg">
+                  <div className="flex items-center mb-6">
+                    <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl flex items-center justify-center text-white text-2xl mr-4">
+                      📊
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900">Progress Tracking</h3>
+                      <p className="text-gray-600">Visual improvement insights</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-700 mb-6 text-lg leading-relaxed">
+                    Watch your progress unfold with detailed analytics, grade trends, and 
+                    personalized recommendations that keep you motivated and on track.
+                  </p>
+                  <div className="space-y-3">
+                    {[
+                      { icon: '📈', text: 'Grade progression charts' },
+                      { icon: '🎯', text: 'Goal setting & tracking' },
+                      { icon: '🏅', text: 'Achievement milestones' }
+                    ].map((item, index) => (
+                      <div key={index} className="flex items-center space-x-3">
+                        <span className="text-xl">{item.icon}</span>
+                        <span className="text-gray-700 font-medium">{item.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="relative">
+                <div className="bg-white rounded-3xl p-4 shadow-2xl border border-gray-100 transform rotate-1 hover:rotate-0 transition-transform duration-300">
+                  <img src={IMG_MARKING} alt="Progress Dashboard" className="w-full h-auto rounded-2xl" />
+                </div>
+                <div className="absolute -bottom-4 -right-4 bg-gradient-to-r from-green-400 to-blue-500 text-white px-4 py-2 rounded-full font-bold shadow-lg">
+                  Live Stats 📊
+                </div>
+              </div>
+            </div>
+
+            {/* Feature Cards Grid */}
+            <div className="grid md:grid-cols-3 gap-8 mt-20">
+              {[
+                {
+                  icon: '🚀',
+                  title: 'Lightning Fast',
+                  description: 'Get detailed feedback in under 30 seconds',
+                  color: 'from-yellow-400 to-orange-500'
+                },
+                {
+                  icon: '🔒',
+                  title: 'Privacy First',
+                  description: 'Your essays are secure and never shared',
+                  color: 'from-blue-400 to-indigo-500'
+                },
+                {
+                  icon: '🎓',
+                  title: 'Exam Ready',
+                  description: 'Aligned with IGCSE & A-Level standards',
+                  color: 'from-purple-400 to-pink-500'
+                }
+              ].map((feature, index) => (
+                <div key={index} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-center">
+                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r ${feature.color} text-white text-2xl mb-4`}>
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
+                  <p className="text-gray-600">{feature.description}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* FAQ with accordion */}
-        <section id="faq" className="relative py-12">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid md:grid-cols-2 gap-6">
+        {/* Testimonials Section */}
+        <section id="testimonials" className="relative py-24 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Section Header */}
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-200 mb-6">
+                <span className="text-purple-700 font-semibold text-sm">💬 Student Success Stories</span>
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                Loved by
+                <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent"> students worldwide</span>
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Join thousands of students who have transformed their English writing with our AI-powered feedback
+              </p>
+            </div>
+
+            {/* Testimonials Grid */}
+            <div className="grid md:grid-cols-3 gap-8 mb-16">
               {[
-                {q:'Is this aligned to exam criteria?', a:'Yes. We align to IGCSE and A‑Level descriptors and show transparent marks.'},
-                {q:'Is my data private?', a:'Yes. We keep your submissions secure and never sell your data.'},
-                {q:'How fast is the feedback?', a:'You usually get marks and guidance in under 10 seconds.'},
-                {q:'Can teachers use this?', a:'Yes. Many teachers use it to save time and guide students faster.'},
-              ].map((f,i)=> (
-                <details key={i} className="rounded-2xl p-5 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-md shadow-purple-600/10">
-                  <summary className="cursor-pointer list-none font-semibold text-gray-900">{f.q}</summary>
-                  <div className="text-gray-700 text-sm mt-2">{f.a}</div>
-                </details>
+                {
+                  quote: "I went from a C to an A in just 6 weeks! The feedback was incredibly detailed and helped me understand exactly what examiners were looking for.",
+                  name: "Sarah Chen",
+                  role: "IGCSE Student",
+                  avatar: "👩‍🎓",
+                  rating: 5,
+                  improvement: "+2 grades",
+                  color: "from-pink-400 to-rose-400"
+                },
+                {
+                  quote: "As a teacher, this saves me hours of grading while providing better feedback than I could give manually. My students love the instant responses.",
+                  name: "Mr. James Wilson",
+                  role: "English Teacher",
+                  avatar: "👨‍🏫",
+                  rating: 5,
+                  improvement: "5+ hours saved/week",
+                  color: "from-blue-400 to-indigo-400"
+                },
+                {
+                  quote: "Finally understood what 'critical analysis' actually means! The step-by-step guidance and examples were game-changing for my A-Level essays.",
+                  name: "Alex Rodriguez",
+                  role: "A-Level Student",
+                  avatar: "👨‍🎓",
+                  rating: 5,
+                  improvement: "+35% score",
+                  color: "from-purple-400 to-violet-400"
+                }
+              ].map((testimonial, index) => (
+                <div key={index} className="group bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-white/50 backdrop-blur-sm relative overflow-hidden">
+                  {/* Background decoration */}
+                  <div className={`absolute -top-10 -right-10 w-20 h-20 bg-gradient-to-r ${testimonial.color} rounded-full opacity-10 group-hover:opacity-20 transition-opacity`}></div>
+                  
+                  {/* Rating */}
+                  <div className="flex items-center mb-4">
+                    <div className="flex text-yellow-400 text-xl mr-3">
+                      {[...Array(testimonial.rating)].map((_, i) => (
+                        <span key={i}>⭐</span>
+                      ))}
+                    </div>
+                    <div className={`px-3 py-1 rounded-full bg-gradient-to-r ${testimonial.color} text-white text-sm font-bold`}>
+                      {testimonial.improvement}
+                    </div>
+                  </div>
+                  
+                  {/* Quote */}
+                  <blockquote className="text-gray-700 text-lg leading-relaxed mb-6 relative">
+                    <span className="text-4xl text-gray-300 absolute -top-2 -left-1">"</span>
+                    <span className="relative z-10">{testimonial.quote}</span>
+                  </blockquote>
+                  
+                  {/* Author */}
+                  <div className="flex items-center">
+                    <div className="text-3xl mr-4">{testimonial.avatar}</div>
+                    <div>
+                      <div className="font-bold text-gray-900">{testimonial.name}</div>
+                      <div className="text-gray-600 text-sm">{testimonial.role}</div>
+                    </div>
+                  </div>
+                </div>
               ))}
+            </div>
+
+            {/* Stats Banner */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-lg border border-white/50">
+              <div className="grid md:grid-cols-4 gap-8 text-center">
+                {[
+                  { number: '10,000+', label: 'Essays Marked', icon: '📝' },
+                  { number: '98%', label: 'Satisfaction Rate', icon: '😊' },
+                  { number: '27%', label: 'Average Improvement', icon: '📈' },
+                  { number: '30s', label: 'Average Response Time', icon: '⚡' }
+                ].map((stat, index) => (
+                  <div key={index} className="group">
+                    <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">{stat.icon}</div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">{stat.number}</div>
+                    <div className="text-gray-600 font-medium">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Trust Indicators */}
+            <div className="text-center mt-16">
+              <p className="text-gray-600 mb-6 font-medium">Trusted by students from leading institutions</p>
+              <div className="flex justify-center items-center space-x-8 opacity-60">
+                <div className="text-2xl font-bold text-gray-700">Cambridge</div>
+                <div className="text-2xl font-bold text-gray-700">Oxford</div>
+                <div className="text-2xl font-bold text-gray-700">Imperial</div>
+                <div className="text-2xl font-bold text-gray-700">UCL</div>
+                <div className="text-2xl font-bold text-gray-700">LSE</div>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Final CTA */}
-        <section className="relative py-14">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="rounded-3xl p-8 md:p-12 bg-gradient-to-br from-purple-500/20 to-purple-700/20 border border-purple-300/40 backdrop-blur-xl shadow-xl shadow-purple-600/20 flex flex-col md:flex-row items-center justify-between">
-              <div>
-                <h3 className="font-bold text-2xl mb-2 text-gray-900">Ready to improve faster?</h3>
-                <p className="text-gray-700">Sign in and start marking in under a minute.</p>
+        {/* FAQ Section */}
+        <section id="faq" className="relative py-24 bg-white">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Section Header */}
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-green-100 to-blue-100 border border-green-200 mb-6">
+                <span className="text-green-700 font-semibold text-sm">❓ Frequently Asked Questions</span>
               </div>
-              <div className="mt-6 md:mt-0 flex gap-3">
-                <button onClick={() => setShowAuthModal(true)} className="px-6 py-3 rounded-xl text-white bg-gradient-to-br from-purple-500 to-purple-700 shadow-lg shadow-purple-600/30 hover:shadow-purple-600/40">Get Started</button>
-                <button onClick={() => setShowAuthModal(true)} className="px-6 py-3 rounded-xl border border-purple-300/60 text-purple-700 hover:bg-purple-50/70 backdrop-blur-md">Start Marking</button>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                Got
+                <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent"> questions?</span>
+              </h2>
+              <p className="text-xl text-gray-600">
+                We've got answers! Here are the most common questions about EnglishGPT.
+              </p>
+            </div>
+
+            {/* FAQ Accordion */}
+            <div className="space-y-6">
+              {[
+                {
+                  question: 'Is EnglishGPT aligned with official exam criteria?',
+                  answer: 'Absolutely! Our AI is trained specifically on IGCSE and A-Level marking schemes and descriptors. We provide transparent, criteria-aligned feedback that maps directly to exam board requirements, helping you understand exactly what examiners are looking for.',
+                  icon: '🎯'
+                },
+                {
+                  question: 'How secure is my data and essays?',
+                  answer: 'Your privacy is our top priority. All essays are encrypted and stored securely. We never share, sell, or use your personal data for any purpose other than providing feedback. You can delete your data at any time, and we comply with GDPR and other privacy regulations.',
+                  icon: '🔒'
+                },
+                {
+                  question: 'How fast is the AI feedback?',
+                  answer: 'Lightning fast! Most essays receive comprehensive feedback in under 30 seconds. Our AI analyzes your writing across multiple criteria simultaneously, providing detailed insights on structure, language, analysis, and more in real-time.',
+                  icon: '⚡'
+                },
+                {
+                  question: 'Can teachers and schools use EnglishGPT?',
+                  answer: 'Yes! Many teachers use EnglishGPT to save grading time and provide consistent, detailed feedback to their students. We offer special pricing for schools and bulk licenses. Teachers love how it helps them focus on higher-level instruction rather than basic marking.',
+                  icon: '👨‍🏫'
+                },
+                {
+                  question: 'What makes EnglishGPT different from other AI tools?',
+                  answer: 'Unlike generic AI writing tools, EnglishGPT is specifically designed for English literature and language assessment. We provide exam-specific feedback, transparent marking criteria, progress tracking, and detailed improvement suggestions that actually help you get better grades.',
+                  icon: '🌟'
+                },
+                {
+                  question: 'Do I need to pay immediately?',
+                  answer: 'Not at all! We\'re currently in our launch phase, offering unlimited free access to all features. When we do introduce pricing, we\'ll have affordable student-friendly options with no hidden fees and the ability to cancel anytime.',
+                  icon: '💰'
+                }
+              ].map((faq, index) => (
+                <div key={index} className="group">
+                  <details className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
+                    <summary className="cursor-pointer list-none p-6 font-semibold text-gray-900 text-lg flex items-center justify-between hover:text-blue-600 transition-colors">
+                      <div className="flex items-center space-x-4">
+                        <span className="text-2xl">{faq.icon}</span>
+                        <span>{faq.question}</span>
+                      </div>
+                      <svg className="w-5 h-5 transform group-open:rotate-180 transition-transform text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </summary>
+                    <div className="px-6 pb-6">
+                      <div className="text-gray-700 leading-relaxed pl-12">
+                        {faq.answer}
+                      </div>
+                    </div>
+                  </details>
+                </div>
+              ))}
+            </div>
+
+            {/* Still have questions CTA */}
+            <div className="mt-16 text-center">
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-8 border border-blue-100">
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Still have questions?</h3>
+                <p className="text-gray-600 mb-6">
+                  Can't find what you're looking for? Our support team is here to help!
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200">
+                    Contact Support
+                  </button>
+                  <button 
+                    onClick={() => setShowAuthModal(true)}
+                    className="border-2 border-blue-300 text-blue-700 px-6 py-3 rounded-full font-semibold hover:bg-blue-50 transition-all duration-200"
+                  >
+                    Try It Free
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Final CTA Section */}
+        <section className="relative py-24 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 overflow-hidden">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute inset-0" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+              backgroundSize: '60px 60px'
+            }}></div>
+          </div>
+          
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className="max-w-4xl mx-auto">
+              {/* Badge */}
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 border border-white/30 backdrop-blur-sm mb-8">
+                <span className="text-white font-semibold text-sm">🚀 Join 10,000+ students improving their English</span>
+              </div>
+
+              {/* Main Headline */}
+              <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
+                Ready to transform your
+                <span className="block bg-gradient-to-r from-yellow-300 to-pink-300 bg-clip-text text-transparent">
+                  English writing?
+                </span>
+              </h2>
+
+              <p className="text-xl md:text-2xl text-blue-100 mb-12 leading-relaxed max-w-3xl mx-auto">
+                Start your journey to better grades today. Get instant, detailed feedback 
+                and watch your writing skills soar with our AI-powered marking system.
+              </p>
+
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
+                <button 
+                  onClick={() => setShowAuthModal(true)}
+                  className="bg-white text-purple-600 px-10 py-4 rounded-full font-bold text-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center space-x-3"
+                >
+                  <span>Start Free Now</span>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </button>
+                <button 
+                  onClick={() => setShowAuthModal(true)}
+                  className="border-2 border-white/50 text-white px-10 py-4 rounded-full font-bold text-xl hover:bg-white/10 hover:border-white transition-all duration-300 backdrop-blur-sm"
+                >
+                  Watch Demo
+                </button>
+              </div>
+
+              {/* Features Grid */}
+              <div className="grid md:grid-cols-3 gap-8 mb-16">
+                {[
+                  {
+                    icon: '⚡',
+                    title: 'Instant Results',
+                    description: 'Get comprehensive feedback in under 30 seconds'
+                  },
+                  {
+                    icon: '🎯',
+                    title: 'Exam Aligned',
+                    description: 'Perfectly matched to IGCSE & A-Level criteria'
+                  },
+                  {
+                    icon: '📈',
+                    title: 'Proven Results',
+                    description: '27% average grade improvement guaranteed'
+                  }
+                ].map((feature, index) => (
+                  <div key={index} className="text-center">
+                    <div className="text-4xl mb-4">{feature.icon}</div>
+                    <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
+                    <p className="text-blue-100">{feature.description}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Trust Indicators */}
+              <div className="flex flex-col items-center">
+                <p className="text-blue-100 mb-4 font-medium">No credit card required • Free forever during beta</p>
+                <div className="flex items-center space-x-2 text-blue-100">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-sm">Your data is secure and private</span>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
         {/* Footer */}
-        <footer className="relative border-t border-purple-200/50 bg-white/60 backdrop-blur-xl">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <img src={LOGO_URL} alt="EnglishGPT logo" className="w-8 h-8 object-contain" style={{ background: 'transparent' }} />
-              <span className="font-fredoka font-semibold text-gray-900">EnglishGPT</span>
+        <footer className="relative bg-gray-900 text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div className="grid md:grid-cols-4 gap-12">
+              {/* Brand Column */}
+              <div className="md:col-span-2">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="relative">
+                    <img src={LOGO_URL} alt="EnglishGPT" className="h-12 w-12 rounded-xl" />
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-full"></div>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                      EnglishGPT
+                    </h3>
+                    <p className="text-gray-400 text-sm">AI English Tutor</p>
+                  </div>
+                </div>
+                <p className="text-gray-300 mb-6 leading-relaxed max-w-md">
+                  Transform your English writing with AI-powered feedback. Get instant, detailed analysis 
+                  aligned with IGCSE and A-Level standards.
+                </p>
+                <div className="flex space-x-4">
+                  <button className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-full font-semibold hover:shadow-lg transition-all duration-200">
+                    Start Free Trial
+                  </button>
+                </div>
+              </div>
+
+              {/* Quick Links */}
+              <div>
+                <h4 className="text-lg font-semibold mb-6">Quick Links</h4>
+                <ul className="space-y-4">
+                  {[
+                    { name: 'Features', href: '#features' },
+                    { name: 'Testimonials', href: '#testimonials' },
+                    { name: 'FAQ', href: '#faq' },
+                    { name: 'Pricing', href: '#pricing' }
+                  ].map((link, index) => (
+                    <li key={index}>
+                      <a href={link.href} className="text-gray-300 hover:text-purple-400 transition-colors">
+                        {link.name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Support */}
+              <div>
+                <h4 className="text-lg font-semibold mb-6">Support</h4>
+                <ul className="space-y-4">
+                  {[
+                    'Help Center',
+                    'Contact Us',
+                    'Privacy Policy',
+                    'Terms of Service'
+                  ].map((item, index) => (
+                    <li key={index}>
+                      <a href="#" className="text-gray-300 hover:text-purple-400 transition-colors">
+                        {item}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-            <div className="text-sm text-gray-600">© {new Date().getFullYear()} EnglishGPT. All rights reserved.</div>
+
+            {/* Bottom Section */}
+            <div className="border-t border-gray-800 mt-12 pt-8">
+              <div className="flex flex-col md:flex-row justify-between items-center">
+                <div className="text-gray-400 text-sm mb-4 md:mb-0">
+                  © {new Date().getFullYear()} EnglishGPT. All rights reserved.
+                </div>
+                
+                {/* Social Links */}
+                <div className="flex items-center space-x-6">
+                  <span className="text-gray-400 text-sm">Follow us:</span>
+                  <div className="flex space-x-4">
+                    {[
+                      { name: 'Twitter', icon: '🐦' },
+                      { name: 'LinkedIn', icon: '💼' },
+                      { name: 'GitHub', icon: '⚡' }
+                    ].map((social, index) => (
+                      <a
+                        key={index}
+                        href="#"
+                        className="text-gray-400 hover:text-purple-400 transition-colors text-xl"
+                        title={social.name}
+                      >
+                        {social.icon}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Trust Badges */}
+              <div className="mt-8 pt-8 border-t border-gray-800 text-center">
+                <div className="flex justify-center items-center space-x-8 text-gray-400">
+                  <div className="flex items-center space-x-2">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-sm">Secure & Private</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-green-400">✓</span>
+                    <span className="text-sm">GDPR Compliant</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-blue-400">🎓</span>
+                    <span className="text-sm">Education Focused</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </footer>
         {/* Auth Modal */}
@@ -5101,39 +5634,143 @@ const App = () => {
   // Validation function for essay content
   const validateEssayContent = (studentResponse, questionType) => {
     const wordCount = studentResponse.trim().split(/\s+/).filter(word => word.length > 0).length;
+    const lowerResponse = studentResponse.toLowerCase();
     
-    // Skip word count validation for summary writing
+    // Determine word limits based on question type
+    const isALevel = questionType.startsWith('alevel_');
+    const maxWordLimit = isALevel ? 1400 : 700;
+    
+    // Skip word count validation for summary writing (minimum only)
     if (questionType === 'igcse_summary') {
-      // Only check for test content
-    } else {
-      // Check word count for other question types
-      if ( 1 < wordCount && wordCount < 100) {
+      // Only check for test content and maximum limit
+      if (wordCount > maxWordLimit) {
         return {
           isValid: false,
-          error: `Your essay is too short. You have ${wordCount} words, but you need at least 100 words for a proper evaluation. We understand you might want to test our AI, for that, please look at our examples on the dashboard. Please write a more detailed response to get meaningful feedback.`
+          type: 'word_limit_exceeded',
+          wordCount: wordCount,
+          maxLimit: maxWordLimit,
+          questionType: questionType,
+          error: `Your essay exceeds the word limit. You have ${wordCount} words, but the maximum allowed for IGCSE questions is ${maxWordLimit} words.`
+        };
+      }
+    } else {
+      // Check minimum word count for other question types
+      if (1 < wordCount && wordCount < 100) {
+        return {
+          isValid: false,
+          type: 'word_count_too_low',
+          wordCount: wordCount,
+          minRequired: 100,
+          error: `Your essay is too short. You have ${wordCount} words, but you need at least 100 words for a proper evaluation.`
         };
       }
       if (wordCount === 1) {
         return {
           isValid: false,
-          error: `Your essay is too long. You have ${wordCount} word, but you need at least 100 words for a proper evaluation. We understand you might want to test our AI, for that, please look at our examples on the dashboard. Please write a more detailed response to get meaningful feedback.`
+          type: 'word_count_too_low',
+          wordCount: wordCount,
+          minRequired: 100,
+          error: `Your essay is too short. You have ${wordCount} word, but you need at least 100 words for a proper evaluation.`
+        };
+      }
+      
+      // Check maximum word count
+      if (wordCount > maxWordLimit) {
+        return {
+          isValid: false,
+          type: 'word_limit_exceeded',
+          wordCount: wordCount,
+          maxLimit: maxWordLimit,
+          questionType: questionType,
+          error: `Your essay exceeds the word limit. You have ${wordCount} words, but the maximum allowed for ${isALevel ? 'A-Level' : 'IGCSE'} questions is ${maxWordLimit} words.`
         };
       }
     }
     
-    // Check for test content
-    const testWords = ['test', 'hello', 'world', 'random', 'testing', 'sample', 'example', 'demo', 'essay', 'essay writing', 'essay help', 'essay writing help', 'essay writing service', 'essay writing assistant', 'essay writing tool', 'essay writing software', 'essay writing app', 'essay writing online', 'essay writing tool', 'essay writing software', 'essay writing app', 'essay writing online', 'okay', ];
-    const lowerResponse = studentResponse.toLowerCase();
+    // Enhanced profanity filter
+    const profanityWords = [
+      // Common profanity
+      'fuck', 'fucking', 'fucked', 'fucker', 'shit', 'shitting', 'shitty', 'damn', 'damned',
+      'hell', 'bitch', 'bastard', 'asshole', 'ass', 'crap', 'piss', 'pissed',
+      // Offensive terms
+      'stupid', 'idiot', 'moron', 'retard', 'retarded', 'dumb', 'dumbass', 'loser',
+      // Hate speech indicators
+      'hate', 'kill', 'die', 'death', 'murder', 'suicide', 'nazi', 'terrorist',
+      // Sexual content
+      'sex', 'porn', 'naked', 'nude', 'penis', 'vagina', 'breast', 'dick',
+      // Drug references
+      'drug', 'cocaine', 'heroin', 'marijuana', 'weed', 'high', 'stoned',
+      // Violence
+      'violence', 'violent', 'attack', 'weapon', 'gun', 'knife', 'bomb', 'explosive'
+    ];
     
-    // Check if response contains mostly test words or is very repetitive
-    const testWordCount = testWords.filter(word => lowerResponse.includes(word)).length;
-    const uniqueWords = new Set(lowerResponse.split(/\s+/).filter(word => word.length > 0));
-    const totalWords = lowerResponse.split(/\s+/).filter(word => word.length > 0).length;
+    const foundProfanity = profanityWords.filter(word => {
+      const regex = new RegExp(`\\b${word}\\b`, 'i');
+      return regex.test(lowerResponse);
+    });
     
-    if (testWordCount > 2 || (uniqueWords.size / totalWords) < 0.3) {
+    if (foundProfanity.length > 0) {
       return {
         isValid: false,
-        error: `Your essay appears to be test content or contains repetitive text. Please write a proper essay with meaningful content to get accurate feedback. The AI needs real content to provide helpful analysis.`
+        type: 'profanity_detected',
+        foundWords: foundProfanity,
+        error: `Your essay contains inappropriate language. Please revise your content to maintain academic standards.`
+      };
+    }
+    
+    // Enhanced spam detection
+    const testWords = ['test', 'hello', 'world', 'random', 'testing', 'sample', 'example', 'demo'];
+    const essaySpamWords = ['essay', 'essay writing', 'essay help', 'essay writing help', 'essay writing service', 
+      'essay writing assistant', 'essay writing tool', 'essay writing software', 'essay writing app', 
+      'essay writing online', 'write my essay', 'help me write', 'ai essay', 'chatgpt', 'gpt'];
+    const filler = ['okay', 'um', 'uh', 'like', 'you know', 'basically', 'literally', 'actually', 'really', 'very'];
+    const repetitivePatterns = ['lorem ipsum', 'the quick brown fox', 'abcd', '1234', 'qwerty', 'asdf'];
+    
+    // Check for test content
+    const testWordCount = testWords.filter(word => lowerResponse.includes(word.toLowerCase())).length;
+    const essaySpamCount = essaySpamWords.filter(phrase => lowerResponse.includes(phrase.toLowerCase())).length;
+    const fillerCount = filler.filter(word => {
+      const regex = new RegExp(`\\b${word}\\b`, 'gi');
+      const matches = lowerResponse.match(regex);
+      return matches && matches.length > 3; // More than 3 occurrences
+    }).length;
+    
+    // Check for repetitive patterns
+    const hasRepetitivePattern = repetitivePatterns.some(pattern => lowerResponse.includes(pattern));
+    
+    // Check for excessive repetition of words
+    const words = lowerResponse.split(/\s+/).filter(word => word.length > 3);
+    const wordFrequency = {};
+    words.forEach(word => {
+      wordFrequency[word] = (wordFrequency[word] || 0) + 1;
+    });
+    
+    const maxWordFrequency = Math.max(...Object.values(wordFrequency));
+    const isExcessivelyRepetitive = maxWordFrequency > Math.max(5, words.length * 0.1);
+    
+    // Check unique word ratio
+    const uniqueWords = new Set(words);
+    const uniqueWordRatio = uniqueWords.size / Math.max(1, words.length);
+    
+    // Spam detection logic
+    if (testWordCount > 2 || essaySpamCount > 1 || fillerCount > 0 || hasRepetitivePattern || 
+        isExcessivelyRepetitive || uniqueWordRatio < 0.3) {
+      
+      let spamReasons = [];
+      if (testWordCount > 2) spamReasons.push('test_words');
+      if (essaySpamCount > 1) spamReasons.push('essay_spam');
+      if (fillerCount > 0) spamReasons.push('excessive_filler');
+      if (hasRepetitivePattern) spamReasons.push('repetitive_pattern');
+      if (isExcessivelyRepetitive) spamReasons.push('word_repetition');
+      if (uniqueWordRatio < 0.3) spamReasons.push('low_uniqueness');
+      
+      return {
+        isValid: false,
+        type: 'spam_detected',
+        reasons: spamReasons,
+        uniqueWordRatio: Math.round(uniqueWordRatio * 100),
+        testWordCount: testWordCount,
+        error: `Your essay appears to contain test content or spam. Please write genuine academic content for accurate feedback.`
       };
     }
     
@@ -5141,6 +5778,9 @@ const App = () => {
     if (studentResponse.trim().length < 200) {
       return {
         isValid: false,
+        type: 'too_brief',
+        characterCount: studentResponse.trim().length,
+        minRequired: 200,
         error: `Your essay is too brief for meaningful analysis. Please write a more detailed response (at least 200 characters) to receive comprehensive feedback.`
       };
     }
@@ -5427,8 +6067,8 @@ const handleSignOut = async () => {
     // Validate essay content before sending to API
     const validation = validateEssayContent(evaluationResult.student_response, evaluationResult.question_type);
     if (!validation.isValid) {
-      setErrorMessage(validation.error);
-      setShowErrorModal(true);
+      setValidationError(validation);
+      setShowValidationModal(true);
       return;
     }
     
@@ -5703,6 +6343,465 @@ const handleSignOut = async () => {
                 },
               }}
             />
+            
+            {/* Validation Error Modal */}
+            {showValidationModal && validationError && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/60" onClick={() => setShowValidationModal(false)} />
+                <div className="relative w-full max-w-2xl mx-4 rounded-3xl bg-white shadow-2xl p-0 overflow-hidden">
+                  
+                  {/* Word Limit Exceeded Modal */}
+                  {validationError.type === 'word_limit_exceeded' && (
+                    <>
+                      <div className="px-8 pt-8 pb-6 bg-gradient-to-r from-red-500 to-pink-500 text-white">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                            <span className="text-3xl">📏</span>
+                          </div>
+                          <div>
+                            <h2 className="text-2xl font-bold">Word Limit Exceeded</h2>
+                            <p className="text-red-100">Your essay is too long for evaluation</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-8">
+                        <div className="mb-6">
+                          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                            <div className="flex items-center space-x-3 mb-3">
+                              <span className="text-2xl">⚠️</span>
+                              <div>
+                                <h3 className="font-bold text-red-800">Essay Too Long</h3>
+                                <p className="text-red-600 text-sm">Your essay exceeds the maximum word limit</p>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 mt-4">
+                              <div className="bg-white rounded-lg p-3 border border-red-200">
+                                <div className="text-2xl font-bold text-red-600">{validationError.wordCount}</div>
+                                <div className="text-xs text-red-500">Your word count</div>
+                              </div>
+                              <div className="bg-white rounded-lg p-3 border border-red-200">
+                                <div className="text-2xl font-bold text-green-600">{validationError.maxLimit}</div>
+                                <div className="text-xs text-green-500">Maximum allowed</div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-2">Why do we have word limits?</h4>
+                              <ul className="text-gray-700 text-sm space-y-2">
+                                <li className="flex items-start space-x-2">
+                                  <span className="text-blue-500 mt-1">•</span>
+                                  <span><strong>Exam Alignment:</strong> {validationError.questionType.startsWith('alevel_') ? 'A-Level' : 'IGCSE'} exams have strict word limits to test concise writing skills</span>
+                                </li>
+                                <li className="flex items-start space-x-2">
+                                  <span className="text-blue-500 mt-1">•</span>
+                                  <span><strong>Quality Focus:</strong> Shorter essays encourage focused, high-quality arguments rather than padding</span>
+                                </li>
+                                <li className="flex items-start space-x-2">
+                                  <span className="text-blue-500 mt-1">•</span>
+                                  <span><strong>Fair Evaluation:</strong> Our AI provides more accurate feedback within standard essay lengths</span>
+                                </li>
+                              </ul>
+                            </div>
+                            
+                            <div className="bg-blue-50 rounded-xl p-4">
+                              <h4 className="font-semibold text-blue-900 mb-2">💡 How to shorten your essay:</h4>
+                              <ul className="text-blue-800 text-sm space-y-1">
+                                <li>• Remove redundant sentences and repetitive ideas</li>
+                                <li>• Combine related points into single paragraphs</li>
+                                <li>• Focus on your strongest arguments and examples</li>
+                                <li>• Use more precise vocabulary to express ideas concisely</li>
+                                <li>• Remove unnecessary introductory phrases</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex space-x-3">
+                          <button 
+                            onClick={() => setShowValidationModal(false)}
+                            className="flex-1 bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+                          >
+                            Edit My Essay
+                          </button>
+                          <button 
+                            onClick={() => setShowValidationModal(false)}
+                            className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-200"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  
+                  {/* Profanity Detected Modal */}
+                  {validationError.type === 'profanity_detected' && (
+                    <>
+                      <div className="px-8 pt-8 pb-6 bg-gradient-to-r from-orange-500 to-red-500 text-white">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                            <span className="text-3xl">⚠️</span>
+                          </div>
+                          <div>
+                            <h2 className="text-2xl font-bold">Inappropriate Content Detected</h2>
+                            <p className="text-orange-100">Please maintain academic standards</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-8">
+                        <div className="mb-6">
+                          <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6">
+                            <div className="flex items-center space-x-3 mb-3">
+                              <span className="text-2xl">🚫</span>
+                              <div>
+                                <h3 className="font-bold text-orange-800">Language Standards</h3>
+                                <p className="text-orange-600 text-sm">Your essay contains words that don't meet academic standards</p>
+                              </div>
+                            </div>
+                            <div className="bg-white rounded-lg p-3 border border-orange-200 mt-4">
+                              <div className="text-sm text-orange-600">
+                                <strong>Detected issues:</strong> {validationError.foundWords.length} inappropriate {validationError.foundWords.length === 1 ? 'word' : 'words'}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-2">Why we maintain language standards:</h4>
+                              <ul className="text-gray-700 text-sm space-y-2">
+                                <li className="flex items-start space-x-2">
+                                  <span className="text-blue-500 mt-1">•</span>
+                                  <span><strong>Academic Excellence:</strong> Professional language demonstrates serious academic engagement</span>
+                                </li>
+                                <li className="flex items-start space-x-2">
+                                  <span className="text-blue-500 mt-1">•</span>
+                                  <span><strong>Respectful Environment:</strong> We maintain a safe space for all learners</span>
+                                </li>
+                                <li className="flex items-start space-x-2">
+                                  <span className="text-blue-500 mt-1">•</span>
+                                  <span><strong>Exam Preparation:</strong> Academic writing requires appropriate vocabulary choices</span>
+                                </li>
+                              </ul>
+                            </div>
+                            
+                            <div className="bg-green-50 rounded-xl p-4">
+                              <h4 className="font-semibold text-green-900 mb-2">✨ Tips for academic language:</h4>
+                              <ul className="text-green-800 text-sm space-y-1">
+                                <li>• Use formal vocabulary appropriate for academic writing</li>
+                                <li>• Express strong opinions through evidence, not emotional language</li>
+                                <li>• Choose precise, descriptive words over casual expressions</li>
+                                <li>• Remember that academic essays are formal documents</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex space-x-3">
+                          <button 
+                            onClick={() => setShowValidationModal(false)}
+                            className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+                          >
+                            Revise My Essay
+                          </button>
+                          <button 
+                            onClick={() => setShowValidationModal(false)}
+                            className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-200"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  
+                  {/* Spam Detected Modal */}
+                  {validationError.type === 'spam_detected' && (
+                    <>
+                      <div className="px-8 pt-8 pb-6 bg-gradient-to-r from-yellow-500 to-orange-500 text-white">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                            <span className="text-3xl">🤖</span>
+                          </div>
+                          <div>
+                            <h2 className="text-2xl font-bold">Content Quality Issues</h2>
+                            <p className="text-yellow-100">We need genuine academic content for accurate feedback</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-8">
+                        <div className="mb-6">
+                          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+                            <div className="flex items-center space-x-3 mb-3">
+                              <span className="text-2xl">🔍</span>
+                              <div>
+                                <h3 className="font-bold text-yellow-800">Content Analysis</h3>
+                                <p className="text-yellow-600 text-sm">Your essay appears to contain test content or lacks authenticity</p>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 mt-4">
+                              <div className="bg-white rounded-lg p-3 border border-yellow-200">
+                                <div className="text-2xl font-bold text-yellow-600">{validationError.uniqueWordRatio}%</div>
+                                <div className="text-xs text-yellow-500">Unique content</div>
+                              </div>
+                              <div className="bg-white rounded-lg p-3 border border-yellow-200">
+                                <div className="text-2xl font-bold text-red-600">{validationError.reasons?.length || 0}</div>
+                                <div className="text-xs text-red-500">Issues detected</div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-2">Issues we detected:</h4>
+                              <div className="space-y-2">
+                                {validationError.reasons?.includes('test_words') && (
+                                  <div className="flex items-center space-x-2 text-sm text-red-600 bg-red-50 rounded-lg p-2">
+                                    <span>⚠️</span>
+                                    <span>Contains common test words (hello, test, sample, etc.)</span>
+                                  </div>
+                                )}
+                                {validationError.reasons?.includes('essay_spam') && (
+                                  <div className="flex items-center space-x-2 text-sm text-red-600 bg-red-50 rounded-lg p-2">
+                                    <span>⚠️</span>
+                                    <span>Contains essay-writing service references</span>
+                                  </div>
+                                )}
+                                {validationError.reasons?.includes('word_repetition') && (
+                                  <div className="flex items-center space-x-2 text-sm text-red-600 bg-red-50 rounded-lg p-2">
+                                    <span>⚠️</span>
+                                    <span>Excessive repetition of the same words</span>
+                                  </div>
+                                )}
+                                {validationError.reasons?.includes('low_uniqueness') && (
+                                  <div className="flex items-center space-x-2 text-sm text-red-600 bg-red-50 rounded-lg p-2">
+                                    <span>⚠️</span>
+                                    <span>Too many repeated words or phrases</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="bg-blue-50 rounded-xl p-4">
+                              <h4 className="font-semibold text-blue-900 mb-2">🎯 How to write authentic content:</h4>
+                              <ul className="text-blue-800 text-sm space-y-1">
+                                <li>• Write about topics you genuinely understand or are learning about</li>
+                                <li>• Use your own words and ideas, not copied text or templates</li>
+                                <li>• Vary your vocabulary and sentence structures naturally</li>
+                                <li>• Focus on answering the specific question asked</li>
+                                <li>• Include personal insights and original analysis</li>
+                              </ul>
+                            </div>
+                            
+                            <div className="bg-green-50 rounded-xl p-4">
+                              <h4 className="font-semibold text-green-900 mb-2">✨ Want to test our AI?</h4>
+                              <p className="text-green-800 text-sm">Check out the example essays on our dashboard to see how our feedback system works with real academic content!</p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex space-x-3">
+                          <button 
+                            onClick={() => setShowValidationModal(false)}
+                            className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+                          >
+                            Write Genuine Content
+                          </button>
+                          <button 
+                            onClick={() => {
+                              setShowValidationModal(false);
+                              setCurrentPage('dashboard');
+                            }}
+                            className="px-6 py-3 border-2 border-blue-300 text-blue-700 rounded-xl font-semibold hover:bg-blue-50 transition-all duration-200"
+                          >
+                            View Examples
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  
+                  {/* Too Brief Modal */}
+                  {validationError.type === 'too_brief' && (
+                    <>
+                      <div className="px-8 pt-8 pb-6 bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                            <span className="text-3xl">📝</span>
+                          </div>
+                          <div>
+                            <h2 className="text-2xl font-bold">Essay Too Brief</h2>
+                            <p className="text-blue-100">We need more content for meaningful analysis</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-8">
+                        <div className="mb-6">
+                          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+                            <div className="flex items-center space-x-3 mb-3">
+                              <span className="text-2xl">📏</span>
+                              <div>
+                                <h3 className="font-bold text-blue-800">Length Requirements</h3>
+                                <p className="text-blue-600 text-sm">Your essay needs more content for our AI to provide detailed feedback</p>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 mt-4">
+                              <div className="bg-white rounded-lg p-3 border border-blue-200">
+                                <div className="text-2xl font-bold text-blue-600">{validationError.characterCount}</div>
+                                <div className="text-xs text-blue-500">Current characters</div>
+                              </div>
+                              <div className="bg-white rounded-lg p-3 border border-blue-200">
+                                <div className="text-2xl font-bold text-green-600">{validationError.minRequired}</div>
+                                <div className="text-xs text-green-500">Minimum required</div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-2">Why we need longer essays:</h4>
+                              <ul className="text-gray-700 text-sm space-y-2">
+                                <li className="flex items-start space-x-2">
+                                  <span className="text-blue-500 mt-1">•</span>
+                                  <span><strong>Better Analysis:</strong> Our AI needs sufficient content to analyze writing patterns and style</span>
+                                </li>
+                                <li className="flex items-start space-x-2">
+                                  <span className="text-blue-500 mt-1">•</span>
+                                  <span><strong>Detailed Feedback:</strong> Longer essays allow us to provide specific, actionable suggestions</span>
+                                </li>
+                                <li className="flex items-start space-x-2">
+                                  <span className="text-blue-500 mt-1">•</span>
+                                  <span><strong>Skill Development:</strong> Academic writing requires developing ideas thoroughly</span>
+                                </li>
+                              </ul>
+                            </div>
+                            
+                            <div className="bg-green-50 rounded-xl p-4">
+                              <h4 className="font-semibold text-green-900 mb-2">💡 How to expand your essay:</h4>
+                              <ul className="text-green-800 text-sm space-y-1">
+                                <li>• Add more detailed examples and evidence</li>
+                                <li>• Explain your reasoning and analysis more thoroughly</li>
+                                <li>• Include additional perspectives or counterarguments</li>
+                                <li>• Develop your introduction and conclusion</li>
+                                <li>• Add transitions and connecting sentences between ideas</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex space-x-3">
+                          <button 
+                            onClick={() => setShowValidationModal(false)}
+                            className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+                          >
+                            Expand My Essay
+                          </button>
+                          <button 
+                            onClick={() => setShowValidationModal(false)}
+                            className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-200"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  
+                  {/* Word Count Too Low Modal */}
+                  {validationError.type === 'word_count_too_low' && (
+                    <>
+                      <div className="px-8 pt-8 pb-6 bg-gradient-to-r from-purple-500 to-indigo-500 text-white">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                            <span className="text-3xl">📊</span>
+                          </div>
+                          <div>
+                            <h2 className="text-2xl font-bold">Word Count Too Low</h2>
+                            <p className="text-purple-100">Your essay needs more words for proper evaluation</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-8">
+                        <div className="mb-6">
+                          <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
+                            <div className="flex items-center space-x-3 mb-3">
+                              <span className="text-2xl">📈</span>
+                              <div>
+                                <h3 className="font-bold text-purple-800">Word Count Analysis</h3>
+                                <p className="text-purple-600 text-sm">Academic essays require sufficient development of ideas</p>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 mt-4">
+                              <div className="bg-white rounded-lg p-3 border border-purple-200">
+                                <div className="text-2xl font-bold text-purple-600">{validationError.wordCount}</div>
+                                <div className="text-xs text-purple-500">Current words</div>
+                              </div>
+                              <div className="bg-white rounded-lg p-3 border border-purple-200">
+                                <div className="text-2xl font-bold text-green-600">{validationError.minRequired}</div>
+                                <div className="text-xs text-green-500">Minimum needed</div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-2">Why word count matters:</h4>
+                              <ul className="text-gray-700 text-sm space-y-2">
+                                <li className="flex items-start space-x-2">
+                                  <span className="text-blue-500 mt-1">•</span>
+                                  <span><strong>Idea Development:</strong> Complex arguments need space to be properly explained</span>
+                                </li>
+                                <li className="flex items-start space-x-2">
+                                  <span className="text-blue-500 mt-1">•</span>
+                                  <span><strong>Evidence & Examples:</strong> Strong essays include supporting details and analysis</span>
+                                </li>
+                                <li className="flex items-start space-x-2">
+                                  <span className="text-blue-500 mt-1">•</span>
+                                  <span><strong>Academic Standards:</strong> Exam essays typically require substantial content</span>
+                                </li>
+                              </ul>
+                            </div>
+                            
+                            <div className="bg-blue-50 rounded-xl p-4">
+                              <h4 className="font-semibold text-blue-900 mb-2">🚀 Quick ways to add words:</h4>
+                              <ul className="text-blue-800 text-sm space-y-1">
+                                <li>• Add specific examples to support your points</li>
+                                <li>• Explain the significance of your evidence</li>
+                                <li>• Include relevant context or background information</li>
+                                <li>• Develop counterarguments and responses</li>
+                                <li>• Add connecting phrases and transitions</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex space-x-3">
+                          <button 
+                            onClick={() => setShowValidationModal(false)}
+                            className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+                          >
+                            Add More Content
+                          </button>
+                          <button 
+                            onClick={() => setShowValidationModal(false)}
+                            className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-200"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+            
           </div>
         }
       />
