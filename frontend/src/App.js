@@ -636,6 +636,20 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
   // Chart data for time series  
   const viewByDate = byDate;
   const viewByType = byType;
+  
+  // AO Series data for submark analysis
+  const viewAoSeries = viewEvaluations.map(e => ({
+    date: e.dateKey,
+    AO1: e.submarks?.ao1 || 0,
+    AO2: e.submarks?.ao2 || 0,
+    Reading: e.submarks?.reading || 0,
+    Writing: e.submarks?.writing || 0,
+    ...Object.fromEntries(
+      Object.entries(e.submarks || {})
+        .filter(([key]) => !['ao1', 'ao2', 'reading', 'writing'].includes(key))
+        .map(([key, value]) => [key.charAt(0).toUpperCase() + key.slice(1), value])
+    )
+  }));
 
   // Type distribution (donut)
   const typeDistribution = viewByType.map(t => ({ name: t.type, value: t.count }));
