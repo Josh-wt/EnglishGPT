@@ -2932,132 +2932,307 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   };
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-gray-50'} p-4`}>
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left: Choose Question Type */}
-          <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-6 shadow-sm border`}>
-            <h2 className={`text-lg font-fredoka font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>📚 Choose Question Type</h2>
-            <div className="mb-4 flex items-center">
-              <div className={`bg-gradient-to-r ${levelData.gradient} text-white px-2 py-1 rounded-md mr-2`}>
-                <span className="font-fredoka font-bold text-xs">{levelData.levelName}</span>
-              </div>
-              <h3 className={`font-fredoka font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'} text-sm`}>{levelData.fullName}</h3>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50">
+      {/* Enhanced Header */}
+      <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-pink-200/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <button
+              onClick={onBack}
+              className="flex items-center space-x-2 text-pink-600 hover:text-pink-800 font-medium transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span>Back to Dashboard</span>
+            </button>
+            <div className="text-center">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                Essay Writing Studio
+              </h1>
+              <p className="text-sm text-gray-600">Choose a question type and start writing</p>
             </div>
-            <div className="space-y-2">
+            <div className="flex items-center space-x-3">
+              <div className={`bg-gradient-to-r ${levelData.gradient} text-white px-4 py-2 rounded-xl shadow-lg`}>
+                <span className="font-bold text-sm">{levelData.levelName}</span>
+              </div>
+              {studentResponse.trim() && (
+                <div className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">
+                  {studentResponse.trim().split(/\s+/).filter(w => w.length > 0).length} words
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Enhanced Question Type Selection */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Choose Question Type</h2>
+              <div className={`bg-gradient-to-r ${levelData.gradient} text-white px-3 py-1 rounded-lg shadow-md`}>
+                <span className="font-bold text-sm">{levelData.levelName}</span>
+              </div>
+            </div>
+            <div className="mb-6">
+              <h3 className="font-semibold text-gray-700 text-sm mb-2">{levelData.fullName}</h3>
+              <div className="text-xs text-gray-500">
+                {levelData.questions.length} question types available
+              </div>
+            </div>
+            <div className="space-y-3">
               {levelData.questions.length > 0 ? (
                 levelData.questions.map((question) => (
                   <button
                     key={question.id}
                     onClick={() => handleQuestionSelect(question)}
-                    className={`w-full p-3 rounded-lg text-left transition-all duration-200 border ${
+                    className={`w-full p-4 rounded-xl text-left transition-all duration-300 border group hover:scale-[1.02] ${
                       selectedQuestionType?.id === question.id
-                        ? `${darkMode ? 'border-blue-500 bg-gray-800' : 'border-blue-500 bg-blue-50'} shadow-md`
-                        : `${darkMode ? 'border-gray-700 bg-black hover:border-blue-400 hover:bg-gray-800' : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50'}`
+                        ? 'border-pink-300 bg-gradient-to-r from-pink-50 to-purple-50 shadow-lg ring-2 ring-pink-200'
+                        : 'border-gray-200 bg-white hover:border-pink-200 hover:shadow-md hover:bg-gradient-to-r hover:from-gray-50 hover:to-pink-50'
                     }`}
                     aria-pressed={selectedQuestionType?.id === question.id}
                   >
                     <div className="flex items-center">
-                      <span className="text-lg mr-2">{question.icon}</span>
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 transition-all duration-300 ${
+                        selectedQuestionType?.id === question.id
+                          ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg'
+                          : 'bg-gray-100 text-gray-600 group-hover:bg-gradient-to-r group-hover:from-pink-100 group-hover:to-purple-100'
+                      }`}>
+                        <span className="text-xl">{question.icon}</span>
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <h4 className={`font-fredoka font-bold ${darkMode ? 'text-white' : 'text-gray-900'} text-sm truncate`}>{question.name}</h4>
+                          <h4 className="font-bold text-gray-900 text-base truncate">{question.name}</h4>
                           {selectedQuestionType?.id === question.id && (
-                            <svg className={`w-4 h-4 text-blue-500 flex-shrink-0 ml-1`} fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
+                            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 ml-2">
+                              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
                           )}
                         </div>
-                        <p className={`font-fredoka ${darkMode ? 'text-gray-300' : 'text-gray-600'} text-xs mt-1`}>{question.description}</p>
+                        <p className="text-gray-600 text-sm mt-1 leading-relaxed">{question.description}</p>
+                        {question.requiresScheme && (
+                          <div className="mt-2">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                              📋 Requires marking scheme
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </button>
                 ))
               ) : (
-                <div className={`p-4 text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  <p className="font-fredoka text-sm">No questions found for {levelData.levelName}</p>
+                <div className="p-6 text-center">
+                  <div className="text-4xl mb-4">📚</div>
+                  <p className="font-medium text-gray-500">No questions found for {levelData.levelName}</p>
+                  <p className="text-sm text-gray-400 mt-2">Please select a different level or contact support</p>
                 </div>
               )}
             </div>
-            <div className={`${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'} rounded-2xl p-4 border mt-6`}>
-              <h3 className={`font-fredoka font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Getting Started</h3>
-              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm mb-3`}>Use these tips to improve your {selectedQuestionType?.name || levelData.levelName} response:</p>
-              <ul className={`list-disc pl-6 space-y-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'} text-sm`}>
-                <li>Plan briefly: outline intro, key points, and conclusion.</li>
-                <li>Use precise vocabulary and vary sentence structure.</li>
-                <li>Keep a consistent tone and answer the prompt directly.</li>
-                <li>Target word goal shown on the progress ring.</li>
-              </ul>
-              <div className="mt-4 flex gap-3">
-                <button onClick={() => setShowExample(true)} className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">View Example</button>
-                <button onClick={() => setStudentResponse((v) => (v ? v + '\n\n' : '') + generatePrompt())} className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Generate Prompt</button>
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200 mt-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                  <span className="text-white text-lg">💡</span>
+                </div>
+                <div>
+                  <h3 className="font-bold text-purple-900 text-lg">Writing Tips</h3>
+                  <p className="text-purple-700 text-sm">Maximize your {selectedQuestionType?.name || levelData.levelName} performance</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { icon: '📋', tip: 'Plan briefly: outline intro, key points, and conclusion' },
+                  { icon: '📚', tip: 'Use precise vocabulary and vary sentence structure' },
+                  { icon: '🎯', tip: 'Keep a consistent tone and answer the prompt directly' },
+                  { icon: '📊', tip: 'Target the word goal shown in your progress indicator' }
+                ].map((item, index) => (
+                  <div key={index} className="flex items-start space-x-3">
+                    <span className="text-lg mt-0.5">{item.icon}</span>
+                    <span className="text-gray-700 text-sm leading-relaxed">{item.tip}</span>
                   </div>
+                ))}
+              </div>
+              <div className="mt-6 flex gap-3">
+                <button 
+                  onClick={() => setShowExample(true)} 
+                  className="flex-1 px-4 py-2.5 rounded-xl border-2 border-purple-300 text-purple-700 font-medium hover:bg-purple-50 hover:border-purple-400 transition-all duration-200"
+                >
+                  View Example
+                </button>
+                <button 
+                  onClick={() => setStudentResponse((v) => (v ? v + '\n\n' : '') + generatePrompt())} 
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium hover:shadow-lg transition-all duration-200"
+                >
+                  Generate Prompt
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Right: Essay Input */}
-          <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-6 shadow-sm border lg:col-span-2`}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className={`text-2xl font-fredoka font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>📝 Your Essay</h2>
-                {selectedQuestionType && (
-                <div className={`flex items-center ${darkMode ? 'bg-gray-800' : 'bg-blue-50'} px-3 py-1 rounded-full`}>
-                  <span className="text-2xl mr-2">{selectedQuestionType.icon}</span>
-                  <span className={`font-fredoka text-sm font-medium ${darkMode ? 'text-blue-400' : 'text-blue-700'}`}>{selectedQuestionType.name}</span>
+          {/* Enhanced Essay Writing Interface */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100 lg:col-span-2">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+                  <span className="text-white text-xl">📝</span>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Essay Writing Studio</h2>
+                  <p className="text-gray-600 text-sm">
+                    {selectedQuestionType ? `Writing: ${selectedQuestionType.name}` : 'Select a question type to begin'}
+                  </p>
+                </div>
+              </div>
+              {selectedQuestionType && (
+                <div className="flex items-center space-x-3">
+                  <div className="bg-gradient-to-r from-pink-100 to-purple-100 px-4 py-2 rounded-xl border border-pink-200">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xl">{selectedQuestionType.icon}</span>
+                      <span className="text-sm font-bold text-purple-700">{selectedQuestionType.name}</span>
+                    </div>
                   </div>
-                )}
-            </div>
-
-              {restoredDraft && (
-              <div className="mb-3 text-xs text-green-700 bg-green-50 border border-green-200 rounded px-3 py-2">
-                Restored unsaved draft.
+                  <WordCountRing count={wordCount} goal={getWordGoal()} />
                 </div>
               )}
+            </div>
 
-            {/* Formatting toolbar */}
-            <div className="flex items-center gap-2 mb-3">
-              <button onClick={() => applyFormat('**')} className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-100">Bold</button>
-              <button onClick={() => applyFormat('*')} className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-100">Italic</button>
-              <button onClick={insertParagraphBreak} className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-100">Paragraph</button>
-              <button onClick={onBack} className="ml-auto px-3 py-1 text-sm rounded border border-blue-300 text-blue-700 hover:bg-blue-50">← Back</button>
-                  </div>
+            {restoredDraft && (
+              <div className="mb-4 flex items-center space-x-3 text-sm text-green-700 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl px-4 py-3">
+                <span className="text-lg">✨</span>
+                <span className="font-medium">Draft restored successfully!</span>
+              </div>
+            )}
 
-                <textarea
-                  value={studentResponse}
-                  onChange={(e) => setStudentResponse(e.target.value)}
-                  placeholder={`Type or paste your ${levelData.levelName} essay answer here...\n\n✨ Select a question type from the left panel and write your response to get instant AI feedback!`}
-              className="w-full h-80 p-6 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none font-fredoka text-gray-700 placeholder-gray-400 leading-relaxed"
-                  aria-label="Essay input"
-                  ref={essayRef}
-                />
-
-            <div className="mt-4 flex justify-between items-center">
-              <WordCountRing count={wordCount} goal={getWordGoal()} />
-
-                {showMarkingSchemeChoice && selectedQuestionType && studentResponse.trim() && (
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => handleProceed(false)}
-                    className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-2 rounded-lg font-fredoka font-bold hover:from-green-600 hover:to-blue-600 transition-all duration-300 shadow-md"
-                  >
-                    🚀 Skip Scheme
-                    </button>
-                    <button
-                      onClick={() => handleProceed(true)}
-                    className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-6 py-2 rounded-lg font-fredoka font-bold hover:from-yellow-600 hover:to-orange-600 transition-all duration-300 shadow-md"
-                  >
-                    📋 Add Scheme
-                    </button>
-                  </div>
-                )}
-
-                {showNextButton && selectedQuestionType && studentResponse.trim() && !showMarkingSchemeChoice && (
-                  <button
-                    onClick={handleProceed}
-                  className="bg-gradient-to-r from-pink-500 to-blue-500 text-white px-8 py-3 rounded-xl font-fredoka font-bold hover:from-pink-600 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+            {/* Enhanced Formatting Toolbar */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => applyFormat('**')} 
+                  className="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 font-medium"
                 >
-                  {selectedQuestionType.requiresScheme === true ? 'Add Marking Scheme →' : '🚀 Get AI Feedback Now →'}
-                  </button>
+                  <strong>B</strong>
+                </button>
+                <button 
+                  onClick={() => applyFormat('*')} 
+                  className="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 font-medium"
+                >
+                  <em>I</em>
+                </button>
+                <button 
+                  onClick={insertParagraphBreak} 
+                  className="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 font-medium"
+                >
+                  ¶ Paragraph
+                </button>
+                <div className="border-l border-gray-300 h-8 mx-2"></div>
+                <button 
+                  onClick={() => setStudentResponse('')} 
+                  className="px-3 py-2 text-sm rounded-lg border border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50 transition-all duration-200 font-medium"
+                >
+                  🗑️ Clear
+                </button>
+              </div>
+              <div className="flex items-center space-x-3">
+                {lastSavedAt && (
+                  <div className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                    Saved {Math.max(0, Math.floor((Date.now() - lastSavedAt) / 60000))} min ago
+                  </div>
                 )}
+                <div className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
+                  Auto-save enabled
+                </div>
+              </div>
+            </div>
+
+            {/* Enhanced Writing Area */}
+            <div className="relative">
+              <textarea
+                value={studentResponse}
+                onChange={(e) => setStudentResponse(e.target.value)}
+                placeholder={`Start writing your ${levelData.levelName} essay here...\n\n💡 Tips:\n• Select a question type from the left panel\n• Use the formatting tools above\n• Your work is automatically saved\n• Click "Evaluate Essay" when ready for AI feedback!`}
+                className="w-full h-96 p-6 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 resize-none text-gray-700 placeholder-gray-400 leading-relaxed bg-gradient-to-br from-white to-gray-50 transition-all duration-200"
+                aria-label="Essay input"
+                ref={essayRef}
+              />
+              {studentResponse.trim() && (
+                <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg border border-gray-200">
+                  <div className="text-xs text-gray-600">
+                    <span className="font-bold text-purple-600">{wordCount}</span> words • 
+                    <span className="font-bold text-green-600"> {Math.max(0, studentResponse.length - 200)}</span> chars above minimum
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 flex justify-between items-center">
+
+              {/* Enhanced Action Buttons */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  {selectedQuestionType && (
+                    <div className="bg-gradient-to-r from-gray-50 to-purple-50 rounded-xl p-3 border border-purple-200">
+                      <div className="text-xs text-gray-600 mb-1">Selected Question</div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-lg">{selectedQuestionType.icon}</span>
+                        <span className="font-bold text-purple-700 text-sm">{selectedQuestionType.name}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  {showMarkingSchemeChoice && selectedQuestionType && studentResponse.trim() && (
+                    <>
+                      <button
+                        onClick={() => handleProceed(false)}
+                        className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
+                      >
+                        <span>🚀</span>
+                        <span>Skip Scheme</span>
+                      </button>
+                      <button
+                        onClick={() => handleProceed(true)}
+                        className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
+                      >
+                        <span>📋</span>
+                        <span>Add Scheme</span>
+                      </button>
+                    </>
+                  )}
+
+                  {showNextButton && selectedQuestionType && studentResponse.trim() && !showMarkingSchemeChoice && (
+                    <button
+                      onClick={handleProceed}
+                      className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-8 py-4 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center space-x-3"
+                    >
+                      <span className="text-xl">✨</span>
+                      <span>{selectedQuestionType.requiresScheme === true ? 'Add Marking Scheme' : 'Get AI Feedback Now'}</span>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                    </button>
+                  )}
+
+                  {!selectedQuestionType && (
+                    <div className="bg-gradient-to-r from-gray-100 to-gray-200 text-gray-500 px-8 py-4 rounded-xl font-bold flex items-center space-x-2">
+                      <span>📚</span>
+                      <span>Select a question type first</span>
+                    </div>
+                  )}
+
+                  {selectedQuestionType && !studentResponse.trim() && (
+                    <div className="bg-gradient-to-r from-blue-100 to-purple-100 text-purple-700 px-8 py-4 rounded-xl font-bold flex items-center space-x-2">
+                      <span>✍️</span>
+                      <span>Start writing to continue</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Helper section moved to left; removed duplicate from right */}
