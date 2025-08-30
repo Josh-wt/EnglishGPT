@@ -87,10 +87,10 @@ const PricingPage = ({ onBack, user }) => {
             <div className="flex items-end justify-center gap-2">
               <span className="text-4xl font-bold text-blue-600">{monthlyPlan.price}</span>
               <span className="text-gray-600 mb-1">{monthlyPlan.period}</span>
-            </div>
+              </div>
             <p className="text-gray-600 font-fredoka mt-2">Unlimited access, billed monthly</p>
-          </div>
-
+            </div>
+            
           <div className="space-y-3 mb-6">
             {monthlyPlan.features.map((feature, index) => (
               <div key={index} className="flex items-start">
@@ -100,26 +100,26 @@ const PricingPage = ({ onBack, user }) => {
                 <span className="text-gray-700 font-fredoka">{feature}</span>
               </div>
             ))}
-          </div>
+            </div>
 
-          <button 
+            <button 
             onClick={() => handlePlanSelect('monthly')}
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-4 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 font-fredoka text-lg"
-          >
+            >
             Get Unlimited - $4.99/m
-          </button>
+            </button>
 
           <p className="text-sm text-gray-500 font-fredoka text-center mt-4">
             🔒 Secure payment • Cancel anytime • No setup fees
           </p>
-        </div>
+          </div>
 
         {/* Yearly */}
         <div className="bg-white rounded-2xl shadow-xl border-2 border-blue-500 p-8 relative overflow-hidden">
           {/* Best value badge */}
           <div className="absolute top-0 right-0 bg-blue-500 text-white px-4 py-2 rounded-bl-lg font-bold text-sm">
             BEST VALUE
-          </div>
+        </div>
 
           <div className="text-center mb-6">
             <h2 className="text-2xl font-fredoka font-bold text-gray-900 mb-2">{yearlyPlan.name}</h2>
@@ -412,67 +412,67 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
       console.log('🚫 Skipping recommendations - no user or evaluations');
       return;
     }
-    
-    // Check if we should fetch recommendations (1st, 5th, 10th, etc.)
-    const evalCount = evaluations.length;
-    const shouldFetch = evalCount === 1 || evalCount === 5 || evalCount === 10 || 
-                       (evalCount > 10 && evalCount % 5 === 0);
-    
+      
+      // Check if we should fetch recommendations (1st, 5th, 10th, etc.)
+      const evalCount = evaluations.length;
+      const shouldFetch = evalCount === 1 || evalCount === 5 || evalCount === 10 || 
+                         (evalCount > 10 && evalCount % 5 === 0);
+      
     console.log(`📊 Recommendations check - Count: ${evalCount}, Should fetch: ${shouldFetch}, Has AI recs: ${!!aiRecommendations}`);
     
     // Always try to fetch if we don't have recommendations, not just at milestones
     if (!aiRecommendations) {
       console.log('🔄 Fetching AI recommendations...');
-      setIsLoadingRecommendations(true);
-      try {
-        // Get the current session for auth token
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.access_token) {
+        setIsLoadingRecommendations(true);
+        try {
+          // Get the current session for auth token
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session?.access_token) {
           console.error('❌ No valid session found for recommendations');
-          setIsLoadingRecommendations(false);
-          return;
-        }
-        
+            setIsLoadingRecommendations(false);
+            return;
+          }
+          
         // Use the correct API endpoint
         const apiUrl = `${BACKEND_URL}/api/analytics/${user.id}`;
         console.log('🌐 Fetching from:', apiUrl);
         
         const response = await fetch(apiUrl, {
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-          }
-        });
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            }
+          });
         
         console.log('📡 Response status:', response.status);
-        
-        if (response.ok) {
-          const data = await response.json();
+          
+          if (response.ok) {
+            const data = await response.json();
           console.log('📋 Analytics data received:', data);
           
-          if (data.analytics?.recommendations) {
+            if (data.analytics?.recommendations) {
             console.log('✅ AI recommendations found:', data.analytics.recommendations.substring(0, 100) + '...');
-            setAiRecommendations(data.analytics.recommendations);
+              setAiRecommendations(data.analytics.recommendations);
           } else {
             console.log('⚠️ No recommendations in response');
-          }
+            }
         } else {
           const errorText = await response.text();
           console.error('❌ API request failed:', response.status, errorText);
-        }
-      } catch (error) {
+          }
+        } catch (error) {
         console.error('❌ Error fetching recommendations:', error);
-      } finally {
-        setIsLoadingRecommendations(false);
+        } finally {
+          setIsLoadingRecommendations(false);
+        }
       }
-    }
-  };
-  
+    };
+    
   // Fetch AI recommendations when component mounts or evaluations change
   useEffect(() => {
     if (hasUnlimitedAccess() && user?.id && evaluations.length >= 5 && !aiRecommendations) {
-      fetchRecommendations();
-    }
+    fetchRecommendations();
+  }
   }, [user?.id, evaluations.length, hasUnlimitedAccess()]);
 
   // Enhanced data processing for comprehensive analytics
@@ -590,7 +590,7 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
     const componentData = viewEvaluations
       .filter(e => e.submarks && e.submarks[component] > 0)
       .map(e => ({
-        date: e.dateKey,
+    date: e.dateKey, 
         value: e.submarks[component],
         percent: e.percent,
         type: e.type
@@ -638,8 +638,8 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
   const viewByType = byType;
   
   // AO Series data for submark analysis
-  const viewAoSeries = viewEvaluations.map(e => ({
-    date: e.dateKey,
+  const viewAoSeries = viewEvaluations.map(e => ({ 
+    date: e.dateKey, 
     AO1: e.submarks?.ao1 || 0,
     AO2: e.submarks?.ao2 || 0,
     Reading: e.submarks?.reading || 0,
@@ -692,7 +692,7 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
                 Analytics Dashboard
               </h1>
               <p className="text-sm text-gray-600">Advanced insights into your writing progress</p>
-            </div>
+          </div>
             <div className="flex items-center space-x-2">
               <div className="text-xs bg-pink-100 text-pink-700 px-3 py-1 rounded-full font-medium">
                 {totalResponses} Essays Analyzed
@@ -729,7 +729,7 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
           <div className="flex items-center space-x-4">
             <div className="text-sm text-gray-600">
               Showing <span className="font-semibold text-gray-900">{totalResponses}</span> responses
-            </div>
+        </div>
             <div className="text-sm text-gray-600">
               Performance Trend: 
               <span className={`ml-2 font-semibold ${
@@ -739,99 +739,485 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
                 {performanceTrend === 'improving' ? '📈 Improving' : 
                  performanceTrend === 'declining' ? '📉 Declining' : '➡️ Stable'}
               </span>
+          </div>
+          </div>
+          </div>
+        {/* Enhanced KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-pink-100 hover:shadow-xl transition-all duration-300 cursor-pointer group"
+               onClick={() => setSelectedDetailModal('average')}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-14 h-14 bg-gradient-to-r from-pink-500 to-purple-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                <span className="text-white text-2xl">📊</span>
+              </div>
+              <div className="text-pink-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                Details →
+              </div>
             </div>
-          </div>
-        </div>
-        {/* KPI Row */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-            <div className="text-xs text-gray-500 mb-1">Average</div>
-            <div className="text-3xl font-bold text-blue-600">{Math.round((viewByDate.reduce((s,d)=>s+d.average,0)/(viewByDate.length||1))||0)}%</div>
-            <div className="text-xs text-gray-500 mt-2">Across selected range (percent)</div>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-            <div className="text-xs text-gray-500 mb-1">Active Days</div>
-            <div className="text-3xl font-bold text-emerald-600">{new Set(viewByDate?.map(d=>d.date)).size || 0}</div>
-            <div className="text-xs text-gray-500 mt-2">Days with submissions</div>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-            <div className="text-xs text-gray-500 mb-1">Types Attempted</div>
-            <div className="text-3xl font-bold text-purple-600">{viewByType.length}</div>
-            <div className="text-xs text-gray-500 mt-2">Unique question types</div>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-            <div className="text-xs text-gray-500 mb-1">Best</div>
-            <div className="text-3xl font-bold text-orange-600">{Math.round(Math.max(...parsedEvaluations.map(e => (e.max>0?(e.score/e.max)*100:0)), 0))}%</div>
-            <div className="text-xs text-gray-500 mt-2">Highest single percentage</div>
+            <div className="text-4xl font-bold text-pink-600 mb-2">
+              {Math.round((viewByDate.reduce((s,d)=>s+d.average,0)/(viewByDate.length||1))||0)}%
+            </div>
+            <div className="text-sm text-gray-600 font-semibold mb-1">Average Score</div>
+            <div className="text-xs text-gray-500 flex items-center justify-between">
+              <span>{viewByDate.length} essays</span>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                performanceTrend === 'improving' ? 'bg-green-100 text-green-700' :
+                performanceTrend === 'declining' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+              }`}>
+                {performanceTrend === 'improving' ? '📈' : performanceTrend === 'declining' ? '📉' : '➡️'}
+              </span>
           </div>
         </div>
 
-        {/* Type Insights */}
-        <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xl font-semibold text-gray-900">Type Insights</h3>
-            <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full">Top performers</span>
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-green-100 hover:shadow-xl transition-all duration-300 cursor-pointer group"
+               onClick={() => setSelectedDetailModal('consistency')}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-14 h-14 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                <span className="text-white text-2xl">📅</span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {viewByType.sort((a,b)=>b.average-a.average).slice(0,6).map((t,i)=> (
-              <div key={t.type} className="rounded-xl border border-gray-100 p-4 bg-gray-50">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="font-medium capitalize text-gray-900 truncate">{t.type}</div>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-white border border-gray-200">#{i+1}</span>
+              <div className="text-green-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                Details →
+              </div>
+            </div>
+            <div className="text-4xl font-bold text-green-600 mb-2">
+              {Object.keys(byDate.reduce((acc, d) => { acc[d.date] = true; return acc; }, {})).length}
+            </div>
+            <div className="text-sm text-gray-600 font-semibold mb-1">Active Days</div>
+            <div className="text-xs text-gray-500">
+              {Math.round((Object.keys(byDate.reduce((acc, d) => { acc[d.date] = true; return acc; }, {})).length / Math.max(1, 30)) * 100)}% consistency
+            </div>
+          </div>
+
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-purple-100 hover:shadow-xl transition-all duration-300 cursor-pointer group"
+               onClick={() => setSelectedDetailModal('types')}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                <span className="text-white text-2xl">📚</span>
+              </div>
+              <div className="text-purple-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                Details →
+              </div>
+            </div>
+            <div className="text-4xl font-bold text-purple-600 mb-2">{viewByType.length}</div>
+            <div className="text-sm text-gray-600 font-semibold mb-1">Question Types</div>
+            <div className="text-xs text-gray-500">
+              Variety: {Math.round((viewByType.length / Math.max(1, totalResponses)) * 100)}%
+            </div>
+          </div>
+
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-orange-100 hover:shadow-xl transition-all duration-300 cursor-pointer group"
+               onClick={() => setSelectedDetailModal('best')}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-14 h-14 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                <span className="text-white text-2xl">🏆</span>
+              </div>
+              <div className="text-orange-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                Details →
+              </div>
+            </div>
+            <div className="text-4xl font-bold text-orange-600 mb-2">
+              {Math.round(Math.max(...parsedEvaluations.map(e => (e.max>0?(e.score/e.max)*100:0)), 0))}%
+            </div>
+            <div className="text-sm text-gray-600 font-semibold mb-1">Best Performance</div>
+            <div className="text-xs text-gray-500">
+              Personal record
+            </div>
+          </div>
+        </div>
+
+        {/* Performance Timeline Chart */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-gray-900">Performance Timeline</h3>
+            <div className="flex items-center space-x-3">
+              <span className={`text-sm font-medium px-3 py-1.5 rounded-full ${
+                performanceTrend === 'improving' ? 'bg-green-100 text-green-700' :
+                performanceTrend === 'declining' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+              }`}>
+                {performanceTrend === 'improving' ? '📈 Trending Up' : 
+                 performanceTrend === 'declining' ? '📉 Trending Down' : '➡️ Stable'}
+              </span>
+              <button
+                onClick={() => setShowTrendModal(true)}
+                className="text-sm bg-purple-100 text-purple-700 px-4 py-1.5 rounded-full hover:bg-purple-200 transition-colors font-medium"
+              >
+                Detailed Analysis
+              </button>
+            </div>
+          </div>
+          
+          <div className="h-80">
+            {viewByDate.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={viewByDate}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis 
+                    dataKey="date" 
+                    tick={{ fontSize: 12, fill: '#64748b' }}
+                    axisLine={{ stroke: '#e2e8f0' }}
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 12, fill: '#64748b' }}
+                    axisLine={{ stroke: '#e2e8f0' }}
+                    domain={[0, 100]}
+                  />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="average" 
+                    stroke="url(#gradient1)" 
+                    strokeWidth={3}
+                    dot={{ fill: '#ec4899', strokeWidth: 2, r: 6 }}
+                    activeDot={{ r: 8, stroke: '#ec4899', strokeWidth: 2, fill: 'white' }}
+                  />
+                  <defs>
+                    <linearGradient id="gradient1" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#ec4899" />
+                      <stop offset="100%" stopColor="#8b5cf6" />
+                    </linearGradient>
+                  </defs>
+                </LineChart>
+                </ResponsiveContainer>
+              ) : (
+              <div className="flex items-center justify-center h-full text-gray-500">
+                <div className="text-center">
+                  <span className="text-4xl mb-4 block">📈</span>
+                  <p className="font-medium">No data for selected time range</p>
+                  <p className="text-sm">Try selecting a different time period</p>
                 </div>
-                <div className="text-sm text-gray-600">Average <span className="font-semibold text-gray-900">{t.average}</span> • Attempts <span className="font-semibold text-gray-900">{t.count}</span></div>
-              </div>
-            ))}
+                </div>
+              )}
           </div>
-        </div>
-
-        {/* Recommendations */}
-        <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xl font-semibold text-gray-900">Recommendations</h3>
-            <span className="text-xs bg-pink-50 text-pink-700 px-2 py-1 rounded-full">Next steps</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {viewByType.sort((a,b)=>a.average-b.average).slice(0,3).map(t => (
-              <div key={t.type} className="rounded-xl border border-gray-100 p-4 bg-gray-50">
-                <div className="font-semibold capitalize text-gray-900 mb-1">Practice more: {t.type}</div>
-                <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                  <li>Review model answers and mark schemes for this type</li>
-                  <li>Focus on structure and clarity; set a word goal of +10%</li>
-                  <li>Attempt 2 new prompts this week in this category</li>
-                </ul>
-              </div>
-            ))}
-            <div className="rounded-xl border border-gray-100 p-4 bg-gray-50">
-              <div className="font-semibold text-gray-900 mb-1">General Tips</div>
-              <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                <li>Keep a personal glossary of advanced vocabulary</li>
-                <li>Summarize feedback into 3 bullet points after each attempt</li>
-                <li>Re-attempt your lowest-scoring type after 48 hours</li>
-              </ul>
             </div>
+            
+        {/* Enhanced Question Type Analysis */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-gray-900">Question Type Performance</h3>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full font-medium">
+                {viewByType.length} types attempted
+                          </span>
+              <button
+                onClick={() => setSelectedDetailModal('type_breakdown')}
+                className="text-sm bg-purple-100 text-purple-700 px-3 py-1 rounded-full hover:bg-purple-200 transition-colors font-medium"
+              >
+                Detailed Analysis
+              </button>
+                        </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {viewByType.sort((a,b)=>b.average-a.average).map((t,i)=> (
+              <div key={t.type} className="rounded-xl border border-gray-100 p-5 bg-gradient-to-br from-gray-50 to-white hover:shadow-lg transition-all duration-300 cursor-pointer group"
+                   onClick={() => setSelectedDetailModal(`type_${t.type}`)}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="font-bold capitalize text-gray-900 truncate text-lg">{t.type.replace(/_/g, ' ')}</div>
+                  <div className="flex items-center space-x-2">
+                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                      i === 0 ? 'bg-yellow-100 text-yellow-800' : 
+                      i === 1 ? 'bg-silver-100 text-gray-700' :
+                      i === 2 ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      #{i+1}
+                          </span>
+                    <span className={`text-lg ${
+                      t.trend === 'up' ? 'text-green-500' : t.trend === 'down' ? 'text-red-500' : 'text-gray-400'
+                    }`}>
+                      {t.trend === 'up' ? '↗️' : t.trend === 'down' ? '↘️' : '→'}
+                          </span>
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-purple-600 mb-2">{t.average}%</div>
+                <div className="text-sm text-gray-600 mb-1">Average Score</div>
+                <div className="text-xs text-gray-500 mb-3">{t.count} attempts • Variance: {t.variance}</div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div 
+                    className={`h-2.5 rounded-full transition-all duration-700 ${
+                      t.average >= 70 ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+                      t.average >= 50 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-red-500 to-pink-500'
+                    }`}
+                    style={{ width: `${t.average}%` }}
+                  ></div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Component Strengths */}
-        <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xl font-semibold text-gray-900">Component Strengths</h3>
-            <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-full">AO & Submarks</span>
+        {/* Detailed Component Breakdown */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-gray-900">Standard Component Breakdown</h3>
+            <button
+              onClick={() => setSelectedDetailModal('component_trends')}
+              className="text-sm bg-pink-100 text-pink-700 px-3 py-1 rounded-full hover:bg-pink-200 transition-colors font-medium"
+            >
+              View Trends
+            </button>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {['AO1','AO2','Reading','Writing'].map(key => {
-              const vals = viewAoSeries.map(v => v[key] || 0);
-              const avg = Math.round(vals.reduce((s,n)=>s+n,0) / (vals.length||1));
-              const max = Math.max(...vals, 0);
+              const vals = viewAoSeries.map(v => v[key] || 0).filter(v => v > 0);
+              const avg = vals.length > 0 ? Math.round(vals.reduce((s,n)=>s+n,0) / vals.length) : 0;
+              const max = vals.length > 0 ? Math.max(...vals) : 0;
+              const trend = vals.length > 1 ? (vals[vals.length-1] > vals[0] ? '↑' : vals[vals.length-1] < vals[0] ? '↓' : '→') : '';
+              
               return (
-                <div key={key} className="rounded-xl border border-gray-100 p-4 bg-gray-50">
-                  <div className="text-xs text-gray-500 mb-1">{key}</div>
-                  <div className="text-2xl font-bold text-gray-900">{avg}</div>
-                  <div className="text-xs text-gray-500 mt-1">Best: {max}</div>
-                </div>
+                <div key={key} className="rounded-xl border border-gray-100 p-5 bg-gradient-to-br from-gray-50 to-white hover:shadow-lg transition-all duration-300 cursor-pointer group"
+                     onClick={() => setShowSubmarkModal({component: key, average: avg, trend, data: vals, max, count: vals.length})}>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-bold text-gray-900 text-lg">{key}</h4>
+                    <span className={`text-2xl ${trend === '↑' ? 'text-green-500' : trend === '↓' ? 'text-red-500' : 'text-gray-400'}`}>
+                      {trend || '→'}
+                          </span>
+                        </div>
+                  <div className="text-3xl font-bold text-purple-600 mb-2">{avg}</div>
+                  <div className="text-sm text-gray-600 mb-1">Average Score</div>
+                  <div className="text-xs text-gray-500 mb-3">{vals.length} essays • Max: {max}</div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-700"
+                      style={{ width: `${max > 0 ? (avg / max) * 100 : 0}%` }}
+                    ></div>
+                      </div>
+                  <div className="mt-2 text-xs text-gray-500 text-center">
+                    {max > 0 ? Math.round((avg / max) * 100) : 0}% of maximum
+                        </div>
+                      </div>
               );
             })}
+                    </div>
+        </div>
+
+        {/* Enhanced AI Recommendations Section */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-gray-900">AI Study Recommendations</h3>
+            <div className="flex items-center gap-3">
+              {isLoadingRecommendations && (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
+              )}
+              <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${
+                aiRecommendations ? 'bg-green-100 text-green-700' : 
+                isLoadingRecommendations ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
+              }`}>
+                {aiRecommendations ? '🤖 AI Generated' : isLoadingRecommendations ? '⏳ Generating...' : '📊 Data Based'}
+              </span>
+              {!aiRecommendations && !isLoadingRecommendations && evaluations.length >= 5 && (
+                <button
+                  onClick={fetchRecommendations}
+                  className="text-xs bg-purple-100 text-purple-700 px-3 py-1.5 rounded-full hover:bg-purple-200 transition-colors font-medium"
+                >
+                  🔄 Retry AI
+                </button>
+              )}
+            </div>
+          </div>
+          
+          {aiRecommendations ? (
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
+              <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                {aiRecommendations.split('\n').map((line, idx) => {
+                  if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
+                    return (
+                      <div key={idx} className="flex items-start gap-3 mb-3">
+                        <span className="text-purple-600 mt-1 text-lg">•</span>
+                        <span className="flex-1">{line.replace(/^[•\-]\s*/, '')}</span>
+                      </div>
+                    );
+                  }
+                  if (line.trim() && line.endsWith(':')) {
+                    return <div key={idx} className="font-bold text-gray-900 mt-6 mb-3 text-lg">{line}</div>;
+                  }
+                  return line.trim() ? <div key={idx} className="mb-2">{line}</div> : null;
+                })}
+              </div>
+            </div>
+          ) : isLoadingRecommendations ? (
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-8 border border-purple-200">
+              <div className="flex items-center justify-center space-x-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                <span className="text-purple-700 font-medium text-lg">Analyzing your performance patterns...</span>
+              </div>
+              <p className="text-center text-purple-600 text-sm mt-2">This may take a few moments</p>
+            </div>
+          ) : evaluations.length < 5 ? (
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-8 border border-blue-200">
+              <div className="text-center">
+                <div className="text-4xl mb-4">🤖</div>
+                <h4 className="font-bold text-blue-900 mb-3 text-lg">AI Recommendations Coming Soon!</h4>
+                <p className="text-blue-700 mb-6">
+                  Complete {5 - evaluations.length} more assessment{evaluations.length === 4 ? '' : 's'} to unlock personalized AI recommendations.
+                </p>
+                <div className="bg-white rounded-xl p-4 inline-block">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-40 bg-gray-200 rounded-full h-3">
+                      <div 
+                        className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-500"
+                        style={{ width: `${(evaluations.length / 5) * 100}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-sm font-bold text-gray-700">{evaluations.length}/5</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-6 border border-orange-200">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center">
+                    <span className="text-white text-xl">🤖</span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-orange-800 text-lg">AI Recommendations Unavailable</h4>
+                    <p className="text-orange-600">Using data-driven insights instead</p>
+                  </div>
+                </div>
+                <div className="bg-white rounded-lg p-3">
+                  <p className="text-xs text-orange-700">
+                    <strong>Possible reasons:</strong> Backend API key not configured, network issues, or service temporarily unavailable
+                  </p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {viewByType.sort((a,b)=>a.average-b.average).slice(0,2).map(t => (
+                  <div key={t.type} className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-6 border border-red-200">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-lg">📊</span>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-red-800">Focus Area: {t.type.replace(/_/g, ' ')}</h4>
+                        <p className="text-red-600 text-sm">Needs improvement</p>
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 mb-4">
+                      <div className="text-2xl font-bold text-red-600 mb-1">{t.average}%</div>
+                      <div className="text-sm text-gray-600">Current Average ({t.count} essays)</div>
+                    </div>
+                    <ul className="space-y-2 text-sm text-gray-700">
+                      <li className="flex items-start space-x-2">
+                        <span className="text-red-500 mt-1">•</span>
+                        <span>Review exemplar answers for this question type</span>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <span className="text-red-500 mt-1">•</span>
+                        <span>Practice time management for completion</span>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <span className="text-red-500 mt-1">•</span>
+                        <span>Focus on addressing all marking criteria</span>
+                      </li>
+                    </ul>
+                  </div>
+                ))}
+                
+                {viewByType.sort((a,b)=>b.average-a.average).slice(0,1).map(t => (
+                  <div key={`strength-${t.type}`} className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-lg">✓</span>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-green-800">Strength: {t.type.replace(/_/g, ' ')}</h4>
+                        <p className="text-green-600 text-sm">Keep it up!</p>
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 mb-4">
+                      <div className="text-2xl font-bold text-green-600 mb-1">{t.average}%</div>
+                      <div className="text-sm text-gray-600">Current Average ({t.count} essays)</div>
+                    </div>
+                    <ul className="space-y-2 text-sm text-gray-700">
+                      <li className="flex items-start space-x-2">
+                        <span className="text-green-500 mt-1">•</span>
+                        <span>Maintain consistency in this area</span>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <span className="text-green-500 mt-1">•</span>
+                        <span>Challenge yourself with harder prompts</span>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <span className="text-green-500 mt-1">•</span>
+                        <span>Help peers by sharing your approach</span>
+                      </li>
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Additional Analytics: Weekly Patterns */}
+        <div className="grid lg:grid-cols-2 gap-8">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">Weekly Activity Pattern</h3>
+            <div className="space-y-4">
+              {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day, index) => {
+                const dayEvaluations = viewEvaluations.filter(e => e.dayOfWeek === (index + 1) % 7);
+                const dayCount = dayEvaluations.length;
+                const dayAvg = dayCount > 0 ? Math.round(dayEvaluations.reduce((s, e) => s + e.percent, 0) / dayCount) : 0;
+                const maxDayCount = Math.max(...[0,1,2,3,4,5,6].map(d => viewEvaluations.filter(e => e.dayOfWeek === d).length));
+                
+                return (
+                  <div key={day} className="flex items-center space-x-4">
+                    <div className="w-20 text-sm font-medium text-gray-700">{day}</div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm text-gray-600">{dayCount} essays</span>
+                        <span className="text-sm font-medium text-purple-600">{dayAvg}% avg</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${maxDayCount > 0 ? (dayCount / maxDayCount) * 100 : 0}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">Performance Insights</h3>
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+                <h4 className="font-bold text-blue-900 mb-2">Consistency Score</h4>
+                <div className="text-3xl font-bold text-blue-600 mb-1">
+                  {Math.round(100 - (byDate.reduce((sum, d) => sum + (d.variance || 0), 0) / Math.max(1, byDate.length)))}%
+                </div>
+                <p className="text-blue-700 text-sm">Based on score variance across sessions</p>
+              </div>
+              
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
+                <h4 className="font-bold text-green-900 mb-2">Improvement Rate</h4>
+                <div className="text-3xl font-bold text-green-600 mb-1">
+                  {viewByDate.length > 1 ? 
+                    Math.round(((viewByDate[viewByDate.length-1]?.average || 0) - (viewByDate[0]?.average || 0)) / Math.max(1, viewByDate.length) * 10) : 0}%
+                </div>
+                <p className="text-green-700 text-sm">Average improvement per session</p>
+              </div>
+              
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200">
+                <h4 className="font-bold text-purple-900 mb-2">Skill Diversity</h4>
+                <div className="text-3xl font-bold text-purple-600 mb-1">
+                  {Math.round((viewByType.length / Math.max(1, 10)) * 100)}%
+                </div>
+                <p className="text-purple-700 text-sm">Coverage of available question types</p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -947,41 +1333,201 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
               {/* Fallback recommendations based on data */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {byType.sort((a,b)=>a.average-b.average).slice(0,2).map(t => (
-                  <div key={t.type} className="rounded-xl border border-gray-100 p-4 bg-gradient-to-br from-gray-50 to-white">
-                    <div className="font-semibold capitalize text-gray-900 mb-2">
+                <div key={t.type} className="rounded-xl border border-gray-100 p-4 bg-gradient-to-br from-gray-50 to-white">
+                  <div className="font-semibold capitalize text-gray-900 mb-2">
                       <span className="text-orange-500">📊</span> Focus Area: {t.type.replace(/_/g, ' ')}
-                    </div>
-                    <div className="text-sm text-gray-600 mb-2">
-                      Current Average: <span className="font-bold text-red-600">{t.average}%</span>
-                    </div>
-                    <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                      <li>Review exemplar answers for this question type</li>
-                      <li>Practice time management - aim for completion in allocated time</li>
-                      <li>Focus on addressing all marking criteria</li>
-                    </ul>
                   </div>
-                ))}
-                
-                {/* Strengths */}
+                  <div className="text-sm text-gray-600 mb-2">
+                    Current Average: <span className="font-bold text-red-600">{t.average}%</span>
+                  </div>
+                  <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>Review exemplar answers for this question type</li>
+                    <li>Practice time management - aim for completion in allocated time</li>
+                    <li>Focus on addressing all marking criteria</li>
+                  </ul>
+                </div>
+              ))}
+              
+              {/* Strengths */}
                 {byType.sort((a,b)=>b.average-a.average).slice(0,1).map(t => (
-                  <div key={`strength-${t.type}`} className="rounded-xl border border-gray-100 p-4 bg-gradient-to-br from-green-50 to-white">
-                    <div className="font-semibold capitalize text-gray-900 mb-2">
+                <div key={`strength-${t.type}`} className="rounded-xl border border-gray-100 p-4 bg-gradient-to-br from-green-50 to-white">
+                  <div className="font-semibold capitalize text-gray-900 mb-2">
                       <span className="text-green-500">✓</span> Strength: {t.type.replace(/_/g, ' ')}
-                    </div>
-                    <div className="text-sm text-gray-600 mb-2">
-                      Current Average: <span className="font-bold text-green-600">{t.average}%</span>
-                    </div>
-                    <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                      <li>Maintain consistency in this area</li>
-                      <li>Challenge yourself with harder prompts</li>
-                      <li>Help peers by sharing your approach</li>
-                    </ul>
                   </div>
-                ))}
+                  <div className="text-sm text-gray-600 mb-2">
+                    Current Average: <span className="font-bold text-green-600">{t.average}%</span>
+                  </div>
+                  <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>Maintain consistency in this area</li>
+                    <li>Challenge yourself with harder prompts</li>
+                    <li>Help peers by sharing your approach</li>
+                  </ul>
+                </div>
+              ))}
               </div>
             </div>
           )}
         </div>
+
+        {/* Comprehensive Analytics Modals */}
+        {selectedDetailModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/60" onClick={() => setSelectedDetailModal(null)} />
+            <div className="relative w-full max-w-4xl mx-4 rounded-3xl bg-white shadow-2xl p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+              <div className="px-8 pt-8 pb-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold">Detailed Analytics</h2>
+                  <button onClick={() => setSelectedDetailModal(null)} className="text-white hover:text-gray-200">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div className="p-8">
+                {selectedDetailModal === 'average' && (
+                  <div className="space-y-6">
+                    <h3 className="text-xl font-bold text-gray-900">Average Performance Analysis</h3>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="bg-purple-50 rounded-xl p-4">
+                        <h4 className="font-bold text-purple-900 mb-2">Current Period</h4>
+                        <div className="text-3xl font-bold text-purple-600">
+                          {Math.round((viewByDate.reduce((s,d)=>s+d.average,0)/(viewByDate.length||1))||0)}%
+                        </div>
+                      </div>
+                      <div className="bg-blue-50 rounded-xl p-4">
+                        <h4 className="font-bold text-blue-900 mb-2">All Time</h4>
+                        <div className="text-3xl font-bold text-blue-600">
+                          {Math.round((parsedEvaluations.reduce((s,e)=>s+e.percent,0)/(parsedEvaluations.length||1))||0)}%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {selectedDetailModal === 'types' && (
+                  <div className="space-y-6">
+                    <h3 className="text-xl font-bold text-gray-900">Question Type Performance</h3>
+                    <div className="grid gap-4">
+                      {viewByType.sort((a,b) => b.average - a.average).map((type, i) => (
+                        <div key={type.type} className="bg-gray-50 rounded-xl p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-bold text-gray-900 capitalize">{type.type.replace(/_/g, ' ')}</h4>
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                              i === 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              Rank #{i + 1}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-4 text-center">
+                            <div>
+                              <div className="text-2xl font-bold text-purple-600">{type.average}%</div>
+                              <div className="text-xs text-gray-500">Average</div>
+                            </div>
+                            <div>
+                              <div className="text-2xl font-bold text-blue-600">{type.count}</div>
+                              <div className="text-xs text-gray-500">Attempts</div>
+                            </div>
+                            <div>
+                              <div className="text-2xl font-bold text-green-600">{type.variance}</div>
+                              <div className="text-xs text-gray-500">Variance</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedDetailModal === 'submarks' && (
+                  <div className="space-y-6">
+                    <h3 className="text-xl font-bold text-gray-900">All Component Analysis</h3>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {submarkAnalysis.map(component => (
+                        <div key={component.component} className="bg-gray-50 rounded-xl p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-bold text-gray-900">{component.component}</h4>
+                            <span className={`text-lg ${
+                              component.trend === 'improving' ? 'text-green-500' :
+                              component.trend === 'declining' ? 'text-red-500' : 'text-gray-400'
+                            }`}>
+                              {component.trend === 'improving' ? '📈' : 
+                               component.trend === 'declining' ? '📉' : '➡️'}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 text-center text-sm">
+                            <div>
+                              <div className="font-bold text-purple-600">{component.average}</div>
+                              <div className="text-xs text-gray-500">Avg</div>
+                            </div>
+                            <div>
+                              <div className="font-bold text-green-600">{component.max}</div>
+                              <div className="text-xs text-gray-500">Max</div>
+                            </div>
+                            <div>
+                              <div className="font-bold text-orange-600">{component.min}</div>
+                              <div className="text-xs text-gray-500">Min</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showTrendModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/60" onClick={() => setShowTrendModal(false)} />
+            <div className="relative w-full max-w-6xl mx-4 rounded-3xl bg-white shadow-2xl p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+              <div className="px-8 pt-8 pb-6 bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold">Comprehensive Trends Analysis</h2>
+                  <button onClick={() => setShowTrendModal(false)} className="text-white hover:text-gray-200">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div className="p-8">
+                <div className="grid lg:grid-cols-2 gap-8">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">Performance Over Time</h3>
+                    <div className="h-80">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={viewByDate}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="date" />
+                          <YAxis domain={[0, 100]} />
+                          <Tooltip />
+                          <Line type="monotone" dataKey="average" stroke="#8b5cf6" strokeWidth={3} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">Component Comparison</h3>
+                    <div className="h-80">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={submarkAnalysis}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="component" />
+                          <YAxis />
+                          <Tooltip />
+                          <Bar dataKey="average" fill="#ec4899" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1009,7 +1555,7 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
     // Split by common delimiters
     const sentences = feedback
       .split(/[.!?]+/)
-      .map(sentence => sentence.trim())
+        .map(sentence => sentence.trim())
       .filter(sentence => sentence.length > 10) // Only meaningful sentences
       .slice(0, 10); // Limit to 10 points
     
@@ -1812,11 +2358,11 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center space-x-4 sm:space-x-6">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden">
-                <img 
-                  src="https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143" 
-                  alt="EnglishGPT Logo" 
+              <img 
+                src="https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143" 
+                alt="EnglishGPT Logo" 
                   className="w-full h-full object-contain"
-                />
+              />
               </div>
               <span className={`ml-1 sm:ml-2 text-base sm:text-xl font-fredoka ${darkMode ? 'text-white' : 'text-gray-900'} font-bold`}>EnglishGPT</span>
             </div>
@@ -1888,7 +2434,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                   <>
                     <div className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
                       <span className="font-fredoka font-bold">{userStats.credits}</span>
-                </div>
+                    </div>
                     <div className="bg-green-100 text-green-700 px-2 py-1 rounded-full">
                       <span className="font-fredoka font-bold">Free</span>
                     </div>
@@ -2149,7 +2695,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                 <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
               </svg>
               <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full"></div>
-            </div>
+          </div>
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">EnglishGPT</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
@@ -2159,7 +2705,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
             onClick={onStartQuestion}
             className="bg-black text-white px-8 py-4 rounded-xl font-semibold hover:bg-gray-800 transition-colors text-lg"
           >
-            Mark a Question
+              Mark a Question
           </button>
         </div>
         
@@ -2182,7 +2728,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                 <div className="flex items-center space-x-1 sm:space-x-2 flex-wrap gap-1">
                   <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
                   <span className="font-fredoka text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-100">Mark scheme required</span>
-                </div>
+              </div>
               </div>
               {/* Narrative */}
               <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
@@ -2191,7 +2737,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                 <p className="font-fredoka text-gray-600 text-sm mb-4">Creative storytelling and structure</p>
                 <div className="flex items-center space-x-2">
                   <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
-                </div>
+              </div>
               </div>
               {/* Descriptive */}
               <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
@@ -2200,7 +2746,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                 <p className="font-fredoka text-gray-600 text-sm mb-4">Vivid imagery and atmospheric writing</p>
                 <div className="flex items-center space-x-2">
                   <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
-                </div>
+              </div>
               </div>
               {/* Writer's Effect */}
               <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
@@ -2210,7 +2756,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                 <div className="flex items-center space-x-2">
                   <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
                   <span className="font-fredoka text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-100">Mark scheme optional</span>
-                </div>
+              </div>
               </div>
               {/* IGCSE Directed Writing */}
               <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
@@ -2219,8 +2765,8 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                 <p className="font-fredoka text-gray-600 text-sm mb-4">Transform text into specific formats</p>
                 <div className="flex items-center space-x-2">
                   <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
-                </div>
-              </div>
+            </div>
+          </div>
             </div>
           </div>
           {/* A-Level Section */}
@@ -2240,7 +2786,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                 <div className="flex items-center space-x-2">
                   <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">A-Level English (9093)</span>
                   <span className="font-fredoka text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-100">Mark scheme required</span>
-                </div>
+              </div>
               </div>
               {/* Directed Writing */}
               <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
@@ -2249,7 +2795,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                 <p className="font-fredoka text-gray-600 text-sm mb-4">Task-specific writing with audience awareness</p>
                 <div className="flex items-center space-x-2">
                   <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">A-Level English (9093)</span>
-                </div>
+              </div>
               </div>
               {/* Text Analysis */}
               <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
@@ -2573,7 +3119,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
               <div className="mt-4 flex gap-3">
                 <button onClick={() => setShowExample(true)} className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">View Example</button>
                 <button onClick={() => setStudentResponse((v) => (v ? v + '\n\n' : '') + generatePrompt())} className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Generate Prompt</button>
-              </div>
+                  </div>
             </div>
           </div>
 
@@ -2581,19 +3127,19 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
           <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-6 shadow-sm border lg:col-span-2`}>
             <div className="flex items-center justify-between mb-4">
               <h2 className={`text-2xl font-fredoka font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>📝 Your Essay</h2>
-              {selectedQuestionType && (
+                {selectedQuestionType && (
                 <div className={`flex items-center ${darkMode ? 'bg-gray-800' : 'bg-blue-50'} px-3 py-1 rounded-full`}>
                   <span className="text-2xl mr-2">{selectedQuestionType.icon}</span>
                   <span className={`font-fredoka text-sm font-medium ${darkMode ? 'text-blue-400' : 'text-blue-700'}`}>{selectedQuestionType.name}</span>
-                </div>
-              )}
+                  </div>
+                )}
             </div>
 
-            {restoredDraft && (
+              {restoredDraft && (
               <div className="mb-3 text-xs text-green-700 bg-green-50 border border-green-200 rounded px-3 py-2">
                 Restored unsaved draft.
-              </div>
-            )}
+                </div>
+              )}
 
             {/* Formatting toolbar */}
             <div className="flex items-center gap-2 mb-3">
@@ -2601,45 +3147,45 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
               <button onClick={() => applyFormat('*')} className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-100">Italic</button>
               <button onClick={insertParagraphBreak} className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-100">Paragraph</button>
               <button onClick={onBack} className="ml-auto px-3 py-1 text-sm rounded border border-blue-300 text-blue-700 hover:bg-blue-50">← Back</button>
-            </div>
+                  </div>
 
-            <textarea
-              value={studentResponse}
-              onChange={(e) => setStudentResponse(e.target.value)}
-              placeholder={`Type or paste your ${levelData.levelName} essay answer here...\n\n✨ Select a question type from the left panel and write your response to get instant AI feedback!`}
+                <textarea
+                  value={studentResponse}
+                  onChange={(e) => setStudentResponse(e.target.value)}
+                  placeholder={`Type or paste your ${levelData.levelName} essay answer here...\n\n✨ Select a question type from the left panel and write your response to get instant AI feedback!`}
               className="w-full h-80 p-6 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none font-fredoka text-gray-700 placeholder-gray-400 leading-relaxed"
-              aria-label="Essay input"
-              ref={essayRef}
-            />
+                  aria-label="Essay input"
+                  ref={essayRef}
+                />
 
             <div className="mt-4 flex justify-between items-center">
               <WordCountRing count={wordCount} goal={getWordGoal()} />
 
-              {showMarkingSchemeChoice && selectedQuestionType && studentResponse.trim() && (
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleProceed(false)}
+                {showMarkingSchemeChoice && selectedQuestionType && studentResponse.trim() && (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => handleProceed(false)}
                     className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-2 rounded-lg font-fredoka font-bold hover:from-green-600 hover:to-blue-600 transition-all duration-300 shadow-md"
                   >
                     🚀 Skip Scheme
-                  </button>
-                  <button
-                    onClick={() => handleProceed(true)}
+                    </button>
+                    <button
+                      onClick={() => handleProceed(true)}
                     className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-6 py-2 rounded-lg font-fredoka font-bold hover:from-yellow-600 hover:to-orange-600 transition-all duration-300 shadow-md"
                   >
                     📋 Add Scheme
-                  </button>
-                </div>
-              )}
+                    </button>
+                  </div>
+                )}
 
-              {showNextButton && selectedQuestionType && studentResponse.trim() && !showMarkingSchemeChoice && (
-                <button
-                  onClick={handleProceed}
+                {showNextButton && selectedQuestionType && studentResponse.trim() && !showMarkingSchemeChoice && (
+                  <button
+                    onClick={handleProceed}
                   className="bg-gradient-to-r from-pink-500 to-blue-500 text-white px-8 py-3 rounded-xl font-fredoka font-bold hover:from-pink-600 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   {selectedQuestionType.requiresScheme === true ? 'Add Marking Scheme →' : '🚀 Get AI Feedback Now →'}
-                </button>
-              )}
+                  </button>
+                )}
             </div>
 
             {/* Helper section moved to left; removed duplicate from right */}
@@ -3069,11 +3615,11 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
       let maxScore = 0;
       matches.forEach(match => {
         const [score, max] = match.split('/').map(Number);
-        totalScore += score;
-        maxScore += max;
+          totalScore += score;
+          maxScore += max;
       });
-      return { score: totalScore, maxScore, percentage: (totalScore / maxScore * 100).toFixed(1) };
-    }
+        return { score: totalScore, maxScore, percentage: (totalScore / maxScore * 100).toFixed(1) };
+      }
     return { score: 0, maxScore: 40, percentage: 0 };
   };
   
@@ -3155,7 +3701,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
     // Split by common delimiters
     const sentences = feedback
       .split(/[.!?]+/)
-      .map(sentence => sentence.trim())
+        .map(sentence => sentence.trim())
       .filter(sentence => sentence.length > 10) // Only meaningful sentences
       .slice(0, 10); // Limit to 10 points
     
@@ -3340,7 +3886,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
                           <div className="flex items-start">
                             <div className="flex-shrink-0 w-6 h-6 bg-yellow-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">
                               {i + 1}
-                    </div>
+                            </div>
                             <div className="flex-1">
                               <p className="text-yellow-800 font-medium leading-relaxed">
                                 {point.replace(/^(\d+\.)\s*/, '')}
@@ -3353,7 +3899,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
                   ) : (
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                       <p className="text-yellow-700 text-center">No specific improvements suggested. Great work!</p>
-                  </div>
+                    </div>
                 )}
                 </div>
               </div>
@@ -3554,11 +4100,11 @@ const ErrorModal = ({ isOpen, onClose, message, darkMode }) => {
           <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-3">
             <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.98-.833-2.75 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-          </div>
+              </svg>
+            </div>
           <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Essay Error</h3>
-        </div>
-        
+          </div>
+
         <p className={`${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-6 leading-relaxed`}>
           {message}
         </p>
@@ -4305,21 +4851,21 @@ const App = () => {
       return;
     }
 
-    setLoadingState('dataLoad', true);
-    try {
-      // Debug logging removed for production
-    // console.log('DEBUG: Loading user data for:', supabaseUser.id);
-      
-      const userData = {
-        user_id: supabaseUser.id,
-        email: supabaseUser.email,
-        name: supabaseUser.user_metadata?.full_name || supabaseUser.email
-      };
-      
-      // Debug logging removed for production
-    // console.log('DEBUG: Sending user data to backend:', userData);
-      const response = await axios.post(`${API}/users`, userData);
-      const userInfo = response.data.user;
+      setLoadingState('dataLoad', true);
+      try {
+        // Debug logging removed for production
+      // console.log('DEBUG: Loading user data for:', supabaseUser.id);
+        
+        const userData = {
+          user_id: supabaseUser.id,
+          email: supabaseUser.email,
+          name: supabaseUser.user_metadata?.full_name || supabaseUser.email
+        };
+        
+        // Debug logging removed for production
+      // console.log('DEBUG: Sending user data to backend:', userData);
+        const response = await axios.post(`${API}/users`, userData);
+        const userInfo = response.data.user;
       
       // Set the user state with backend user data
       setUser(userInfo);
@@ -4339,15 +4885,15 @@ const App = () => {
       setEvaluations(historyResponse.data.evaluations || []);
       setLoadingState('historyLoad', false);
       
-      // Debug logging removed for production
-    // console.log('DEBUG: User data loaded successfully');
-      
-    } catch (error) {
-      console.error('Error loading user data:', error);
-      console.error('Error details:', error.response?.data);
-    } finally {
-      setLoadingState('dataLoad', false);
-    }
+        // Debug logging removed for production
+      // console.log('DEBUG: User data loaded successfully');
+        
+      } catch (error) {
+        console.error('Error loading user data:', error);
+        console.error('Error details:', error.response?.data);
+      } finally {
+        setLoadingState('dataLoad', false);
+      }
   };
   
   // Toggle dark mode
@@ -4401,7 +4947,7 @@ const App = () => {
     try {
       console.log('🔍 Starting validation for:', questionType, 'Word count:', studentResponse.trim().split(/\s+/).filter(word => word.length > 0).length);
       
-      const wordCount = studentResponse.trim().split(/\s+/).filter(word => word.length > 0).length;
+    const wordCount = studentResponse.trim().split(/\s+/).filter(word => word.length > 0).length;
       const lowerResponse = studentResponse.toLowerCase();
       
       // Determine word limits based on question type
@@ -4409,7 +4955,7 @@ const App = () => {
       const maxWordLimit = isALevel ? 1400 : 700;
       
       // Skip word count validation for summary writing (minimum only)
-      if (questionType === 'igcse_summary') {
+    if (questionType === 'igcse_summary') {
         // Only check for test content and maximum limit
         if (wordCount > maxWordLimit) {
           return {
@@ -4421,20 +4967,20 @@ const App = () => {
             error: `Your essay exceeds the word limit. You have ${wordCount} words, but the maximum allowed for IGCSE questions is ${maxWordLimit} words.`
           };
         }
-      } else {
+    } else {
         // Check minimum word count for other question types
         if (1 < wordCount && wordCount < 100) {
-          return {
-            isValid: false,
+        return {
+          isValid: false,
             type: 'word_count_too_low',
             wordCount: wordCount,
             minRequired: 100,
             error: `Your essay is too short. You have ${wordCount} words, but you need at least 100 words for a proper evaluation.`
-          };
-        }
-        if (wordCount === 1) {
-          return {
-            isValid: false,
+        };
+      }
+      if (wordCount === 1) {
+        return {
+          isValid: false,
             type: 'word_count_too_low',
             wordCount: wordCount,
             minRequired: 100,
@@ -4487,8 +5033,8 @@ const App = () => {
         'essay writing online', 'write my essay', 'help me write', 'ai essay', 'chatgpt', 'gpt'];
       const filler = ['okay', 'um', 'uh', 'like', 'you know', 'basically', 'literally', 'actually', 'really', 'very'];
       const repetitivePatterns = ['lorem ipsum', 'the quick brown fox', 'abcd', '1234', 'qwerty', 'asdf'];
-      
-      // Check for test content
+    
+    // Check for test content
       const testWordCount = testWords.filter(word => lowerResponse.includes(word.toLowerCase())).length;
       const essaySpamCount = essaySpamWords.filter(phrase => lowerResponse.includes(phrase.toLowerCase())).length;
       const fillerCount = filler.filter(word => {
@@ -4526,29 +5072,29 @@ const App = () => {
         if (isExcessivelyRepetitive) spamReasons.push('word_repetition');
         if (uniqueWordRatio < 0.3) spamReasons.push('low_uniqueness');
         
-        return {
-          isValid: false,
+      return {
+        isValid: false,
           type: 'spam_detected',
           reasons: spamReasons,
           uniqueWordRatio: Math.round(uniqueWordRatio * 100),
           testWordCount: testWordCount,
           error: `Your essay appears to contain test content or spam. Please write genuine academic content for accurate feedback.`
-        };
-      }
-      
-      // Check for very short responses
-      if (studentResponse.trim().length < 200) {
-        return {
-          isValid: false,
+      };
+    }
+    
+    // Check for very short responses
+    if (studentResponse.trim().length < 200) {
+      return {
+        isValid: false,
           type: 'too_brief',
           characterCount: studentResponse.trim().length,
           minRequired: 200,
-          error: `Your essay is too brief for meaningful analysis. Please write a more detailed response (at least 200 characters) to receive comprehensive feedback.`
-        };
-      }
-      
+        error: `Your essay is too brief for meaningful analysis. Please write a more detailed response (at least 200 characters) to receive comprehensive feedback.`
+      };
+    }
+    
       console.log('✅ Validation passed for essay');
-      return { isValid: true };
+    return { isValid: true };
       
     } catch (error) {
       console.error('❌ Validation error:', error);
@@ -4895,9 +5441,9 @@ const handleSignOut = async () => {
     }
     
     // For authenticated users, navigate to question types
-    setSelectedQuestionType(null);
-    setEvaluation(null);
-    setCurrentPage('questionTypes');
+      setSelectedQuestionType(null);
+      setEvaluation(null);
+      setCurrentPage('questionTypes');
   };
 
   // Public Result route wrapper component to fetch by ID and render ResultsPage
@@ -5322,7 +5868,7 @@ const handleSignOut = async () => {
         </div>
       )}
       
-      <Routes>
+    <Routes>
       <Route path="/results/:id" element={<PublicResultPageWrapper />} />
       {/* Public landing */}
       <Route path="/" element={<LandingPage onDiscord={signInWithDiscord} onGoogle={signInWithGoogle} />} />
