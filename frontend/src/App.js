@@ -2516,7 +2516,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       igcse_writers_effect: 'Example analysis: The simile “like a coiled spring” compresses tension...',
       igcse_directed: 'Example directed writing: Dear Councillors, I propose establishing a community garden...',
       alevel_directed: 'Example directed: Esteemed audience, today I contend that...',
-      alevel_text_analysis: 'Example analysis: The narrator's fragmented syntax mirrors her fractured memory...',
+      alevel_text_analysis: 'Example analysis: The narrator\'s fragmented syntax mirrors her fractured memory...',
       alevel_comparative: 'Example comparative: While Poet A elegizes loss with restraint, Poet B embraces raw immediacy...',
       alevel_language_change: 'Example analysis: Text A demonstrates semantic broadening through the evolution of "silly" from "blessed" (1400s) to "foolish" (modern usage). The n-gram data in Text B shows declining frequency of archaic constructions like "thou art" from 1600-1900, while Text C reveals the emergence of modal auxiliaries. This lexical shift reflects the democratization of English during the Early Modern period...'
     };
