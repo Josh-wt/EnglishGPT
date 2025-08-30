@@ -470,10 +470,12 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
   
   // Fetch AI recommendations when component mounts or evaluations change
   useEffect(() => {
-    fetchRecommendations();
-  }, [user, evaluations.length]);
+    if (hasUnlimitedAccess() && user?.id && evaluations.length >= 5 && !aiRecommendations) {
+      fetchRecommendations();
+    }
+  }, [user?.id, evaluations.length, hasUnlimitedAccess()]);
 
-  // Prepare chart data
+  // Enhanced data processing for comprehensive analytics
   const parsedEvaluations = (evaluations || []).map((e) => {
     const scoreMatch = (e.grade || '').match(/(\d+)\s*\/\s*(\d+)/);
     const score = scoreMatch ? Number(scoreMatch[1]) : 0;
@@ -481,56 +483,159 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
     const date = new Date(e.timestamp);
     const dateKey = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
     const type = (e.question_type || 'unknown').toLowerCase();
-    const ao1 = typeof e.ao1_marks === 'string' ? Number((e.ao1_marks.match(/\d+/) || [0])[0]) : 0;
-    const ao2 = typeof e.ao2_marks === 'string' ? Number((e.ao2_marks.match(/\d+/) || [0])[0]) : 0;
-    const reading = typeof e.reading_marks === 'string' ? Number((e.reading_marks.match(/\d+/) || [0])[0]) : 0;
-    const writing = typeof e.writing_marks === 'string' ? Number((e.writing_marks.match(/\d+/) || [0])[0]) : 0;
+    
+    // Extract all possible submarks dynamically
+    const submarks = {};
+    Object.keys(e).forEach(key => {
+      if (key.includes('_marks') || key.includes('marks')) {
+        const value = typeof e[key] === 'string' ? Number((e[key].match(/\d+/) || [0])[0]) : 0;
+        const cleanKey = key.replace('_marks', '').replace('marks', '');
+        if (cleanKey && value > 0) {
+          submarks[cleanKey] = value;
+        }
+      }
+    });
+    
     const percent = max > 0 ? (score / max) * 100 : 0;
-    return { ...e, score, max, percent, dateKey, type, ao1, ao2, reading, writing };
+    const gradeLevel = percent >= 80 ? 'A' : percent >= 70 ? 'B' : percent >= 60 ? 'C' : percent >= 50 ? 'D' : 'F';
+    
+    return { 
+      ...e, 
+      score, 
+      max, 
+      percent, 
+      dateKey, 
+      type, 
+      gradeLevel,
+      submarks,
+      weekOf: `${date.getFullYear()}-W${Math.ceil(date.getDate()/7)}`,
+      monthOf: `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`,
+      dayOfWeek: date.getDay(),
+      hourOfDay: date.getHours()
+    };
   });
 
-  // Aggregate metrics
+  // Time-based filtering
+  const filterByTimeRange = (data) => {
+    const now = new Date();
+    const cutoff = new Date();
+    
+    switch(selectedTimeRange) {
+      case 'week': cutoff.setDate(now.getDate() - 7); break;
+      case 'month': cutoff.setMonth(now.getMonth() - 1); break;
+      case 'quarter': cutoff.setMonth(now.getMonth() - 3); break;
+      default: cutoff.setFullYear(1900); break;
+    }
+    
+    return data.filter(e => new Date(e.timestamp) >= cutoff);
+  };
+
+  const viewEvaluations = filterByTimeRange(parsedEvaluations);
+
+  // Enhanced aggregations
   const byDate = Object.values(
-    parsedEvaluations.reduce((acc, e) => {
-      if (!acc[e.dateKey]) acc[e.dateKey] = { date: e.dateKey, total: 0, count: 0 };
-      acc[e.dateKey].total += e.score; acc[e.dateKey].count += 1; return acc;
+    viewEvaluations.reduce((acc, e) => {
+      if (!acc[e.dateKey]) acc[e.dateKey] = { date: e.dateKey, total: 0, count: 0, scores: [] };
+      acc[e.dateKey].total += e.score; 
+      acc[e.dateKey].count += 1; 
+      acc[e.dateKey].scores.push(e.percent);
+      return acc;
     }, {})
-  ).sort((a,b)=>a.date.localeCompare(b.date)).map(d=>({ date: d.date, average: Number((d.total/d.count).toFixed(2)) }));
+  ).sort((a,b)=>a.date.localeCompare(b.date)).map(d=>({ 
+    date: d.date, 
+    average: Number((d.total/d.count).toFixed(2)),
+    count: d.count,
+    variance: d.scores.length > 1 ? Math.round(d.scores.reduce((sum, val) => sum + Math.pow(val - (d.total/d.count), 2), 0) / d.scores.length) : 0
+  }));
 
-  const byTypeMap = parsedEvaluations.reduce((acc, e) => {
-    const label = e.type.replace('_', ' ');
-    if (!acc[label]) acc[label] = { type: label, total: 0, count: 0 };
-    acc[label].total += e.score; acc[label].count += 1; return acc;
-  }, {});
-  const byType = Object.values(byTypeMap).map(x => ({ type: x.type, average: Number((x.total/x.count).toFixed(2)), count: x.count }));
-
-  const aoSeries = parsedEvaluations.map(e => ({ date: e.dateKey, AO1: e.ao1, AO2: e.ao2, Reading: e.reading, Writing: e.writing }));
-
-  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#14b8a6'];
-
-  // Range filter + nicer view data
-  const daysForRange = selectedTimeRange === 'week' ? 7 : selectedTimeRange === 'month' ? 30 : selectedTimeRange === 'quarter' ? 90 : null;
-  const cutoff = daysForRange ? new Date(Date.now() - daysForRange * 24 * 60 * 60 * 1000) : null;
-  const viewEvaluations = cutoff ? parsedEvaluations.filter(e => {
-    const d = new Date(e.dateKey);
-    return d >= cutoff;
-  }) : parsedEvaluations;
-
-  const viewByDate = Object.values(viewEvaluations.reduce((acc, e) => {
-    if (!acc[e.dateKey]) acc[e.dateKey] = { date: e.dateKey, total: 0, count: 0 };
-    acc[e.dateKey].total += (e.max > 0 ? (e.score / e.max) * 100 : 0);
-    acc[e.dateKey].count += 1;
+  const byTypeMap = viewEvaluations.reduce((acc, e) => {
+    const label = e.type.replace(/_/g, ' ');
+    if (!acc[label]) acc[label] = { type: label, total: 0, count: 0, scores: [], improvements: [] };
+    acc[label].total += e.score; 
+    acc[label].count += 1;
+    acc[label].scores.push(e.percent);
+    if (e.improvement_suggestions) {
+      acc[label].improvements.push(...(Array.isArray(e.improvement_suggestions) ? e.improvement_suggestions : []));
+    }
     return acc;
-  }, {})).sort((a,b)=>a.date.localeCompare(b.date)).map(d=>({ date: d.date, average: Number((d.total/d.count).toFixed(2)) }));
-
-  const viewByTypeMap = viewEvaluations.reduce((acc, e) => {
-    const label = e.type.replace('_', ' ');
-    if (!acc[label]) acc[label] = { type: label, total: 0, count: 0 };
-    acc[label].total += (e.max > 0 ? (e.score / e.max) * 100 : 0); acc[label].count += 1; return acc;
   }, {});
-  const viewByType = Object.values(viewByTypeMap).map(x=>({ type: x.type, average: Number((x.total/x.count).toFixed(2)), count: x.count }));
+  
+  const byType = Object.values(byTypeMap).map(x => ({ 
+    type: x.type, 
+    average: Number((x.total/x.count).toFixed(2)), 
+    count: x.count,
+    trend: x.scores.length > 1 ? (x.scores[x.scores.length-1] > x.scores[0] ? 'up' : x.scores[x.scores.length-1] < x.scores[0] ? 'down' : 'stable') : 'stable',
+    variance: x.scores.length > 1 ? Math.round(x.scores.reduce((sum, val) => sum + Math.pow(val - (x.total/x.count), 2), 0) / x.scores.length) : 0,
+    commonImprovements: x.improvements.slice(0, 3)
+  }));
 
-  const viewAoSeries = viewEvaluations.map(e => ({ date: e.dateKey, AO1: e.ao1, AO2: e.ao2, Reading: e.reading, Writing: e.writing }));
+  // Get all unique submark components from evaluations
+  const allSubmarkKeys = new Set();
+  viewEvaluations.forEach(e => {
+    Object.keys(e.submarks || {}).forEach(key => {
+      if (key && key !== 'ao1' && key !== 'ao2' && key !== 'reading' && key !== 'writing') {
+        allSubmarkKeys.add(key);
+      }
+    });
+  });
+  
+  // Add standard submarks
+  allSubmarkKeys.add('ao1');
+  allSubmarkKeys.add('ao2'); 
+  allSubmarkKeys.add('reading');
+  allSubmarkKeys.add('writing');
+
+  // Submark analysis for all components
+  const submarkAnalysis = Array.from(allSubmarkKeys).map(component => {
+    const componentData = viewEvaluations
+      .filter(e => e.submarks && e.submarks[component] > 0)
+      .map(e => ({
+        date: e.dateKey,
+        value: e.submarks[component],
+        percent: e.percent,
+        type: e.type
+      }));
+    
+    if (componentData.length === 0) return null;
+    
+    const average = componentData.reduce((sum, d) => sum + d.value, 0) / componentData.length;
+    const trend = componentData.length > 1 ? 
+      (componentData[componentData.length-1].value > componentData[0].value ? 'improving' : 
+       componentData[componentData.length-1].value < componentData[0].value ? 'declining' : 'stable') : 'stable';
+    
+    return {
+      component: component.toUpperCase(),
+      average: Math.round(average * 10) / 10,
+      count: componentData.length,
+      trend,
+      data: componentData,
+      max: Math.max(...componentData.map(d => d.value)),
+      min: Math.min(...componentData.map(d => d.value))
+    };
+  }).filter(Boolean);
+
+  // Grade distribution
+  const gradeDistribution = ['A', 'B', 'C', 'D', 'F'].map(grade => ({
+    grade,
+    count: viewEvaluations.filter(e => e.gradeLevel === grade).length,
+    percentage: Math.round((viewEvaluations.filter(e => e.gradeLevel === grade).length / Math.max(1, viewEvaluations.length)) * 100)
+  }));
+
+  // Performance trends
+  const performanceTrend = viewEvaluations.length > 1 ? 
+    (viewEvaluations[viewEvaluations.length-1].percent > viewEvaluations[0].percent ? 'improving' : 
+     viewEvaluations[viewEvaluations.length-1].percent < viewEvaluations[0].percent ? 'declining' : 'stable') : 'stable';
+
+  const COLORS = ['#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+
+  // Modal states for detailed views
+  const [selectedDetailModal, setSelectedDetailModal] = useState(null);
+  const [showTrendModal, setShowTrendModal] = useState(false);
+  const [showSubmarkModal, setShowSubmarkModal] = useState(null);
+  
+  // Chart data for time series  
+  const viewByDate = byDate;
+  const viewByType = byType;
 
   // Type distribution (donut)
   const typeDistribution = viewByType.map(t => ({ name: t.type, value: t.count }));
@@ -554,37 +659,74 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50">
+      {/* Enhanced Header */}
+      <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-pink-200/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-20">
             <button
               onClick={onBack}
-              className="text-blue-600 hover:text-blue-800 flex items-center"
+              className="flex items-center space-x-2 text-pink-600 hover:text-pink-800 font-medium transition-colors"
             >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Back to Dashboard
+              <span>Back to Dashboard</span>
             </button>
-            <h1 className="text-xl font-bold text-gray-900">Analytics Dashboard</h1>
-            <div />
+            <div className="text-center">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                Analytics Dashboard
+              </h1>
+              <p className="text-sm text-gray-600">Advanced insights into your writing progress</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="text-xs bg-pink-100 text-pink-700 px-3 py-1 rounded-full font-medium">
+                {totalResponses} Essays Analyzed
+              </div>
+              <button
+                onClick={() => setShowTrendModal(true)}
+                className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium hover:bg-purple-200 transition-colors"
+              >
+                View Trends
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Filters */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* Enhanced Time Range Filters */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             {['week','month','quarter','all'].map(r => (
-              <button key={r} onClick={()=>setSelectedTimeRange(r)} className={`px-3 py-1.5 rounded-full text-sm border ${selectedTimeRange===r ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}>
-                {r==='week'?'7d':r==='month'?'30d':r==='quarter'?'90d':'All'}
+              <button 
+                key={r} 
+                onClick={()=>setSelectedTimeRange(r)} 
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  selectedTimeRange===r 
+                    ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg' 
+                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-pink-50 hover:border-pink-200'
+                }`}
+              >
+                {r==='week'?'Last 7 Days':r==='month'?'Last 30 Days':r==='quarter'?'Last 90 Days':'All Time'}
               </button>
             ))}
           </div>
-          <div className="text-sm text-gray-600">Showing <span className="font-semibold text-gray-900">{totalResponses}</span> responses</div>
+          <div className="flex items-center space-x-4">
+            <div className="text-sm text-gray-600">
+              Showing <span className="font-semibold text-gray-900">{totalResponses}</span> responses
+            </div>
+            <div className="text-sm text-gray-600">
+              Performance Trend: 
+              <span className={`ml-2 font-semibold ${
+                performanceTrend === 'improving' ? 'text-green-600' : 
+                performanceTrend === 'declining' ? 'text-red-600' : 'text-gray-600'
+              }`}>
+                {performanceTrend === 'improving' ? '📈 Improving' : 
+                 performanceTrend === 'declining' ? '📉 Declining' : '➡️ Stable'}
+              </span>
+            </div>
+          </div>
         </div>
         {/* KPI Row */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
