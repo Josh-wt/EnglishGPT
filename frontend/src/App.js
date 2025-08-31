@@ -113,6 +113,7 @@ const App = () => {
   };
 
   const handleEvaluate = async (evaluationResult) => {
+    console.log('🔍 DEBUG: handleEvaluate function exists and called');
     console.log('🔍 DEBUG: handleEvaluate called with:', evaluationResult);
     console.log('🔍 DEBUG: User:', user);
     console.log('🔍 DEBUG: UserStats:', userStats);

@@ -4,6 +4,15 @@ import Header from './Header';
 import ExampleModal from './ExampleModal';
 
 const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvaluate, selectedLevel, darkMode, user }) => {
+  console.log('🔍 DEBUG: QuestionTypePage rendered with props:', {
+    questionTypes: questionTypes?.length,
+    onSelectQuestionType: !!onSelectQuestionType,
+    onBack: !!onBack,
+    onEvaluate: !!onEvaluate,
+    selectedLevel,
+    darkMode,
+    user: !!user
+  });
   const [selectedQuestionType, setSelectedQuestionType] = useState(null);
   const [studentResponse, setStudentResponse] = useState('');
   const [showNextButton, setShowNextButton] = useState(false);
