@@ -7,9 +7,13 @@ import PaymentSuccess from './PaymentSuccess';
 import subscriptionService from './services/subscriptionService';
 import toast, { Toaster } from 'react-hot-toast';
 import SubscriptionDashboard from './SubscriptionDashboard';
+<<<<<<< HEAD
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSpring, animated } from '@react-spring/web';
 // Removed charts for a clean card-based analytics UI
+=======
+import { LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+>>>>>>> da0a200 (Enhance AnalyticsDashboard and Essay Validation Features)
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -645,6 +649,8 @@ const LockedFeatureCard = ({ onUpgrade }) => (
 const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade }) => {
   const [selectedTimeRange, setSelectedTimeRange] = useState('week');
   const [selectedPaperType, setSelectedPaperType] = useState('all');
+  const [aiRecommendations, setAiRecommendations] = useState(null);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   
   // Helper function for unlimited plan checking
   const hasUnlimitedAccess = () => {
@@ -652,11 +658,78 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
     return plan === 'unlimited';
   };
   
-  if (!hasUnlimitedAccess()) {
-    return <LockedAnalyticsPage onBack={onBack} upgradeType="unlimited" page="analytics" />;
+  // Fetch AI recommendations function
+  const fetchRecommendations = async () => {
+    if (!hasUnlimitedAccess()) return;
+    
+    if (!user?.id || evaluations.length === 0) {
+      console.log('🚫 Skipping recommendations - no user or evaluations');
+      return;
+    }
+      
+      // Check if we should fetch recommendations (1st, 5th, 10th, etc.)
+      const evalCount = evaluations.length;
+      const shouldFetch = evalCount === 1 || evalCount === 5 || evalCount === 10 || 
+                         (evalCount > 10 && evalCount % 5 === 0);
+      
+    console.log(`📊 Recommendations check - Count: ${evalCount}, Should fetch: ${shouldFetch}, Has AI recs: ${!!aiRecommendations}`);
+    
+    // Always try to fetch if we don't have recommendations, not just at milestones
+    if (!aiRecommendations) {
+      console.log('🔄 Fetching AI recommendations...');
+        setIsLoadingRecommendations(true);
+        try {
+          // Get the current session for auth token
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session?.access_token) {
+          console.error('❌ No valid session found for recommendations');
+            setIsLoadingRecommendations(false);
+            return;
+          }
+          
+        // Use the correct API endpoint
+        const apiUrl = `${BACKEND_URL}/api/analytics/${user.id}`;
+        console.log('🌐 Fetching from:', apiUrl);
+        
+        const response = await fetch(apiUrl, {
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            }
+          });
+        
+        console.log('📡 Response status:', response.status);
+          
+          if (response.ok) {
+            const data = await response.json();
+          console.log('📋 Analytics data received:', data);
+          
+            if (data.analytics?.recommendations) {
+            console.log('✅ AI recommendations found:', data.analytics.recommendations.substring(0, 100) + '...');
+              setAiRecommendations(data.analytics.recommendations);
+          } else {
+            console.log('⚠️ No recommendations in response');
+            }
+        } else {
+          const errorText = await response.text();
+          console.error('❌ API request failed:', response.status, errorText);
+          }
+        } catch (error) {
+        console.error('❌ Error fetching recommendations:', error);
+        } finally {
+          setIsLoadingRecommendations(false);
+        }
+      }
+    };
+    
+  // Fetch AI recommendations when component mounts or evaluations change
+  useEffect(() => {
+    if (hasUnlimitedAccess() && user?.id && evaluations.length >= 5 && !aiRecommendations) {
+    fetchRecommendations();
   }
+  }, [user?.id, evaluations.length, hasUnlimitedAccess()]);
 
-  // Prepare chart data
+  // Enhanced data processing for comprehensive analytics
   const parsedEvaluations = (evaluations || []).map((e) => {
     const scoreMatch = (e.grade || '').match(/(\d+)\s*\/\s*(\d+)/);
     const score = scoreMatch ? Number(scoreMatch[1]) : 0;
@@ -664,56 +737,173 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
     const date = new Date(e.timestamp);
     const dateKey = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
     const type = (e.question_type || 'unknown').toLowerCase();
-    const ao1 = typeof e.ao1_marks === 'string' ? Number((e.ao1_marks.match(/\d+/) || [0])[0]) : 0;
-    const ao2 = typeof e.ao2_marks === 'string' ? Number((e.ao2_marks.match(/\d+/) || [0])[0]) : 0;
-    const reading = typeof e.reading_marks === 'string' ? Number((e.reading_marks.match(/\d+/) || [0])[0]) : 0;
-    const writing = typeof e.writing_marks === 'string' ? Number((e.writing_marks.match(/\d+/) || [0])[0]) : 0;
+    
+    // Extract all possible submarks dynamically
+    const submarks = {};
+    Object.keys(e).forEach(key => {
+      if (key.includes('_marks') || key.includes('marks')) {
+        const value = typeof e[key] === 'string' ? Number((e[key].match(/\d+/) || [0])[0]) : 0;
+        const cleanKey = key.replace('_marks', '').replace('marks', '');
+        if (cleanKey && value > 0) {
+          submarks[cleanKey] = value;
+        }
+      }
+    });
+    
     const percent = max > 0 ? (score / max) * 100 : 0;
-    return { ...e, score, max, percent, dateKey, type, ao1, ao2, reading, writing };
+    const gradeLevel = percent >= 80 ? 'A' : percent >= 70 ? 'B' : percent >= 60 ? 'C' : percent >= 50 ? 'D' : 'F';
+    
+    return { 
+      ...e, 
+      score, 
+      max, 
+      percent, 
+      dateKey, 
+      type, 
+      gradeLevel,
+      submarks,
+      weekOf: `${date.getFullYear()}-W${Math.ceil(date.getDate()/7)}`,
+      monthOf: `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`,
+      dayOfWeek: date.getDay(),
+      hourOfDay: date.getHours()
+    };
   });
 
-  // Aggregate metrics
+  // Time-based filtering
+  const filterByTimeRange = (data) => {
+    const now = new Date();
+    const cutoff = new Date();
+    
+    switch(selectedTimeRange) {
+      case 'week': cutoff.setDate(now.getDate() - 7); break;
+      case 'month': cutoff.setMonth(now.getMonth() - 1); break;
+      case 'quarter': cutoff.setMonth(now.getMonth() - 3); break;
+      default: cutoff.setFullYear(1900); break;
+    }
+    
+    return data.filter(e => new Date(e.timestamp) >= cutoff);
+  };
+
+  const viewEvaluations = filterByTimeRange(parsedEvaluations);
+
+  // Enhanced aggregations
   const byDate = Object.values(
-    parsedEvaluations.reduce((acc, e) => {
-      if (!acc[e.dateKey]) acc[e.dateKey] = { date: e.dateKey, total: 0, count: 0 };
-      acc[e.dateKey].total += e.score; acc[e.dateKey].count += 1; return acc;
+    viewEvaluations.reduce((acc, e) => {
+      if (!acc[e.dateKey]) acc[e.dateKey] = { date: e.dateKey, total: 0, count: 0, scores: [] };
+      acc[e.dateKey].total += e.score; 
+      acc[e.dateKey].count += 1; 
+      acc[e.dateKey].scores.push(e.percent);
+      return acc;
     }, {})
-  ).sort((a,b)=>a.date.localeCompare(b.date)).map(d=>({ date: d.date, average: Number((d.total/d.count).toFixed(2)) }));
+  ).sort((a,b)=>a.date.localeCompare(b.date)).map(d=>({ 
+    date: d.date, 
+    average: Number((d.total/d.count).toFixed(2)),
+    count: d.count,
+    variance: d.scores.length > 1 ? Math.round(d.scores.reduce((sum, val) => sum + Math.pow(val - (d.total/d.count), 2), 0) / d.scores.length) : 0
+  }));
 
-  const byTypeMap = parsedEvaluations.reduce((acc, e) => {
-    const label = e.type.replace('_', ' ');
-    if (!acc[label]) acc[label] = { type: label, total: 0, count: 0 };
-    acc[label].total += e.score; acc[label].count += 1; return acc;
-  }, {});
-  const byType = Object.values(byTypeMap).map(x => ({ type: x.type, average: Number((x.total/x.count).toFixed(2)), count: x.count }));
-
-  const aoSeries = parsedEvaluations.map(e => ({ date: e.dateKey, AO1: e.ao1, AO2: e.ao2, Reading: e.reading, Writing: e.writing }));
-
-  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#14b8a6'];
-
-  // Range filter + nicer view data
-  const daysForRange = selectedTimeRange === 'week' ? 7 : selectedTimeRange === 'month' ? 30 : selectedTimeRange === 'quarter' ? 90 : null;
-  const cutoff = daysForRange ? new Date(Date.now() - daysForRange * 24 * 60 * 60 * 1000) : null;
-  const viewEvaluations = cutoff ? parsedEvaluations.filter(e => {
-    const d = new Date(e.dateKey);
-    return d >= cutoff;
-  }) : parsedEvaluations;
-
-  const viewByDate = Object.values(viewEvaluations.reduce((acc, e) => {
-    if (!acc[e.dateKey]) acc[e.dateKey] = { date: e.dateKey, total: 0, count: 0 };
-    acc[e.dateKey].total += (e.max > 0 ? (e.score / e.max) * 100 : 0);
-    acc[e.dateKey].count += 1;
+  const byTypeMap = viewEvaluations.reduce((acc, e) => {
+    const label = e.type.replace(/_/g, ' ');
+    if (!acc[label]) acc[label] = { type: label, total: 0, count: 0, scores: [], improvements: [] };
+    acc[label].total += e.score; 
+    acc[label].count += 1;
+    acc[label].scores.push(e.percent);
+    if (e.improvement_suggestions) {
+      acc[label].improvements.push(...(Array.isArray(e.improvement_suggestions) ? e.improvement_suggestions : []));
+    }
     return acc;
-  }, {})).sort((a,b)=>a.date.localeCompare(b.date)).map(d=>({ date: d.date, average: Number((d.total/d.count).toFixed(2)) }));
-
-  const viewByTypeMap = viewEvaluations.reduce((acc, e) => {
-    const label = e.type.replace('_', ' ');
-    if (!acc[label]) acc[label] = { type: label, total: 0, count: 0 };
-    acc[label].total += (e.max > 0 ? (e.score / e.max) * 100 : 0); acc[label].count += 1; return acc;
   }, {});
-  const viewByType = Object.values(viewByTypeMap).map(x=>({ type: x.type, average: Number((x.total/x.count).toFixed(2)), count: x.count }));
+  
+  const byType = Object.values(byTypeMap).map(x => ({ 
+    type: x.type, 
+    average: Number((x.total/x.count).toFixed(2)), 
+    count: x.count,
+    trend: x.scores.length > 1 ? (x.scores[x.scores.length-1] > x.scores[0] ? 'up' : x.scores[x.scores.length-1] < x.scores[0] ? 'down' : 'stable') : 'stable',
+    variance: x.scores.length > 1 ? Math.round(x.scores.reduce((sum, val) => sum + Math.pow(val - (x.total/x.count), 2), 0) / x.scores.length) : 0,
+    commonImprovements: x.improvements.slice(0, 3)
+  }));
 
-  const viewAoSeries = viewEvaluations.map(e => ({ date: e.dateKey, AO1: e.ao1, AO2: e.ao2, Reading: e.reading, Writing: e.writing }));
+  // Get all unique submark components from evaluations
+  const allSubmarkKeys = new Set();
+  viewEvaluations.forEach(e => {
+    Object.keys(e.submarks || {}).forEach(key => {
+      if (key && key !== 'ao1' && key !== 'ao2' && key !== 'reading' && key !== 'writing') {
+        allSubmarkKeys.add(key);
+      }
+    });
+  });
+  
+  // Add standard submarks
+  allSubmarkKeys.add('ao1');
+  allSubmarkKeys.add('ao2'); 
+  allSubmarkKeys.add('reading');
+  allSubmarkKeys.add('writing');
+
+  // Submark analysis for all components
+  const submarkAnalysis = Array.from(allSubmarkKeys).map(component => {
+    const componentData = viewEvaluations
+      .filter(e => e.submarks && e.submarks[component] > 0)
+      .map(e => ({
+    date: e.dateKey, 
+        value: e.submarks[component],
+        percent: e.percent,
+        type: e.type
+      }));
+    
+    if (componentData.length === 0) return null;
+    
+    const average = componentData.reduce((sum, d) => sum + d.value, 0) / componentData.length;
+    const trend = componentData.length > 1 ? 
+      (componentData[componentData.length-1].value > componentData[0].value ? 'improving' : 
+       componentData[componentData.length-1].value < componentData[0].value ? 'declining' : 'stable') : 'stable';
+    
+    return {
+      component: component.toUpperCase(),
+      average: Math.round(average * 10) / 10,
+      count: componentData.length,
+      trend,
+      data: componentData,
+      max: Math.max(...componentData.map(d => d.value)),
+      min: Math.min(...componentData.map(d => d.value))
+    };
+  }).filter(Boolean);
+
+  // Grade distribution
+  const gradeDistribution = ['A', 'B', 'C', 'D', 'F'].map(grade => ({
+    grade,
+    count: viewEvaluations.filter(e => e.gradeLevel === grade).length,
+    percentage: Math.round((viewEvaluations.filter(e => e.gradeLevel === grade).length / Math.max(1, viewEvaluations.length)) * 100)
+  }));
+
+  // Performance trends
+  const performanceTrend = viewEvaluations.length > 1 ? 
+    (viewEvaluations[viewEvaluations.length-1].percent > viewEvaluations[0].percent ? 'improving' : 
+     viewEvaluations[viewEvaluations.length-1].percent < viewEvaluations[0].percent ? 'declining' : 'stable') : 'stable';
+
+  const COLORS = ['#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+
+  // Modal states for detailed views
+  const [selectedDetailModal, setSelectedDetailModal] = useState(null);
+  const [showTrendModal, setShowTrendModal] = useState(false);
+  const [showSubmarkModal, setShowSubmarkModal] = useState(null);
+  
+  // Chart data for time series  
+  const viewByDate = byDate;
+  const viewByType = byType;
+  
+  // AO Series data for submark analysis
+  const viewAoSeries = viewEvaluations.map(e => ({ 
+    date: e.dateKey, 
+    AO1: e.submarks?.ao1 || 0,
+    AO2: e.submarks?.ao2 || 0,
+    Reading: e.submarks?.reading || 0,
+    Writing: e.submarks?.writing || 0,
+    ...Object.fromEntries(
+      Object.entries(e.submarks || {})
+        .filter(([key]) => !['ao1', 'ao2', 'reading', 'writing'].includes(key))
+        .map(([key, value]) => [key.charAt(0).toUpperCase() + key.slice(1), value])
+    )
+  }));
 
   // Type distribution (donut)
   const typeDistribution = viewByType.map(t => ({ name: t.type, value: t.count }));
@@ -737,128 +927,551 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50">
+      {/* Enhanced Header */}
+      <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-pink-200/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-20">
             <button
               onClick={onBack}
-              className="text-blue-600 hover:text-blue-800 flex items-center"
+              className="flex items-center space-x-2 text-pink-600 hover:text-pink-800 font-medium transition-colors"
             >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Back to Dashboard
+              <span>Back to Dashboard</span>
             </button>
-            <h1 className="text-xl font-bold text-gray-900">Analytics Dashboard</h1>
-            <div />
+            <div className="text-center">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                Analytics Dashboard
+              </h1>
+              <p className="text-sm text-gray-600">Advanced insights into your writing progress</p>
+          </div>
+            <div className="flex items-center space-x-2">
+              <div className="text-xs bg-pink-100 text-pink-700 px-3 py-1 rounded-full font-medium">
+                {totalResponses} Essays Analyzed
+              </div>
+              <button
+                onClick={() => setShowTrendModal(true)}
+                className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium hover:bg-purple-200 transition-colors"
+              >
+                View Trends
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Filters */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* Enhanced Time Range Filters */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             {['week','month','quarter','all'].map(r => (
-              <button key={r} onClick={()=>setSelectedTimeRange(r)} className={`px-3 py-1.5 rounded-full text-sm border ${selectedTimeRange===r ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}>
-                {r==='week'?'7d':r==='month'?'30d':r==='quarter'?'90d':'All'}
+              <button 
+                key={r} 
+                onClick={()=>setSelectedTimeRange(r)} 
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  selectedTimeRange===r 
+                    ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg' 
+                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-pink-50 hover:border-pink-200'
+                }`}
+              >
+                {r==='week'?'Last 7 Days':r==='month'?'Last 30 Days':r==='quarter'?'Last 90 Days':'All Time'}
               </button>
             ))}
           </div>
-          <div className="text-sm text-gray-600">Showing <span className="font-semibold text-gray-900">{totalResponses}</span> responses</div>
+          <div className="flex items-center space-x-4">
+            <div className="text-sm text-gray-600">
+              Showing <span className="font-semibold text-gray-900">{totalResponses}</span> responses
         </div>
-        {/* KPI Row */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-            <div className="text-xs text-gray-500 mb-1">Average</div>
-            <div className="text-3xl font-bold text-blue-600">{Math.round((viewByDate.reduce((s,d)=>s+d.average,0)/(viewByDate.length||1))||0)}%</div>
-            <div className="text-xs text-gray-500 mt-2">Across selected range (percent)</div>
+            <div className="text-sm text-gray-600">
+              Performance Trend: 
+              <span className={`ml-2 font-semibold ${
+                performanceTrend === 'improving' ? 'text-green-600' : 
+                performanceTrend === 'declining' ? 'text-red-600' : 'text-gray-600'
+              }`}>
+                {performanceTrend === 'improving' ? '📈 Improving' : 
+                 performanceTrend === 'declining' ? '📉 Declining' : '➡️ Stable'}
+              </span>
           </div>
-          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-            <div className="text-xs text-gray-500 mb-1">Active Days</div>
-            <div className="text-3xl font-bold text-emerald-600">{new Set(viewByDate?.map(d=>d.date)).size || 0}</div>
-            <div className="text-xs text-gray-500 mt-2">Days with submissions</div>
           </div>
-          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-            <div className="text-xs text-gray-500 mb-1">Types Attempted</div>
-            <div className="text-3xl font-bold text-purple-600">{viewByType.length}</div>
-            <div className="text-xs text-gray-500 mt-2">Unique question types</div>
           </div>
-          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-            <div className="text-xs text-gray-500 mb-1">Best</div>
-            <div className="text-3xl font-bold text-orange-600">{Math.round(Math.max(...parsedEvaluations.map(e => (e.max>0?(e.score/e.max)*100:0)), 0))}%</div>
-            <div className="text-xs text-gray-500 mt-2">Highest single percentage</div>
+        {/* Enhanced KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-pink-100 hover:shadow-xl transition-all duration-300 cursor-pointer group"
+               onClick={() => setSelectedDetailModal('average')}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-14 h-14 bg-gradient-to-r from-pink-500 to-purple-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                <span className="text-white text-2xl">📊</span>
+              </div>
+              <div className="text-pink-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                Details →
+              </div>
+            </div>
+            <div className="text-4xl font-bold text-pink-600 mb-2">
+              {Math.round((viewByDate.reduce((s,d)=>s+d.average,0)/(viewByDate.length||1))||0)}%
+            </div>
+            <div className="text-sm text-gray-600 font-semibold mb-1">Average Score</div>
+            <div className="text-xs text-gray-500 flex items-center justify-between">
+              <span>{viewByDate.length} essays</span>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                performanceTrend === 'improving' ? 'bg-green-100 text-green-700' :
+                performanceTrend === 'declining' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+              }`}>
+                {performanceTrend === 'improving' ? '📈' : performanceTrend === 'declining' ? '📉' : '➡️'}
+              </span>
           </div>
         </div>
 
-        {/* Type Insights */}
-        <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xl font-semibold text-gray-900">Type Insights</h3>
-            <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full">Top performers</span>
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-green-100 hover:shadow-xl transition-all duration-300 cursor-pointer group"
+               onClick={() => setSelectedDetailModal('consistency')}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-14 h-14 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                <span className="text-white text-2xl">📅</span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {viewByType.sort((a,b)=>b.average-a.average).slice(0,6).map((t,i)=> (
-              <div key={t.type} className="rounded-xl border border-gray-100 p-4 bg-gray-50">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="font-medium capitalize text-gray-900 truncate">{t.type}</div>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-white border border-gray-200">#{i+1}</span>
-                </div>
-                <div className="text-sm text-gray-600">Average <span className="font-semibold text-gray-900">{t.average}</span> • Attempts <span className="font-semibold text-gray-900">{t.count}</span></div>
+              <div className="text-green-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                Details →
+              </div>
             </div>
+            <div className="text-4xl font-bold text-green-600 mb-2">
+              {Object.keys(byDate.reduce((acc, d) => { acc[d.date] = true; return acc; }, {})).length}
+            </div>
+            <div className="text-sm text-gray-600 font-semibold mb-1">Active Days</div>
+            <div className="text-xs text-gray-500">
+              {Math.round((Object.keys(byDate.reduce((acc, d) => { acc[d.date] = true; return acc; }, {})).length / Math.max(1, 30)) * 100)}% consistency
+            </div>
+          </div>
+
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-purple-100 hover:shadow-xl transition-all duration-300 cursor-pointer group"
+               onClick={() => setSelectedDetailModal('types')}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                <span className="text-white text-2xl">📚</span>
+              </div>
+              <div className="text-purple-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                Details →
+              </div>
+            </div>
+            <div className="text-4xl font-bold text-purple-600 mb-2">{viewByType.length}</div>
+            <div className="text-sm text-gray-600 font-semibold mb-1">Question Types</div>
+            <div className="text-xs text-gray-500">
+              Variety: {Math.round((viewByType.length / Math.max(1, totalResponses)) * 100)}%
+            </div>
+          </div>
+
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-orange-100 hover:shadow-xl transition-all duration-300 cursor-pointer group"
+               onClick={() => setSelectedDetailModal('best')}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-14 h-14 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                <span className="text-white text-2xl">🏆</span>
+              </div>
+              <div className="text-orange-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                Details →
+              </div>
+            </div>
+            <div className="text-4xl font-bold text-orange-600 mb-2">
+              {Math.round(Math.max(...parsedEvaluations.map(e => (e.max>0?(e.score/e.max)*100:0)), 0))}%
+            </div>
+            <div className="text-sm text-gray-600 font-semibold mb-1">Best Performance</div>
+            <div className="text-xs text-gray-500">
+              Personal record
+            </div>
+          </div>
+        </div>
+
+        {/* Performance Timeline Chart */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-gray-900">Performance Timeline</h3>
+            <div className="flex items-center space-x-3">
+              <span className={`text-sm font-medium px-3 py-1.5 rounded-full ${
+                performanceTrend === 'improving' ? 'bg-green-100 text-green-700' :
+                performanceTrend === 'declining' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+              }`}>
+                {performanceTrend === 'improving' ? '📈 Trending Up' : 
+                 performanceTrend === 'declining' ? '📉 Trending Down' : '➡️ Stable'}
+              </span>
+              <button
+                onClick={() => setShowTrendModal(true)}
+                className="text-sm bg-purple-100 text-purple-700 px-4 py-1.5 rounded-full hover:bg-purple-200 transition-colors font-medium"
+              >
+                Detailed Analysis
+              </button>
+            </div>
+          </div>
+          
+          <div className="h-80">
+            {viewByDate.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={viewByDate}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis 
+                    dataKey="date" 
+                    tick={{ fontSize: 12, fill: '#64748b' }}
+                    axisLine={{ stroke: '#e2e8f0' }}
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 12, fill: '#64748b' }}
+                    axisLine={{ stroke: '#e2e8f0' }}
+                    domain={[0, 100]}
+                  />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="average" 
+                    stroke="url(#gradient1)" 
+                    strokeWidth={3}
+                    dot={{ fill: '#ec4899', strokeWidth: 2, r: 6 }}
+                    activeDot={{ r: 8, stroke: '#ec4899', strokeWidth: 2, fill: 'white' }}
+                  />
+                  <defs>
+                    <linearGradient id="gradient1" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#ec4899" />
+                      <stop offset="100%" stopColor="#8b5cf6" />
+                    </linearGradient>
+                  </defs>
+                </LineChart>
+                </ResponsiveContainer>
+              ) : (
+              <div className="flex items-center justify-center h-full text-gray-500">
+                <div className="text-center">
+                  <span className="text-4xl mb-4 block">📈</span>
+                  <p className="font-medium">No data for selected time range</p>
+                  <p className="text-sm">Try selecting a different time period</p>
+                </div>
+                </div>
+              )}
+          </div>
+            </div>
+            
+        {/* Enhanced Question Type Analysis */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-gray-900">Question Type Performance</h3>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full font-medium">
+                {viewByType.length} types attempted
+                          </span>
+              <button
+                onClick={() => setSelectedDetailModal('type_breakdown')}
+                className="text-sm bg-purple-100 text-purple-700 px-3 py-1 rounded-full hover:bg-purple-200 transition-colors font-medium"
+              >
+                Detailed Analysis
+              </button>
+                        </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {viewByType.sort((a,b)=>b.average-a.average).map((t,i)=> (
+              <div key={t.type} className="rounded-xl border border-gray-100 p-5 bg-gradient-to-br from-gray-50 to-white hover:shadow-lg transition-all duration-300 cursor-pointer group"
+                   onClick={() => setSelectedDetailModal(`type_${t.type}`)}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="font-bold capitalize text-gray-900 truncate text-lg">{t.type.replace(/_/g, ' ')}</div>
+                  <div className="flex items-center space-x-2">
+                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                      i === 0 ? 'bg-yellow-100 text-yellow-800' : 
+                      i === 1 ? 'bg-silver-100 text-gray-700' :
+                      i === 2 ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      #{i+1}
+                          </span>
+                    <span className={`text-lg ${
+                      t.trend === 'up' ? 'text-green-500' : t.trend === 'down' ? 'text-red-500' : 'text-gray-400'
+                    }`}>
+                      {t.trend === 'up' ? '↗️' : t.trend === 'down' ? '↘️' : '→'}
+                          </span>
+                        </div>
+                      </div>
+                <div className="text-3xl font-bold text-purple-600 mb-2">{t.average}%</div>
+                <div className="text-sm text-gray-600 mb-1">Average Score</div>
+                <div className="text-xs text-gray-500 mb-3">{t.count} attempts • Variance: {t.variance}</div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div 
+                    className={`h-2.5 rounded-full transition-all duration-700 ${
+                      t.average >= 70 ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+                      t.average >= 50 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-red-500 to-pink-500'
+                    }`}
+                    style={{ width: `${t.average}%` }}
+                  ></div>
+                        </div>
+                      </div>
             ))}
           </div>
         </div>
 
-        {/* Recommendations */}
-        <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xl font-semibold text-gray-900">Recommendations</h3>
-            <span className="text-xs bg-pink-50 text-pink-700 px-2 py-1 rounded-full">Next steps</span>
+        {/* Detailed Component Breakdown */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-gray-900">Standard Component Breakdown</h3>
+            <button
+              onClick={() => setSelectedDetailModal('component_trends')}
+              className="text-sm bg-pink-100 text-pink-700 px-3 py-1 rounded-full hover:bg-pink-200 transition-colors font-medium"
+            >
+              View Trends
+            </button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {['AO1','AO2','Reading','Writing'].map(key => {
+              const vals = viewAoSeries.map(v => v[key] || 0).filter(v => v > 0);
+              const avg = vals.length > 0 ? Math.round(vals.reduce((s,n)=>s+n,0) / vals.length) : 0;
+              const max = vals.length > 0 ? Math.max(...vals) : 0;
+              const trend = vals.length > 1 ? (vals[vals.length-1] > vals[0] ? '↑' : vals[vals.length-1] < vals[0] ? '↓' : '→') : '';
+              
+              return (
+                <div key={key} className="rounded-xl border border-gray-100 p-5 bg-gradient-to-br from-gray-50 to-white hover:shadow-lg transition-all duration-300 cursor-pointer group"
+                     onClick={() => setShowSubmarkModal({component: key, average: avg, trend, data: vals, max, count: vals.length})}>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-bold text-gray-900 text-lg">{key}</h4>
+                    <span className={`text-2xl ${trend === '↑' ? 'text-green-500' : trend === '↓' ? 'text-red-500' : 'text-gray-400'}`}>
+                      {trend || '→'}
+                          </span>
+                        </div>
+                  <div className="text-3xl font-bold text-purple-600 mb-2">{avg}</div>
+                  <div className="text-sm text-gray-600 mb-1">Average Score</div>
+                  <div className="text-xs text-gray-500 mb-3">{vals.length} essays • Max: {max}</div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-700"
+                      style={{ width: `${max > 0 ? (avg / max) * 100 : 0}%` }}
+                    ></div>
+                      </div>
+                  <div className="mt-2 text-xs text-gray-500 text-center">
+                    {max > 0 ? Math.round((avg / max) * 100) : 0}% of maximum
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+
+        {/* Enhanced AI Recommendations Section */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-gray-900">AI Study Recommendations</h3>
+            <div className="flex items-center gap-3">
+              {isLoadingRecommendations && (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
+              )}
+              <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${
+                aiRecommendations ? 'bg-green-100 text-green-700' : 
+                isLoadingRecommendations ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
+              }`}>
+                {aiRecommendations ? '🤖 AI Generated' : isLoadingRecommendations ? '⏳ Generating...' : '📊 Data Based'}
+              </span>
+              {!aiRecommendations && !isLoadingRecommendations && evaluations.length >= 5 && (
+                <button
+                  onClick={fetchRecommendations}
+                  className="text-xs bg-purple-100 text-purple-700 px-3 py-1.5 rounded-full hover:bg-purple-200 transition-colors font-medium"
+                >
+                  🔄 Retry AI
+                </button>
+              )}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {viewByType.sort((a,b)=>a.average-b.average).slice(0,3).map(t => (
-              <div key={t.type} className="rounded-xl border border-gray-100 p-4 bg-gray-50">
-                <div className="font-semibold capitalize text-gray-900 mb-1">Practice more: {t.type}</div>
-                  <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                  <li>Review model answers and mark schemes for this type</li>
-                  <li>Focus on structure and clarity; set a word goal of +10%</li>
-                  <li>Attempt 2 new prompts this week in this category</li>
+          </div>
+          
+          {aiRecommendations ? (
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
+              <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                  {aiRecommendations.split('\n').map((line, idx) => {
+                    if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
+                      return (
+                      <div key={idx} className="flex items-start gap-3 mb-3">
+                        <span className="text-purple-600 mt-1 text-lg">•</span>
+                          <span className="flex-1">{line.replace(/^[•\-]\s*/, '')}</span>
+                        </div>
+                      );
+                    }
+                  if (line.trim() && line.endsWith(':')) {
+                    return <div key={idx} className="font-bold text-gray-900 mt-6 mb-3 text-lg">{line}</div>;
+                    }
+                    return line.trim() ? <div key={idx} className="mb-2">{line}</div> : null;
+                  })}
+              </div>
+            </div>
+          ) : isLoadingRecommendations ? (
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-8 border border-purple-200">
+              <div className="flex items-center justify-center space-x-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                <span className="text-purple-700 font-medium text-lg">Analyzing your performance patterns...</span>
+              </div>
+              <p className="text-center text-purple-600 text-sm mt-2">This may take a few moments</p>
+            </div>
+          ) : evaluations.length < 5 ? (
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-8 border border-blue-200">
+              <div className="text-center">
+                <div className="text-4xl mb-4">🤖</div>
+                <h4 className="font-bold text-blue-900 mb-3 text-lg">AI Recommendations Coming Soon!</h4>
+                <p className="text-blue-700 mb-6">
+                  Complete {5 - evaluations.length} more assessment{evaluations.length === 4 ? '' : 's'} to unlock personalized AI recommendations.
+                </p>
+                <div className="bg-white rounded-xl p-4 inline-block">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-40 bg-gray-200 rounded-full h-3">
+                      <div 
+                        className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-500"
+                        style={{ width: `${(evaluations.length / 5) * 100}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-sm font-bold text-gray-700">{evaluations.length}/5</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-6 border border-orange-200">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center">
+                    <span className="text-white text-xl">🤖</span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-orange-800 text-lg">AI Recommendations Unavailable</h4>
+                    <p className="text-orange-600">Using data-driven insights instead</p>
+                  </div>
+                </div>
+                <div className="bg-white rounded-lg p-3">
+                  <p className="text-xs text-orange-700">
+                    <strong>Possible reasons:</strong> Backend API key not configured, network issues, or service temporarily unavailable
+                  </p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {viewByType.sort((a,b)=>a.average-b.average).slice(0,2).map(t => (
+                  <div key={t.type} className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-6 border border-red-200">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-lg">📊</span>
+                  </div>
+                      <div>
+                        <h4 className="font-bold text-red-800">Focus Area: {t.type.replace(/_/g, ' ')}</h4>
+                        <p className="text-red-600 text-sm">Needs improvement</p>
+                  </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 mb-4">
+                      <div className="text-2xl font-bold text-red-600 mb-1">{t.average}%</div>
+                      <div className="text-sm text-gray-600">Current Average ({t.count} essays)</div>
+                    </div>
+                    <ul className="space-y-2 text-sm text-gray-700">
+                      <li className="flex items-start space-x-2">
+                        <span className="text-red-500 mt-1">•</span>
+                        <span>Review exemplar answers for this question type</span>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <span className="text-red-500 mt-1">•</span>
+                        <span>Practice time management for completion</span>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <span className="text-red-500 mt-1">•</span>
+                        <span>Focus on addressing all marking criteria</span>
+                      </li>
                   </ul>
                 </div>
               ))}
-            <div className="rounded-xl border border-gray-100 p-4 bg-gray-50">
-              <div className="font-semibold text-gray-900 mb-1">General Tips</div>
-                  <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                <li>Keep a personal glossary of advanced vocabulary</li>
-                <li>Summarize feedback into 3 bullet points after each attempt</li>
-                <li>Re-attempt your lowest-scoring type after 48 hours</li>
-                  </ul>
+              
+              {viewByType.sort((a,b)=>b.average-a.average).slice(0,1).map(t => (
+                  <div key={`strength-${t.type}`} className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-lg">✓</span>
+                  </div>
+                      <div>
+                        <h4 className="font-bold text-green-800">Strength: {t.type.replace(/_/g, ' ')}</h4>
+                        <p className="text-green-600 text-sm">Keep it up!</p>
+                  </div>
                 </div>
+                    <div className="bg-white rounded-lg p-4 mb-4">
+                      <div className="text-2xl font-bold text-green-600 mb-1">{t.average}%</div>
+                      <div className="text-sm text-gray-600">Current Average ({t.count} essays)</div>
                 </div>
+                    <ul className="space-y-2 text-sm text-gray-700">
+                      <li className="flex items-start space-x-2">
+                        <span className="text-green-500 mt-1">•</span>
+                        <span>Maintain consistency in this area</span>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <span className="text-green-500 mt-1">•</span>
+                        <span>Challenge yourself with harder prompts</span>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <span className="text-green-500 mt-1">•</span>
+                        <span>Help peers by sharing your approach</span>
+                      </li>
+                </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Component Strengths */}
-        <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xl font-semibold text-gray-900">Component Strengths</h3>
-            <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-full">AO & Submarks</span>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {['AO1','AO2','Reading','Writing'].map(key => {
-              const vals = viewAoSeries.map(v => v[key] || 0);
-              const avg = Math.round(vals.reduce((s,n)=>s+n,0) / (vals.length||1));
-              const max = Math.max(...vals, 0);
+        {/* Additional Analytics: Weekly Patterns */}
+        <div className="grid lg:grid-cols-2 gap-8">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">Weekly Activity Pattern</h3>
+            <div className="space-y-4">
+              {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day, index) => {
+                const dayEvaluations = viewEvaluations.filter(e => e.dayOfWeek === (index + 1) % 7);
+                const dayCount = dayEvaluations.length;
+                const dayAvg = dayCount > 0 ? Math.round(dayEvaluations.reduce((s, e) => s + e.percent, 0) / dayCount) : 0;
+                const maxDayCount = Math.max(...[0,1,2,3,4,5,6].map(d => viewEvaluations.filter(e => e.dayOfWeek === d).length));
+                
                 return (
-                <div key={key} className="rounded-xl border border-gray-100 p-4 bg-gray-50">
-                  <div className="text-xs text-gray-500 mb-1">{key}</div>
-                    <div className="text-2xl font-bold text-gray-900">{avg}</div>
-                    <div className="text-xs text-gray-500 mt-1">Best: {max}</div>
+                  <div key={day} className="flex items-center space-x-4">
+                    <div className="w-20 text-sm font-medium text-gray-700">{day}</div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm text-gray-600">{dayCount} essays</span>
+                        <span className="text-sm font-medium text-purple-600">{dayAvg}% avg</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${maxDayCount > 0 ? (dayCount / maxDayCount) * 100 : 0}%` }}
+                        ></div>
+                      </div>
+                    </div>
                   </div>
                 );
-            })}
+              })}
+            </div>
+          </div>
+
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">Performance Insights</h3>
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+                <h4 className="font-bold text-blue-900 mb-2">Consistency Score</h4>
+                <div className="text-3xl font-bold text-blue-600 mb-1">
+                  {Math.round(100 - (byDate.reduce((sum, d) => sum + (d.variance || 0), 0) / Math.max(1, byDate.length)))}%
+                </div>
+                <p className="text-blue-700 text-sm">Based on score variance across sessions</p>
+              </div>
+              
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
+                <h4 className="font-bold text-green-900 mb-2">Improvement Rate</h4>
+                <div className="text-3xl font-bold text-green-600 mb-1">
+                  {viewByDate.length > 1 ? 
+                    Math.round(((viewByDate[viewByDate.length-1]?.average || 0) - (viewByDate[0]?.average || 0)) / Math.max(1, viewByDate.length) * 10) : 0}%
+                    </div>
+                <p className="text-green-700 text-sm">Average improvement per session</p>
+                    </div>
+              
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200">
+                <h4 className="font-bold text-purple-900 mb-2">Skill Diversity</h4>
+                <div className="text-3xl font-bold text-purple-600 mb-1">
+                  {Math.round((viewByType.length / Math.max(1, 10)) * 100)}%
+                  </div>
+                <p className="text-purple-700 text-sm">Coverage of available question types</p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -871,7 +1484,7 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
           <div className="bg-white rounded-2xl p-6 shadow border border-gray-100 hover:shadow-md transition-shadow">
             <div className="text-3xl font-bold text-green-600 mb-2">{Object.keys(byDate).length}</div>
             <div className="text-gray-600">Active Days</div>
-          </div>
+            </div>
           <div className="bg-white rounded-2xl p-6 shadow border border-gray-100 hover:shadow-md transition-shadow">
             <div className="text-3xl font-bold text-purple-600 mb-2">{byType.length}</div>
             <div className="text-gray-600">Types Attempted</div>
@@ -879,9 +1492,169 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
           <div className="bg-white rounded-2xl p-6 shadow border border-gray-100 hover:shadow-md transition-shadow">
             <div className="text-3xl font-bold text-orange-600 mb-2">{Math.max(...parsedEvaluations.map(e => e.score), 0)}</div>
             <div className="text-gray-600">Best Score</div>
+              </div>
+            </div>
+
+        {/* Comprehensive Analytics Modals */}
+        {selectedDetailModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/60" onClick={() => setSelectedDetailModal(null)} />
+            <div className="relative w-full max-w-4xl mx-4 rounded-3xl bg-white shadow-2xl p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+              <div className="px-8 pt-8 pb-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold">Detailed Analytics</h2>
+                  <button onClick={() => setSelectedDetailModal(null)} className="text-white hover:text-gray-200">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+            </div>
+          </div>
+              <div className="p-8">
+                {selectedDetailModal === 'average' && (
+                  <div className="space-y-6">
+                    <h3 className="text-xl font-bold text-gray-900">Average Performance Analysis</h3>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="bg-purple-50 rounded-xl p-4">
+                        <h4 className="font-bold text-purple-900 mb-2">Current Period</h4>
+                        <div className="text-3xl font-bold text-purple-600">
+                          {Math.round((viewByDate.reduce((s,d)=>s+d.average,0)/(viewByDate.length||1))||0)}%
+              </div>
+            </div>
+                      <div className="bg-blue-50 rounded-xl p-4">
+                        <h4 className="font-bold text-blue-900 mb-2">All Time</h4>
+                        <div className="text-3xl font-bold text-blue-600">
+                          {Math.round((parsedEvaluations.reduce((s,e)=>s+e.percent,0)/(parsedEvaluations.length||1))||0)}%
             </div>
           </div>
         </div>
+                  </div>
+                )}
+                
+                {selectedDetailModal === 'types' && (
+                  <div className="space-y-6">
+                    <h3 className="text-xl font-bold text-gray-900">Question Type Performance</h3>
+                    <div className="grid gap-4">
+                      {viewByType.sort((a,b) => b.average - a.average).map((type, i) => (
+                        <div key={type.type} className="bg-gray-50 rounded-xl p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-bold text-gray-900 capitalize">{type.type.replace(/_/g, ' ')}</h4>
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                              i === 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              Rank #{i + 1}
+                            </span>
+          </div>
+                          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+                              <div className="text-2xl font-bold text-purple-600">{type.average}%</div>
+                              <div className="text-xs text-gray-500">Average</div>
+                </div>
+                            <div>
+                              <div className="text-2xl font-bold text-blue-600">{type.count}</div>
+                              <div className="text-xs text-gray-500">Attempts</div>
+            </div>
+            <div>
+                              <div className="text-2xl font-bold text-green-600">{type.variance}</div>
+                              <div className="text-xs text-gray-500">Variance</div>
+                            </div>
+                          </div>
+                  </div>
+                ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedDetailModal === 'submarks' && (
+                  <div className="space-y-6">
+                    <h3 className="text-xl font-bold text-gray-900">All Component Analysis</h3>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {submarkAnalysis.map(component => (
+                        <div key={component.component} className="bg-gray-50 rounded-xl p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-bold text-gray-900">{component.component}</h4>
+                            <span className={`text-lg ${
+                              component.trend === 'improving' ? 'text-green-500' :
+                              component.trend === 'declining' ? 'text-red-500' : 'text-gray-400'
+                            }`}>
+                              {component.trend === 'improving' ? '📈' : 
+                               component.trend === 'declining' ? '📉' : '➡️'}
+                            </span>
+              </div>
+                          <div className="grid grid-cols-3 gap-2 text-center text-sm">
+                            <div>
+                              <div className="font-bold text-purple-600">{component.average}</div>
+                              <div className="text-xs text-gray-500">Avg</div>
+                            </div>
+                            <div>
+                              <div className="font-bold text-green-600">{component.max}</div>
+                              <div className="text-xs text-gray-500">Max</div>
+                            </div>
+                            <div>
+                              <div className="font-bold text-orange-600">{component.min}</div>
+                              <div className="text-xs text-gray-500">Min</div>
+                            </div>
+                          </div>
+                        </div>
+                  ))}
+                </div>
+              </div>
+                )}
+            </div>
+          </div>
+        </div>
+        )}
+
+        {showTrendModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/60" onClick={() => setShowTrendModal(false)} />
+            <div className="relative w-full max-w-6xl mx-4 rounded-3xl bg-white shadow-2xl p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+              <div className="px-8 pt-8 pb-6 bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold">Comprehensive Trends Analysis</h2>
+                  <button onClick={() => setShowTrendModal(false)} className="text-white hover:text-gray-200">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div className="p-8">
+                <div className="grid lg:grid-cols-2 gap-8">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">Performance Over Time</h3>
+                    <div className="h-80">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={viewByDate}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="date" />
+                          <YAxis domain={[0, 100]} />
+                          <Tooltip />
+                          <Line type="monotone" dataKey="average" stroke="#8b5cf6" strokeWidth={3} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">Component Comparison</h3>
+                    <div className="h-80">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={submarkAnalysis}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="component" />
+                          <YAxis />
+                          <Tooltip />
+                          <Bar dataKey="average" fill="#ec4899" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -2408,19 +3181,12 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
         {/* Hero Section */}
         <div className="text-center mb-12">
           <div className="flex justify-center mb-6">
-            <div className="relative group">
-              <img 
-                src="https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143" 
-                alt="EnglishGPT Logo" 
-                className="w-24 h-24 object-contain rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300"
-                style={{ background: 'transparent' }}
-              />
-              <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center animate-pulse">
-                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              </div>
-            </div>
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center relative">
+              <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
+              </svg>
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full"></div>
+          </div>
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">EnglishGPT</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
@@ -2428,6 +3194,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
           </p>
           <motion.button
             onClick={onStartQuestion}
+<<<<<<< HEAD
             className="group bg-gradient-to-r from-pink-500 via-pink-600 to-rose-600 text-white px-16 py-8 rounded-3xl font-bold hover:shadow-2xl hover:scale-105 transition-all duration-300 text-2xl relative overflow-hidden"
             whileHover={{ 
               scale: 1.08, 
@@ -2464,6 +3231,12 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
               </motion.svg>
             </span>
           </motion.button>
+=======
+            className="bg-black text-white px-8 py-4 rounded-xl font-semibold hover:bg-gray-800 transition-colors text-lg"
+          >
+              Mark a Question
+          </button>
+>>>>>>> da0a200 (Enhance AnalyticsDashboard and Essay Validation Features)
         </div>
         
         {/* Question Types - Rendered explicitly */}
@@ -2817,132 +3590,276 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   };
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-gray-50'} p-4`}>
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left: Choose Question Type */}
-          <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-6 shadow-sm border`}>
-            <h2 className={`text-lg font-fredoka font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>📚 Choose Question Type</h2>
-            <div className="mb-4 flex items-center">
-              <div className={`bg-gradient-to-r ${levelData.gradient} text-white px-2 py-1 rounded-md mr-2`}>
-                <span className="font-fredoka font-bold text-xs">{levelData.levelName}</span>
-              </div>
-              <h3 className={`font-fredoka font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'} text-sm`}>{levelData.fullName}</h3>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50">
+      {/* Enhanced Header */}
+      <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-pink-200/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <button
+              onClick={onBack}
+              className="flex items-center space-x-2 text-pink-600 hover:text-pink-800 font-medium transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span>Back to Dashboard</span>
+            </button>
+            <div className="text-center">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                Essay Writing Studio
+              </h1>
+              <p className="text-sm text-gray-600">Choose a question type and start writing</p>
             </div>
-            <div className="space-y-2">
+            <div className="flex items-center space-x-3">
+              <div className={`bg-gradient-to-r ${levelData.gradient} text-white px-4 py-2 rounded-xl shadow-lg`}>
+                <span className="font-bold text-sm">{levelData.levelName}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Enhanced Question Type Selection */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Choose Question Type</h2>
+              <div className={`bg-gradient-to-r ${levelData.gradient} text-white px-3 py-1 rounded-lg shadow-md`}>
+                <span className="font-bold text-sm">{levelData.levelName}</span>
+              </div>
+            </div>
+            <div className="mb-6">
+              <h3 className="font-semibold text-gray-700 text-sm mb-2">{levelData.fullName}</h3>
+              <div className="text-xs text-gray-500">
+                {levelData.questions.length} question types available
+              </div>
+            </div>
+            <div className="space-y-3">
               {levelData.questions.length > 0 ? (
                 levelData.questions.map((question) => (
                   <button
                     key={question.id}
                     onClick={() => handleQuestionSelect(question)}
-                    className={`w-full p-3 rounded-lg text-left transition-all duration-200 border ${
+                    className={`w-full p-4 rounded-xl text-left transition-all duration-300 border group hover:scale-[1.02] ${
                       selectedQuestionType?.id === question.id
-                        ? `${darkMode ? 'border-blue-500 bg-gray-800' : 'border-blue-500 bg-blue-50'} shadow-md`
-                        : `${darkMode ? 'border-gray-700 bg-black hover:border-blue-400 hover:bg-gray-800' : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50'}`
+                        ? 'border-pink-300 bg-gradient-to-r from-pink-50 to-purple-50 shadow-lg ring-2 ring-pink-200'
+                        : 'border-gray-200 bg-white hover:border-pink-200 hover:shadow-md hover:bg-gradient-to-r hover:from-gray-50 hover:to-pink-50'
                     }`}
                     aria-pressed={selectedQuestionType?.id === question.id}
                   >
                     <div className="flex items-center">
-                      <span className="text-lg mr-2">{question.icon}</span>
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 transition-all duration-300 ${
+                        selectedQuestionType?.id === question.id
+                          ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg'
+                          : 'bg-gray-100 text-gray-600 group-hover:bg-gradient-to-r group-hover:from-pink-100 group-hover:to-purple-100'
+                      }`}>
+                        <span className="text-xl">{question.icon}</span>
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <h4 className={`font-fredoka font-bold ${darkMode ? 'text-white' : 'text-gray-900'} text-sm truncate`}>{question.name}</h4>
+                          <h4 className="font-bold text-gray-900 text-base truncate">{question.name}</h4>
                           {selectedQuestionType?.id === question.id && (
-                            <svg className={`w-4 h-4 text-blue-500 flex-shrink-0 ml-1`} fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 ml-2">
+                              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                             </svg>
+                            </div>
                           )}
                         </div>
-                        <p className={`font-fredoka ${darkMode ? 'text-gray-300' : 'text-gray-600'} text-xs mt-1`}>{question.description}</p>
+                        <p className="text-gray-600 text-sm mt-1 leading-relaxed">{question.description}</p>
+                        {question.requiresScheme && (
+                          <div className="mt-2">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                              📋 Requires marking scheme
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </button>
                 ))
               ) : (
-                <div className={`p-4 text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  <p className="font-fredoka text-sm">No questions found for {levelData.levelName}</p>
+                <div className="p-6 text-center">
+                  <div className="text-4xl mb-4">📚</div>
+                  <p className="font-medium text-gray-500">No questions found for {levelData.levelName}</p>
+                  <p className="text-sm text-gray-400 mt-2">Please select a different level or contact support</p>
                 </div>
               )}
             </div>
-            <div className={`${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'} rounded-2xl p-4 border mt-6`}>
-              <h3 className={`font-fredoka font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Getting Started</h3>
-              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm mb-3`}>Use these tips to improve your {selectedQuestionType?.name || levelData.levelName} response:</p>
-              <ul className={`list-disc pl-6 space-y-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'} text-sm`}>
-                <li>Plan briefly: outline intro, key points, and conclusion.</li>
-                <li>Use precise vocabulary and vary sentence structure.</li>
-                <li>Keep a consistent tone and answer the prompt directly.</li>
-                <li>Target word goal shown on the progress ring.</li>
-              </ul>
-              <div className="mt-4 flex gap-3">
-                <button onClick={() => setShowExample(true)} className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">View Example</button>
-                <button onClick={() => setStudentResponse((v) => (v ? v + '\n\n' : '') + generatePrompt())} className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Generate Prompt</button>
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200 mt-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                  <span className="text-white text-lg">💡</span>
+                </div>
+                <div>
+                  <h3 className="font-bold text-purple-900 text-lg">Writing Tips</h3>
+                  <p className="text-purple-700 text-sm">Maximize your {selectedQuestionType?.name || levelData.levelName} performance</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { icon: '📋', tip: 'Plan briefly: outline intro, key points, and conclusion' },
+                  { icon: '📚', tip: 'Use precise vocabulary and vary sentence structure' },
+                  { icon: '🎯', tip: 'Keep a consistent tone and answer the prompt directly' },
+                  { icon: '📊', tip: 'Target the word goal shown in your progress indicator' }
+                ].map((item, index) => (
+                  <div key={index} className="flex items-start space-x-3">
+                    <span className="text-lg mt-0.5">{item.icon}</span>
+                    <span className="text-gray-700 text-sm leading-relaxed">{item.tip}</span>
                   </div>
+                ))}
+              </div>
+              <div className="mt-6 flex gap-3">
+                <button 
+                  onClick={() => setShowExample(true)} 
+                  className="flex-1 px-4 py-2.5 rounded-xl border-2 border-purple-300 text-purple-700 font-medium hover:bg-purple-50 hover:border-purple-400 transition-all duration-200"
+                >
+                  View Example
+                </button>
+                <button 
+                  onClick={() => setStudentResponse((v) => (v ? v + '\n\n' : '') + generatePrompt())} 
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium hover:shadow-lg transition-all duration-200"
+                >
+                  Generate Prompt
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Right: Essay Input */}
-          <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-6 shadow-sm border lg:col-span-2`}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className={`text-2xl font-fredoka font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>📝 Your Essay</h2>
+          {/* Enhanced Essay Writing Interface */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100 lg:col-span-2">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+                  <span className="text-white text-xl">📝</span>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Essay Writing Studio</h2>
+                  <p className="text-gray-600 text-sm">
+                    {selectedQuestionType ? `Writing: ${selectedQuestionType.name}` : 'Select a question type to begin'}
+                  </p>
+                </div>
+              </div>
                 {selectedQuestionType && (
-                <div className={`flex items-center ${darkMode ? 'bg-gray-800' : 'bg-blue-50'} px-3 py-1 rounded-full`}>
-                  <span className="text-2xl mr-2">{selectedQuestionType.icon}</span>
-                  <span className={`font-fredoka text-sm font-medium ${darkMode ? 'text-blue-400' : 'text-blue-700'}`}>{selectedQuestionType.name}</span>
+                <div className="flex items-center space-x-3">
+                  <div className="bg-gradient-to-r from-pink-100 to-purple-100 px-4 py-2 rounded-xl border border-pink-200">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xl">{selectedQuestionType.icon}</span>
+                      <span className="text-sm font-bold text-purple-700">{selectedQuestionType.name}</span>
                   </div>
-                )}
+              </div>
+                  {studentResponse.trim() && (
+                    <div className="bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm">
+                      <span className="text-sm font-medium text-gray-700">{wordCount} words</span>
             </div>
-
-              {restoredDraft && (
-              <div className="mb-3 text-xs text-green-700 bg-green-50 border border-green-200 rounded px-3 py-2">
-                Restored unsaved draft.
+                  )}
                 </div>
               )}
+            </div>
 
-            {/* Formatting toolbar */}
-            <div className="flex items-center gap-2 mb-3">
-              <button onClick={() => applyFormat('**')} className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-100">Bold</button>
-              <button onClick={() => applyFormat('*')} className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-100">Italic</button>
-              <button onClick={insertParagraphBreak} className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-100">Paragraph</button>
-              <button onClick={onBack} className="ml-auto px-3 py-1 text-sm rounded border border-blue-300 text-blue-700 hover:bg-blue-50">← Back</button>
+
+
+            {/* Enhanced Formatting Toolbar */}
+            <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => applyFormat('**')}
+                  className="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 font-medium"
+                >
+                  <strong>B</strong>
+                    </button>
+                    <button
+                      onClick={() => applyFormat('*')}
+                  className="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 font-medium"
+                >
+                  <em>I</em>
+                    </button>
+                    <button
+                      onClick={insertParagraphBreak}
+                  className="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 font-medium"
+                >
+                  ¶ Paragraph
+                    </button>
+                <div className="border-l border-gray-300 h-8 mx-2"></div>
+                    <button
+                      onClick={() => setStudentResponse('')}
+                  className="px-3 py-2 text-sm rounded-lg border border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50 transition-all duration-200 font-medium"
+                >
+                  🗑️ Clear
+                    </button>
                   </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-500">Format your text:</span>
+                </div>
+              </div>
 
+            {/* Enhanced Writing Area */}
+            <div className="relative">
                 <textarea
                   value={studentResponse}
                   onChange={(e) => setStudentResponse(e.target.value)}
-                  placeholder={`Type or paste your ${levelData.levelName} essay answer here...\n\n✨ Select a question type from the left panel and write your response to get instant AI feedback!`}
-              className="w-full h-80 p-6 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none font-fredoka text-gray-700 placeholder-gray-400 leading-relaxed"
+                placeholder={`Start writing your ${levelData.levelName} essay here...\n\nSelect a question type from the left panel and begin writing your response.`}
+                className="w-full h-96 p-6 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 resize-none text-gray-700 placeholder-gray-400 leading-relaxed bg-gradient-to-br from-white to-gray-50 transition-all duration-200"
                   aria-label="Essay input"
                   ref={essayRef}
-                />
+              />
+              {studentResponse.trim() && (
+                <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg border border-gray-200">
+                  <div className="text-sm text-gray-700 font-medium">
+                    {wordCount} words
+                </div>
+                </div>
+              )}
+              </div>
 
-            <div className="mt-4 flex justify-between items-center">
-              <WordCountRing count={wordCount} goal={getWordGoal()} />
-
+            {/* Enhanced Action Buttons */}
+            <div className="mt-6 flex items-center justify-end space-x-3">
                 {showMarkingSchemeChoice && selectedQuestionType && studentResponse.trim() && (
-                  <div className="flex gap-3">
+                    <>
                     <button
                       onClick={() => handleProceed(false)}
-                    className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-2 rounded-lg font-fredoka font-bold hover:from-green-600 hover:to-blue-600 transition-all duration-300 shadow-md"
-                  >
-                    🚀 Skip Scheme
+                        className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
+                      >
+                        <span>🚀</span>
+                        <span>Skip Scheme</span>
                     </button>
                     <button
                       onClick={() => handleProceed(true)}
-                    className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-6 py-2 rounded-lg font-fredoka font-bold hover:from-yellow-600 hover:to-orange-600 transition-all duration-300 shadow-md"
-                  >
-                    📋 Add Scheme
+                        className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
+                      >
+                        <span>📋</span>
+                        <span>Add Scheme</span>
                     </button>
-                  </div>
+                    </>
                 )}
 
                 {showNextButton && selectedQuestionType && studentResponse.trim() && !showMarkingSchemeChoice && (
                   <button
                     onClick={handleProceed}
-                  className="bg-gradient-to-r from-pink-500 to-blue-500 text-white px-8 py-3 rounded-xl font-fredoka font-bold hover:from-pink-600 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-                >
-                  {selectedQuestionType.requiresScheme === true ? 'Add Marking Scheme →' : '🚀 Get AI Feedback Now →'}
+                      className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-8 py-4 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center space-x-3"
+                    >
+                      <span className="text-xl">✨</span>
+                      <span>{selectedQuestionType.requiresScheme === true ? 'Add Marking Scheme' : 'Get AI Feedback Now'}</span>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                          </svg>
                   </button>
                 )}
+
+                  {!selectedQuestionType && (
+                    <div className="bg-gradient-to-r from-gray-100 to-gray-200 text-gray-500 px-8 py-4 rounded-xl font-bold flex items-center space-x-2">
+                      <span>📚</span>
+                      <span>Select a question type first</span>
+            </div>
+                  )}
+
+              {selectedQuestionType && !studentResponse.trim() && (
+                <div className="bg-gradient-to-r from-blue-100 to-purple-100 text-purple-700 px-8 py-4 rounded-xl font-bold flex items-center space-x-2">
+                  <span>✍️</span>
+                  <span>Start writing to continue</span>
+                </div>
+              )}
             </div>
 
             {/* Helper section moved to left; removed duplicate from right */}
@@ -3897,6 +4814,8 @@ const App = () => {
   const [darkMode, setDarkMode] = useState(false); // Dark mode state
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showValidationModal, setShowValidationModal] = useState(false);
+  const [validationError, setValidationError] = useState(null);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [userStats, setUserStats] = useState({
@@ -3908,7 +4827,7 @@ const App = () => {
   // --- Landing Page (public) ---
   const LandingPage = ({ onDiscord, onGoogle }) => {
     // Product screenshots (defined explicitly as requested)
-    const LOGO_URL = 'https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143';
+    const LOGO_URL = 'https://ik.imagekit.io/lqf8a8nmt/ChatGPT%20Image%20Aug%2018,%202025,%2003_21_43%20PM.png?updatedAt=1755510822988';
     const [showAuthModal, setShowAuthModal] = useState(false);
     
     // Animation hooks for enhanced effects
@@ -5474,42 +6393,143 @@ const App = () => {
     }
   };
   
-  // Validation function for essay content
+  // Enhanced validation function for essay content
   const validateEssayContent = (studentResponse, questionType) => {
+    try {
+      console.log('🔍 Starting validation for:', questionType, 'Word count:', studentResponse.trim().split(/\s+/).filter(word => word.length > 0).length);
+      
     const wordCount = studentResponse.trim().split(/\s+/).filter(word => word.length > 0).length;
-    
-    // Skip word count validation for summary writing
+      const lowerResponse = studentResponse.toLowerCase();
+      
+      // Determine word limits based on question type
+      const isALevel = questionType.startsWith('alevel_');
+      const maxWordLimit = isALevel ? 1400 : 700;
+      
+      // Skip word count validation for summary writing (minimum only)
     if (questionType === 'igcse_summary') {
-      // Only check for test content
+        // Only check for test content and maximum limit
+        if (wordCount > maxWordLimit) {
+          return {
+            isValid: false,
+            type: 'word_limit_exceeded',
+            wordCount: wordCount,
+            maxLimit: maxWordLimit,
+            questionType: questionType,
+            error: `Your essay exceeds the word limit. You have ${wordCount} words, but the maximum allowed for IGCSE questions is ${maxWordLimit} words.`
+          };
+        }
     } else {
-      // Check word count for other question types
-      if ( 1 < wordCount && wordCount < 100) {
+        // Check minimum word count for other question types
+        if (1 < wordCount && wordCount < 100) {
         return {
           isValid: false,
-          error: `Your essay is too short. You have ${wordCount} words, but you need at least 100 words for a proper evaluation. We understand you might want to test our AI, for that, please look at our examples on the dashboard. Please write a more detailed response to get meaningful feedback.`
+            type: 'word_count_too_low',
+            wordCount: wordCount,
+            minRequired: 100,
+            error: `Your essay is too short. You have ${wordCount} words, but you need at least 100 words for a proper evaluation.`
         };
       }
       if (wordCount === 1) {
         return {
           isValid: false,
-          error: `Your essay is too long. You have ${wordCount} word, but you need at least 100 words for a proper evaluation. We understand you might want to test our AI, for that, please look at our examples on the dashboard. Please write a more detailed response to get meaningful feedback.`
+            type: 'word_count_too_low',
+            wordCount: wordCount,
+            minRequired: 100,
+            error: `Your essay is too short. You have ${wordCount} word, but you need at least 100 words for a proper evaluation.`
+          };
+        }
+        
+        // Check maximum word count
+        if (wordCount > maxWordLimit) {
+          return {
+            isValid: false,
+            type: 'word_limit_exceeded',
+            wordCount: wordCount,
+            maxLimit: maxWordLimit,
+            questionType: questionType,
+            error: `Your essay exceeds the word limit. You have ${wordCount} words, but the maximum allowed for ${isALevel ? 'A-Level' : 'IGCSE'} questions is ${maxWordLimit} words.`
+          };
+        }
+      }
+      
+      // Enhanced profanity filter
+      const profanityWords = [
+        'fuck', 'fucking', 'fucked', 'fucker', 'shit', 'shitting', 'shitty', 'damn', 'damned',
+        'hell', 'bitch', 'bastard', 'asshole', 'ass', 'crap', 'piss', 'pissed',
+        'stupid', 'idiot', 'moron', 'retard', 'retarded', 'dumb', 'dumbass', 'loser',
+        'hate', 'kill', 'die', 'death', 'murder', 'suicide', 'nazi', 'terrorist',
+        'sex', 'porn', 'naked', 'nude', 'penis', 'vagina', 'breast', 'dick',
+        'drug', 'cocaine', 'heroin', 'marijuana', 'weed', 'high', 'stoned',
+        'violence', 'violent', 'attack', 'weapon', 'gun', 'knife', 'bomb', 'explosive'
+      ];
+      
+      const foundProfanity = profanityWords.filter(word => {
+        const regex = new RegExp(`\\b${word}\\b`, 'i');
+        return regex.test(lowerResponse);
+      });
+      
+      if (foundProfanity.length > 0) {
+        return {
+          isValid: false,
+          type: 'profanity_detected',
+          foundWords: foundProfanity,
+          error: `Your essay contains inappropriate language. Please revise your content to maintain academic standards.`
         };
       }
-    }
+      
+      // Enhanced spam detection
+      const testWords = ['test', 'hello', 'world', 'random', 'testing', 'sample', 'example', 'demo'];
+      const essaySpamWords = ['essay', 'essay writing', 'essay help', 'essay writing help', 'essay writing service', 
+        'essay writing assistant', 'essay writing tool', 'essay writing software', 'essay writing app', 
+        'essay writing online', 'write my essay', 'help me write', 'ai essay', 'chatgpt', 'gpt'];
+      const filler = ['okay', 'um', 'uh', 'like', 'you know', 'basically', 'literally', 'actually', 'really', 'very'];
+      const repetitivePatterns = ['lorem ipsum', 'the quick brown fox', 'abcd', '1234', 'qwerty', 'asdf'];
     
     // Check for test content
-    const testWords = ['test', 'hello', 'world', 'random', 'testing', 'sample', 'example', 'demo', 'essay', 'essay writing', 'essay help', 'essay writing help', 'essay writing service', 'essay writing assistant', 'essay writing tool', 'essay writing software', 'essay writing app', 'essay writing online', 'essay writing tool', 'essay writing software', 'essay writing app', 'essay writing online', 'okay', ];
-    const lowerResponse = studentResponse.toLowerCase();
-    
-    // Check if response contains mostly test words or is very repetitive
-    const testWordCount = testWords.filter(word => lowerResponse.includes(word)).length;
-    const uniqueWords = new Set(lowerResponse.split(/\s+/).filter(word => word.length > 0));
-    const totalWords = lowerResponse.split(/\s+/).filter(word => word.length > 0).length;
-    
-    if (testWordCount > 2 || (uniqueWords.size / totalWords) < 0.3) {
+      const testWordCount = testWords.filter(word => lowerResponse.includes(word.toLowerCase())).length;
+      const essaySpamCount = essaySpamWords.filter(phrase => lowerResponse.includes(phrase.toLowerCase())).length;
+      const fillerCount = filler.filter(word => {
+        const regex = new RegExp(`\\b${word}\\b`, 'gi');
+        const matches = lowerResponse.match(regex);
+        return matches && matches.length > 3; // More than 3 occurrences
+      }).length;
+      
+      // Check for repetitive patterns
+      const hasRepetitivePattern = repetitivePatterns.some(pattern => lowerResponse.includes(pattern));
+      
+      // Check for excessive repetition of words
+      const words = lowerResponse.split(/\s+/).filter(word => word.length > 3);
+      const wordFrequency = {};
+      words.forEach(word => {
+        wordFrequency[word] = (wordFrequency[word] || 0) + 1;
+      });
+      
+      const maxWordFrequency = Object.values(wordFrequency).length > 0 ? Math.max(...Object.values(wordFrequency)) : 0;
+      const isExcessivelyRepetitive = maxWordFrequency > Math.max(5, words.length * 0.1);
+      
+      // Check unique word ratio
+      const uniqueWords = new Set(words);
+      const uniqueWordRatio = uniqueWords.size / Math.max(1, words.length);
+      
+      // Spam detection logic
+      if (testWordCount > 2 || essaySpamCount > 1 || fillerCount > 0 || hasRepetitivePattern || 
+          isExcessivelyRepetitive || uniqueWordRatio < 0.3) {
+        
+        let spamReasons = [];
+        if (testWordCount > 2) spamReasons.push('test_words');
+        if (essaySpamCount > 1) spamReasons.push('essay_spam');
+        if (fillerCount > 0) spamReasons.push('excessive_filler');
+        if (hasRepetitivePattern) spamReasons.push('repetitive_pattern');
+        if (isExcessivelyRepetitive) spamReasons.push('word_repetition');
+        if (uniqueWordRatio < 0.3) spamReasons.push('low_uniqueness');
+        
       return {
         isValid: false,
-        error: `Your essay appears to be test content or contains repetitive text. Please write a proper essay with meaningful content to get accurate feedback. The AI needs real content to provide helpful analysis.`
+          type: 'spam_detected',
+          reasons: spamReasons,
+          uniqueWordRatio: Math.round(uniqueWordRatio * 100),
+          testWordCount: testWordCount,
+          error: `Your essay appears to contain test content or spam. Please write genuine academic content for accurate feedback.`
       };
     }
     
@@ -5517,11 +6537,24 @@ const App = () => {
     if (studentResponse.trim().length < 200) {
       return {
         isValid: false,
+          type: 'too_brief',
+          characterCount: studentResponse.trim().length,
+          minRequired: 200,
         error: `Your essay is too brief for meaningful analysis. Please write a more detailed response (at least 200 characters) to receive comprehensive feedback.`
       };
     }
     
+      console.log('✅ Validation passed for essay');
     return { isValid: true };
+      
+    } catch (error) {
+      console.error('❌ Validation error:', error);
+      return {
+        isValid: false,
+        type: 'validation_error',
+        error: 'There was an error validating your essay. Please try again.'
+      };
+    }
   };
   
 // Authentication functions
@@ -5789,12 +6822,18 @@ const handleSignOut = async () => {
     }
     
     // Validate essay content before sending to API
+    console.log('🚀 About to validate essay:', evaluationResult.question_type);
     const validation = validateEssayContent(evaluationResult.student_response, evaluationResult.question_type);
+    console.log('📊 Validation result:', validation);
+    
     if (!validation.isValid) {
-      setErrorMessage(validation.error);
-      setShowErrorModal(true);
+      console.log('❌ Validation failed, showing modal:', validation.type);
+      setValidationError(validation);
+      setShowValidationModal(true);
       return;
     }
+    
+    console.log('✅ Validation passed, proceeding with evaluation');
     
     setEvaluationLoading(true);
     try {
@@ -5992,6 +7031,294 @@ const handleSignOut = async () => {
   }
   
   return (
+    <>
+      {/* Validation Error Modal - Global */}
+      {showValidationModal && validationError && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setShowValidationModal(false)} />
+          <div className="relative w-full max-w-2xl mx-4 rounded-3xl bg-white shadow-2xl p-0 overflow-hidden">
+            
+            {/* Word Limit Exceeded Modal */}
+            {validationError.type === 'word_limit_exceeded' && (
+              <>
+                <div className="px-8 pt-8 pb-6 bg-gradient-to-r from-red-500 to-pink-500 text-white">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                      <span className="text-3xl">📏</span>
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold">Word Limit Exceeded</h2>
+                      <p className="text-red-100">Your essay is too long for evaluation</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-8">
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white rounded-lg p-3 border border-red-200">
+                        <div className="text-2xl font-bold text-red-600">{validationError.wordCount}</div>
+                        <div className="text-xs text-red-500">Your word count</div>
+                      </div>
+                      <div className="bg-white rounded-lg p-3 border border-red-200">
+                        <div className="text-2xl font-bold text-green-600">{validationError.maxLimit}</div>
+                        <div className="text-xs text-green-500">Maximum allowed</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-blue-50 rounded-xl p-4 mb-6">
+                    <h4 className="font-semibold text-blue-900 mb-2">💡 How to shorten your essay:</h4>
+                    <ul className="text-blue-800 text-sm space-y-1">
+                      <li>• Remove redundant sentences and repetitive ideas</li>
+                      <li>• Combine related points into single paragraphs</li>
+                      <li>• Focus on your strongest arguments and examples</li>
+                      <li>• Use more precise vocabulary to express ideas concisely</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="flex space-x-3">
+                    <button 
+                      onClick={() => setShowValidationModal(false)}
+                      className="flex-1 bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+                    >
+                      Edit My Essay
+                    </button>
+                    <button 
+                      onClick={() => setShowValidationModal(false)}
+                      className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-200"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+            
+            {/* Profanity Detected Modal */}
+            {validationError.type === 'profanity_detected' && (
+              <>
+                <div className="px-8 pt-8 pb-6 bg-gradient-to-r from-orange-500 to-red-500 text-white">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                      <span className="text-3xl">⚠️</span>
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold">Inappropriate Content Detected</h2>
+                      <p className="text-orange-100">Please maintain academic standards</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-8">
+                  <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6">
+                    <div className="text-sm text-orange-600">
+                      <strong>Detected issues:</strong> {validationError.foundWords?.length || 0} inappropriate words
+                    </div>
+                  </div>
+                  
+                  <div className="bg-green-50 rounded-xl p-4 mb-6">
+                    <h4 className="font-semibold text-green-900 mb-2">✨ Tips for academic language:</h4>
+                    <ul className="text-green-800 text-sm space-y-1">
+                      <li>• Use formal vocabulary appropriate for academic writing</li>
+                      <li>• Express strong opinions through evidence, not emotional language</li>
+                      <li>• Choose precise, descriptive words over casual expressions</li>
+                      <li>• Remember that academic essays are formal documents</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="flex space-x-3">
+                    <button 
+                      onClick={() => setShowValidationModal(false)}
+                      className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+                    >
+                      Revise My Essay
+                    </button>
+                    <button 
+                      onClick={() => setShowValidationModal(false)}
+                      className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-200"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+            
+            {/* Spam Detected Modal */}
+            {validationError.type === 'spam_detected' && (
+              <>
+                <div className="px-8 pt-8 pb-6 bg-gradient-to-r from-yellow-500 to-orange-500 text-white">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                      <span className="text-3xl">🤖</span>
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold">Content Quality Issues</h2>
+                      <p className="text-yellow-100">We need genuine academic content for accurate feedback</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-8">
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white rounded-lg p-3 border border-yellow-200">
+                        <div className="text-2xl font-bold text-yellow-600">{validationError.uniqueWordRatio}%</div>
+                        <div className="text-xs text-yellow-500">Unique content</div>
+                      </div>
+                      <div className="bg-white rounded-lg p-3 border border-yellow-200">
+                        <div className="text-2xl font-bold text-red-600">{validationError.reasons?.length || 0}</div>
+                        <div className="text-xs text-red-500">Issues detected</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-blue-50 rounded-xl p-4 mb-6">
+                    <h4 className="font-semibold text-blue-900 mb-2">🎯 How to write authentic content:</h4>
+                    <ul className="text-blue-800 text-sm space-y-1">
+                      <li>• Write about topics you genuinely understand</li>
+                      <li>• Use your own words and ideas, not copied text</li>
+                      <li>• Vary your vocabulary and sentence structures</li>
+                      <li>• Focus on answering the specific question asked</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="flex space-x-3">
+                    <button 
+                      onClick={() => setShowValidationModal(false)}
+                      className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+                    >
+                      Write Genuine Content
+                    </button>
+                    <button 
+                      onClick={() => setShowValidationModal(false)}
+                      className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-200"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+            
+            {/* Too Brief Modal */}
+            {validationError.type === 'too_brief' && (
+              <>
+                <div className="px-8 pt-8 pb-6 bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                      <span className="text-3xl">📝</span>
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold">Essay Too Brief</h2>
+                      <p className="text-blue-100">We need more content for meaningful analysis</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-8">
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white rounded-lg p-3 border border-blue-200">
+                        <div className="text-2xl font-bold text-blue-600">{validationError.characterCount}</div>
+                        <div className="text-xs text-blue-500">Current characters</div>
+                      </div>
+                      <div className="bg-white rounded-lg p-3 border border-blue-200">
+                        <div className="text-2xl font-bold text-green-600">{validationError.minRequired}</div>
+                        <div className="text-xs text-green-500">Minimum required</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-green-50 rounded-xl p-4 mb-6">
+                    <h4 className="font-semibold text-green-900 mb-2">💡 How to expand your essay:</h4>
+                    <ul className="text-green-800 text-sm space-y-1">
+                      <li>• Add more detailed examples and evidence</li>
+                      <li>• Explain your reasoning and analysis more thoroughly</li>
+                      <li>• Include additional perspectives or counterarguments</li>
+                      <li>• Develop your introduction and conclusion</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="flex space-x-3">
+                    <button 
+                      onClick={() => setShowValidationModal(false)}
+                      className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+                    >
+                      Expand My Essay
+                    </button>
+                    <button 
+                      onClick={() => setShowValidationModal(false)}
+                      className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-200"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+            
+            {/* Word Count Too Low Modal */}
+            {validationError.type === 'word_count_too_low' && (
+              <>
+                <div className="px-8 pt-8 pb-6 bg-gradient-to-r from-purple-500 to-indigo-500 text-white">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                      <span className="text-3xl">📊</span>
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold">Word Count Too Low</h2>
+                      <p className="text-purple-100">Your essay needs more words for proper evaluation</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-8">
+                  <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white rounded-lg p-3 border border-purple-200">
+                        <div className="text-2xl font-bold text-purple-600">{validationError.wordCount}</div>
+                        <div className="text-xs text-purple-500">Current words</div>
+                      </div>
+                      <div className="bg-white rounded-lg p-3 border border-purple-200">
+                        <div className="text-2xl font-bold text-green-600">{validationError.minRequired}</div>
+                        <div className="text-xs text-green-500">Minimum needed</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-blue-50 rounded-xl p-4 mb-6">
+                    <h4 className="font-semibold text-blue-900 mb-2">🚀 Quick ways to add words:</h4>
+                    <ul className="text-blue-800 text-sm space-y-1">
+                      <li>• Add specific examples to support your points</li>
+                      <li>• Explain the significance of your evidence</li>
+                      <li>• Include relevant context or background information</li>
+                      <li>• Develop counterarguments and responses</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="flex space-x-3">
+                    <button 
+                      onClick={() => setShowValidationModal(false)}
+                      className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+                    >
+                      Add More Content
+                    </button>
+                    <button 
+                      onClick={() => setShowValidationModal(false)}
+                      className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-200"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      
     <Routes>
       <Route path="/results/:id" element={<PublicResultPageWrapper />} />
       {/* Public landing */}
@@ -6038,6 +7365,7 @@ const handleSignOut = async () => {
         }
       />
     </Routes>
+    </>
   );
 };
 
