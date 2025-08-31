@@ -2,6 +2,31 @@ import { apiHelpers } from './api';
 import { API_ENDPOINTS } from '../constants/apiEndpoints';
 
 /**
+ * Create a new user record
+ * @param {string} userId - The user ID
+ * @param {Object} userData - The user data
+ * @returns {Promise} - API response
+ */
+export const createUser = async (userId, userData = {}) => {
+  try {
+    console.log('🆕 Creating new user record for:', userId);
+    const response = await apiHelpers.post(`${API_ENDPOINTS.USERS}`, {
+      user_id: userId, // Backend expects user_id, not uid
+      email: userData.email || '',
+      name: userData.name || '',
+      academic_level: userData.academic_level || 'N/A'
+    });
+    console.log('✅ User created successfully:', response.data);
+    
+    // Backend returns {user: {...}}, so extract the user data
+    return response.data.user || response.data;
+  } catch (error) {
+    console.error('❌ Error creating user:', error);
+    throw error;
+  }
+};
+
+/**
  * Get user profile
  * @param {string} userId - The user ID
  * @returns {Promise} - API response
@@ -11,9 +36,24 @@ export const getUserProfile = async (userId) => {
     console.log('🔍 Fetching user profile for:', userId);
     const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}`);
     console.log('📊 User profile response:', response.data);
-    return response.data;
+    
+    // Backend returns {user: {...}}, so extract the user data
+    return response.data.user || response.data;
   } catch (error) {
     console.error('❌ Error fetching user profile:', error);
+    
+    // If user doesn't exist (404), create them
+    if (error.response?.status === 404) {
+      console.log('🔄 User not found, creating new user record...');
+      try {
+        const newUser = await createUser(userId);
+        return newUser;
+      } catch (createError) {
+        console.error('❌ Failed to create user:', createError);
+        throw createError;
+      }
+    }
+    
     throw error;
   }
 };
@@ -86,6 +126,36 @@ export const getUserStats = async (userId) => {
     return userStats;
   } catch (error) {
     console.error('❌ Error fetching user stats:', error);
+    
+    // If user doesn't exist (404), create them
+    if (error.response?.status === 404) {
+      console.log('🔄 User not found, creating new user record...');
+      try {
+        const newUser = await createUser(userId);
+        
+        // Construct user stats from new user data
+        const userStats = {
+          currentPlan: newUser.current_plan || 'free',
+          credits: newUser.credits || 3,
+          questionsMarked: newUser.questions_marked || 0,
+          evaluationsLimit: newUser.evaluations_limit || 3,
+          evaluationsUsed: newUser.evaluations_used || 0,
+          academicLevel: newUser.academic_level || '',
+          dodoCustomerId: newUser.dodo_customer_id || null,
+          createdAt: newUser.created_at,
+          updatedAt: newUser.updated_at,
+          // Include the full user data for compatibility
+          ...newUser
+        };
+        
+        console.log('🎯 Constructed user stats from new user:', userStats);
+        return userStats;
+      } catch (createError) {
+        console.error('❌ Failed to create user:', createError);
+        throw createError;
+      }
+    }
+    
     throw error;
   }
 };
