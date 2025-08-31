@@ -1,6 +1,6 @@
 import { apiHelpers } from './api';
 import { API_ENDPOINTS } from '../constants/apiEndpoints';
-import { applyLaunchPeriodBenefits } from '../utils/launchPeriod';
+import { applyLaunchPeriodBenefits, isLaunchPeriod } from '../utils/launchPeriod';
 
 /**
  * Create a new user record
