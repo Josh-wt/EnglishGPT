@@ -86,6 +86,13 @@ const App = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Load evaluations when user signs in
+  useEffect(() => {
+    if (user?.id) {
+      fetchEvaluations(user.id);
+    }
+  }, [user?.id, fetchEvaluations]);
+
   // Helper functions
   const setLoadingState = (key, value) => {
     setLoadingStates(prev => ({ ...prev, [key]: value }));
@@ -430,6 +437,10 @@ const App = () => {
               questionTypes={questionTypes}
               onSelectQuestionType={handleSelectQuestionType}
               onBack={handleBack}
+              onEvaluate={handleEvaluate}
+              selectedLevel={selectedLevel}
+              darkMode={darkMode}
+              user={user}
             />
           </AuthRequired>
         } />

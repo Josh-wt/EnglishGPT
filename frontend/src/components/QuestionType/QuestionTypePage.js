@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Header from './Header';
 import ExampleModal from './ExampleModal';
 
-const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvaluate, selectedLevel, darkMode }) => {
+const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvaluate, selectedLevel, darkMode, user }) => {
   const [selectedQuestionType, setSelectedQuestionType] = useState(null);
   const [studentResponse, setStudentResponse] = useState('');
   const [showNextButton, setShowNextButton] = useState(false);
@@ -99,6 +99,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       question_type: selectedQuestionType.id,
       student_response: studentResponse,
       marking_scheme: null,
+      user_id: user?.id,
     };
     onEvaluate(evaluationData);
   };
@@ -199,9 +200,9 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
 
               {/* Main Content - Split Layout */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 h-[calc(100vh-200px)]">
+          <div className="grid grid-cols-1 lg:grid-cols-6 gap-8 h-[calc(100vh-200px)]">
             
-            {/* Left Side - Question Types (Thinner) */}
+            {/* Left Side - Question Types (15% wider) */}
             <div className="lg:col-span-1 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
               <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-4">
                 <h2 className="text-lg font-bold text-white font-fredoka mb-1">Question Types</h2>
@@ -253,8 +254,8 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
               </div>
             </div>
 
-            {/* Right Side - Writing Interface (Wider) */}
-            <div className="lg:col-span-4 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            {/* Right Side - Writing Interface (Full Space) */}
+            <div className="lg:col-span-5 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
               <div className="bg-gradient-to-r from-blue-500 to-green-600 p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -325,34 +326,19 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                     </div>
                   </div>
 
-                  {/* Text Editor with Preview */}
+                  {/* Text Editor - Full Space */}
                   <div className="flex-1 relative">
-                    <div className="grid grid-cols-2 gap-4 h-full">
-                      {/* Textarea */}
-                      <div className="relative">
-                        <textarea
-                          ref={essayRef}
-                          value={studentResponse}
-                          onChange={(e) => {
-                            setStudentResponse(e.target.value);
-                            setIsTyping(true);
-                            setTimeout(() => setIsTyping(false), 1000);
-                          }}
-                          placeholder="Start writing your essay here... Use the toolbar above for formatting."
-                          className="w-full h-full p-4 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-fredoka text-gray-900 placeholder-gray-400 transition-all duration-200"
-                        />
-                      </div>
-                      
-                      {/* Preview */}
-                      <div className="relative">
-                        <div className="w-full h-full p-4 border border-gray-200 rounded-lg bg-gray-50 overflow-y-auto">
-                          <div 
-                            className="font-fredoka text-gray-900 prose prose-sm max-w-none"
-                            dangerouslySetInnerHTML={{ __html: formattedText || '<span class="text-gray-400">Preview will appear here...</span>' }}
-                          />
-                        </div>
-                      </div>
-                    </div>
+                    <textarea
+                      ref={essayRef}
+                      value={studentResponse}
+                      onChange={(e) => {
+                        setStudentResponse(e.target.value);
+                        setIsTyping(true);
+                        setTimeout(() => setIsTyping(false), 1000);
+                      }}
+                      placeholder="Start writing your essay here... Use the toolbar above for formatting."
+                      className="w-full h-full p-4 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-fredoka text-gray-900 placeholder-gray-400 transition-all duration-200"
+                    />
                     
                     {/* Auto-save indicator */}
                     {isTyping && (
