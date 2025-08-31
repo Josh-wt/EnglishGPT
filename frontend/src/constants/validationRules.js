@@ -13,8 +13,8 @@ export const VALIDATION_RULES = {
 };
 
 export const TEST_WORDS = [
-  'test', 'testing', 'sample', 'example', 'dummy', 'placeholder',
-  'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur',
+  // Only obvious test content, not legitimate academic words
+  'dummy', 'placeholder', 'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur',
   'adipiscing', 'elit', 'sed', 'do', 'eiusmod', 'tempor',
   'incididunt', 'ut', 'labore', 'et', 'dolore', 'magna',
   'aliqua', 'ut', 'enim', 'ad', 'minim', 'veniam',
@@ -26,6 +26,7 @@ export const TEST_WORDS = [
   'sint', 'occaecat', 'cupidatat', 'non', 'proident', 'sunt',
   'culpa', 'qui', 'officia', 'deserunt', 'mollit', 'anim',
   'id', 'est', 'laborum'
+  // Removed 'test', 'testing', 'sample', 'example' as these are legitimate academic words
 ];
 
 export const FILLER_WORDS = [
