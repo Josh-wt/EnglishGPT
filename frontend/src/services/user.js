@@ -57,8 +57,28 @@ export const updateAcademicLevel = async (userId, academicLevel) => {
  */
 export const getUserStats = async (userId) => {
   try {
-    const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}/stats`);
-    return response.data;
+    // Use the existing /users/{user_id} endpoint since there's no dedicated /stats endpoint
+    const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}`);
+    
+    // Extract user data and construct stats
+    const userData = response.data.user;
+    
+    // Construct user stats from user data
+    const userStats = {
+      currentPlan: userData.current_plan || 'free',
+      credits: userData.credits || 3,
+      questionsMarked: userData.questions_marked || 0,
+      evaluationsLimit: userData.evaluations_limit || 3,
+      evaluationsUsed: userData.evaluations_used || 0,
+      academicLevel: userData.academic_level || '',
+      dodoCustomerId: userData.dodo_customer_id || null,
+      createdAt: userData.created_at,
+      updatedAt: userData.updated_at,
+      // Include the full user data for compatibility
+      ...userData
+    };
+    
+    return userStats;
   } catch (error) {
     console.error('Error fetching user stats:', error);
     throw error;
@@ -72,8 +92,24 @@ export const getUserStats = async (userId) => {
  */
 export const getUserSubscription = async (userId) => {
   try {
-    const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}/subscription`);
-    return response.data;
+    // Use the existing /users/{user_id} endpoint since there's no dedicated /subscription endpoint
+    const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}`);
+    
+    // Extract subscription data from user data
+    const userData = response.data.user;
+    
+    const subscriptionData = {
+      currentPlan: userData.current_plan || 'free',
+      dodoCustomerId: userData.dodo_customer_id || null,
+      questionsMarked: userData.questions_marked || 0,
+      credits: userData.credits || 3,
+      evaluationsLimit: userData.evaluations_limit || 3,
+      evaluationsUsed: userData.evaluations_used || 0,
+      // Include the full user data for compatibility
+      ...userData
+    };
+    
+    return subscriptionData;
   } catch (error) {
     console.error('Error fetching user subscription:', error);
     throw error;
