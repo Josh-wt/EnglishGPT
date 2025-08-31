@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { getBackendUrl } from '../../utils/backendUrl';
+import api from '../../services/api';
 import Header from './Header';
 import EssayPreview from './EssayPreview';
 import MarkingSchemeSection from './MarkingSchemeSection';
@@ -90,7 +91,7 @@ const AssessmentPage = ({ selectedQuestionType, onBack, onEvaluate, darkMode }) 
       
       
 
-        const response = await axios.post(`${getBackendUrl()}/api/process-file`, formData, {
+        const response = await api.post(`/process-file`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

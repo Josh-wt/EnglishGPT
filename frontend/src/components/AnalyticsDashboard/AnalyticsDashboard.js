@@ -4,6 +4,7 @@ import { LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tool
 import { supabase } from '../../supabaseClient';
 
 import { getBackendUrl } from '../../utils/backendUrl';
+import api from '../../services/api';
 
 const BACKEND_URL = getBackendUrl();
 
@@ -50,10 +51,10 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
           }
           
         // Use the correct API endpoint
-        const apiUrl = `${BACKEND_URL}/api/analytics/${user.id}`;
+        const apiUrl = `/analytics/${user.id}`;
         console.log('🌐 Fetching from:', apiUrl);
         
-        const response = await fetch(apiUrl, {
+        const response = await api.get(apiUrl, {
             headers: {
               'Authorization': `Bearer ${session.access_token}`,
               'Content-Type': 'application/json',
@@ -62,20 +63,19 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
         
         console.log('📡 Response status:', response.status);
           
-          if (response.ok) {
-            const data = await response.json();
+        if (response.status === 200) {
+          const data = response.data;
           console.log('📋 Analytics data received:', data);
           
-            if (data.analytics?.recommendations) {
+          if (data.analytics?.recommendations) {
             console.log('✅ AI recommendations found:', data.analytics.recommendations.substring(0, 100) + '...');
-              setAiRecommendations(data.analytics.recommendations);
+            setAiRecommendations(data.analytics.recommendations);
           } else {
             console.log('⚠️ No recommendations in response');
-            }
-        } else {
-          const errorText = await response.text();
-          console.error('❌ API request failed:', response.status, errorText);
           }
+        } else {
+          console.error('❌ API request failed:', response.status, response.data);
+        }
         } catch (error) {
         console.error('❌ Error fetching recommendations:', error);
         } finally {

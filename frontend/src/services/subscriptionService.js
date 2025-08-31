@@ -3,7 +3,9 @@
  * Handles all subscription-related API calls and state management
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+import { getBackendUrl } from '../utils/backendUrl';
+
+const API_BASE_URL = getBackendUrl();
 
 class SubscriptionService {
   constructor() {

@@ -8,26 +8,29 @@
  * @returns {string} - The backend URL
  */
 export const getBackendUrl = () => {
-  // If REACT_APP_BACKEND_URL is set, use it
+  console.log('🔧 getBackendUrl called from:', new Error().stack?.split('\n')[2]?.trim() || 'Unknown');
+  
   if (process.env.REACT_APP_BACKEND_URL) {
+    console.log('🔧 Using REACT_APP_BACKEND_URL:', process.env.REACT_APP_BACKEND_URL);
     return process.env.REACT_APP_BACKEND_URL;
   }
   
-  // Otherwise, dynamically detect based on current domain
   if (typeof window !== 'undefined') {
     const origin = window.location.origin;
+    console.log('🔧 Window origin:', origin);
     
-    // If we're on localhost, use localhost:8000
     if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-      return 'http://localhost:8000';
+      const url = 'http://localhost:8000';
+      console.log('🔧 Localhost detected, using:', url);
+      return url;
     }
     
-    // For production, use the same domain but port 8000
-    // This assumes the backend is running on the same domain but different port
-    return `${origin.replace(/:\d+/, '')}:8000`;
+    const url = `${origin.replace(/:\d+/, '')}:8000`;
+    console.log('🔧 Production detected, using:', url);
+    return url;
   }
   
-  // Fallback for SSR
+  console.log('🔧 Fallback to localhost:8000');
   return 'http://localhost:8000';
 };
 
@@ -36,5 +39,8 @@ export const getBackendUrl = () => {
  * @returns {string} - The API base URL
  */
 export const getApiUrl = () => {
-  return `${getBackendUrl()}/api`;
+  const backendUrl = getBackendUrl();
+  const apiUrl = `${backendUrl}/api`;
+  console.log('🔧 getApiUrl returning:', apiUrl);
+  return apiUrl;
 };

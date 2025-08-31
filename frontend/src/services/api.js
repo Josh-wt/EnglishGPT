@@ -10,6 +10,44 @@ const api = axios.create({
   },
 });
 
+// Add request interceptor for debugging
+api.interceptors.request.use(
+  (config) => {
+    console.log('🔍 API Request:', {
+      method: config.method?.toUpperCase(),
+      url: config.url,
+      fullUrl: config.baseURL + config.url,
+      component: new Error().stack?.split('\n')[2]?.trim() || 'Unknown'
+    });
+    return config;
+  },
+  (error) => {
+    console.error('❌ API Request Error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for debugging
+api.interceptors.response.use(
+  (response) => {
+    console.log('✅ API Response:', {
+      status: response.status,
+      url: response.config.url,
+      method: response.config.method?.toUpperCase()
+    });
+    return response;
+  },
+  (error) => {
+    console.error('❌ API Response Error:', {
+      status: error.response?.status,
+      url: error.config?.url,
+      method: error.config?.method?.toUpperCase(),
+      message: error.message
+    });
+    return Promise.reject(error);
+  }
+);
+
 // Request interceptor to add auth token
 api.interceptors.request.use(
   async (config) => {
