@@ -6,14 +6,14 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
   
   // Helper function to check if user has unlimited access
   const hasUnlimitedAccess = () => {
-    const plan = userStats.currentPlan?.toLowerCase();
+    const plan = userStats?.currentPlan?.toLowerCase();
     return plan === 'unlimited';
   };
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-main'}`}>
       {/* Header */}
-      <div className={`${darkMode ? 'bg-black border-gray-700' : '3c23bg-card border-pink-200'} shadow-sm border-b`}>
+      <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-card border-pink-200'} shadow-sm border-b`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center space-x-4 sm:space-x-6">
@@ -327,26 +327,30 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
               <div className="absolute -bottom-2 -right-8 w-3 h-3 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '1.5s'}}></div>
             </motion.div>
             
-            {/* Stats Cards */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="flex justify-center space-x-8 mt-12"
-            >
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
-                <div className="text-2xl font-bold text-purple-600 font-fredoka">{userStats?.questionsMarked || 0}</div>
-                <div className="text-sm text-gray-600 font-fredoka">Essays Marked</div>
-              </div>
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
-                <div className="text-2xl font-bold text-blue-600 font-fredoka capitalize">{userStats?.currentPlan || 'Free'}</div>
-                <div className="text-sm text-gray-600 font-fredoka">Current Plan</div>
-              </div>
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
-                <div className="text-2xl font-bold text-green-600 font-fredoka">{userStats?.credits || 3}</div>
-                <div className="text-sm text-gray-600 font-fredoka">Credits Left</div>
-              </div>
-            </motion.div>
+                         {/* Stats Cards */}
+             <motion.div
+               initial={{ opacity: 0, y: 30 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ duration: 0.8, delay: 0.6 }}
+               className="flex justify-center space-x-8 mt-12"
+             >
+               <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
+                 <div className="text-2xl font-bold text-purple-600 font-fredoka">{userStats?.questionsMarked || 0}</div>
+                 <div className="text-sm text-gray-600 font-fredoka">Essays Marked</div>
+               </div>
+               <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
+                 <div className="text-2xl font-bold text-blue-600 font-fredoka capitalize">{userStats?.currentPlan || 'Free'}</div>
+                 <div className="text-sm text-gray-600 font-fredoka">Current Plan</div>
+               </div>
+               <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
+                 <div className="text-2xl font-bold text-green-600 font-fredoka">
+                   {hasUnlimitedAccess() ? '∞' : (userStats?.credits || 3)}
+                 </div>
+                 <div className="text-sm text-gray-600 font-fredoka">
+                   {hasUnlimitedAccess() ? 'Unlimited Credits' : 'Credits Left'}
+                 </div>
+               </div>
+             </motion.div>
           </div>
                 </div>
       </div>
