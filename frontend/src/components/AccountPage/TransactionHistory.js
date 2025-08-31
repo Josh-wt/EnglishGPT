@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
 const TransactionHistory = ({ transactions, transactionsLoading, formatTransactionAmount }) => {
   return (
@@ -13,14 +14,7 @@ const TransactionHistory = ({ transactions, transactionsLoading, formatTransacti
       
       {transactionsLoading ? (
         <div className="text-center py-8">
-          <div className="loading-animation">
-            <div className="loading-dots">
-              <div className="loading-dot"></div>
-              <div className="loading-dot"></div>
-              <div className="loading-dot"></div>
-            </div>
-          </div>
-          <p className="mt-4 text-gray-600">Loading transactions...</p>
+          <LoadingSpinner message="Loading transactions..." size="small" />
         </div>
       ) : transactions && transactions.length > 0 ? (
         <div className="space-y-3">

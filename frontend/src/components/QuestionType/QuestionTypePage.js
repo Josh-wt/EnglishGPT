@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from './Header';
 import ExampleModal from './ExampleModal';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
-const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvaluate, selectedLevel, darkMode, user }) => {
+const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvaluate, selectedLevel, darkMode, user, evaluationLoading, loadingMessage }) => {
   console.log('🔍 DEBUG: QuestionTypePage rendered with props:', {
     questionTypes: questionTypes?.length,
     onSelectQuestionType: !!onSelectQuestionType,
@@ -13,6 +14,24 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     darkMode,
     user: !!user
   });
+
+  // Show loading screen when evaluation is in progress
+  if (evaluationLoading) {
+    return (
+      <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-main'} flex items-center justify-center`}>
+        <div className="text-center max-w-md">
+          <LoadingSpinner 
+            message={loadingMessage || "🤖 AI is analyzing your essay..."} 
+            size="large" 
+          />
+          
+          <div className="loading-subtext mt-4">
+            Our AI is carefully analyzing your {selectedQuestionType?.name} submission. This may take up to 60 seconds.
+          </div>
+        </div>
+      </div>
+    );
+  }
   const [selectedQuestionType, setSelectedQuestionType] = useState(null);
   const [studentResponse, setStudentResponse] = useState('');
   const [showNextButton, setShowNextButton] = useState(false);

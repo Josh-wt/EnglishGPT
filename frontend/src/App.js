@@ -48,6 +48,7 @@ import { validateEssayContent } from './utils/validation';
 
 // Import UI components
 import { Modal } from './components/ui/Modal';
+import LoadingSpinner from './components/ui/LoadingSpinner';
 
 const App = () => {
   // Use custom hooks for state management
@@ -338,11 +339,32 @@ const App = () => {
       let isMounted = true;
       const fetchEvaluation = async () => {
         try {
-          const response = await api.get(`/evaluations/${id}`);
+          console.log('🔍 DEBUG: Fetching evaluation with ID:', id);
+          // Try different endpoint patterns
+          let response;
+          try {
+            response = await api.get(`/evaluate/${id}`);
+            console.log('🔍 DEBUG: Success with /evaluate endpoint:', response.data);
+          } catch (err1) {
+            console.log('🔍 DEBUG: /evaluate failed, trying /evaluations:', err1);
+            try {
+              response = await api.get(`/evaluations/${id}`);
+              console.log('🔍 DEBUG: Success with /evaluations endpoint:', response.data);
+            } catch (err2) {
+              console.log('🔍 DEBUG: /evaluations failed, trying /history:', err2);
+              response = await api.get(`/history/${id}`);
+              console.log('🔍 DEBUG: Success with /history endpoint:', response.data);
+            }
+          }
+          
           if (!isMounted) return;
-          setPublicEval(response.data.evaluation);
+          
+          // Handle different response structures
+          const evaluationData = response.data.evaluation || response.data || response.data.data;
+          console.log('🔍 DEBUG: Final evaluation data:', evaluationData);
+          setPublicEval(evaluationData);
         } catch (err) {
-          console.error('Failed to load evaluation:', err);
+          console.error('🔍 DEBUG: All endpoints failed to load evaluation:', err);
         } finally {
           if (isMounted) setLoadingEval(false);
         }
@@ -354,16 +376,7 @@ const App = () => {
     if (loadingEval) {
       return (
         <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50'} flex items-center justify-center`}>
-          <div className="text-center">
-            <div className="loading-animation">
-              <div className="loading-dots">
-                <div className="loading-dot"></div>
-                <div className="loading-dot"></div>
-                <div className="loading-dot"></div>
-              </div>
-            </div>
-            <p className="mt-4 font-fredoka">Loading result...</p>
-          </div>
+          <LoadingSpinner message="Loading result..." size="default" />
         </div>
       );
     }
@@ -398,14 +411,7 @@ const App = () => {
       return (
         <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-main'} flex items-center justify-center`}>
           <div className="text-center">
-            <div className="loading-animation">
-              <div className="loading-dots">
-                <div className="loading-dot"></div>
-                <div className="loading-dot"></div>
-                <div className="loading-dot"></div>
-              </div>
-            </div>
-            <p className="mt-4 font-fredoka">Loading your data...</p>
+            <LoadingSpinner message="Loading your data..." size="default" />
             <p className="mt-2 text-sm opacity-75">Please wait while we fetch your information</p>
           </div>
         </div>
@@ -525,6 +531,8 @@ const App = () => {
                   selectedLevel={selectedLevel}
                   darkMode={darkMode}
                   user={user}
+                  evaluationLoading={evaluationLoading}
+                  loadingMessage={loadingMessages[loadingMessageIndex]}
                 />
               );
             })()}

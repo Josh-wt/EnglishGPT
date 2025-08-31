@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
 const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
   const [activeTab, setActiveTab] = useState('Summary');
@@ -71,6 +72,37 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
   
   // Parse grade to get score
   const parseGrade = (gradeString) => {
+    console.log('🔍 DEBUG: parseGrade called with:', gradeString);
+    console.log('🔍 DEBUG: evaluation object:', evaluation);
+    
+    if (!gradeString) {
+      console.log('🔍 DEBUG: No grade string provided, checking evaluation structure');
+      // Try to construct grade from submarks
+      const submarks = getSubmarks(evaluation);
+      console.log('🔍 DEBUG: Submarks found:', submarks);
+      
+      if (submarks.length > 0) {
+        let totalScore = 0;
+        let maxScore = 0;
+        submarks.forEach(submark => {
+          const [score, max] = submark.value.split('/').map(Number);
+          if (!isNaN(score) && !isNaN(max)) {
+            totalScore += score;
+            maxScore += max;
+          }
+        });
+        console.log('🔍 DEBUG: Calculated from submarks - score:', totalScore, 'maxScore:', maxScore);
+        return { 
+          score: totalScore, 
+          maxScore, 
+          percentage: maxScore > 0 ? (totalScore / maxScore * 100).toFixed(1) : 0 
+        };
+      }
+      
+      // Fallback to default values
+      return { score: 0, maxScore: 40, percentage: 0 };
+    }
+    
     // Extract numbers from grade string
     const matches = gradeString.match(/(\d+)\/(\d+)/g);
     if (matches) {
@@ -81,12 +113,15 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
         totalScore += score;
         maxScore += max;
       });
+      console.log('🔍 DEBUG: Parsed from grade string - score:', totalScore, 'maxScore:', maxScore);
       return { score: totalScore, maxScore, percentage: (totalScore / maxScore * 100).toFixed(1) };
     }
+    
+    console.log('🔍 DEBUG: No valid grade format found, using defaults');
     return { score: 0, maxScore: 40, percentage: 0 };
   };
   
-  const gradeInfo = parseGrade(evaluation.grade);
+  const gradeInfo = parseGrade(evaluation?.grade);
   
   // Determine letter grade
   const getLetterGrade = (percentage) => {
@@ -100,6 +135,15 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
   };
   
   const letterGrade = getLetterGrade(gradeInfo.percentage);
+  
+  // Add loading state for when evaluation is not available
+  if (!evaluation) {
+    return (
+      <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-gray-50'} flex items-center justify-center`}>
+        <LoadingSpinner message="Loading results..." size="default" />
+      </div>
+    );
+  }
   
   // Extract submarks dynamically per question type and present as "xx/xx"
   const getSubmarks = (evaluation) => {

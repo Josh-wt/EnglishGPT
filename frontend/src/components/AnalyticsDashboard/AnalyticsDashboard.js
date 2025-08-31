@@ -162,10 +162,11 @@ const LockedAnalyticsPage = ({ onBack, upgradeType, page = 'analytics' }) => {
 
 // Analytics Dashboard
 const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade }) => {
-  const [selectedTimeRange, setSelectedTimeRange] = useState('week');
+  const [selectedTimeRange, setSelectedTimeRange] = useState('month');
   const [selectedPaperType, setSelectedPaperType] = useState('all');
   const [aiRecommendations, setAiRecommendations] = useState('');
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
   
   // Helper function for unlimited plan checking
   const hasUnlimitedAccess = () => {
@@ -258,150 +259,352 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
+      <div className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <button
               onClick={onBack}
-              className="text-blue-600 hover:text-blue-800 flex items-center"
+              className="text-blue-600 hover:text-blue-800 flex items-center font-fredoka"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               Back to Dashboard
             </button>
-            <h1 className="text-xl font-bold text-gray-900">Analytics Dashboard</h1>
-            <div />
+            <h1 className="text-xl font-bold text-gray-900 font-fredoka">📊 Analytics Dashboard</h1>
+            <div className="flex items-center gap-2">
+              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">Unlimited</span>
+            </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Filters */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            {['week','month','quarter','all'].map(r => (
-              <button key={r} onClick={()=>setSelectedTimeRange(r)} className={`px-3 py-1.5 rounded-full text-sm border ${selectedTimeRange===r ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}>
-                {r==='week'?'7d':r==='month'?'30d':r==='quarter'?'90d':'All'}
+        {/* Enhanced Header Section */}
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2 font-fredoka">Your Writing Analytics</h2>
+          <p className="text-gray-600 font-fredoka">Track your progress, identify patterns, and optimize your performance</p>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="flex justify-center mb-8">
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-1 shadow-sm border border-gray-200">
+            {[
+              { id: 'overview', label: '📈 Overview', icon: '📊' },
+              { id: 'performance', label: '🎯 Performance', icon: '🏆' },
+              { id: 'progress', label: '📈 Progress', icon: '📈' },
+              { id: 'insights', label: '💡 Insights', icon: '💡' }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 font-fredoka ${
+                  activeTab === tab.id
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+                }`}
+              >
+                {tab.label}
               </button>
             ))}
           </div>
-          <div className="text-sm text-gray-600">Showing <span className="font-semibold text-gray-900">{totalResponses}</span> responses</div>
         </div>
-        {/* KPI Row */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-            <div className="text-xs text-gray-500 mb-1">Average</div>
-            <div className="text-3xl font-bold text-blue-600">{Math.round((viewByDate.reduce((s,d)=>s+d.average,0)/(viewByDate.length||1))||0)}%</div>
-            <div className="text-xs text-gray-500 mt-2">Across selected range (percent)</div>
+
+        {/* Time Range Filters */}
+        <div className="flex flex-wrap items-center justify-between gap-4 bg-white/70 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-gray-200">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-700 font-fredoka">Time Range:</span>
+            {['week','month','quarter','all'].map(r => (
+              <button 
+                key={r} 
+                onClick={()=>setSelectedTimeRange(r)} 
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  selectedTimeRange===r 
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' 
+                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:shadow-md'
+                }`}
+              >
+                {r==='week'?'7 Days':r==='month'?'30 Days':r==='quarter'?'90 Days':'All Time'}
+              </button>
+            ))}
           </div>
-          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-            <div className="text-xs text-gray-500 mb-1">Active Days</div>
-            <div className="text-3xl font-bold text-emerald-600">{new Set(viewByDate?.map(d=>d.date)).size || 0}</div>
+          <div className="text-sm text-gray-600 font-fredoka">
+            📊 Showing <span className="font-semibold text-gray-900">{totalResponses}</span> responses
+          </div>
+        </div>
+        {/* Enhanced KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <motion.div 
+            className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            whileHover={{ y: -5 }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                <span className="text-white text-xl">📊</span>
+              </div>
+              <div className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                {viewByDate.length > 0 ? '↗️' : '→'} {viewByDate.length > 0 ? Math.round((viewByDate[viewByDate.length - 1]?.average || 0) - (viewByDate[0]?.average || 0)) : 0}%
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-gray-900 font-fredoka">
+              {Math.round((viewByDate.reduce((s,d)=>s+d.average,0)/(viewByDate.length||1))||0)}%
+            </div>
+            <div className="text-sm text-gray-600 font-fredoka">Average Score</div>
+            <div className="text-xs text-gray-500 mt-2">Across selected range</div>
+          </motion.div>
+
+          <motion.div 
+            className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            whileHover={{ y: -5 }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                <span className="text-white text-xl">📅</span>
+              </div>
+              <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                {new Set(viewByDate?.map(d=>d.date)).size || 0} days
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-gray-900 font-fredoka">
+              {new Set(viewByDate?.map(d=>d.date)).size || 0}
+            </div>
+            <div className="text-sm text-gray-600 font-fredoka">Active Days</div>
             <div className="text-xs text-gray-500 mt-2">Days with submissions</div>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-            <div className="text-xs text-gray-500 mb-1">Types Attempted</div>
-            <div className="text-3xl font-bold text-purple-600">{viewByType.length}</div>
-            <div className="text-xs text-gray-500 mt-2">Unique question types</div>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-            <div className="text-xs text-gray-500 mb-1">Best</div>
-            <div className="text-3xl font-bold text-orange-600">{Math.round(Math.max(...parsedEvaluations.map(e => (e.max>0?(e.score/e.max)*100:0)), 0))}%</div>
+          </motion.div>
+
+          <motion.div 
+            className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            whileHover={{ y: -5 }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <span className="text-white text-xl">🎯</span>
+              </div>
+              <div className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium">
+                {viewByType.length} types
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-gray-900 font-fredoka">
+              {viewByType.length}
+            </div>
+            <div className="text-sm text-gray-600 font-fredoka">Question Types</div>
+            <div className="text-xs text-gray-500 mt-2">Unique types attempted</div>
+          </motion.div>
+
+          <motion.div 
+            className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            whileHover={{ y: -5 }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
+                <span className="text-white text-xl">🏆</span>
+              </div>
+              <div className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium">
+                Best
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-gray-900 font-fredoka">
+              {Math.round(Math.max(...parsedEvaluations.map(e => (e.max>0?(e.score/e.max)*100:0)), 0))}%
+            </div>
+            <div className="text-sm text-gray-600 font-fredoka">Best Score</div>
             <div className="text-xs text-gray-500 mt-2">Highest single percentage</div>
-          </div>
+          </motion.div>
         </div>
 
-        {/* Type Insights */}
-        <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xl font-semibold text-gray-900">Type Insights</h3>
-            <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full">Top performers</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {viewByType.sort((a,b)=>b.average-a.average).slice(0,6).map((t,i)=> (
-              <div key={t.type} className="rounded-xl border border-gray-100 p-4 bg-gray-50">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="font-medium capitalize text-gray-900 truncate">{t.type}</div>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-white border border-gray-200">#{i+1}</span>
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <div className="space-y-8">
+            {/* Performance Overview Chart */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900 font-fredoka">📈 Performance Trend</h3>
+                <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">Last {selectedTimeRange === 'week' ? '7' : selectedTimeRange === 'month' ? '30' : selectedTimeRange === 'quarter' ? '90' : 'All'} days</span>
+              </div>
+              
+              {/* Simple Line Chart */}
+              <div className="h-64 flex items-end justify-between gap-2">
+                {viewByDate.length > 0 ? (
+                  viewByDate.map((data, index) => (
+                    <div key={data.date} className="flex-1 flex flex-col items-center">
+                      <div 
+                        className="w-full bg-gradient-to-t from-blue-500 to-purple-500 rounded-t-lg transition-all duration-300 hover:from-blue-600 hover:to-purple-600"
+                        style={{ height: `${Math.max((data.average / 100) * 200, 10)}px` }}
+                      ></div>
+                      <div className="text-xs text-gray-600 mt-2 font-fredoka">
+                        {new Date(data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </div>
+                      <div className="text-xs font-bold text-gray-900 font-fredoka">
+                        {data.average}%
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="w-full h-64 flex items-center justify-center text-gray-500 font-fredoka">
+                    No data available for selected time range
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Question Type Performance */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200">
+                <h3 className="text-xl font-bold text-gray-900 mb-6 font-fredoka">🎯 Type Performance</h3>
+                <div className="space-y-4">
+                  {viewByType.sort((a,b)=>b.average-a.average).slice(0,5).map((type, index) => (
+                    <div key={type.type} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900 font-fredoka capitalize">{type.type}</div>
+                          <div className="text-sm text-gray-600">{type.count} attempts</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-gray-900 font-fredoka">{type.average}%</div>
+                        <div className="text-xs text-gray-500">Average</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="text-sm text-gray-600">Average <span className="font-semibold text-gray-900">{t.average}</span> • Attempts <span className="font-semibold text-gray-900">{t.count}</span></div>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Recommendations */}
-        <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xl font-semibold text-gray-900">Recommendations</h3>
-            <span className="text-xs bg-pink-50 text-pink-700 px-2 py-1 rounded-full">Next steps</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {viewByType.sort((a,b)=>a.average-b.average).slice(0,3).map(t => (
-              <div key={t.type} className="rounded-xl border border-gray-100 p-4 bg-gray-50">
-                <div className="font-semibold capitalize text-gray-900 mb-1">Practice more: {t.type}</div>
-                <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                  <li>Review model answers and mark schemes for this type</li>
-                  <li>Focus on structure and clarity; set a word goal of +10%</li>
-                  <li>Attempt 2 new prompts this week in this category</li>
-                </ul>
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200">
+                <h3 className="text-xl font-bold text-gray-900 mb-6 font-fredoka">📊 Component Analysis</h3>
+                <div className="space-y-4">
+                  {['AO1','AO2','Reading','Writing'].map(key => {
+                    const vals = viewAoSeries.map(v => v[key] || 0);
+                    const avg = Math.round(vals.reduce((s,n)=>s+n,0) / (vals.length||1));
+                    const max = Math.max(...vals, 0);
+                    return (
+                      <div key={key} className="p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="font-semibold text-gray-900 font-fredoka">{key}</div>
+                          <div className="text-sm text-gray-600">Best: {max}</div>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${Math.min((avg / Math.max(max, 1)) * 100, 100)}%` }}
+                          ></div>
+                        </div>
+                        <div className="text-sm text-gray-600 mt-1">Average: {avg}</div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            ))}
-            <div className="rounded-xl border border-gray-100 p-4 bg-gray-50">
-              <div className="font-semibold text-gray-900 mb-1">General Tips</div>
-              <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                <li>Keep a personal glossary of advanced vocabulary</li>
-                <li>Summarize feedback into 3 bullet points after each attempt</li>
-                <li>Re-attempt your lowest-scoring type after 48 hours</li>
-              </ul>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Component Strengths */}
-        <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xl font-semibold text-gray-900">Component Strengths</h3>
-            <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-full">AO & Submarks</span>
+        {activeTab === 'performance' && (
+          <div className="space-y-8">
+            {/* Detailed Performance Metrics */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 font-fredoka">🏆 Performance Breakdown</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {viewByType.map((type, index) => (
+                  <div key={type.type} className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="font-bold text-gray-900 font-fredoka capitalize">{type.type}</div>
+                      <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">#{index + 1}</div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Average:</span>
+                        <span className="font-semibold text-gray-900">{type.average}%</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Attempts:</span>
+                        <span className="font-semibold text-gray-900">{type.count}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full"
+                          style={{ width: `${Math.min(type.average, 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {['AO1','AO2','Reading','Writing'].map(key => {
-              const vals = viewAoSeries.map(v => v[key] || 0);
-              const avg = Math.round(vals.reduce((s,n)=>s+n,0) / (vals.length||1));
-              const max = Math.max(...vals, 0);
-              return (
-                <div key={key} className="rounded-xl border border-gray-100 p-4 bg-gray-50">
-                  <div className="text-xs text-gray-500 mb-1">{key}</div>
-                  <div className="text-2xl font-bold text-gray-900">{avg}</div>
-                  <div className="text-xs text-gray-500 mt-1">Best: {max}</div>
+        )}
+
+        {activeTab === 'progress' && (
+          <div className="space-y-8">
+            {/* Progress Timeline */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 font-fredoka">📈 Progress Timeline</h3>
+              <div className="space-y-4">
+                {viewByDate.map((data, index) => (
+                  <div key={data.date} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                      {index + 1}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-900 font-fredoka">
+                        {new Date(data.date).toLocaleDateString('en-US', { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </div>
+                      <div className="text-sm text-gray-600">Performance: {data.average}%</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-gray-900 font-fredoka">{data.average}%</div>
+                      <div className="text-xs text-gray-500">Score</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'insights' && (
+          <div className="space-y-8">
+            {/* AI Recommendations */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900 font-fredoka">💡 Smart Recommendations</h3>
+                <span className="text-xs bg-pink-100 text-pink-700 px-3 py-1 rounded-full font-medium">AI Powered</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {viewByType.sort((a,b)=>a.average-b.average).slice(0,3).map(t => (
+                  <div key={t.type} className="p-4 bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl border border-pink-200">
+                    <div className="font-bold text-gray-900 mb-2 font-fredoka capitalize">Focus on: {t.type}</div>
+                    <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                      <li>Review model answers and mark schemes</li>
+                      <li>Practice structure and clarity</li>
+                      <li>Set a word goal of +10%</li>
+                      <li>Attempt 2 new prompts this week</li>
+                    </ul>
+                  </div>
+                ))}
+                <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                  <div className="font-bold text-gray-900 mb-2 font-fredoka">General Tips</div>
+                  <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>Keep a personal glossary of advanced vocabulary</li>
+                    <li>Summarize feedback into 3 bullet points</li>
+                    <li>Re-attempt lowest-scoring types after 48 hours</li>
+                    <li>Track your progress weekly</li>
+                  </ul>
                 </div>
-              );
-            })}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Key Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100 hover:shadow-md transition-shadow">
-            <div className="text-3xl font-bold text-blue-600 mb-2">{totalResponses}</div>
-            <div className="text-gray-600">Total Responses</div>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100 hover:shadow-md transition-shadow">
-            <div className="text-3xl font-bold text-green-600 mb-2">{Object.keys(byDate).length}</div>
-            <div className="text-gray-600">Active Days</div>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100 hover:shadow-md transition-shadow">
-            <div className="text-3xl font-bold text-purple-600 mb-2">{byType.length}</div>
-            <div className="text-gray-600">Types Attempted</div>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow border border-gray-100 hover:shadow-md transition-shadow">
-            <div className="text-3xl font-bold text-orange-600 mb-2">{Math.max(...parsedEvaluations.map(e => e.score), 0)}</div>
-            <div className="text-gray-600">Best Score</div>
-          </div>
-        </div>
+
       </div>
     </div>
   );

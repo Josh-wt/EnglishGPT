@@ -1,162 +1,63 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 
-/**
- * Loading Spinner component with various styles
- * @param {Object} props - Component props
- * @param {string} props.size - Spinner size (sm, md, lg, xl)
- * @param {string} props.color - Spinner color
- * @param {string} props.className - Additional CSS classes
- */
-export const LoadingSpinner = ({
-  size = 'md',
-  color = 'purple',
-  className = '',
-}) => {
+const LoadingSpinner = ({ message = "Loading", size = "default" }) => {
   const sizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-6 h-6',
-    lg: 'w-8 h-8',
-    xl: 'w-12 h-12',
+    small: "w-32 h-24",
+    default: "w-48 h-32", 
+    large: "w-64 h-40"
   };
 
-  const colorClasses = {
-    purple: 'border-purple-600',
-    blue: 'border-blue-600',
-    green: 'border-green-600',
-    red: 'border-red-600',
-    white: 'border-white',
-    gray: 'border-gray-600',
-  };
-
-  const classes = [
-    'animate-spin rounded-full border-2 border-gray-300 border-t-current',
-    sizeClasses[size],
-    colorClasses[color],
-    className,
-  ].filter(Boolean).join(' ');
-
   return (
-    <div className={classes} />
-  );
-};
-
-/**
- * Loading Page component for full-page loading states
- * @param {Object} props - Component props
- * @param {string} props.message - Loading message
- * @param {string} props.subtitle - Loading subtitle
- * @param {string} props.className - Additional CSS classes
- */
-export const LoadingPage = ({
-  message = 'Loading...',
-  subtitle = 'Please wait while we prepare your content',
-  className = '',
-}) => {
-  return (
-    <div className={`min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-pink-50 ${className}`}>
-      <motion.div
-        className="text-center"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <LoadingSpinner size="xl" color="purple" className="mx-auto mb-6" />
-        <h2 className="text-2xl font-fredoka font-bold text-gray-900 mb-2">
-          {message}
-        </h2>
-        <p className="text-gray-600">
-          {subtitle}
-        </p>
-      </motion.div>
-    </div>
-  );
-};
-
-/**
- * Loading Overlay component for overlay loading states
- * @param {Object} props - Component props
- * @param {string} props.message - Loading message
- * @param {boolean} props.isVisible - Whether overlay is visible
- * @param {string} props.className - Additional CSS classes
- */
-export const LoadingOverlay = ({
-  message = 'Loading...',
-  isVisible = false,
-  className = '',
-}) => {
-  if (!isVisible) return null;
-
-  return (
-    <motion.div
-      className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${className}`}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <motion.div
-        className="bg-white rounded-2xl p-8 shadow-2xl text-center"
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.8, opacity: 0 }}
-        transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
-      >
-        <LoadingSpinner size="lg" color="purple" className="mx-auto mb-4" />
-        <p className="text-gray-700 font-fredoka font-semibold">
-          {message}
-        </p>
-      </motion.div>
-    </motion.div>
-  );
-};
-
-/**
- * Skeleton Loading component for content placeholders
- * @param {Object} props - Component props
- * @param {string} props.variant - Skeleton variant (text, card, avatar, button)
- * @param {string} props.className - Additional CSS classes
- */
-export const Skeleton = ({
-  variant = 'text',
-  className = '',
-}) => {
-  const baseClasses = 'animate-pulse bg-gray-200 rounded';
-  
-  const variantClasses = {
-    text: 'h-4 w-full',
-    title: 'h-6 w-3/4',
-    subtitle: 'h-4 w-1/2',
-    card: 'h-32 w-full',
-    avatar: 'h-12 w-12 rounded-full',
-    button: 'h-10 w-24',
-  };
-
-  const classes = [
-    baseClasses,
-    variantClasses[variant],
-    className,
-  ].filter(Boolean).join(' ');
-
-  return <div className={classes} />;
-};
-
-/**
- * Skeleton Card component for card placeholders
- * @param {Object} props - Component props
- * @param {number} props.lines - Number of text lines
- * @param {string} props.className - Additional CSS classes
- */
-export const SkeletonCard = ({
-  lines = 3,
-  className = '',
-}) => {
-  return (
-    <div className={`bg-white rounded-2xl shadow-lg p-6 ${className}`}>
-      <Skeleton variant="title" className="mb-4" />
-      {Array.from({ length: lines }).map((_, index) => (
-        <Skeleton key={index} variant="text" className="mb-2" />
-      ))}
+    <div className="flex flex-col items-center justify-center">
+      <div className={`loader ${sizeClasses[size]}`}>
+        <div>
+          <ul>
+            <li>
+              <svg viewBox="0 0 90 120" fill="currentColor">
+                <path
+                  d="M90,0 L90,120 L11,120 C4.92486775,120 0,115.075132 0,109 L0,11 C0,4.92486775 4.92486775,0 11,0 L90,0 Z M71.5,81 L18.5,81 C17.1192881,81 16,82.1192881 16,83.5 C16,84.8254834 17.0315359,85.9100387 18.3356243,85.9946823 L18.5,86 L71.5,86 C72.8807119,86 74,84.8807119 74,83.5 C74,82.1745166 72.9684641,81.0899613 71.6643757,81.0053177 L71.5,81 Z M71.5,57 L18.5,57 C17.1192881,57 16,58.1192881 16,59.5 C16,60.8254834 17.0315359,61.9100387 18.3356243,61.9946823 L18.5,62 L71.5,62 C72.8807119,62 74,60.8807119 74,59.5 C74,58.1192881 72.8807119,57 71.5,57 Z M71.5,33 L18.5,33 C17.1192881,33 16,34.1192881 16,35.5 C16,36.8254834 17.0315359,37.9100387 18.3356243,37.9946823 L18.5,38 L71.5,38 C72.8807119,38 74,36.8807119 74,35.5 C74,34.1192881 72.8807119,33 71.5,33 Z"
+                ></path>
+              </svg>
+            </li>
+            <li>
+              <svg viewBox="0 0 90 120" fill="currentColor">
+                <path
+                  d="M90,0 L90,120 L11,120 C4.92486775,120 0,115.075132 0,109 L0,11 C0,4.92486775 4.92486775,0 11,0 L90,0 Z M71.5,81 L18.5,81 C17.1192881,81 16,82.1192881 16,83.5 C16,84.8254834 17.0315359,85.9100387 18.3356243,85.9946823 L18.5,86 L71.5,86 C72.8807119,86 74,84.8807119 74,83.5 C74,82.1745166 72.9684641,81.0899613 71.6643757,81.0053177 L71.5,81 Z M71.5,57 L18.5,57 C17.1192881,57 16,58.1192881 16,59.5 C16,60.8254834 17.0315359,61.9100387 18.3356243,61.9946823 L18.5,62 L71.5,62 C72.8807119,62 74,60.8807119 74,59.5 C74,58.1192881 72.8807119,57 71.5,57 Z M71.5,33 L18.5,33 C17.1192881,33 16,34.1192881 16,35.5 C16,36.8254834 17.0315359,37.9100387 18.3356243,37.9946823 L18.5,38 L71.5,38 C72.8807119,38 74,36.8807119 74,35.5 C74,34.1192881 72.8807119,33 71.5,33 Z"
+                ></path>
+              </svg>
+            </li>
+            <li>
+              <svg viewBox="0 0 90 120" fill="currentColor">
+                <path
+                  d="M90,0 L90,120 L11,120 C4.92486775,120 0,115.075132 0,109 L0,11 C0,4.92486775 4.92486775,0 11,0 L90,0 Z M71.5,81 L18.5,81 C17.1192881,81 16,82.1192881 16,83.5 C16,84.8254834 17.0315359,85.9100387 18.3356243,85.9946823 L18.5,86 L71.5,86 C72.8807119,86 74,84.8807119 74,83.5 C74,82.1745166 72.9684641,81.0899613 71.6643757,81.0053177 L71.5,81 Z M71.5,57 L18.5,57 C17.1192881,57 16,58.1192881 16,59.5 C16,60.8254834 17.0315359,61.9100387 18.3356243,61.9946823 L18.5,62 L71.5,62 C72.8807119,62 74,60.8807119 74,59.5 C74,58.1192881 72.8807119,57 71.5,57 Z M71.5,33 L18.5,33 C17.1192881,33 16,34.1192881 16,35.5 C16,36.8254834 17.0315359,37.9100387 18.3356243,37.9946823 L18.5,38 L71.5,38 C72.8807119,38 74,36.8807119 74,35.5 C74,34.1192881 72.8807119,33 71.5,33 Z"
+                ></path>
+              </svg>
+            </li>
+            <li>
+              <svg viewBox="0 0 90 120" fill="currentColor">
+                <path
+                  d="M90,0 L90,120 L11,120 C4.92486775,120 0,115.075132 0,109 L0,11 C0,4.92486775 4.92486775,0 11,0 L90,0 Z M71.5,81 L18.5,81 C17.1192881,81 16,82.1192881 16,83.5 C16,84.8254834 17.0315359,85.9100387 18.3356243,85.9946823 L18.5,86 L71.5,86 C72.8807119,86 74,84.8807119 74,83.5 C74,82.1745166 72.9684641,81.0899613 71.6643757,81.0053177 L71.5,81 Z M71.5,57 L18.5,57 C17.1192881,57 16,58.1192881 16,59.5 C16,60.8254834 17.0315359,61.9100387 18.3356243,61.9946823 L18.5,62 L71.5,62 C72.8807119,62 74,60.8807119 74,59.5 C74,58.1192881 72.8807119,57 71.5,57 Z M71.5,33 L18.5,33 C17.1192881,33 16,34.1192881 16,35.5 C16,36.8254834 17.0315359,37.9100387 18.3356243,37.9946823 L18.5,38 L71.5,38 C72.8807119,38 74,36.8807119 74,35.5 C74,34.1192881 72.8807119,33 71.5,33 Z"
+                ></path>
+              </svg>
+            </li>
+            <li>
+              <svg viewBox="0 0 90 120" fill="currentColor">
+                <path
+                  d="M90,0 L90,120 L11,120 C4.92486775,120 0,115.075132 0,109 L0,11 C0,4.92486775 4.92486775,0 11,0 L90,0 Z M71.5,81 L18.5,81 C17.1192881,81 16,82.1192881 16,83.5 C16,84.8254834 17.0315359,85.9100387 18.3356243,85.9946823 L18.5,86 L71.5,86 C72.8807119,86 74,84.8807119 74,83.5 C74,82.1745166 72.9684641,81.0899613 71.6643757,81.0053177 L71.5,81 Z M71.5,57 L18.5,57 C17.1192881,57 16,58.1192881 16,59.5 C16,60.8254834 17.0315359,61.9100387 18.3356243,61.9946823 L18.5,62 L71.5,62 C72.8807119,62 74,60.8807119 74,59.5 C74,58.1192881 72.8807119,57 71.5,57 Z M71.5,33 L18.5,33 C17.1192881,33 16,34.1192881 16,35.5 C16,36.8254834 17.0315359,37.9100387 18.3356243,37.9946823 L18.5,38 L71.5,38 C72.8807119,38 74,36.8807119 74,35.5 C74,34.1192881 72.8807119,33 71.5,33 Z"
+                ></path>
+              </svg>
+            </li>
+            <li>
+              <svg viewBox="0 0 90 120" fill="currentColor">
+                <path
+                  d="M90,0 L90,120 L11,120 C4.92486775,120 0,115.075132 0,109 L0,11 C0,4.92486775 4.92486775,0 11,0 L90,0 Z M71.5,81 L18.5,81 C17.1192881,81 16,82.1192881 16,83.5 C16,84.8254834 17.0315359,85.9100387 18.3356243,85.9946823 L18.5,86 L71.5,86 C72.8807119,86 74,84.8807119 74,83.5 C74,82.1745166 72.9684641,81.0899613 71.6643757,81.0053177 L71.5,81 Z M71.5,57 L18.5,57 C17.1192881,57 16,58.1192881 16,59.5 C16,60.8254834 17.0315359,61.9100387 18.3356243,61.9946823 L18.5,62 L71.5,62 C72.8807119,62 74,60.8807119 74,59.5 C74,58.1192881 72.8807119,57 71.5,57 Z M71.5,33 L18.5,33 C17.1192881,33 16,34.1192881 16,35.5 C16,36.8254834 17.0315359,37.9100387 18.3356243,37.9946823 L18.5,38 L71.5,38 C72.8807119,38 74,36.8807119 74,35.5 C74,34.1192881 72.8807119,33 71.5,33 Z"
+                ></path>
+              </svg>
+            </li>
+          </ul>
+        </div>
+        <span>{message}</span>
+      </div>
     </div>
   );
 };
