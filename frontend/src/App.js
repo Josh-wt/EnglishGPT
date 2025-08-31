@@ -309,7 +309,7 @@ const PricingPage = ({ onBack, user }) => {
                 Coming After Launch
               </button>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* Launch Modal */}
