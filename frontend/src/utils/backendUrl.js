@@ -25,8 +25,9 @@ export const getBackendUrl = () => {
       return url;
     }
     
-    const url = `${origin.replace(/:\d+/, '')}:8000`;
-    console.log('🔧 Production detected, using:', url);
+    // In production, backend is on the same domain without port
+    const url = origin;
+    console.log('🔧 Production detected, using same domain:', url);
     return url;
   }
   
