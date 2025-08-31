@@ -1,5 +1,6 @@
 import { apiHelpers } from './api';
 import { API_ENDPOINTS } from '../constants/apiEndpoints';
+import { applyLaunchPeriodBenefits } from '../utils/launchPeriod';
 
 /**
  * Create a new user record
@@ -122,8 +123,11 @@ export const getUserStats = async (userId) => {
       ...userData
     };
     
-    console.log('🎯 Constructed user stats:', userStats);
-    return userStats;
+    // Apply launch period benefits
+    const finalStats = applyLaunchPeriodBenefits(userStats);
+    
+    console.log('🎯 Constructed user stats:', finalStats);
+    return finalStats;
   } catch (error) {
     console.error('❌ Error fetching user stats:', error);
     
@@ -148,8 +152,11 @@ export const getUserStats = async (userId) => {
           ...newUser
         };
         
-        console.log('🎯 Constructed user stats from new user:', userStats);
-        return userStats;
+        // Apply launch period benefits
+        const finalStats = applyLaunchPeriodBenefits(userStats);
+        
+        console.log('🎯 Constructed user stats from new user:', finalStats);
+        return finalStats;
       } catch (createError) {
         console.error('❌ Failed to create user:', createError);
         throw createError;

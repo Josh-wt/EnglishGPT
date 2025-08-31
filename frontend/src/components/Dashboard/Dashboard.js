@@ -13,7 +13,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-main'}`}>
       {/* Header */}
-      <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-card border-pink-200'} shadow-sm border-b`}>
+      <div className={`${darkMode ? 'bg-black border-gray-700' : '3c23bg-card border-pink-200'} shadow-sm border-b`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center space-x-4 sm:space-x-6">
@@ -188,120 +188,49 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                   </svg>
                 </button>
                 
-                {/* Account Dropdown - UPDATED with mobile social links */}
+                {/* Account Dropdown */}
                 {showAccountDropdown && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                     <div className="py-1">
-                      {/* Mobile-only Analytics and History - FIXED to always navigate */}
-                      <div className="sm:hidden">
-                        <button 
-                          onClick={() => {
-                            onAnalytics(); // Always navigate, let page handle lock state
-                            setShowAccountDropdown(false);
-                          }} 
-                          className="w-full px-4 py-2 text-left font-fredoka text-gray-700 hover:bg-gray-100 flex items-center"
-                        >
-                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                          </svg>
-                          Analytics {!hasUnlimitedAccess() && <span className="ml-1 text-xs">🔒</span>}
-                        </button>
-                        
-                        <button 
-                          onClick={() => {
-                            onHistory(); // Always navigate, let page handle lock state
-                            setShowAccountDropdown(false);
-                          }} 
-                          className="w-full px-4 py-2 text-left font-fredoka text-gray-700 hover:bg-gray-100 flex items-center"
-                        >
-                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          History {!hasUnlimitedAccess() && <span className="ml-1 text-xs">🔒</span>}
-                        </button>
-                        
-                        {/* Mobile stats display */}
-                        {(userStats.currentPlan !== 'basic' || userStats.questionsMarked > 0) && (
-                          <div className="px-4 py-2 border-t border-gray-100">
-                            <div className="flex justify-between text-sm">
-                              <span className="font-fredoka text-gray-600">Credits:</span>
-                              <span className="font-fredoka font-medium text-blue-600">{userStats.credits}</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="font-fredoka text-gray-600">Plan:</span>
-                              <span className="font-fredoka font-medium text-green-600">
-                                {userStats.currentPlan === 'basic' ? 'No Plan' : userStats.currentPlan}
-                              </span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="font-fredoka text-gray-600">Marked:</span>
-                              <span className="font-fredoka font-medium text-purple-600">{userStats.questionsMarked}</span>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* UPDATED: Mobile Social Links instead of Billing History */}
-                        <div className="border-t border-gray-100">
-                          <a 
-                            href="https://discord.gg/xRqB4BWCcJ" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="w-full px-4 py-2 text-left font-fredoka text-gray-700 hover:bg-gray-100 flex items-center"
-                            onClick={() => setShowAccountDropdown(false)}
-                          >
-                            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419-.0002 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9554 2.4189-2.1568 2.4189Z"/>
-                            </svg>
-                            Join the Discord
-                          </a>
-                          
-                          <a 
-                            href="https://www.reddit.com/r/everythingenglish/" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="w-full px-4 py-2 text-left font-fredoka text-gray-700 hover:bg-gray-100 flex items-center"
-                            onClick={() => setShowAccountDropdown(false)}
-                          >
-                            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/>
-                            </svg>
-                            Join Reddit
-                          </a>
-                        </div>
-                      </div>
+                      <button 
+                        onClick={() => {
+                          onAccountSettings();
+                          setShowAccountDropdown(false);
+                        }}
+                        className="w-full px-4 py-2 text-left font-fredoka text-gray-700 hover:bg-gray-100 flex items-center"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        Account Settings
+                      </button>
                       
-                      {/* Desktop Account Options */}
-                      <div className="hidden sm:block">
-                        <button
-                          onClick={() => {
-                            onAccountSettings();
-                            setShowAccountDropdown(false);
-                          }}
-                          className="w-full px-4 py-2 text-left font-fredoka text-gray-700 hover:bg-gray-100"
-                        >
-                          Account Settings
-                        </button>
-                        <button
-                          onClick={() => {
-                            onSubscription();
-                            setShowAccountDropdown(false);
-                          }}
-                          className="w-full px-4 py-2 text-left font-fredoka text-gray-700 hover:bg-gray-100"
-                        >
-                          Subscription
-                        </button>
-                        <div className="border-t border-gray-100">
-                          <button
-                            onClick={() => {
-                              onSignOut();
-                              setShowAccountDropdown(false);
-                            }}
-                            className="w-full px-4 py-2 text-left font-fredoka text-red-600 hover:bg-red-50"
-                          >
-                            Sign Out
-                          </button>
-                        </div>
-                      </div>
+                      <button 
+                        onClick={() => {
+                          onSubscription();
+                          setShowAccountDropdown(false);
+                        }}
+                        className="w-full px-4 py-2 text-left font-fredoka text-gray-700 hover:bg-gray-100 flex items-center"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        Subscription
+                      </button>
+                      
+                      <div className="border-t border-gray-100"></div>
+                      <button 
+                        onClick={async () => {
+                          await onSignOut();
+                          setShowAccountDropdown(false);
+                        }}
+                        className="w-full px-4 py-2 text-left font-fredoka text-red-700 hover:bg-red-50 flex items-center"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Sign Out
+                      </button>
                     </div>
                   </div>
                 )}
@@ -311,114 +240,214 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div className="text-center mb-12">
-          <motion.h1 
-            className={`text-4xl sm:text-5xl font-fredoka font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            Welcome to EnglishGPT
-          </motion.h1>
-          <motion.p 
-            className={`text-lg sm:text-xl font-fredoka ${darkMode ? 'text-gray-300' : 'text-gray-600'} max-w-3xl mx-auto`}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            Your AI-powered English essay marking assistant. Get instant feedback, detailed analysis, and personalized recommendations to improve your writing skills.
-          </motion.p>
-        </div>
-
-        {/* Main Action Button */}
-        <motion.div 
-          className="text-center mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <button
-            onClick={onStartQuestion}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-xl font-fredoka font-bold text-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-          >
-            ✨ Mark a Question
-          </button>
-        </motion.div>
-
-        {/* Question Type Sections */}
+      {/* Hero Section with Beautiful Background */}
+      <div className="relative overflow-hidden">
+        {/* Background Elements */}
+        <div className="absolute inset-0 bg-gradient-to-br from-pink-50 via-white to-blue-50"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-pink-200 to-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
+        <div className="absolute top-40 right-10 w-72 h-72 bg-gradient-to-r from-blue-200 to-green-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-gradient-to-r from-yellow-200 to-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse" style={{animationDelay: '4s'}}></div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          {/* Main Hero Content */}
+          <div className="text-center mb-16">
+            {/* Animated Logo */}
+            <motion.div 
+              className="flex justify-center mb-8"
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ duration: 0.8, type: "spring" }}
+            >
+              <div className="relative">
+                <div className="w-32 h-32 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-600 rounded-full flex items-center justify-center shadow-2xl">
+                  <svg className="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
+                  </svg>
+                </div>
+                <div className="absolute -top-4 -right-4 w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                  <div className="w-4 h-4 bg-white rounded-full"></div>
+                </div>
+                <div className="absolute -bottom-2 -left-2 w-6 h-6 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg">
+                  <div className="w-3 h-3 bg-white rounded-full"></div>
+                </div>
+              </div>
+            </motion.div>
+            
+            {/* Title and Description */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              <h1 className="text-6xl font-bold bg-gradient-to-r from-gray-900 via-purple-800 to-pink-600 bg-clip-text text-transparent mb-6 font-fredoka">
+                EnglishGPT
+              </h1>
+              <p className="text-2xl text-gray-600 max-w-3xl mx-auto mb-12 leading-relaxed font-fredoka">
+                Your AI-powered writing companion. Get instant, professional feedback on your English essays and assignments with detailed analysis and personalized recommendations.
+              </p>
+            </motion.div>
+            
+            {/* Beautiful Mark a Question Button */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="relative"
+            >
+              <button
+                onClick={onStartQuestion}
+                className="group relative px-12 py-6 bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600 text-white rounded-2xl font-bold text-xl font-fredoka shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 overflow-hidden"
+              >
+                {/* Button Background Animation */}
+                <div className="absolute inset-0 bg-gradient-to-r from-pink-600 via-purple-700 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                {/* Button Content */}
+                <div className="relative flex items-center justify-center space-x-3">
+                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </div>
+                  <span>Mark a Question</span>
+                  <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </div>
+                </div>
+                
+                {/* Shimmer Effect */}
+                <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+              </button>
+              
+              {/* Floating Elements */}
+              <div className="absolute -top-4 -left-4 w-4 h-4 bg-yellow-400 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+              <div className="absolute -top-2 -right-2 w-3 h-3 bg-pink-400 rounded-full animate-bounce" style={{animationDelay: '0.5s'}}></div>
+              <div className="absolute -bottom-4 -left-8 w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '1s'}}></div>
+              <div className="absolute -bottom-2 -right-8 w-3 h-3 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '1.5s'}}></div>
+            </motion.div>
+            
+            {/* Stats Cards */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="flex justify-center space-x-8 mt-12"
+            >
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
+                <div className="text-2xl font-bold text-purple-600 font-fredoka">{userStats?.questionsMarked || 0}</div>
+                <div className="text-sm text-gray-600 font-fredoka">Essays Marked</div>
+              </div>
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
+                <div className="text-2xl font-bold text-blue-600 font-fredoka capitalize">{userStats?.currentPlan || 'Free'}</div>
+                <div className="text-sm text-gray-600 font-fredoka">Current Plan</div>
+              </div>
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
+                <div className="text-2xl font-bold text-green-600 font-fredoka">{userStats?.credits || 3}</div>
+                <div className="text-sm text-gray-600 font-fredoka">Credits Left</div>
+              </div>
+            </motion.div>
+          </div>
+                </div>
+      </div>
+      
+      {/* Question Types Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="space-y-12">
           {/* IGCSE Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-          >
-            <h2 className={`text-2xl font-fredoka font-bold mb-6 text-center ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              IGCSE Section
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {questionTypes.filter(q => q.category === 'IGCSE').map((questionType, index) => (
-                <motion.div
-                  key={questionType.id}
-                  className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm hover:shadow-md transition-shadow cursor-pointer`}
-                  onClick={() => onStartQuestion(questionType)}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.8 + index * 0.1 }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="text-center">
-                    <div className="text-3xl mb-3">{questionType.icon || '📝'}</div>
-                    <h3 className={`font-fredoka font-bold text-lg mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {questionType.name}
-                    </h3>
-                    <p className={`font-fredoka text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                      {questionType.description}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
+          <div className="mb-12">
+            <div className="flex items-center mb-6">
+              <div className="bg-gradient-to-r from-blue-500 to-green-500 text-white px-4 py-2 rounded-lg mr-4">
+                <span className="font-bold">IGCSE</span>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">International General Certificate of Secondary Education</h2>
             </div>
-          </motion.div>
-
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+              {/* Summary */}
+              <div className="bg-pink-50 rounded-xl p-4 sm:p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-white mb-3 sm:mb-4 text-xl sm:text-2xl" style={{background:'#3b82f6'}}>📄</div>
+                <h3 className="font-fredoka text-base sm:text-lg text-gray-900 mb-2 font-semibold">Summary</h3>
+                <p className="font-fredoka text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4">Condensing key information from texts</p>
+                <div className="flex items-center space-x-1 sm:space-x-2 flex-wrap gap-1">
+                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
+                </div>
+              </div>
+              {/* Narrative */}
+              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#8b5cf6'}}>📖</div>
+                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Narrative</h3>
+                <p className="font-fredoka text-gray-600 text-sm mb-4">Creative storytelling and structure</p>
+                <div className="flex items-center space-x-2">
+                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
+                </div>
+              </div>
+              {/* Descriptive */}
+              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#22c55e'}}>🖼️</div>
+                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Descriptive</h3>
+                <p className="font-fredoka text-gray-600 text-sm mb-4">Vivid imagery and atmospheric writing</p>
+                <div className="flex items-center space-x-2">
+                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
+                </div>
+              </div>
+              {/* Writer's Effect */}
+              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#f59e42'}}>⚡</div>
+                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Writer's Effect</h3>
+                <p className="font-fredoka text-gray-600 text-sm mb-4">Language analysis and impact</p>
+                <div className="flex items-center space-x-2">
+                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
+                </div>
+              </div>
+              {/* IGCSE Directed Writing */}
+              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#6366f1'}}>✍️</div>
+                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Directed Writing</h3>
+                <p className="font-fredoka text-gray-600 text-sm mb-4">Transform text into specific formats</p>
+                <div className="flex items-center space-x-2">
+                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
+                </div>
+              </div>
+            </div>
+          </div>
           {/* A-Level Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.0 }}
-          >
-            <h2 className={`text-2xl font-fredoka font-bold mb-6 text-center ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              A-Level Section
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {questionTypes.filter(q => q.category === 'A-Level').map((questionType, index) => (
-                <motion.div
-                  key={questionType.id}
-                  className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm hover:shadow-md transition-shadow cursor-pointer`}
-                  onClick={() => onStartQuestion(questionType)}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 1.2 + index * 0.1 }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="text-center">
-                    <div className="text-3xl mb-3">{questionType.icon || '📚'}</div>
-                    <h3 className={`font-fredoka font-bold text-lg mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {questionType.name}
-                    </h3>
-                    <p className={`font-fredoka text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                      {questionType.description}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
+          <div>
+            <div className="flex items-center mb-6">
+              <div className="bg-gradient-to-r from-purple-500 to-red-500 text-white px-4 py-2 rounded-lg mr-4">
+                <span className="font-bold">A-Level</span>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Advanced Level English</h2>
             </div>
-          </motion.div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Reflective Commentary */}
+              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#ef4444'}}>📊</div>
+                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Reflective Commentary</h3>
+                <p className="font-fredoka text-gray-600 text-sm mb-4">Critical reflection and personal response</p>
+                <div className="flex items-center space-x-2">
+                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">A-Level English (9093)</span>
+                </div>
+              </div>
+              {/* Directed Writing */}
+              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#22c55e'}}>✏️</div>
+                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Directed Writing</h3>
+                <p className="font-fredoka text-gray-600 text-sm mb-4">Task-specific writing with audience awareness</p>
+                <div className="flex items-center space-x-2">
+                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">A-Level English (9093)</span>
+                </div>
+              </div>
+              {/* Text Analysis */}
+              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#ec4899'}}>🔍</div>
+                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Text Analysis</h3>
+                <p className="font-fredoka text-gray-600 text-sm mb-4">Literary analysis and critical interpretation</p>
+                <div className="flex items-center space-x-2">
+                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">A-Level English (9093)</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

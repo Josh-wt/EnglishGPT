@@ -50,13 +50,17 @@ export const useUser = () => {
             console.error('❌ Error fetching user data:', profileError);
             // Don't fail completely if profile fetch fails
             // Set default stats to prevent infinite loading
-            setUserStats({
+            const defaultStats = {
               currentPlan: 'free',
               credits: 3,
               questionsMarked: 0,
               evaluationsUsed: 0,
               evaluationsLimit: 3
-            });
+            };
+            
+            // Apply launch period benefits to default stats
+            const finalStats = applyLaunchPeriodBenefits(defaultStats);
+            setUserStats(finalStats);
           }
         } else {
           console.log('👤 No user session found');
@@ -98,13 +102,17 @@ export const useUser = () => {
           } catch (profileError) {
             console.error('❌ Error fetching user data on sign in:', profileError);
             // Set default stats to prevent infinite loading
-            setUserStats({
+            const defaultStats = {
               currentPlan: 'free',
               credits: 3,
               questionsMarked: 0,
               evaluationsUsed: 0,
               evaluationsLimit: 3
-            });
+            };
+            
+            // Apply launch period benefits to default stats
+            const finalStats = applyLaunchPeriodBenefits(defaultStats);
+            setUserStats(finalStats);
           }
         } else if (event === 'SIGNED_OUT') {
           console.log('👋 User signed out');

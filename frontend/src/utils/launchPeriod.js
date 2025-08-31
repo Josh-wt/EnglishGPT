@@ -8,8 +8,8 @@
  * @returns {boolean} - True if in launch period, false otherwise
  */
 export const isLaunchPeriod = () => {
-  // Launch period: January 2025 (until February 1st, 2025)
-  const launchEndDate = new Date('2025-02-01');
+  // Launch period: Extended until March 1st, 2025
+  const launchEndDate = new Date('2025-03-01');
   return new Date() < launchEndDate;
 };
 
@@ -18,7 +18,7 @@ export const isLaunchPeriod = () => {
  * @returns {Date} - The end date of the launch period
  */
 export const getLaunchEndDate = () => {
-  return new Date('2025-02-01');
+  return new Date('2025-03-01');
 };
 
 /**
@@ -65,18 +65,14 @@ export const applyLaunchPeriodBenefits = (userStats) => {
     return userStats;
   }
 
-  // If user doesn't have unlimited plan, grant it
-  if (!userStats?.currentPlan || userStats.currentPlan.toLowerCase() !== 'unlimited') {
-    console.log('🎉 Launch period: User granted Unlimited plan!');
-    return {
-      ...userStats,
-      currentPlan: 'Unlimited',
-      credits: '∞',
-      questionsMarked: userStats?.questionsMarked || 0,
-      evaluationsLimit: '∞',
-      evaluationsUsed: userStats?.evaluationsUsed || 0,
-    };
-  }
-
-  return userStats;
+  // Always grant unlimited plan during launch period
+  console.log('🎉 Launch period: User granted Unlimited plan!');
+  return {
+    ...userStats,
+    currentPlan: 'Unlimited',
+    credits: '∞',
+    questionsMarked: userStats?.questionsMarked || 0,
+    evaluationsLimit: '∞',
+    evaluationsUsed: userStats?.evaluationsUsed || 0,
+  };
 };
