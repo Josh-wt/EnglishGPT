@@ -271,7 +271,7 @@ const PricingPage = ({ onBack, user }) => {
                 Coming After Launch
               </button>
             </div>
-          </div>
+          </motion.div>
 
           {/* Future Yearly Plan */}
           <motion.div 
