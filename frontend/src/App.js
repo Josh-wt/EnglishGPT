@@ -116,8 +116,8 @@ const App = () => {
     try {
       setEvaluationLoading(true);
       
-      // Validate essay content
-      const validationResult = await validateEssay(evaluationResult.studentResponse, evaluationResult.questionType);
+      // Validate essay content - use snake_case properties from QuestionTypePage
+      const validationResult = await validateEssay(evaluationResult.student_response, evaluationResult.question_type);
       if (!validationResult.isValid) {
         return;
       }

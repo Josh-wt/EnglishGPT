@@ -12,7 +12,8 @@ import { API_ENDPOINTS } from '../constants/apiEndpoints';
  */
 export const submitEvaluation = async (evaluationData) => {
   try {
-    const response = await apiHelpers.post(API_ENDPOINTS.EVALUATIONS, evaluationData);
+    // Use the correct endpoint: /evaluate (not /evaluations)
+    const response = await apiHelpers.post(`${API_ENDPOINTS.API}/evaluate`, evaluationData);
     return response.data;
   } catch (error) {
     console.error('Error submitting evaluation:', error);
@@ -58,7 +59,8 @@ export const getEvaluations = async (userId, filters = {}) => {
  */
 export const getEvaluation = async (evaluationId) => {
   try {
-    const response = await apiHelpers.get(`${API_ENDPOINTS.EVALUATIONS}/${evaluationId}`);
+    // Use the correct endpoint: /evaluate/{evaluationId}
+    const response = await apiHelpers.get(`${API_ENDPOINTS.API}/evaluate/${evaluationId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching evaluation:', error);
@@ -73,7 +75,8 @@ export const getEvaluation = async (evaluationId) => {
  */
 export const deleteEvaluation = async (evaluationId) => {
   try {
-    const response = await apiHelpers.delete(`${API_ENDPOINTS.EVALUATIONS}/${evaluationId}`);
+    // Use the correct endpoint: /evaluate/{evaluationId}
+    const response = await apiHelpers.delete(`${API_ENDPOINTS.API}/evaluate/${evaluationId}`);
     return response.data;
   } catch (error) {
     console.error('Error deleting evaluation:', error);
@@ -89,7 +92,8 @@ export const deleteEvaluation = async (evaluationId) => {
  */
 export const updateEvaluation = async (evaluationId, updateData) => {
   try {
-    const response = await apiHelpers.put(`${API_ENDPOINTS.EVALUATIONS}/${evaluationId}`, updateData);
+    // Use the correct endpoint: /evaluate/{evaluationId}
+    const response = await apiHelpers.put(`${API_ENDPOINTS.API}/evaluate/${evaluationId}`, updateData);
     return response.data;
   } catch (error) {
     console.error('Error updating evaluation:', error);
