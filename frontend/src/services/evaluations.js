@@ -104,7 +104,7 @@ export const updateEvaluation = async (evaluationId, updateData) => {
 export const getEvaluationStats = async (userId) => {
   try {
     // Use the existing /history/{user_id} endpoint since there's no dedicated /stats endpoint
-    const response = await apiHelpers.get(`/api/history/${userId}`);
+    const response = await apiHelpers.get(`/history/${userId}`);
     
     // Extract evaluations and construct stats
     const evaluations = response.data.evaluations || [];
