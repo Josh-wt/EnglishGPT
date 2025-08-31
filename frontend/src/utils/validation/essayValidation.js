@@ -1,6 +1,5 @@
 import { VALIDATION_RULES } from '../../constants/validationRules';
 import { countWords, meetsMinimumWordCount, exceedsMaximumWordCount } from './wordCountUtils';
-import { checkProfanity } from './profanityFilter';
 import { detectSpam } from './spamDetection';
 
 /**
@@ -53,18 +52,8 @@ export const validateEssayContent = (studentResponse, questionType) => {
       };
     }
 
-    // Check for profanity
-    const profanityCheck = checkProfanity(studentResponse);
-    if (profanityCheck.hasProfanity) {
-      return {
-        isValid: false,
-        error: 'profanity_detected',
-        message: 'Inappropriate language detected in essay',
-        details: {
-          foundWords: profanityCheck.foundWords,
-        },
-      };
-    }
+    // Profanity check removed - no longer checking for profanity
+    console.log('🔍 DEBUG: Skipping profanity check');
 
     // Check for spam content
     const spamCheck = detectSpam(studentResponse);
