@@ -25,23 +25,15 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   const [formattedText, setFormattedText] = useState('');
   const essayRef = useRef(null);
 
-  // Show loading screen when evaluation is in progress
-  if (evaluationLoading) {
-    return (
-      <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-main'} flex items-center justify-center`}>
-        <div className="text-center max-w-md">
-          <LoadingSpinner 
-            message={loadingMessage || "🤖 AI is analyzing your essay..."} 
-            size="large" 
-          />
-          
-          <div className="loading-subtext mt-4">
-            Our AI is carefully analyzing your {selectedQuestionType?.name} submission. This may take up to 60 seconds.
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Function to convert markdown to HTML
+  const convertMarkdownToHtml = (text) => {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/"(.*?)"/g, '<span class="text-blue-600 italic">"$1"</span>')
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+  };
 
   // Restore draft on mount
   useEffect(() => {
@@ -71,15 +63,23 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     return () => clearTimeout(handle);
   }, [studentResponse]);
 
-  // Function to convert markdown to HTML
-  const convertMarkdownToHtml = (text) => {
-    return text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/"(.*?)"/g, '<span class="text-blue-600 italic">"$1"</span>')
-      .replace(/\n\n/g, '<br><br>')
-      .replace(/\n/g, '<br>');
-  };
+  // Show loading screen when evaluation is in progress
+  if (evaluationLoading) {
+    return (
+      <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-main'} flex items-center justify-center`}>
+        <div className="text-center max-w-md">
+          <LoadingSpinner 
+            message={loadingMessage || "🤖 AI is analyzing your essay..."} 
+            size="large" 
+          />
+          
+          <div className="loading-subtext mt-4">
+            Our AI is carefully analyzing your {selectedQuestionType?.name} submission. This may take up to 60 seconds.
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const applyFormat = (prefix, suffix = prefix) => {
     const textarea = essayRef.current;
