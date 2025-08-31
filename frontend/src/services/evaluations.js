@@ -103,8 +103,40 @@ export const updateEvaluation = async (evaluationId, updateData) => {
  */
 export const getEvaluationStats = async (userId) => {
   try {
-    const response = await apiHelpers.get(`${API_ENDPOINTS.EVALUATIONS}/${userId}/stats`);
-    return response.data;
+    // Use the existing /history/{user_id} endpoint since there's no dedicated /stats endpoint
+    const response = await apiHelpers.get(`/api/history/${userId}`);
+    
+    // Extract evaluations and construct stats
+    const evaluations = response.data.evaluations || [];
+    
+    // Calculate basic stats
+    const stats = {
+      totalEvaluations: evaluations.length,
+      averageScore: 0,
+      questionTypes: {},
+      recentEvaluations: evaluations.slice(0, 5),
+      evaluations: evaluations
+    };
+    
+    // Calculate average score if there are evaluations
+    if (evaluations.length > 0) {
+      const scores = evaluations.map(evaluation => {
+        const scoreMatch = (evaluation.grade || '').match(/(\d+)\s*\/\s*(\d+)/);
+        return scoreMatch ? Number(scoreMatch[1]) : 0;
+      }).filter(score => score > 0);
+      
+      if (scores.length > 0) {
+        stats.averageScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+      }
+    }
+    
+    // Count question types
+    evaluations.forEach(evaluation => {
+      const type = evaluation.question_type || 'unknown';
+      stats.questionTypes[type] = (stats.questionTypes[type] || 0) + 1;
+    });
+    
+    return stats;
   } catch (error) {
     console.error('Error fetching evaluation stats:', error);
     throw error;

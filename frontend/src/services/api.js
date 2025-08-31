@@ -3,7 +3,7 @@ import { API_ENDPOINTS } from '../constants/apiEndpoints';
 
 // Create axios instance with default configuration
 const api = axios.create({
-  baseURL: API_ENDPOINTS.API,
+  baseURL: API_ENDPOINTS.BACKEND_URL, // Use BACKEND_URL, not API to avoid double /api/
   timeout: 30000, // 30 seconds
   headers: {
     'Content-Type': 'application/json',

@@ -6,14 +6,14 @@ const API = `${BACKEND_URL}/api`;
 export const API_ENDPOINTS = {
   BACKEND_URL,
   API,
-  USERS: `${API}/users`,
-  EVALUATIONS: `${API}/evaluations`,
-  ANALYTICS: `${API}/analytics`,
-  TRANSACTIONS: `${API}/transactions`,
-  SUBSCRIPTIONS: `${API}/subscriptions`,
-  WEBHOOKS: `${API}/webhooks`,
-  FEEDBACK: `${API}/feedback`,
-  QUESTION_TYPES: `${API}/question-types`,
+  USERS: `/api/users`,
+  EVALUATIONS: `/api/evaluations`,
+  ANALYTICS: `/api/analytics`,
+  TRANSACTIONS: `/api/transactions`,
+  SUBSCRIPTIONS: `/api/subscriptions`,
+  WEBHOOKS: `/api/webhooks`,
+  FEEDBACK: `/api/feedback`,
+  QUESTION_TYPES: `/api/question-types`,
 };
 
 export default API_ENDPOINTS;
