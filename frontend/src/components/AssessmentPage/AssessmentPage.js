@@ -1,196 +1,146 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { getBackendUrl } from '../../utils/backendUrl';
+import { motion } from 'framer-motion';
+import { supabase } from '../../supabaseClient';
 import api from '../../services/api';
 import Header from './Header';
 import EssayPreview from './EssayPreview';
-import MarkingSchemeSection from './MarkingSchemeSection';
-import LoadingPage from './LoadingPage';
 import UploadWarningModal from './UploadWarningModal';
 
-const AssessmentPage = ({ selectedQuestionType, onBack, onEvaluate, darkMode }) => {
+const AssessmentPage = ({ selectedQuestionType, onBack, onComplete, darkMode }) => {
   const [markingScheme, setMarkingScheme] = useState('');
-  const [uploadOption, setUploadOption] = useState('text');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showUploadWarning, setShowUploadWarning] = useState(false);
-  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
-  const [restoredScheme, setRestoredScheme] = useState(false);
+  const [extractedText, setExtractedText] = useState('');
 
-  const loadingMessages = [
-    "🤖 AI is analyzing your essay...",
-    "📝 Checking grammar and structure...",
-    "🎯 Evaluating content quality...",
-    "✨ Analyzing writing style and flow...",
-    "🔍 Examining vocabulary usage...",
-    "📊 Assessing argument structure...",
-    "⚡ Generating personalized feedback...",
-    "🎭 Reviewing literary techniques...",
-    "💡 Identifying key strengths...",
-    "🎨 Evaluating descriptive language...",
-    "🧠 Processing complex ideas...",
-    "📖 Checking coherence and clarity...",
-    "🏆 Measuring against marking criteria...",
-    "🌟 Crafting improvement suggestions...",
-    "🎪 Analyzing tone and mood...",
-    "🔬 Examining evidence and examples...",
-    "🎵 Checking rhythm and pacing...",
-    "🌈 Evaluating creativity and originality...",
-    "⭐ Finalizing detailed assessment...",
-    "🎉 Almost done! Preparing your results..."
-  ];
+  // Get student response from selectedQuestionType
+  const studentResponse = selectedQuestionType?.studentResponse || '';
 
-  // Restore marking scheme draft
   useEffect(() => {
-    const key = 'draft_marking_scheme';
-    const saved = localStorage.getItem(key);
-    if (saved && !markingScheme) {
-      setMarkingScheme(saved);
-      setRestoredScheme(true);
-      setTimeout(() => setRestoredScheme(false), 3000);
-    }
-  }, []);
-
-  // Autosave marking scheme
-  useEffect(() => {
-    const key = 'draft_marking_scheme';
-    const handle = setTimeout(() => {
-      if (markingScheme && markingScheme.trim().length > 0) {
-        localStorage.setItem(key, markingScheme);
-      } else {
-        localStorage.removeItem(key);
-      }
-    }, 400);
-    return () => clearTimeout(handle);
-  }, [markingScheme]);
-
-  const handleUploadOptionChange = (option) => {
-    if (option === 'file' && uploadOption === 'text') {
+    // Show upload warning for certain question types
+    if (selectedQuestionType?.id === 'igcse_summary' || selectedQuestionType?.id === 'alevel_text_analysis') {
       setShowUploadWarning(true);
-    } else {
-      setUploadOption(option);
     }
-  };
-  
-  const confirmFileUpload = () => {
-    setUploadOption('file');
-    setShowUploadWarning(false);
-  };
-  
-  const cancelFileUpload = () => {
-    setShowUploadWarning(false);
-  };
-  
+  }, [selectedQuestionType]);
+
   const handleFileUpload = async (file) => {
     setIsLoading(true);
     setError('');
-    
+
     try {
       const formData = new FormData();
       formData.append('file', file);
-      
-      
+      formData.append('question_type', selectedQuestionType.id);
 
-        const response = await api.post(`/process-file`, formData, {
+      const response = await api.post(`/process-file`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      
-      setMarkingScheme(response.data.extracted_text);
-      setError('');
-    } catch (error) {
-      setError('Failed to process file. Please try pasting the text instead.');
+
+      if (response.data && response.data.extracted_text) {
+        setMarkingScheme(response.data.extracted_text);
+        setExtractedText(response.data.extracted_text);
+      } else {
+        setError('No text could be extracted from the file');
+      }
+    } catch (err) {
+      console.error('File upload error:', err);
+      setError('Failed to process file. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSubmit = async () => {
-    if (selectedQuestionType.requiresScheme === true && !markingScheme.trim()) {
-      setError('This question type requires a marking scheme');
+    if (!studentResponse.trim()) {
+      setError('Please provide a student response');
       return;
     }
-    
+
     setIsLoading(true);
     setError('');
-    setCurrentMessageIndex(0);
-    
-    // Animate through loading messages
-    const messageInterval = setInterval(() => {
-      setCurrentMessageIndex((prev) => {
-        if (prev >= loadingMessages.length - 1) {
-          clearInterval(messageInterval);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 1500);
-    
+
     try {
       const evaluationData = {
         question_type: selectedQuestionType.id,
-        student_response: selectedQuestionType.studentResponse, // From previous page
+        student_response: studentResponse,
         marking_scheme: markingScheme || null,
       };
+
+      const response = await api.post('/evaluations', evaluationData);
       
-      await onEvaluate(evaluationData);
-      clearInterval(messageInterval);
-    } catch (error) {
-      clearInterval(messageInterval);
-      setError('Failed to evaluate submission. Please try again.');
+      if (response.data) {
+        onComplete(response.data);
+      } else {
+        setError('Failed to evaluate essay');
+      }
+    } catch (err) {
+      console.error('Evaluation error:', err);
+      setError('Failed to evaluate essay. Please try again.');
+    } finally {
       setIsLoading(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <LoadingPage 
-        selectedQuestionType={selectedQuestionType} 
-        loadingMessages={loadingMessages} 
-        currentMessageIndex={currentMessageIndex}
-        darkMode={darkMode}
-      />
-    );
-  }
-
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-gray-50'} p-4`}>
-      <div className="max-w-4xl mx-auto">
-        <Header onBack={onBack} darkMode={darkMode} />
-        
-        {restoredScheme && (
-          <div className="mb-4 text-xs text-green-700 bg-green-50 border border-green-200 rounded px-3 py-2">
-            Restored unsaved marking scheme.
-          </div>
-        )}
-        
-        <EssayPreview selectedQuestionType={selectedQuestionType} darkMode={darkMode} />
+      <div className="max-w-7xl mx-auto">
+        <Header 
+          selectedQuestionType={selectedQuestionType} 
+          onBack={onBack}
+          darkMode={darkMode}
+        />
 
-        <MarkingSchemeSection
-          markingScheme={markingScheme}
-          setMarkingScheme={setMarkingScheme}
-          uploadOption={uploadOption}
-          onUploadOptionChange={handleUploadOptionChange}
-          onFileUpload={handleFileUpload}
-          onSubmit={handleSubmit}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+          {/* Left: Essay Preview */}
+          <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-6 shadow-sm border`}>
+            <EssayPreview 
+              studentResponse={studentResponse}
+              selectedQuestionType={selectedQuestionType}
+              darkMode={darkMode}
+            />
+          </div>
+
+          {/* Right: Submit Section */}
+          <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-6 shadow-sm border`}>
+            <div className="text-center">
+              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>
+                Ready to Evaluate
+              </h2>
+              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
+                Your essay is ready for AI evaluation. Click the button below to get instant feedback.
+              </p>
+
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  {error}
+                </div>
+              )}
+
+              <motion.button
+                onClick={handleSubmit}
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                whileTap={{ scale: isLoading ? 1 : 0.98 }}
+              >
+                {isLoading ? 'Evaluating...' : 'Get AI Feedback Now'}
+              </motion.button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Upload Warning Modal */}
+      {showUploadWarning && (
+        <UploadWarningModal
+          onClose={() => setShowUploadWarning(false)}
+          onUpload={handleFileUpload}
           isLoading={isLoading}
           darkMode={darkMode}
         />
-        
-        {/* Error Display */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700">
-            {error}
-          </div>
-        )}
-      </div>
-      
-      <UploadWarningModal
-        isOpen={showUploadWarning}
-        onConfirm={confirmFileUpload}
-        onCancel={cancelFileUpload}
-      />
+      )}
     </div>
   );
 };

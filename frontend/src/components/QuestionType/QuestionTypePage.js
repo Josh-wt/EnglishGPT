@@ -8,7 +8,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   const [selectedQuestionType, setSelectedQuestionType] = useState(null);
   const [studentResponse, setStudentResponse] = useState('');
   const [showNextButton, setShowNextButton] = useState(false);
-  const [showMarkingSchemeChoice, setShowMarkingSchemeChoice] = useState(false);
   const [restoredDraft, setRestoredDraft] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [showExample, setShowExample] = useState(false);
@@ -72,72 +71,21 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
 
   const wordCount = studentResponse.trim().split(/\s+/).filter(w => w.length > 0).length;
 
-  const getWordGoal = () => {
-    if (!selectedQuestionType) return 300;
-    const map = {
-      igcse_summary: 50,
-      igcse_narrative: 300,
-      igcse_descriptive: 300,
-      igcse_writers_effect: 150,
-      igcse_directed: 150,
-      alevel_directed: 300,
-      alevel_text_analysis: 400,
-      alevel_comparative: 500,
-    };
-    return map[selectedQuestionType.id] || 300;
-  };
-
   const handleQuestionSelect = (questionType) => {
     setSelectedQuestionType(questionType);
     setShowNextButton(true);
-    if (questionType.id === 'igcse_writers_effect') {
-      setShowMarkingSchemeChoice(true);
-    } else {
-      setShowMarkingSchemeChoice(false);
-    }
   };
 
-  const handleProceed = (useMarkingScheme = null) => {
+  const handleProceed = () => {
     if (!selectedQuestionType || !studentResponse.trim()) return;
 
-    // Handle Writer's Effect optional marking scheme
-    if (selectedQuestionType.id === 'igcse_writers_effect') {
-      if (useMarkingScheme) {
-        // User chose to use marking scheme - go to assessment page
-        onSelectQuestionType({
-          ...selectedQuestionType,
-          studentResponse: studentResponse,
-          requires_marking_scheme: true // Override for this instance
-        });
-        return;
-      } else {
-        // User chose to skip marking scheme - evaluate directly
-        const evaluationData = {
-          question_type: selectedQuestionType.id,
-          student_response: studentResponse,
-          marking_scheme: null,
-        };
-        onEvaluate(evaluationData);
-        return;
-      }
-    }
-
-    // Smart flow for other question types
-    if (selectedQuestionType.requires_marking_scheme === true) {
-      // Pass student response and go to assessment page for marking scheme
-      onSelectQuestionType({
-        ...selectedQuestionType,
-        studentResponse: studentResponse // Pass the essay along
-      });
-    } else {
-      // No marking scheme needed - evaluate directly
-      const evaluationData = {
-        question_type: selectedQuestionType.id,
-        student_response: studentResponse,
-        marking_scheme: null,
-      };
-      onEvaluate(evaluationData);
-    }
+    // Evaluate directly - no marking scheme logic
+    const evaluationData = {
+      question_type: selectedQuestionType.id,
+      student_response: studentResponse,
+      marking_scheme: null,
+    };
+    onEvaluate(evaluationData);
   };
 
   // Filter questions based on selected level
@@ -148,13 +96,11 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
 
     const igcseQuestions = questionTypes.filter(q => q.category === 'IGCSE').map(q => ({
       ...q,
-      requiresScheme: q.requires_marking_scheme,
       icon: getIconForQuestionType(q.id)
     }));
 
     const alevelQuestions = questionTypes.filter(q => q.category.includes('A-Level')).map(q => ({
       ...q,
-      requiresScheme: q.requires_marking_scheme,
       icon: getIconForQuestionType(q.id)
     }));
 
@@ -219,46 +165,52 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50">
-      <Header 
-        onBack={onBack} 
-        levelData={levelData} 
-      />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-gray-50'} p-4`}>
+      <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <QuestionSelection
-            levelData={levelData}
-            selectedQuestionType={selectedQuestionType}
-            onQuestionSelect={handleQuestionSelect}
-            onShowExample={() => setShowExample(true)}
-            onGeneratePrompt={() => setStudentResponse((v) => (v ? v + '\n\n' : '') + generatePrompt())}
-          />
+          {/* Left: Choose Question Type */}
+          <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-6 shadow-sm border`}>
+            <QuestionSelection
+              levelData={levelData}
+              selectedQuestionType={selectedQuestionType}
+              onQuestionSelect={handleQuestionSelect}
+              onShowExample={() => setShowExample(true)}
+              onGeneratePrompt={() => {
+                const prompt = generatePrompt();
+                setStudentResponse(prompt);
+              }}
+            />
+          </div>
 
-          <WritingInterface
-            selectedQuestionType={selectedQuestionType}
-            studentResponse={studentResponse}
-            setStudentResponse={setStudentResponse}
-            wordCount={wordCount}
-            levelData={levelData}
-            showNextButton={showNextButton}
-            showMarkingSchemeChoice={showMarkingSchemeChoice}
-            onProceed={handleProceed}
-            applyFormat={applyFormat}
-            insertParagraphBreak={insertParagraphBreak}
-            essayRef={essayRef}
-            lastSavedAt={lastSavedAt}
-          />
+          {/* Right: Writing Interface */}
+          <div className="lg:col-span-2">
+            <WritingInterface
+              studentResponse={studentResponse}
+              setStudentResponse={setStudentResponse}
+              selectedQuestionType={selectedQuestionType}
+              showNextButton={showNextButton}
+              onProceed={handleProceed}
+              onBack={onBack}
+              darkMode={darkMode}
+              essayRef={essayRef}
+              applyFormat={applyFormat}
+              insertParagraphBreak={insertParagraphBreak}
+              wordCount={wordCount}
+              lastSavedAt={lastSavedAt}
+              restoredDraft={restoredDraft}
+            />
+          </div>
         </div>
       </div>
 
-      <ExampleModal
-        isOpen={showExample}
-        onClose={() => setShowExample(false)}
-        selectedQuestionType={selectedQuestionType}
-        getExampleForType={getExampleForType}
-        darkMode={darkMode}
-      />
+      {/* Example Modal */}
+      {showExample && (
+        <ExampleModal
+          selectedQuestionType={selectedQuestionType}
+          onClose={() => setShowExample(false)}
+          getExampleForType={getExampleForType}
+        />
+      )}
     </div>
   );
 };

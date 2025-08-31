@@ -4,10 +4,7 @@ import { motion } from 'framer-motion';
 const AcademicLevelSelector = ({ academicLevel, onLevelChange, showLevelPrompt, error }) => {
   const levels = [
     { value: 'igcse', label: 'IGCSE', description: 'International General Certificate of Secondary Education' },
-    { value: 'alevel', label: 'A-Level', description: 'Advanced Level General Certificate of Education' },
-    { value: 'ib', label: 'IB', description: 'International Baccalaureate' },
-    { value: 'sat', label: 'SAT', description: 'Scholastic Assessment Test' },
-    { value: 'ap', label: 'AP', description: 'Advanced Placement' }
+    { value: 'alevel', label: 'A-Level', description: 'Advanced Level General Certificate of Education' }
   ];
 
   return (
@@ -34,7 +31,7 @@ const AcademicLevelSelector = ({ academicLevel, onLevelChange, showLevelPrompt, 
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {levels.map((level) => (
           <motion.button
             key={level.value}

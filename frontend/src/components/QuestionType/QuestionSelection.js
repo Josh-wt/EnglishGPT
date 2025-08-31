@@ -48,13 +48,6 @@ const QuestionSelection = ({ levelData, selectedQuestionType, onQuestionSelect, 
                     )}
                   </div>
                   <p className="text-gray-600 text-sm mt-1 leading-relaxed">{question.description}</p>
-                  {question.requiresScheme && (
-                    <div className="mt-2">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                        📋 Requires marking scheme
-                      </span>
-                    </div>
-                  )}
                 </div>
               </div>
             </button>
@@ -81,8 +74,7 @@ const QuestionSelection = ({ levelData, selectedQuestionType, onQuestionSelect, 
           {[
             { icon: '📋', tip: 'Plan briefly: outline intro, key points, and conclusion' },
             { icon: '📚', tip: 'Use precise vocabulary and vary sentence structure' },
-            { icon: '🎯', tip: 'Keep a consistent tone and answer the prompt directly' },
-            { icon: '📊', tip: 'Target the word goal shown in your progress indicator' }
+            { icon: '🎯', tip: 'Keep a consistent tone and answer the prompt directly' }
           ].map((item, index) => (
             <div key={index} className="flex items-start space-x-3">
               <span className="text-lg mt-0.5">{item.icon}</span>

@@ -1,99 +1,59 @@
-export const QUESTION_TYPES = {
-  IGCSE: {
-    SUMMARY: {
-      id: 'igcse_summary',
-      name: 'Summary',
-      description: 'Condensing key information from texts',
-      category: 'IGCSE',
-      requiresMarkScheme: true,
-      icon: '📄',
-      color: '#3b82f6',
-      wordLimit: 700,
-    },
-    NARRATIVE: {
-      id: 'igcse_narrative',
-      name: 'Narrative',
-      description: 'Creative storytelling and structure',
-      category: 'IGCSE',
-      requiresMarkScheme: false,
-      icon: '📖',
-      color: '#8b5cf6',
-      wordLimit: 700,
-    },
-    DESCRIPTIVE: {
-      id: 'igcse_descriptive',
-      name: 'Descriptive',
-      description: 'Vivid imagery and atmospheric writing',
-      category: 'IGCSE',
-      requiresMarkScheme: false,
-      icon: '🖼️',
-      color: '#22c55e',
-      wordLimit: 700,
-    },
-    WRITERS_EFFECT: {
-      id: 'igcse_writers_effect',
-      name: "Writer's Effect",
-      description: 'Language analysis and impact',
-      category: 'IGCSE',
-      requiresMarkScheme: false,
-      icon: '⚡',
-      color: '#f59e42',
-      wordLimit: 700,
-    },
-    DIRECTED_WRITING: {
-      id: 'igcse_directed_writing',
-      name: 'Directed Writing',
-      description: 'Structured response to specific prompts',
-      category: 'IGCSE',
-      requiresMarkScheme: true,
-      icon: '✍️',
-      color: '#6366f1',
-      wordLimit: 700,
-    },
+export const QUESTION_TYPES = [
+  {
+    id: 'igcse_summary',
+    name: 'Summary',
+    category: 'IGCSE',
+    description: 'Summarize the key points from a given text'
   },
-  A_LEVEL: {
-    ARGUMENTATIVE: {
-      id: 'alevel_argumentative',
-      name: 'Argumentative',
-      description: 'Persuasive writing with evidence',
-      category: 'A-Level',
-      requiresMarkScheme: true,
-      icon: '🎯',
-      color: '#ef4444',
-      wordLimit: 1400,
-    },
-    ANALYTICAL: {
-      id: 'alevel_analytical',
-      name: 'Analytical',
-      description: 'Critical analysis and evaluation',
-      category: 'A-Level',
-      requiresMarkScheme: true,
-      icon: '🔍',
-      color: '#06b6d4',
-      wordLimit: 1400,
-    },
-    COMPARATIVE: {
-      id: 'alevel_comparative',
-      name: 'Comparative',
-      description: 'Comparing and contrasting ideas',
-      category: 'A-Level',
-      requiresMarkScheme: true,
-      icon: '⚖️',
-      color: '#8b5cf6',
-      wordLimit: 1400,
-    },
-    CREATIVE: {
-      id: 'alevel_creative',
-      name: 'Creative',
-      description: 'Imaginative and original writing',
-      category: 'A-Level',
-      requiresMarkScheme: false,
-      icon: '✨',
-      color: '#f59e42',
-      wordLimit: 1400,
-    },
+  {
+    id: 'igcse_narrative',
+    name: 'Narrative',
+    category: 'IGCSE',
+    description: 'Create an engaging narrative story'
   },
-};
+  {
+    id: 'igcse_descriptive',
+    name: 'Descriptive',
+    category: 'IGCSE',
+    description: 'Write a vivid descriptive piece'
+  },
+  {
+    id: 'igcse_writers_effect',
+    name: "Writer's Effect",
+    category: 'IGCSE',
+    description: 'Analyze the writer\'s use of language and its effects'
+  },
+  {
+    id: 'igcse_directed',
+    name: 'Directed Writing',
+    category: 'IGCSE',
+    description: 'Transform text into specific formats for different audiences'
+  },
+  {
+    id: 'alevel_comparative',
+    name: 'Comparative Analysis 1(b)',
+    category: 'A-Level English (9093)',
+    description: 'Compare and analyze different texts'
+  },
+  {
+    id: 'alevel_directed',
+    name: 'Directed Writing 1(a)',
+    category: 'A-Level English (9093)',
+    description: 'Transform text into a specific format for audience'
+  },
+  {
+    id: 'alevel_text_analysis',
+    name: 'Text Analysis Q2',
+    category: 'A-Level English (9093)',
+    description: 'Analyze form, structure, and language in texts'
+  },
+  {
+    id: 'alevel_language_change',
+    name: 'Language Change Analysis (P3, Section A)',
+    category: 'A-Level English (9093)',
+    description: 'Analyze historical prose extract demonstrating English language change using quantitative data'
+  }
+];
 
 export const QUESTION_CATEGORIES = {
   IGCSE: 'IGCSE',

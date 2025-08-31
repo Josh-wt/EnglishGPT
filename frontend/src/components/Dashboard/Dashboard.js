@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAnalytics, onAccountSettings, onSubscription, userStats, user, darkMode, onSignOut }) => {
   // Helper function for unlimited plan checking
   const hasUnlimitedAccess = () => {
-    const plan = userStats.currentPlan?.toLowerCase();
+    const plan = userStats?.currentPlan?.toLowerCase();
     return plan === 'unlimited';
   };
 
@@ -98,115 +98,130 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Welcome Section */}
         <motion.div 
-          className="mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          className="text-center mb-12"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
         >
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Welcome back, {user?.user_metadata?.full_name || user?.email || 'Student'}! 👋
-          </h2>
-          <p className="text-gray-600">
-            Ready to improve your English writing skills? Let's get started!
-          </p>
-        </motion.div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <motion.div 
-              key={index}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 + index * 0.1 }}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                </div>
-                <div className={`p-3 bg-gradient-to-br ${stat.color} rounded-lg text-white text-2xl`}>
-                  {stat.icon}
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Quick Actions */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {quickActions.map((action, index) => (
-              <motion.div 
-                key={index}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition-shadow"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 + index * 0.1 }}
-                onClick={action.locked ? onPricing : action.action}
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 bg-gradient-to-br ${action.color} rounded-lg text-white text-xl`}>
-                    {action.icon}
-                  </div>
-                  {action.locked && (
-                    <div className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
-                      Premium
-                    </div>
-                  )}
-                </div>
-                <h4 className="font-semibold text-gray-900 mb-2">{action.title}</h4>
-                <p className="text-sm text-gray-600">{action.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-          <div className="text-center py-8">
-            <div className="text-4xl mb-4">📝</div>
-            <p className="text-gray-600 mb-4">No recent essays yet</p>
-            <motion.button
-              onClick={onStartQuestion}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-lg font-medium hover:shadow-lg transition-shadow"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Start Your First Essay
-            </motion.button>
-          </div>
-        </div>
-
-        {/* Upgrade Prompt for Free Users */}
-        {!hasUnlimitedAccess() && (
-          <motion.div 
-            className="mt-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl p-6 text-white"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Unlock Unlimited Access</h3>
-                <p className="text-purple-100">Get unlimited essays, advanced analytics, and AI recommendations</p>
-              </div>
-              <motion.button
-                onClick={onPricing}
-                className="bg-white text-purple-600 px-4 py-2 rounded-lg font-medium hover:bg-purple-50 transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Upgrade Now
-              </motion.button>
+          <div className="relative inline-block mb-4">
+            <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-500 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+              📚
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full"></div>
             </div>
-          </motion.div>
-        )}
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">EnglishGPT</h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+            Get instant, professional feedback on your English essays and assignments
+          </p>
+          <button
+            onClick={onStartQuestion}
+            className="bg-black text-white px-8 py-4 rounded-xl font-semibold hover:bg-gray-800 transition-colors text-lg"
+          >
+            Mark a Question
+          </button>
+        </motion.div>
+        
+        {/* Question Types - Rendered explicitly */}
+        <div className="space-y-12">
+          {/* IGCSE Section */}
+          <div className="mb-12">
+            <div className="flex items-center mb-6">
+              <div className="bg-gradient-to-r from-blue-500 to-green-500 text-white px-4 py-2 rounded-lg mr-4">
+                <span className="font-bold">IGCSE</span>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">International General Certificate of Secondary Education</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+              {/* Summary */}
+              <div className="bg-pink-50 rounded-xl p-4 sm:p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-white mb-3 sm:mb-4 text-xl sm:text-2xl" style={{background:'#3b82f6'}}>📄</div>
+                <h3 className="font-fredoka text-base sm:text-lg text-gray-900 mb-2 font-semibold">Summary</h3>
+                <p className="font-fredoka text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4">Condensing key information from texts</p>
+                <div className="flex items-center space-x-1 sm:space-x-2 flex-wrap gap-1">
+                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
+                  <span className="font-fredoka text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-100">Mark scheme required</span>
+                </div>
+              </div>
+              {/* Narrative */}
+              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#8b5cf6'}}>📖</div>
+                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Narrative</h3>
+                <p className="font-fredoka text-gray-600 text-sm mb-4">Creative storytelling and structure</p>
+                <div className="flex items-center space-x-2">
+                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
+                </div>
+              </div>
+              {/* Descriptive */}
+              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#22c55e'}}>🖼️</div>
+                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Descriptive</h3>
+                <p className="font-fredoka text-gray-600 text-sm mb-4">Vivid imagery and atmospheric writing</p>
+                <div className="flex items-center space-x-2">
+                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
+                </div>
+              </div>
+              {/* Writer's Effect */}
+              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#f59e42'}}>⚡</div>
+                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Writer's Effect</h3>
+                <p className="font-fredoka text-gray-600 text-sm mb-4">Language analysis and impact</p>
+                <div className="flex items-center space-x-2">
+                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
+                  <span className="font-fredoka text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-100">Mark scheme optional</span>
+                </div>
+              </div>
+              {/* IGCSE Directed Writing */}
+              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#6366f1'}}>✍️</div>
+                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Directed Writing</h3>
+                <p className="font-fredoka text-gray-600 text-sm mb-4">Transform text into specific formats</p>
+                <div className="flex items-center space-x-2">
+                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">IGCSE</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* A-Level Section */}
+          <div>
+            <div className="flex items-center mb-6">
+              <div className="bg-gradient-to-r from-purple-500 to-red-500 text-white px-4 py-2 rounded-lg mr-4">
+                <span className="font-bold">A-Level</span>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Advanced Level English</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Reflective Commentary */}
+              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#ef4444'}}>📊</div>
+                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Reflective Commentary</h3>
+                <p className="font-fredoka text-gray-600 text-sm mb-4">Critical reflection and personal response</p>
+                <div className="flex items-center space-x-2">
+                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">A-Level English (9093)</span>
+                  <span className="font-fredoka text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-100">Mark scheme required</span>
+                </div>
+              </div>
+              {/* Directed Writing */}
+              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#22c55e'}}>✏️</div>
+                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Directed Writing</h3>
+                <p className="font-fredoka text-gray-600 text-sm mb-4">Task-specific writing with audience awareness</p>
+                <div className="flex items-center space-x-2">
+                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">A-Level English (9093)</span>
+                </div>
+              </div>
+              {/* Text Analysis */}
+              <div className="bg-pink-50 rounded-xl p-6 cursor-pointer hover:bg-pink-100 transition-all duration-300 border border-pink-100 hover:border-pink-300 hover:shadow-lg">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4 text-2xl" style={{background:'#ec4899'}}>🔍</div>
+                <h3 className="font-fredoka text-lg text-gray-900 mb-2 font-semibold">Text Analysis</h3>
+                <p className="font-fredoka text-gray-600 text-sm mb-4">Literary analysis and critical interpretation</p>
+                <div className="flex items-center space-x-2">
+                  <span className="font-fredoka text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">A-Level English (9093)</span>
+                  <span className="font-fredoka text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-100">Mark scheme required</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </motion.div>
   );
