@@ -1,4 +1,6 @@
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+import { getBackendUrl } from '../utils/backendUrl';
+
+const BACKEND_URL = getBackendUrl();
 const API = `${BACKEND_URL}/api`;
 
 export const API_ENDPOINTS = {

@@ -3,7 +3,9 @@ import { motion } from 'framer-motion';
 import { LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { supabase } from '../../supabaseClient';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+import { getBackendUrl } from '../../utils/backendUrl';
+
+const BACKEND_URL = getBackendUrl();
 
 // Analytics Dashboard
 const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade }) => {

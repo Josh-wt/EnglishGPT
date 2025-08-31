@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { getBackendUrl } from '../../utils/backendUrl';
 import Header from './Header';
 import UserProfile from './UserProfile';
 import SubscriptionInfo from './SubscriptionInfo';
@@ -18,7 +19,9 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
     const userId = user?.uid || user?.id;
     if (user && userId) {
       // Fetch user data and academic level
-      axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/users/${userId}`).then(res => {
+      
+
+        axios.get(`${getBackendUrl()}/api/users/${userId}`).then(res => {
         if (!mounted) return;
         let backendLevel = res.data.user?.academic_level || '';
         backendLevel = backendLevel.toLowerCase().replace(/[^a-z]/g, '');
@@ -29,7 +32,7 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
 
       // Fetch transaction history
       setTransactionsLoading(true);
-      axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/transactions/${userId}`).then(res => {
+              axios.get(`${getBackendUrl()}/api/transactions/${userId}`).then(res => {
         if (!mounted) return;
         setTransactions(res.data.transactions || []);
         setTransactionsLoading(false);
@@ -55,7 +58,7 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
     const userId = user?.uid || user?.id;
     if (user && userId) {
       try {
-        await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/users/${userId}`, { academic_level: level });
+        await axios.put(`${getBackendUrl()}/api/users/${userId}`, { academic_level: level });
         if (onLevelChange) onLevelChange(normalized);
         
         // If this was triggered by the level prompt, redirect to question types
