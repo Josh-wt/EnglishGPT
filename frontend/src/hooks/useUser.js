@@ -13,26 +13,30 @@ export const useUser = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-
-
   // Initialize user state
   useEffect(() => {
     const initializeUser = async () => {
       try {
+        console.log('🔄 Initializing user...');
         setLoading(true);
         
         // Get current session
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('🔍 Session check:', { hasSession: !!session, hasUser: !!session?.user });
         
         if (session?.user) {
+          console.log('✅ User found:', session.user.id);
           setUser(session.user);
           
           // Fetch user profile and stats
           try {
+            console.log('📡 Fetching user data...');
             const [profileData, statsData] = await Promise.all([
               getUserProfile(session.user.id),
               getUserStats(session.user.id),
             ]);
+            
+            console.log('📊 User data received:', { profile: profileData, stats: statsData });
             
             // Apply launch period benefits
             const finalStats = applyLaunchPeriodBenefits({
@@ -40,16 +44,28 @@ export const useUser = () => {
               profile: profileData,
             });
             
+            console.log('🎉 Final stats:', finalStats);
             setUserStats(finalStats);
           } catch (profileError) {
-            console.error('Error fetching user data:', profileError);
+            console.error('❌ Error fetching user data:', profileError);
             // Don't fail completely if profile fetch fails
+            // Set default stats to prevent infinite loading
+            setUserStats({
+              currentPlan: 'free',
+              credits: 3,
+              questionsMarked: 0,
+              evaluationsUsed: 0,
+              evaluationsLimit: 3
+            });
           }
+        } else {
+          console.log('👤 No user session found');
         }
       } catch (err) {
-        console.error('Error initializing user:', err);
+        console.error('❌ Error initializing user:', err);
         setError(err.message);
       } finally {
+        console.log('✅ User initialization complete');
         setLoading(false);
       }
     };
@@ -59,11 +75,14 @@ export const useUser = () => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('🔐 Auth state change:', event, { hasSession: !!session, hasUser: !!session?.user });
+        
         if (event === 'SIGNED_IN' && session?.user) {
           setUser(session.user);
           setError(null);
           
           try {
+            console.log('📡 Fetching user data on sign in...');
             const [profileData, statsData] = await Promise.all([
               getUserProfile(session.user.id),
               getUserStats(session.user.id),
@@ -77,9 +96,18 @@ export const useUser = () => {
             
             setUserStats(finalStats);
           } catch (profileError) {
-            console.error('Error fetching user data on sign in:', profileError);
+            console.error('❌ Error fetching user data on sign in:', profileError);
+            // Set default stats to prevent infinite loading
+            setUserStats({
+              currentPlan: 'free',
+              credits: 3,
+              questionsMarked: 0,
+              evaluationsUsed: 0,
+              evaluationsLimit: 3
+            });
           }
         } else if (event === 'SIGNED_OUT') {
+          console.log('👋 User signed out');
           setUser(null);
           setUserStats(null);
           setError(null);

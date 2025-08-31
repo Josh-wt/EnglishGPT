@@ -8,10 +8,12 @@ import { API_ENDPOINTS } from '../constants/apiEndpoints';
  */
 export const getUserProfile = async (userId) => {
   try {
+    console.log('🔍 Fetching user profile for:', userId);
     const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}`);
+    console.log('📊 User profile response:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error fetching user profile:', error);
+    console.error('❌ Error fetching user profile:', error);
     throw error;
   }
 };
@@ -57,11 +59,13 @@ export const updateAcademicLevel = async (userId, academicLevel) => {
  */
 export const getUserStats = async (userId) => {
   try {
+    console.log('🔍 Fetching user stats for:', userId);
     // Use the existing /users/{user_id} endpoint since there's no dedicated /stats endpoint
     const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}`);
+    console.log('📊 User stats response:', response.data);
     
-    // Extract user data and construct stats
-    const userData = response.data.user;
+    // The response.data should contain the user data directly
+    const userData = response.data;
     
     // Construct user stats from user data
     const userStats = {
@@ -78,9 +82,10 @@ export const getUserStats = async (userId) => {
       ...userData
     };
     
+    console.log('🎯 Constructed user stats:', userStats);
     return userStats;
   } catch (error) {
-    console.error('Error fetching user stats:', error);
+    console.error('❌ Error fetching user stats:', error);
     throw error;
   }
 };
