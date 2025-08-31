@@ -1,6 +1,5 @@
 import { VALIDATION_RULES } from '../../constants/validationRules';
 import { countWords, meetsMinimumWordCount, exceedsMaximumWordCount } from './wordCountUtils';
-import { detectSpam } from './spamDetection';
 
 /**
  * Validate essay content comprehensively
@@ -55,19 +54,8 @@ export const validateEssayContent = (studentResponse, questionType) => {
     // Profanity check removed - no longer checking for profanity
     console.log('🔍 DEBUG: Skipping profanity check');
 
-    // Check for spam content
-    const spamCheck = detectSpam(studentResponse);
-    if (spamCheck.isSpam) {
-      return {
-        isValid: false,
-        error: 'spam_detected',
-        message: 'Essay appears to contain spam or test content',
-        details: {
-          reasons: spamCheck.reasons,
-          details: spamCheck.details,
-        },
-      };
-    }
+    // Spam check removed - no longer checking for spam content
+    console.log('🔍 DEBUG: Skipping spam check');
 
     // Check if essay is too brief (subjective check)
     if (wordCount < 100) {
