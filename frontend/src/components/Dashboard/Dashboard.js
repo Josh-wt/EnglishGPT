@@ -11,19 +11,19 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
   const stats = [
     {
       label: 'Essays Marked',
-      value: userStats.questionsMarked || 0,
+      value: userStats?.questionsMarked || 0,
       icon: '📝',
       color: 'from-blue-500 to-blue-600'
     },
     {
       label: 'Credits Left',
-      value: hasUnlimitedAccess() ? '∞' : (userStats.credits || 3),
+      value: hasUnlimitedAccess() ? '∞' : (userStats?.credits || 3),
       icon: '⭐',
       color: 'from-yellow-500 to-orange-500'
     },
     {
       label: 'Current Plan',
-      value: userStats.currentPlan || 'Free',
+      value: userStats?.currentPlan || 'Free',
       icon: '💎',
       color: 'from-purple-500 to-pink-500'
     }

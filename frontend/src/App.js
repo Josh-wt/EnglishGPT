@@ -308,7 +308,7 @@ const App = () => {
 
   // Auth required component
   const AuthRequired = ({ children }) => {
-    if (userLoading) {
+    if (userLoading || !userStats) {
       return (
         <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-main'} flex items-center justify-center`}>
           <div className="text-center">
@@ -319,8 +319,8 @@ const App = () => {
                 <div className="loading-dot"></div>
               </div>
             </div>
-            <p className="mt-4 font-fredoka">Authenticating...</p>
-            <p className="mt-2 text-sm opacity-75">Please wait while we set up your account</p>
+            <p className="mt-4 font-fredoka">Loading your data...</p>
+            <p className="mt-2 text-sm opacity-75">Please wait while we fetch your information</p>
           </div>
         </div>
       );
@@ -418,7 +418,7 @@ const App = () => {
               onAnalytics={() => navigate('/analytics')}
               onAccountSettings={() => navigate('/account')}
               onSubscription={() => navigate('/subscription')}
-              userStats={userStats}
+              userStats={userStats || {}}
               user={user}
               darkMode={darkMode}
               onSignOut={signOut}
@@ -473,14 +473,14 @@ const App = () => {
             <HistoryPage 
               evaluations={evaluations}
               onBack={handleBack}
-              userPlan={userStats.currentPlan}
+              userPlan={userStats?.currentPlan || 'free'}
             />
           </AuthRequired>
         } />
         <Route path="/analytics" element={
           <AuthRequired>
             <AnalyticsDashboard 
-              userStats={userStats}
+              userStats={userStats || {}}
               user={user}
               evaluations={evaluations}
               onBack={handleBack}
@@ -492,7 +492,7 @@ const App = () => {
           <AuthRequired>
             <AccountPage 
               user={user}
-              userStats={userStats}
+              userStats={userStats || {}}
               onLevelChange={updateLevel}
               darkMode={darkMode}
               toggleDarkMode={toggleDarkMode}
