@@ -460,15 +460,21 @@ const App = () => {
         } />
         <Route path="/write" element={
           <AuthRequired>
-            <QuestionTypePage 
-              questionTypes={questionTypes}
-              onSelectQuestionType={handleSelectQuestionType}
-              onBack={handleBack}
-              onEvaluate={handleEvaluate}
-              selectedLevel={selectedLevel}
-              darkMode={darkMode}
-              user={user}
-            />
+            {(() => {
+              console.log('🔍 DEBUG: Rendering QuestionTypePage with handleEvaluate:', !!handleEvaluate);
+              console.log('🔍 DEBUG: handleEvaluate function:', handleEvaluate);
+              return (
+                <QuestionTypePage 
+                  questionTypes={questionTypes}
+                  onSelectQuestionType={handleSelectQuestionType}
+                  onBack={handleBack}
+                  onEvaluate={handleEvaluate}
+                  selectedLevel={selectedLevel}
+                  darkMode={darkMode}
+                  user={user}
+                />
+              );
+            })()}
           </AuthRequired>
         } />
         <Route path="/assessment" element={
