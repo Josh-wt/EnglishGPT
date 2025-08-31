@@ -96,7 +96,7 @@ const App = () => {
   // Navigation handlers
   const handleStartQuestion = () => {
     setCurrentPage('questionTypes');
-    navigate('/question-types');
+    navigate('/write');
   };
 
   const handleSelectQuestionType = (questionType) => {
@@ -133,7 +133,7 @@ const App = () => {
     setEvaluation(null);
     setSelectedQuestionType(null);
     setCurrentPage('questionTypes');
-    navigate('/question-types');
+    navigate('/write');
   };
 
   const handleBack = () => {
@@ -424,7 +424,7 @@ const App = () => {
             />
           </AuthRequired>
         } />
-        <Route path="/question-types" element={
+        <Route path="/write" element={
           <AuthRequired>
             <QuestionTypePage 
               questionTypes={questionTypes}
@@ -438,7 +438,7 @@ const App = () => {
             <AssessmentPage 
               selectedQuestionType={selectedQuestionType}
               onEvaluate={handleEvaluate}
-              onBack={() => navigate('/question-types')}
+              onBack={() => navigate('/write')}
               evaluationLoading={evaluationLoading}
               loadingMessage={loadingMessages[loadingMessageIndex]}
               essayHistory={essayHistory}

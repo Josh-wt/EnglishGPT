@@ -20,7 +20,27 @@ export const createUser = async (userId, userData = {}) => {
     console.log('✅ User created successfully:', response.data);
     
     // Backend returns {user: {...}}, so extract the user data
-    return response.data.user || response.data;
+    const userInfo = response.data.user || response.data;
+    
+    // Apply launch period benefits immediately for new users
+    if (isLaunchPeriod()) {
+      console.log('🎉 Launch period: New user granted Unlimited plan!');
+      // Update the backend to reflect unlimited status
+      try {
+        await apiHelpers.put(`${API_ENDPOINTS.USERS}/${userId}`, {
+          current_plan: 'unlimited',
+          credits: '∞',
+          evaluations_limit: '∞'
+        });
+        userInfo.current_plan = 'unlimited';
+        userInfo.credits = '∞';
+        userInfo.evaluations_limit = '∞';
+      } catch (updateError) {
+        console.error('❌ Failed to update user to unlimited in backend:', updateError);
+      }
+    }
+    
+    return userInfo;
   } catch (error) {
     console.error('❌ Error creating user:', error);
     throw error;
@@ -38,8 +58,18 @@ export const getUserProfile = async (userId) => {
     const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}`);
     console.log('📊 User profile response:', response.data);
     
-    // Backend returns {user: {...}}, so extract the user data
-    return response.data.user || response.data;
+    // Handle both response structures: {user: {...}} and direct user data
+    const userData = response.data.user || response.data;
+    
+    // Apply launch period benefits to profile data
+    if (isLaunchPeriod()) {
+      console.log('🎉 Launch period: Applying unlimited benefits to profile...');
+      userData.current_plan = 'unlimited';
+      userData.credits = '∞';
+      userData.evaluations_limit = '∞';
+    }
+    
+    return userData;
   } catch (error) {
     console.error('❌ Error fetching user profile:', error);
     
@@ -105,10 +135,10 @@ export const getUserStats = async (userId) => {
     const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}`);
     console.log('📊 User stats response:', response.data);
     
-    // The response.data should contain the user data directly
-    const userData = response.data;
+    // Handle both response structures: {user: {...}} and direct user data
+    const userData = response.data.user || response.data;
     
-    // Construct user stats from user data
+    // Construct user stats from user data (like old App.js)
     const userStats = {
       currentPlan: userData.current_plan || 'free',
       credits: userData.credits || 3,
@@ -125,6 +155,20 @@ export const getUserStats = async (userId) => {
     
     // Apply launch period benefits
     const finalStats = applyLaunchPeriodBenefits(userStats);
+    
+    // If launch period is active and user doesn't have unlimited, update backend
+    if (isLaunchPeriod() && finalStats.currentPlan === 'unlimited' && userData.current_plan !== 'unlimited') {
+      console.log('🎉 Launch period: Updating user to unlimited in backend...');
+      try {
+        await apiHelpers.put(`${API_ENDPOINTS.USERS}/${userId}`, {
+          current_plan: 'unlimited',
+          credits: '∞',
+          evaluations_limit: '∞'
+        });
+      } catch (updateError) {
+        console.error('❌ Failed to update user to unlimited in backend:', updateError);
+      }
+    }
     
     console.log('🎯 Constructed user stats:', finalStats);
     return finalStats;

@@ -240,119 +240,79 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
         </div>
       </div>
 
-      {/* Hero Section with Beautiful Background */}
-      <div className="relative overflow-hidden">
-        {/* Background Elements */}
-        <div className="absolute inset-0 bg-gradient-to-br from-pink-50 via-white to-blue-50"></div>
-        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-pink-200 to-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
-        <div className="absolute top-40 right-10 w-72 h-72 bg-gradient-to-r from-blue-200 to-green-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse" style={{animationDelay: '2s'}}></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-gradient-to-r from-yellow-200 to-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse" style={{animationDelay: '4s'}}></div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            {/* Simplified Hero Section */}
+      <div className="relative bg-gradient-to-br from-gray-50 to-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           {/* Main Hero Content */}
-          <div className="text-center mb-16">
-            {/* Animated Logo */}
+          <div className="text-center">
+            {/* Simple Logo */}
             <motion.div 
               className="flex justify-center mb-8"
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ duration: 0.8, type: "spring" }}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.6, type: "spring" }}
             >
-              <div className="relative">
-                <div className="w-32 h-32 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-600 rounded-full flex items-center justify-center shadow-2xl">
-                  <svg className="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
-                  </svg>
-                </div>
-                <div className="absolute -top-4 -right-4 w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
-                  <div className="w-4 h-4 bg-white rounded-full"></div>
-                </div>
-                <div className="absolute -bottom-2 -left-2 w-6 h-6 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg">
-                  <div className="w-3 h-3 bg-white rounded-full"></div>
-                </div>
+              <div className="w-20 h-20 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
+                </svg>
               </div>
             </motion.div>
             
-            {/* Title and Description */}
+            {/* Simple Title */}
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <h1 className="text-6xl font-bold bg-gradient-to-r from-gray-900 via-purple-800 to-pink-600 bg-clip-text text-transparent mb-6 font-fredoka">
+              <h1 className="text-5xl font-bold text-gray-900 mb-4 font-fredoka">
                 EnglishGPT
               </h1>
-              <p className="text-2xl text-gray-600 max-w-3xl mx-auto mb-12 leading-relaxed font-fredoka">
-                Your AI-powered writing companion. Get instant, professional feedback on your English essays and assignments with detailed analysis and personalized recommendations.
+              <p className="text-lg text-gray-600 mb-12 font-fredoka">
+                AI-powered essay marking and feedback
               </p>
             </motion.div>
             
-            {/* Beautiful Mark a Question Button */}
+            {/* Big Mark a Question Button */}
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="relative"
+              transition={{ duration: 0.6, delay: 0.4 }}
             >
               <button
                 onClick={onStartQuestion}
-                className="group relative px-12 py-6 bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600 text-white rounded-2xl font-bold text-xl font-fredoka shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 overflow-hidden"
+                className="group relative px-16 py-8 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-3xl font-bold text-2xl font-fredoka shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300"
               >
-                {/* Button Background Animation */}
-                <div className="absolute inset-0 bg-gradient-to-r from-pink-600 via-purple-700 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                
-                {/* Button Content */}
-                <div className="relative flex items-center justify-center space-x-3">
-                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </div>
+                <div className="flex items-center justify-center space-x-4">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
                   <span>Mark a Question</span>
-                  <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </div>
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
                 </div>
-                
-                {/* Shimmer Effect */}
-                <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
               </button>
-              
-              {/* Floating Elements */}
-              <div className="absolute -top-4 -left-4 w-4 h-4 bg-yellow-400 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
-              <div className="absolute -top-2 -right-2 w-3 h-3 bg-pink-400 rounded-full animate-bounce" style={{animationDelay: '0.5s'}}></div>
-              <div className="absolute -bottom-4 -left-8 w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '1s'}}></div>
-              <div className="absolute -bottom-2 -right-8 w-3 h-3 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '1.5s'}}></div>
             </motion.div>
             
-                         {/* Stats Cards */}
-             <motion.div
-               initial={{ opacity: 0, y: 30 }}
-               animate={{ opacity: 1, y: 0 }}
-               transition={{ duration: 0.8, delay: 0.6 }}
-               className="flex justify-center space-x-8 mt-12"
-             >
-               <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
-                 <div className="text-2xl font-bold text-purple-600 font-fredoka">{userStats?.questionsMarked || 0}</div>
-                 <div className="text-sm text-gray-600 font-fredoka">Essays Marked</div>
-               </div>
-               <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
-                 <div className="text-2xl font-bold text-blue-600 font-fredoka capitalize">{userStats?.currentPlan || 'Free'}</div>
-                 <div className="text-sm text-gray-600 font-fredoka">Current Plan</div>
-               </div>
-               <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
-                 <div className="text-2xl font-bold text-green-600 font-fredoka">
-                   {hasUnlimitedAccess() ? '∞' : (userStats?.credits || 3)}
-                 </div>
-                 <div className="text-sm text-gray-600 font-fredoka">
-                   {hasUnlimitedAccess() ? 'Unlimited Credits' : 'Credits Left'}
-                 </div>
-               </div>
-             </motion.div>
+            {/* Simple Stats */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="flex justify-center space-x-12 mt-16"
+            >
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-600 font-fredoka">{userStats?.questionsMarked || 0}</div>
+                <div className="text-sm text-gray-600 font-fredoka">Essays Marked</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-600 font-fredoka capitalize">{userStats?.currentPlan || 'Free'}</div>
+                <div className="text-sm text-gray-600 font-fredoka">Plan</div>
+              </div>
+            </motion.div>
           </div>
-                </div>
+        </div>
       </div>
       
       {/* Question Types Section */}

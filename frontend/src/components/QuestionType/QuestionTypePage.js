@@ -11,6 +11,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [showExample, setShowExample] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [formattedText, setFormattedText] = useState('');
   const essayRef = useRef(null);
 
   // Restore draft on mount
@@ -19,6 +20,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     const saved = localStorage.getItem(key);
     if (saved && !studentResponse) {
       setStudentResponse(saved);
+      setFormattedText(convertMarkdownToHtml(saved));
       setRestoredDraft(true);
       setTimeout(() => setRestoredDraft(false), 3000);
     }
@@ -30,13 +32,25 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     const handle = setTimeout(() => {
       if (studentResponse && studentResponse.trim().length > 0) {
         localStorage.setItem(key, studentResponse);
+        setFormattedText(convertMarkdownToHtml(studentResponse));
         setLastSavedAt(Date.now());
       } else {
         localStorage.removeItem(key);
+        setFormattedText('');
       }
     }, 400);
     return () => clearTimeout(handle);
   }, [studentResponse]);
+
+  // Function to convert markdown to HTML
+  const convertMarkdownToHtml = (text) => {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/"(.*?)"/g, '<span class="text-blue-600 italic">"$1"</span>')
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+  };
 
   const applyFormat = (prefix, suffix = prefix) => {
     const textarea = essayRef.current;
@@ -47,6 +61,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     const after = value.substring(selectionEnd);
     const newValue = `${before}${prefix}${selected}${suffix}${after}`;
     setStudentResponse(newValue);
+    setFormattedText(convertMarkdownToHtml(newValue));
     setTimeout(() => {
       const pos = selectionStart + prefix.length + selected.length + suffix.length;
       textarea.focus();
@@ -62,6 +77,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     const after = value.substring(selectionEnd);
     const newValue = `${before}\n\n${after}`;
     setStudentResponse(newValue);
+    setFormattedText(convertMarkdownToHtml(newValue));
     setTimeout(() => {
       const pos = selectionStart + 2;
       textarea.focus();
@@ -181,82 +197,82 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
         </div>
       </div>
 
-      {/* Main Content - Split Layout */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-200px)]">
-          
-          {/* Left Side - Question Types */}
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-6">
-              <h2 className="text-2xl font-bold text-white font-fredoka mb-2">Choose Your Question Type</h2>
-              <p className="text-pink-100 text-sm">{levelData.fullName}</p>
-            </div>
+              {/* Main Content - Split Layout */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 h-[calc(100vh-200px)]">
             
-            <div className="p-6 overflow-y-auto h-[calc(100%-120px)]">
-              <div className="grid grid-cols-1 gap-4">
-                {levelData.questions.map((questionType, index) => (
-                  <motion.div
-                    key={questionType.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                    className={`relative group cursor-pointer transition-all duration-300 ${
-                      selectedQuestionType?.id === questionType.id
-                        ? 'ring-2 ring-pink-500 ring-offset-2 bg-gradient-to-r from-pink-50 to-purple-50'
-                        : 'hover:bg-gray-50 hover:shadow-md'
-                    } rounded-xl p-4 border border-gray-200`}
-                    onClick={() => handleQuestionSelect(questionType)}
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${
+            {/* Left Side - Question Types (Thinner) */}
+            <div className="lg:col-span-1 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-4">
+                <h2 className="text-lg font-bold text-white font-fredoka mb-1">Question Types</h2>
+                <p className="text-pink-100 text-xs">{levelData.levelName}</p>
+              </div>
+              
+              <div className="p-4 overflow-y-auto h-[calc(100%-80px)]">
+                <div className="space-y-3">
+                  {levelData.questions.map((questionType, index) => (
+                    <motion.div
+                      key={questionType.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      className={`relative group cursor-pointer transition-all duration-300 ${
                         selectedQuestionType?.id === questionType.id
-                          ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white'
-                          : 'bg-gray-100 text-gray-600 group-hover:bg-pink-100 group-hover:text-pink-600'
-                      } transition-all duration-300`}>
-                        {questionType.icon}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-fredoka font-bold text-gray-900 text-lg mb-1">
-                          {questionType.name}
-                        </h3>
-                        <p className="font-fredoka text-gray-600 text-sm leading-relaxed">
-                          {questionType.description}
-                        </p>
-                      </div>
-                      {selectedQuestionType?.id === questionType.id && (
-                        <div className="w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center">
-                          <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                          </svg>
+                          ? 'ring-2 ring-pink-500 ring-offset-1 bg-gradient-to-r from-pink-50 to-purple-50'
+                          : 'hover:bg-gray-50 hover:shadow-md'
+                      } rounded-lg p-3 border border-gray-200`}
+                      onClick={() => handleQuestionSelect(questionType)}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg ${
+                          selectedQuestionType?.id === questionType.id
+                            ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white'
+                            : 'bg-gray-100 text-gray-600 group-hover:bg-pink-100 group-hover:text-pink-600'
+                        } transition-all duration-300`}>
+                          {questionType.icon}
                         </div>
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Side - Writing Interface */}
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-500 to-green-600 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-white font-fredoka mb-2">Write Your Essay</h2>
-                  <p className="text-blue-100 text-sm">
-                    {selectedQuestionType ? selectedQuestionType.name : 'Select a question type to start writing'}
-                  </p>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-fredoka font-bold text-gray-900 text-sm mb-1 truncate">
+                            {questionType.name}
+                          </h3>
+                          <p className="font-fredoka text-gray-600 text-xs leading-tight line-clamp-2">
+                            {questionType.description}
+                          </p>
+                        </div>
+                        {selectedQuestionType?.id === questionType.id && (
+                          <div className="w-4 h-4 bg-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
+                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
-                {selectedQuestionType && (
-                  <button
-                    onClick={() => setShowExample(true)}
-                    className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
-                  >
-                    View Example
-                  </button>
-                )}
               </div>
             </div>
+
+            {/* Right Side - Writing Interface (Wider) */}
+            <div className="lg:col-span-4 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-500 to-green-600 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white font-fredoka mb-2">Write Your Essay</h2>
+                    <p className="text-blue-100 text-sm">
+                      {selectedQuestionType ? selectedQuestionType.name : 'Select a question type to start writing'}
+                    </p>
+                  </div>
+                  {selectedQuestionType && (
+                    <button
+                      onClick={() => setShowExample(true)}
+                      className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+                    >
+                      View Example
+                    </button>
+                  )}
+                </div>
+              </div>
 
             <div className="p-6 h-[calc(100%-120px)] flex flex-col">
               {!selectedQuestionType ? (
@@ -280,14 +296,14 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                       className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
                       title="Bold"
                     >
-                      B
+                      <strong>B</strong>
                     </button>
                     <button
                       onClick={() => applyFormat('*', '*')}
                       className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
                       title="Italic"
                     >
-                      I
+                      <em>I</em>
                     </button>
                     <button
                       onClick={() => applyFormat('"', '"')}
@@ -309,20 +325,34 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                     </div>
                   </div>
 
-                  {/* Textarea */}
+                  {/* Text Editor with Preview */}
                   <div className="flex-1 relative">
-                    <textarea
-                      ref={essayRef}
-                      value={studentResponse}
-                      onChange={(e) => {
-                        setStudentResponse(e.target.value);
-                        setIsTyping(true);
-                        setTimeout(() => setIsTyping(false), 1000);
-                      }}
-                      placeholder="Start writing your essay here... Use the toolbar above for formatting."
-                      className="w-full h-full p-4 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-fredoka text-gray-900 placeholder-gray-400 transition-all duration-200"
-                      style={{ minHeight: '300px' }}
-                    />
+                    <div className="grid grid-cols-2 gap-4 h-full">
+                      {/* Textarea */}
+                      <div className="relative">
+                        <textarea
+                          ref={essayRef}
+                          value={studentResponse}
+                          onChange={(e) => {
+                            setStudentResponse(e.target.value);
+                            setIsTyping(true);
+                            setTimeout(() => setIsTyping(false), 1000);
+                          }}
+                          placeholder="Start writing your essay here... Use the toolbar above for formatting."
+                          className="w-full h-full p-4 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-fredoka text-gray-900 placeholder-gray-400 transition-all duration-200"
+                        />
+                      </div>
+                      
+                      {/* Preview */}
+                      <div className="relative">
+                        <div className="w-full h-full p-4 border border-gray-200 rounded-lg bg-gray-50 overflow-y-auto">
+                          <div 
+                            className="font-fredoka text-gray-900 prose prose-sm max-w-none"
+                            dangerouslySetInnerHTML={{ __html: formattedText || '<span class="text-gray-400">Preview will appear here...</span>' }}
+                          />
+                        </div>
+                      </div>
+                    </div>
                     
                     {/* Auto-save indicator */}
                     {isTyping && (
