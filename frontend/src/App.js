@@ -36,6 +36,7 @@ import { getUserAnalytics } from './services/analytics';
 import { getUserProfile, updateUserProfile } from './services/user';
 import { submitFeedback } from './services/feedback';
 import { getQuestionTypes } from './services/questionTypes';
+import api from './services/api';
 
 // Import constants
 import { API_ENDPOINTS } from './constants/apiEndpoints';
