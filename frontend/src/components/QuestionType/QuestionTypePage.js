@@ -99,118 +99,111 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       icon: getIconForQuestionType(q.id)
     }));
 
-    const alevelQuestions = questionTypes.filter(q => q.category.includes('A-Level')).map(q => ({
+    const alevelQuestions = questionTypes.filter(q => q.category === 'A-Level').map(q => ({
       ...q,
       icon: getIconForQuestionType(q.id)
     }));
 
     if (selectedLevel === 'igcse') {
-      return { questions: igcseQuestions, levelName: 'IGCSE', fullName: 'International GCSE', color: 'blue', gradient: 'from-blue-500 to-green-500' };
+      return {
+        questions: igcseQuestions,
+        levelName: 'IGCSE',
+        fullName: 'International General Certificate of Secondary Education',
+        color: 'blue',
+        gradient: 'from-blue-500 to-green-500'
+      };
     } else if (selectedLevel === 'alevel') {
-      return { questions: alevelQuestions, levelName: 'A-Level', fullName: 'Advanced Level', color: 'purple', gradient: 'from-purple-500 to-red-500' };
+      return {
+        questions: alevelQuestions,
+        levelName: 'A-Level',
+        fullName: 'Advanced Level English',
+        color: 'purple',
+        gradient: 'from-purple-500 to-red-500'
+      };
     }
-    // Default to showing both if no level selected
-    return { 
-      questions: [...igcseQuestions, ...alevelQuestions], 
-      levelName: 'All Levels', 
-      fullName: 'IGCSE & A-Level', 
-      color: 'gray', 
-      gradient: 'from-gray-500 to-gray-600' 
+
+    // Default to IGCSE if no level selected
+    return {
+      questions: igcseQuestions,
+      levelName: 'IGCSE',
+      fullName: 'International General Certificate of Secondary Education',
+      color: 'blue',
+      gradient: 'from-blue-500 to-green-500'
     };
   };
 
-  // Helper function to get icons for question types
-  const getIconForQuestionType = (questionId) => {
+  const getIconForQuestionType = (questionTypeId) => {
     const iconMap = {
       'igcse_summary': '📄',
       'igcse_narrative': '📖',
       'igcse_descriptive': '🖼️',
       'igcse_writers_effect': '⚡',
       'igcse_directed': '✍️',
-      'alevel_comparative': '📊',
-      'alevel_directed': '✏️',
+      'alevel_reflective': '📊',
+      'alevel_directed_writing': '✏️',
       'alevel_text_analysis': '🔍'
     };
-    return iconMap[questionId] || '📝';
+    return iconMap[questionTypeId] || '📝';
   };
 
   const levelData = getQuestionsForLevel();
 
-  const generatePrompt = () => {
-    const map = {
-      igcse_summary: 'Summarize the key arguments of an article about climate change impacts on coastal cities.',
-      igcse_narrative: 'Write a narrative about a time when an unexpected event changed your day completely.',
-      igcse_descriptive: 'Describe a bustling city market at sunset using vivid sensory details.',
-      igcse_writers_effect: 'Analyze how the author uses metaphor and contrast to create tension in a short passage.',
-      igcse_directed: 'Write a letter to your local council proposing a new community garden.',
-      alevel_directed: 'Write a speech arguing for the benefits of gap years before university.',
-      alevel_text_analysis: 'Analyze how the writer presents memory and identity in an unseen prose extract.',
-      alevel_comparative: 'Compare how two poets explore the theme of loss.'
-    };
-    return map[selectedQuestionType?.id] || 'Write about a meaningful experience and what you learned from it.';
-  };
-
-  const getExampleForType = (id) => {
-    const examples = {
-      igcse_summary: 'Example summary: The article outlines three main points... (concise neutral tone).',
-      igcse_narrative: 'Example narrative: The wind clawed at the shutters as I stepped outside...',
-      igcse_descriptive: 'Example descriptive: The marketplace hummed—a tapestry of scents and colours...',
-      igcse_writers_effect: 'Example analysis: The simile "like a coiled spring" compresses tension...',
-      igcse_directed: 'Example directed writing: Dear Councillors, I propose establishing a community garden...',
-      alevel_directed: 'Example directed: Esteemed audience, today I contend that...',
-      alevel_text_analysis: 'Example analysis: The narrator\'s fragmented syntax mirrors her fractured memory...',
-      alevel_comparative: 'Example comparative: While Poet A elegizes loss with restraint, Poet B embraces raw immediacy...'
-    };
-    return examples[id] || 'A focused, well-structured response illustrating expectations for this task type.';
-  };
-
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-gray-50'} p-4`}>
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left: Choose Question Type */}
-          <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-6 shadow-sm border`}>
-            <QuestionSelection
-              levelData={levelData}
-              selectedQuestionType={selectedQuestionType}
-              onQuestionSelect={handleQuestionSelect}
-              onShowExample={() => setShowExample(true)}
-              onGeneratePrompt={() => {
-                const prompt = generatePrompt();
-                setStudentResponse(prompt);
-              }}
-            />
-          </div>
-
-          {/* Right: Writing Interface */}
-          <div className="lg:col-span-2">
-            <WritingInterface
-              studentResponse={studentResponse}
-              setStudentResponse={setStudentResponse}
-              selectedQuestionType={selectedQuestionType}
-              showNextButton={showNextButton}
-              onProceed={handleProceed}
-              onBack={onBack}
-              darkMode={darkMode}
-              essayRef={essayRef}
-              applyFormat={applyFormat}
-              insertParagraphBreak={insertParagraphBreak}
-              wordCount={wordCount}
-              lastSavedAt={lastSavedAt}
-              restoredDraft={restoredDraft}
-            />
+    <div className="min-h-screen bg-main">
+      {/* Header with Back to Dashboard Button */}
+      <div className="bg-card shadow-sm border-b border-pink-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={onBack}
+                className="text-gray-600 hover:text-gray-900 flex items-center font-fredoka"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Dashboard
+              </button>
+              <div className="w-px h-6 bg-gray-300"></div>
+              <h1 className="text-xl font-bold text-gray-900 font-fredoka">Question Types</h1>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Example Modal */}
-      {showExample && (
-        <ExampleModal
-          selectedQuestionType={selectedQuestionType}
-          onClose={() => setShowExample(false)}
-          getExampleForType={getExampleForType}
-        />
-      )}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {!selectedQuestionType ? (
+          <QuestionSelection
+            levelData={levelData}
+            onQuestionSelect={handleQuestionSelect}
+            darkMode={darkMode}
+          />
+        ) : (
+          <WritingInterface
+            selectedQuestionType={selectedQuestionType}
+            studentResponse={studentResponse}
+            setStudentResponse={setStudentResponse}
+            wordCount={wordCount}
+            applyFormat={applyFormat}
+            insertParagraphBreak={insertParagraphBreak}
+            essayRef={essayRef}
+            restoredDraft={restoredDraft}
+            lastSavedAt={lastSavedAt}
+            showExample={showExample}
+            setShowExample={setShowExample}
+            onBack={() => setSelectedQuestionType(null)}
+            onProceed={handleProceed}
+            darkMode={darkMode}
+          />
+        )}
+      </div>
+
+      <ExampleModal
+        isOpen={showExample}
+        onClose={() => setShowExample(false)}
+        questionType={selectedQuestionType}
+        darkMode={darkMode}
+      />
     </div>
   );
 };
