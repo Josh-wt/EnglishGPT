@@ -145,8 +145,17 @@ const App = () => {
       console.log('🔍 DEBUG: Set evaluation state');
       setCurrentPage('results');
       console.log('🔍 DEBUG: Set current page to results');
-      navigate('/results');
-      console.log('🔍 DEBUG: Navigated to results page');
+      
+      // Navigate to shareable public results page (prefer short_id if present)
+      const resultId = result?.short_id || result?.id || result?.evaluation?.short_id || result?.evaluation?.id;
+      console.log('🔍 DEBUG: Result ID for navigation:', resultId);
+      if (resultId) {
+        navigate(`/results/${resultId}`);
+        console.log('🔍 DEBUG: Navigated to results page with ID:', resultId);
+      } else {
+        navigate('/results');
+        console.log('🔍 DEBUG: Navigated to results page without ID');
+      }
     } catch (error) {
       console.error('🔍 DEBUG: Evaluation failed with error:', error);
       console.error('🔍 DEBUG: Error details:', {
@@ -169,6 +178,8 @@ const App = () => {
     setCurrentPage('questionTypes');
     navigate('/write');
   };
+
+
 
   const handleBack = () => {
     setCurrentPage('dashboard');
@@ -315,28 +326,69 @@ const App = () => {
     }
   }, [evaluationLoading, loadingMessages.length]);
 
-  // Public result page wrapper
+  // Public Result route wrapper component to fetch by ID and render ResultsPage
   const PublicResultPageWrapper = () => {
     const { id } = useParams();
-    
-    const fetchEvaluation = async () => {
-      try {
-        const result = await getEvaluation(id);
-        setEvaluation(result);
-      } catch (error) {
-        console.error('Error fetching evaluation:', error);
-        setErrorMessage('Failed to load evaluation results.');
-        setShowErrorModal(true);
-      }
-    };
+    const [loadingEval, setLoadingEval] = useState(true);
+    const [publicEval, setPublicEval] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
-      if (id) {
-        fetchEvaluation();
-      }
+      let isMounted = true;
+      const fetchEvaluation = async () => {
+        try {
+          const response = await api.get(`/evaluations/${id}`);
+          if (!isMounted) return;
+          setPublicEval(response.data.evaluation);
+        } catch (err) {
+          console.error('Failed to load evaluation:', err);
+        } finally {
+          if (isMounted) setLoadingEval(false);
+        }
+      };
+      fetchEvaluation();
+      return () => { isMounted = false; };
     }, [id]);
 
-    return evaluation ? <ResultsPage evaluation={evaluation} onNewEvaluation={handleNewEvaluation} /> : <div>Loading...</div>;
+    if (loadingEval) {
+      return (
+        <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50'} flex items-center justify-center`}>
+          <div className="text-center">
+            <div className="loading-animation">
+              <div className="loading-dots">
+                <div className="loading-dot"></div>
+                <div className="loading-dot"></div>
+                <div className="loading-dot"></div>
+              </div>
+            </div>
+            <p className="mt-4 font-fredoka">Loading result...</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (!publicEval) {
+      return (
+        <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50'} flex items-center justify-center`}>
+          <div className="text-center">
+            <h1 className="text-2xl font-fredoka font-bold mb-2">Result not found</h1>
+            <p className="text-gray-600">The evaluation you are looking for does not exist or has been removed.</p>
+            <button onClick={() => navigate('/')} className="mt-6 bg-blue-600 text-white px-4 py-2 rounded-lg">Go Home</button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className={darkMode ? 'dark' : ''}>
+        <ResultsPage 
+          evaluation={publicEval}
+          onNewEvaluation={handleNewEvaluation}
+          userPlan={userStats?.currentPlan || 'free'}
+          darkMode={darkMode}
+        />
+      </div>
+    );
   };
 
   // Auth required component
