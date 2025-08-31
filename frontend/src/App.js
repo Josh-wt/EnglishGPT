@@ -113,26 +113,52 @@ const App = () => {
   };
 
   const handleEvaluate = async (evaluationResult) => {
+    console.log('🔍 DEBUG: handleEvaluate called with:', evaluationResult);
+    console.log('🔍 DEBUG: User:', user);
+    console.log('🔍 DEBUG: UserStats:', userStats);
+    
     try {
       setEvaluationLoading(true);
+      console.log('🔍 DEBUG: Set evaluation loading to true');
       
       // Validate essay content - use snake_case properties from QuestionTypePage
+      console.log('🔍 DEBUG: About to validate essay:', {
+        student_response: evaluationResult.student_response,
+        question_type: evaluationResult.question_type
+      });
+      
       const validationResult = await validateEssay(evaluationResult.student_response, evaluationResult.question_type);
+      console.log('🔍 DEBUG: Validation result:', validationResult);
+      
       if (!validationResult.isValid) {
+        console.log('🔍 DEBUG: Validation failed, returning early');
         return;
       }
 
+      console.log('🔍 DEBUG: Validation passed, about to submit evaluation');
       // Submit evaluation
       const result = await submitNewEvaluation(evaluationResult);
+      console.log('🔍 DEBUG: Submit result:', result);
+      
       setEvaluation(result);
+      console.log('🔍 DEBUG: Set evaluation state');
       setCurrentPage('results');
+      console.log('🔍 DEBUG: Set current page to results');
       navigate('/results');
+      console.log('🔍 DEBUG: Navigated to results page');
     } catch (error) {
-      console.error('Evaluation failed:', error);
+      console.error('🔍 DEBUG: Evaluation failed with error:', error);
+      console.error('🔍 DEBUG: Error details:', {
+        message: error.message,
+        response: error.response,
+        status: error.response?.status,
+        data: error.response?.data
+      });
       setErrorMessage('Evaluation failed. Please try again.');
       setShowErrorModal(true);
     } finally {
       setEvaluationLoading(false);
+      console.log('🔍 DEBUG: Set evaluation loading to false');
     }
   };
 

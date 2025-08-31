@@ -10,8 +10,13 @@ import { detectSpam } from './spamDetection';
  * @returns {Object} - Validation results
  */
 export const validateEssayContent = (studentResponse, questionType) => {
+  console.log('🔍 DEBUG: validateEssayContent called with:', { studentResponse, questionType });
+  console.log('🔍 DEBUG: studentResponse type:', typeof studentResponse);
+  console.log('🔍 DEBUG: studentResponse length:', studentResponse?.length);
+  
   try {
     if (!studentResponse || typeof studentResponse !== 'string') {
+      console.log('🔍 DEBUG: Validation failed - no content or wrong type');
       return {
         isValid: false,
         error: 'validation_error',
@@ -89,15 +94,18 @@ export const validateEssayContent = (studentResponse, questionType) => {
     }
 
     // All checks passed
-    return {
+    console.log('🔍 DEBUG: All validation checks passed');
+    const result = {
       isValid: true,
       wordCount,
       maxWordLimit,
       questionType,
     };
+    console.log('🔍 DEBUG: Returning validation result:', result);
+    return result;
 
   } catch (error) {
-    console.error('Essay validation error:', error);
+    console.error('🔍 DEBUG: Essay validation error:', error);
     return {
       isValid: false,
       error: 'validation_error',

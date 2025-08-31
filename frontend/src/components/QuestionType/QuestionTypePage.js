@@ -93,7 +93,19 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   };
 
   const handleProceed = () => {
-    if (!selectedQuestionType || !studentResponse.trim()) return;
+    console.log('🔍 DEBUG: handleProceed called');
+    console.log('🔍 DEBUG: selectedQuestionType:', selectedQuestionType);
+    console.log('🔍 DEBUG: studentResponse length:', studentResponse?.length);
+    console.log('🔍 DEBUG: studentResponse trimmed:', studentResponse?.trim()?.length);
+    console.log('🔍 DEBUG: user:', user);
+    console.log('🔍 DEBUG: onEvaluate function:', onEvaluate);
+    
+    if (!selectedQuestionType || !studentResponse.trim()) {
+      console.log('🔍 DEBUG: Early return - missing questionType or response');
+      console.log('🔍 DEBUG: selectedQuestionType exists:', !!selectedQuestionType);
+      console.log('🔍 DEBUG: studentResponse trimmed exists:', !!studentResponse.trim());
+      return;
+    }
 
     const evaluationData = {
       question_type: selectedQuestionType.id,
@@ -101,7 +113,13 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       marking_scheme: null,
       user_id: user?.id,
     };
+    
+    console.log('🔍 DEBUG: Created evaluationData:', evaluationData);
+    console.log('🔍 DEBUG: About to call onEvaluate with:', evaluationData);
+    
     onEvaluate(evaluationData);
+    
+    console.log('🔍 DEBUG: onEvaluate called successfully');
   };
 
   // Filter questions based on selected level
@@ -364,7 +382,13 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                     </button>
                     
                     <button
-                      onClick={handleProceed}
+                      onClick={() => {
+                        console.log('🔍 DEBUG: Evaluate Essay button clicked');
+                        console.log('🔍 DEBUG: studentResponse length:', studentResponse?.length);
+                        console.log('🔍 DEBUG: studentResponse trimmed:', studentResponse?.trim()?.length);
+                        console.log('🔍 DEBUG: Button disabled:', !studentResponse.trim());
+                        handleProceed();
+                      }}
                       disabled={!studentResponse.trim()}
                       className={`px-8 py-3 rounded-lg font-medium font-fredoka transition-all duration-200 ${
                         studentResponse.trim()

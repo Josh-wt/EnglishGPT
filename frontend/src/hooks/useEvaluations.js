@@ -38,22 +38,36 @@ export const useEvaluations = () => {
    * @param {Object} evaluationData - The evaluation data
    */
   const submitNewEvaluation = useCallback(async (evaluationData) => {
+    console.log('🔍 DEBUG: submitNewEvaluation called with:', evaluationData);
+    
     try {
       setLoading(true);
       setError(null);
+      console.log('🔍 DEBUG: Set loading to true');
       
+      console.log('🔍 DEBUG: About to call submitEvaluation');
       const result = await submitEvaluation(evaluationData);
+      console.log('🔍 DEBUG: submitEvaluation result:', result);
       
       // Add the new evaluation to the list
       setEvaluations(prev => [result.evaluation, ...prev]);
+      console.log('🔍 DEBUG: Added evaluation to list');
       
       return result;
     } catch (err) {
-      console.error('Error submitting evaluation:', err);
+      console.error('🔍 DEBUG: Error submitting evaluation:', err);
+      console.error('🔍 DEBUG: Error details:', {
+        message: err.message,
+        response: err.response,
+        status: err.response?.status,
+        data: err.response?.data,
+        config: err.config
+      });
       setError(err.message);
       throw err;
     } finally {
       setLoading(false);
+      console.log('🔍 DEBUG: Set loading to false');
     }
   }, []);
 

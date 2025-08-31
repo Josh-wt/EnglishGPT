@@ -11,12 +11,26 @@ import { API_ENDPOINTS } from '../constants/apiEndpoints';
  * @returns {Promise} - API response
  */
 export const submitEvaluation = async (evaluationData) => {
+  console.log('🔍 DEBUG: submitEvaluation called with:', evaluationData);
+  console.log('🔍 DEBUG: API_ENDPOINTS.API:', API_ENDPOINTS.API);
+  console.log('🔍 DEBUG: Full URL will be:', `${API_ENDPOINTS.API}/evaluate`);
+  
   try {
     // Use the correct endpoint: /evaluate (not /evaluations)
+    console.log('🔍 DEBUG: About to make POST request to:', `${API_ENDPOINTS.API}/evaluate`);
+    console.log('🔍 DEBUG: Request data:', evaluationData);
+    
     const response = await apiHelpers.post(`${API_ENDPOINTS.API}/evaluate`, evaluationData);
+    console.log('🔍 DEBUG: POST request successful, response:', response);
+    console.log('🔍 DEBUG: Response data:', response.data);
+    
     return response.data;
   } catch (error) {
-    console.error('Error submitting evaluation:', error);
+    console.error('🔍 DEBUG: Error submitting evaluation:', error);
+    console.error('🔍 DEBUG: Error response:', error.response);
+    console.error('🔍 DEBUG: Error status:', error.response?.status);
+    console.error('🔍 DEBUG: Error data:', error.response?.data);
+    console.error('🔍 DEBUG: Error config:', error.config);
     throw error;
   }
 };

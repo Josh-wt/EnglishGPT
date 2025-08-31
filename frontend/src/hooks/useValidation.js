@@ -17,25 +17,35 @@ export const useValidation = () => {
    * @returns {Object} - Validation result
    */
   const validateEssay = useCallback(async (essay, questionType) => {
+    console.log('🔍 DEBUG: validateEssay called with:', { essay, questionType });
+    console.log('🔍 DEBUG: Essay length:', essay?.length);
+    console.log('🔍 DEBUG: Question type:', questionType);
+    
     try {
       setIsValidating(true);
       setValidationError(null);
       setShowValidationModal(false);
+      console.log('🔍 DEBUG: Set validation state');
 
+      console.log('🔍 DEBUG: About to call validateEssayContent');
       const result = validateEssayContent(essay, questionType);
+      console.log('🔍 DEBUG: validateEssayContent result:', result);
 
       if (!result.isValid) {
+        console.log('🔍 DEBUG: Validation failed, setting error');
         setValidationError({
           type: result.error,
           message: result.message,
           details: result.details,
         });
         setShowValidationModal(true);
+      } else {
+        console.log('🔍 DEBUG: Validation passed');
       }
 
       return result;
     } catch (error) {
-      console.error('Validation error:', error);
+      console.error('🔍 DEBUG: Validation error:', error);
       setValidationError({
         type: 'validation_error',
         message: 'An error occurred during validation',
@@ -45,6 +55,7 @@ export const useValidation = () => {
       return { isValid: false, error: 'validation_error' };
     } finally {
       setIsValidating(false);
+      console.log('🔍 DEBUG: Set isValidating to false');
     }
   }, []);
 

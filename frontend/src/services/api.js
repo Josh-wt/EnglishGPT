@@ -16,7 +16,10 @@ api.interceptors.request.use(
     console.log('🔍 API Request:', {
       method: config.method?.toUpperCase(),
       url: config.url,
+      baseURL: config.baseURL,
       fullUrl: config.baseURL + config.url,
+      data: config.data,
+      headers: config.headers,
       component: new Error().stack?.split('\n')[2]?.trim() || 'Unknown'
     });
     return config;
