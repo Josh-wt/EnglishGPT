@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import subscriptionService from '../../services/subscriptionService';
+import { isLaunchPeriod, getLaunchPeriodMessage } from '../../utils/launchPeriod';
 
 // Enhanced Pricing Page Component with Launch Offer
 const PricingPage = ({ onBack, user }) => {
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [showLaunchModal, setShowLaunchModal] = useState(true);
+
+
 
   const handlePlanSelect = async (planType) => {
     if (!user?.id) {
@@ -98,9 +101,9 @@ const PricingPage = ({ onBack, user }) => {
                 <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">🎉</span>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Launch Offer!</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">🚀 Launch Period Active!</h3>
                 <p className="text-gray-600 mb-6">
-                  Get 50% off your first month on any plan. Limited time offer!
+                  During our launch period, <strong>every new user automatically gets the Unlimited plan</strong> with all premium features at no cost!
                 </p>
                 <motion.button
                   onClick={() => setShowLaunchModal(false)}
@@ -118,6 +121,28 @@ const PricingPage = ({ onBack, user }) => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Launch Period Banner */}
+        {isLaunchPeriod() && (
+          <motion.div 
+            className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-8 mb-8 text-white text-center"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <div className="text-4xl mb-4">🎉</div>
+            <h3 className="text-2xl font-bold mb-2">Launch Period - Unlimited Access for Everyone!</h3>
+            <p className="text-lg opacity-90 mb-4">
+              {getLaunchPeriodMessage()}
+            </p>
+            <div className="flex flex-wrap justify-center gap-4 text-sm">
+              <span className="bg-white/20 px-3 py-1 rounded-full">✅ Unlimited Essays</span>
+              <span className="bg-white/20 px-3 py-1 rounded-full">✅ Advanced Analytics</span>
+              <span className="bg-white/20 px-3 py-1 rounded-full">✅ AI Recommendations</span>
+              <span className="bg-white/20 px-3 py-1 rounded-full">✅ Priority Support</span>
+            </div>
+          </motion.div>
+        )}
+
         {/* Header Section */}
         <motion.div 
           className="text-center mb-12"
@@ -126,44 +151,46 @@ const PricingPage = ({ onBack, user }) => {
           transition={{ delay: 0.2 }}
         >
           <h2 className="text-4xl font-bold text-gray-900 mb-4 font-fredoka">
-            Simple, Transparent Pricing
+            {isLaunchPeriod() ? 'Launch Period Pricing' : 'Simple, Transparent Pricing'}
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Choose the plan that fits your needs. All plans include unlimited essay marking and detailed feedback.
+            {isLaunchPeriod() 
+              ? 'During our launch period, all users get unlimited access. After launch, choose the plan that fits your needs.'
+              : 'Choose the plan that fits your needs. All plans include unlimited essay marking and detailed feedback.'
+            }
           </p>
         </motion.div>
 
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-3 gap-8 mb-12">
-          {/* Free Plan */}
+          {/* Free Plan (Launch Period - Coming Soon) */}
           <motion.div 
-            className="bg-white rounded-2xl p-8 border-2 border-gray-200 shadow-lg hover:shadow-xl transition-shadow"
+            className="bg-white rounded-2xl p-8 border-2 border-gray-200 shadow-lg opacity-60"
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            whileHover={{ y: -5 }}
           >
             <div className="text-center mb-6">
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Free</h3>
               <div className="text-4xl font-bold text-gray-900 mb-2">$0</div>
-              <p className="text-gray-600">Forever</p>
+              <p className="text-gray-600">After Launch</p>
             </div>
             
             <ul className="space-y-3 mb-8">
               <li className="flex items-center">
-                <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-gray-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
                 3 essays per month
               </li>
               <li className="flex items-center">
-                <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-gray-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
                 Basic feedback
               </li>
               <li className="flex items-center">
-                <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-gray-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
                 Progress tracking
@@ -171,30 +198,30 @@ const PricingPage = ({ onBack, user }) => {
             </ul>
             
             <button 
-              className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold cursor-not-allowed"
+              className="w-full bg-gray-100 text-gray-500 py-3 rounded-xl font-semibold cursor-not-allowed"
               disabled
             >
-              Current Plan
+              Available After Launch
             </button>
           </motion.div>
 
-          {/* Monthly Plan */}
+          {/* Unlimited Plan (Launch Period) */}
           <motion.div 
-            className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-8 text-white relative overflow-hidden"
+            className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-8 text-white relative overflow-hidden"
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
             whileHover={{ y: -5 }}
           >
-            {/* Popular Badge */}
+            {/* Launch Badge */}
             <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-sm font-semibold">
-              Most Popular
+              🚀 Launch Offer
             </div>
             
             <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold mb-2">Monthly</h3>
-              <div className="text-4xl font-bold mb-2">$4.99</div>
-              <p className="text-purple-100">per month</p>
+              <h3 className="text-2xl font-bold mb-2">Unlimited</h3>
+              <div className="text-4xl font-bold mb-2">FREE</div>
+              <p className="text-green-100">During Launch Period</p>
             </div>
             
             <ul className="space-y-3 mb-8">
@@ -206,30 +233,32 @@ const PricingPage = ({ onBack, user }) => {
                   {feature}
                 </li>
               ))}
+              <li className="flex items-center">
+                <svg className="w-5 h-5 text-white mr-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Priority support
+              </li>
             </ul>
             
             <motion.button
-              onClick={() => handlePlanSelect('monthly')}
-              disabled={loading && selectedPlan === 'monthly'}
-              className="w-full bg-white text-purple-600 py-3 rounded-xl font-semibold hover:bg-purple-50 transition-colors disabled:opacity-50"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              className="w-full bg-white text-green-600 py-3 rounded-xl font-semibold cursor-not-allowed"
+              disabled
             >
-              {loading && selectedPlan === 'monthly' ? 'Processing...' : 'Start Monthly Plan'}
+              ✅ Your Current Plan
             </motion.button>
           </motion.div>
 
-          {/* Yearly Plan */}
+          {/* Yearly Plan (Launch Period - Coming Soon) */}
           <motion.div 
-            className="bg-white rounded-2xl p-8 border-2 border-purple-200 shadow-lg hover:shadow-xl transition-shadow relative"
+            className="bg-white rounded-2xl p-8 border-2 border-gray-200 shadow-lg opacity-60 relative"
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            whileHover={{ y: -5 }}
           >
-            {/* Save Badge */}
-            <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-              Save 40%
+            {/* Coming Soon Badge */}
+            <div className="absolute top-4 right-4 bg-gray-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+              Coming Soon
             </div>
             
             <div className="text-center mb-6">
@@ -242,29 +271,26 @@ const PricingPage = ({ onBack, user }) => {
             <ul className="space-y-3 mb-8">
               {sharedFeatures.map((feature, index) => (
                 <li key={index} className="flex items-center">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-5 h-5 text-gray-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                   {feature}
                 </li>
               ))}
               <li className="flex items-center">
-                <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-gray-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
                 Priority support
               </li>
             </ul>
             
-            <motion.button
-              onClick={() => handlePlanSelect('yearly')}
-              disabled={loading && selectedPlan === 'yearly'}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-shadow disabled:opacity-50"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <button 
+              className="w-full bg-gray-100 text-gray-500 py-3 rounded-xl font-semibold cursor-not-allowed"
+              disabled
             >
-              {loading && selectedPlan === 'yearly' ? 'Processing...' : 'Start Yearly Plan'}
-            </motion.button>
+              Available After Launch
+            </button>
           </motion.div>
         </div>
 

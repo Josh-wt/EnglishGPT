@@ -60,7 +60,7 @@ export const useSubscription = () => {
    */
   const hasUnlimitedAccess = useCallback((userStats) => {
     if (!userStats?.currentPlan) return false;
-    return userStats.currentPlan.toLowerCase() === 'unlimited';
+    return userStats?.currentPlan?.toLowerCase() === 'unlimited';
   }, []);
 
   /**
@@ -70,7 +70,7 @@ export const useSubscription = () => {
    */
   const hasFreeEvaluationsRemaining = useCallback((userStats) => {
     if (!userStats) return false;
-    return userStats.evaluationsUsed < userStats.evaluationsLimit;
+    return (userStats?.evaluationsUsed || 0) < (userStats?.evaluationsLimit || 0);
   }, []);
 
   /**
@@ -80,7 +80,7 @@ export const useSubscription = () => {
    */
   const getRemainingFreeEvaluations = useCallback((userStats) => {
     if (!userStats) return 0;
-    return Math.max(0, userStats.evaluationsLimit - userStats.evaluationsUsed);
+    return Math.max(0, (userStats?.evaluationsLimit || 0) - (userStats?.evaluationsUsed || 0));
   }, []);
 
   /**

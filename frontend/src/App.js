@@ -27,7 +27,7 @@ import { useUser } from './hooks/useUser';
 import { useEvaluations } from './hooks/useEvaluations';
 import { useAnalytics } from './hooks/useAnalytics';
 import { useValidation } from './hooks/useValidation';
-import { useSubscription } from './hooks/useSubscription';
+
 import { useQuestionTypes } from './hooks/useQuestionTypes';
 
 // Import services
@@ -54,7 +54,6 @@ const App = () => {
   const { evaluations, submitNewEvaluation, fetchEvaluations, addEvaluation } = useEvaluations();
   const { analytics, fetchAnalytics } = useAnalytics();
   const { validationError, showValidationModal, validateEssay, clearValidationError, closeValidationModal } = useValidation();
-  const { subscription, checkSubscription } = useSubscription();
   const { questionTypes, loading: questionTypesLoading } = useQuestionTypes();
 
   // Local state

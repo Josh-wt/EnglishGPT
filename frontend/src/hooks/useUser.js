@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { getUserProfile, updateUserProfile, updateAcademicLevel, getUserStats } from '../services/user';
+import { applyLaunchPeriodBenefits } from '../utils/launchPeriod';
 
 /**
  * Custom hook for user state management
@@ -11,6 +12,8 @@ export const useUser = () => {
   const [userStats, setUserStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+
 
   // Initialize user state
   useEffect(() => {
@@ -31,10 +34,13 @@ export const useUser = () => {
               getUserStats(session.user.id),
             ]);
             
-            setUserStats({
+            // Apply launch period benefits
+            const finalStats = applyLaunchPeriodBenefits({
               ...statsData,
               profile: profileData,
             });
+            
+            setUserStats(finalStats);
           } catch (profileError) {
             console.error('Error fetching user data:', profileError);
             // Don't fail completely if profile fetch fails
@@ -63,10 +69,13 @@ export const useUser = () => {
               getUserStats(session.user.id),
             ]);
             
-            setUserStats({
+            // Apply launch period benefits
+            const finalStats = applyLaunchPeriodBenefits({
               ...statsData,
               profile: profileData,
             });
+            
+            setUserStats(finalStats);
           } catch (profileError) {
             console.error('Error fetching user data on sign in:', profileError);
           }
