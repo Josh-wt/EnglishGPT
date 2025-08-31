@@ -15,6 +15,16 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     user: !!user
   });
 
+  const [selectedQuestionType, setSelectedQuestionType] = useState(null);
+  const [studentResponse, setStudentResponse] = useState('');
+  const [showNextButton, setShowNextButton] = useState(false);
+  const [restoredDraft, setRestoredDraft] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState(null);
+  const [showExample, setShowExample] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [formattedText, setFormattedText] = useState('');
+  const essayRef = useRef(null);
+
   // Show loading screen when evaluation is in progress
   if (evaluationLoading) {
     return (
@@ -32,15 +42,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       </div>
     );
   }
-  const [selectedQuestionType, setSelectedQuestionType] = useState(null);
-  const [studentResponse, setStudentResponse] = useState('');
-  const [showNextButton, setShowNextButton] = useState(false);
-  const [restoredDraft, setRestoredDraft] = useState(false);
-  const [lastSavedAt, setLastSavedAt] = useState(null);
-  const [showExample, setShowExample] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
-  const [formattedText, setFormattedText] = useState('');
-  const essayRef = useRef(null);
 
   // Restore draft on mount
   useEffect(() => {
