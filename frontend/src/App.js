@@ -119,6 +119,11 @@ const App = () => {
     console.log('🔍 DEBUG: User:', user);
     console.log('🔍 DEBUG: UserStats:', userStats);
     
+    // Ensure user_id is set
+    if (!evaluationResult.user_id && user?.id) {
+      evaluationResult.user_id = user.id;
+    }
+    
     try {
       setEvaluationLoading(true);
       console.log('🔍 DEBUG: Set evaluation loading to true');
@@ -134,6 +139,9 @@ const App = () => {
       
       if (!validationResult.isValid) {
         console.log('🔍 DEBUG: Validation failed, returning early');
+        setEvaluationLoading(false);
+        setErrorMessage(validationResult.error || 'Validation failed. Please check your essay.');
+        setShowErrorModal(true);
         return;
       }
 
@@ -149,6 +157,11 @@ const App = () => {
         evaluationId: result?.evaluation?.id,
         fullResult: result
       });
+      
+      // Ensure we have a result
+      if (!result) {
+        throw new Error('No result returned from evaluation');
+      }
       
       setEvaluation(result);
       console.log('🔍 DEBUG: Set evaluation state');
@@ -166,26 +179,46 @@ const App = () => {
       
       console.log('🔍 DEBUG: Result ID for navigation:', resultId);
       
-      // Set loading to false before navigation
-      setEvaluationLoading(false);
-      console.log('🔍 DEBUG: Set evaluation loading to false before navigation');
-      
+      // Navigate immediately with the result ID
       if (resultId) {
+        console.log('🔍 DEBUG: Navigating to results page with ID:', resultId);
         navigate(`/results/${resultId}`);
-        console.log('🔍 DEBUG: Navigated to results page with ID:', resultId);
+        // Clear loading state after navigation
+        setTimeout(() => {
+          setEvaluationLoading(false);
+          console.log('🔍 DEBUG: Cleared evaluation loading state after navigation');
+        }, 500);
       } else {
+        console.warn('🔍 WARNING: No result ID available, navigating to results without ID');
         navigate('/results');
-        console.log('🔍 DEBUG: Navigated to results page without ID');
+        setTimeout(() => {
+          setEvaluationLoading(false);
+        }, 500);
       }
+      
     } catch (error) {
       console.error('🔍 DEBUG: Evaluation failed with error:', error);
       console.error('🔍 DEBUG: Error details:', {
         message: error.message,
         response: error.response,
         status: error.response?.status,
-        data: error.response?.data
+        data: error.response?.data,
+        stack: error.stack
       });
-      setErrorMessage('Evaluation failed. Please try again.');
+      
+      // Provide more specific error messages
+      let errorMsg = 'Evaluation failed. Please try again.';
+      if (error.response?.status === 402) {
+        errorMsg = 'You have reached your evaluation limit. Please upgrade your plan.';
+      } else if (error.response?.status === 404) {
+        errorMsg = 'User account not found. Please sign in again.';
+      } else if (error.response?.data?.detail) {
+        errorMsg = error.response.data.detail;
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+      
+      setErrorMessage(errorMsg);
       setShowErrorModal(true);
       setEvaluationLoading(false);
       console.log('🔍 DEBUG: Set evaluation loading to false on error');
