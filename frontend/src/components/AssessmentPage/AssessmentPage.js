@@ -128,12 +128,16 @@ const AssessmentPage = ({ selectedQuestionType, onEvaluate, onBack, darkMode, ev
         question_type: selectedQuestionType.id,
         student_response: selectedQuestionType.studentResponse, // From previous page
         marking_scheme: markingScheme || null,
+        // user_id will be added in App.js handleEvaluate if not present
       };
       
+      console.log('🔍 DEBUG: AssessmentPage calling onEvaluate with:', evaluationData);
       await onEvaluate(evaluationData);
+      console.log('🔍 DEBUG: AssessmentPage onEvaluate completed');
       // Don't set isLoading to false here - let the navigation happen
-      // The loading state will be cleared when the component unmounts
+      // The loading state will be cleared when the component unmounts or navigation occurs
     } catch (error) {
+      console.error('🔍 DEBUG: AssessmentPage evaluation error:', error);
       setError('Failed to evaluate submission. Please try again.');
       setIsLoading(false);
     }
@@ -141,6 +145,17 @@ const AssessmentPage = ({ selectedQuestionType, onEvaluate, onBack, darkMode, ev
 
   // Loading Page Component
   const LoadingPage = ({ selectedQuestionType, loadingMessages, currentMessageIndex, loadingMessage }) => {
+    // Add a timeout fallback in case loading gets stuck
+    useEffect(() => {
+      const timeout = setTimeout(() => {
+        console.warn('🔍 WARNING: Loading timeout reached (60s), forcing reload');
+        // Force clear loading state after 60 seconds
+        setIsLoading(false);
+      }, 60000);
+      
+      return () => clearTimeout(timeout);
+    }, []);
+    
     return (
       <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-gray-50'} flex items-center justify-center p-4`}>
         <div className="text-center max-w-lg">

@@ -36,7 +36,10 @@ api.interceptors.response.use(
     console.log('✅ API Response:', {
       status: response.status,
       url: response.config.url,
-      method: response.config.method?.toUpperCase()
+      method: response.config.method?.toUpperCase(),
+      data: response.data,
+      hasShortId: !!response.data?.short_id,
+      shortId: response.data?.short_id
     });
     return response;
   },
@@ -45,7 +48,8 @@ api.interceptors.response.use(
       status: error.response?.status,
       url: error.config?.url,
       method: error.config?.method?.toUpperCase(),
-      message: error.message
+      message: error.message,
+      responseData: error.response?.data
     });
     return Promise.reject(error);
   }
