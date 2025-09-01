@@ -1,14 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 
 const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAnalytics, onAccountSettings, onSubscription, userStats, user, darkMode, onSignOut }) => {
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   
-  // Helper function to check if user has unlimited access
-  const hasUnlimitedAccess = () => {
+  // Memoized helper function to check if user has unlimited access
+  const hasUnlimitedAccess = useMemo(() => {
     const plan = userStats?.currentPlan?.toLowerCase();
     return plan === 'unlimited';
-  };
+  }, [userStats?.currentPlan]);
+
+  // Memoized user stats to prevent unnecessary recalculations
+  const memoizedUserStats = useMemo(() => ({
+    questionsMarked: userStats?.questionsMarked || 0,
+    credits: userStats?.credits || 3,
+    currentPlan: userStats?.currentPlan || 'Free'
+  }), [userStats?.questionsMarked, userStats?.credits, userStats?.currentPlan]);
+
+  // Memoized callback functions to prevent unnecessary re-renders
+  const handleAccountDropdown = useCallback(() => {
+    setShowAccountDropdown(prev => !prev);
+  }, []);
+
+  const handleAccountSettings = useCallback(() => {
+    onAccountSettings();
+    setShowAccountDropdown(false);
+  }, [onAccountSettings]);
+
+  const handleSubscription = useCallback(() => {
+    onSubscription();
+    setShowAccountDropdown(false);
+  }, [onSubscription]);
+
+  const handleSignOut = useCallback(async () => {
+    await onSignOut();
+    setShowAccountDropdown(false);
+  }, [onSignOut]);
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-main'}`}>
@@ -31,10 +58,10 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
             <div className="hidden lg:flex items-center">
               {/* User Stats - Show for all users */}
                 <div className="flex items-center space-x-6">
-                {hasUnlimitedAccess() ? (
+                {hasUnlimitedAccess ? (
                   <>
                     <div className="text-center">
-                      <div className="text-lg font-fredoka font-bold text-purple-600">{userStats.questionsMarked}</div>
+                      <div className="text-lg font-fredoka font-bold text-purple-600">{memoizedUserStats.questionsMarked}</div>
                       <div className={`text-xs font-fredoka ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Essays Marked</div>
                     </div>
                     <div className="text-center">
@@ -48,7 +75,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                 ) : (
                   <>
                   <div className="text-center">
-                    <div className="text-lg font-fredoka font-bold text-blue-600">{userStats.credits}</div>
+                    <div className="text-lg font-fredoka font-bold text-blue-600">{memoizedUserStats.credits}</div>
                     <div className={`text-xs font-fredoka ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Credits</div>
                   </div>
                   <div className="text-center">
@@ -58,7 +85,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                     <div className={`text-xs font-fredoka ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Plan</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-fredoka font-bold text-purple-600">{userStats.questionsMarked}</div>
+                    <div className="text-lg font-fredoka font-bold text-purple-600">{memoizedUserStats.questionsMarked}</div>
                     <div className={`text-xs font-fredoka ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Marked</div>
                   </div>
                   </>
@@ -68,7 +95,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
             </div>
             
             {/* New User Welcome Message - Separate from stats */}
-            {!hasUnlimitedAccess() && userStats.questionsMarked === 0 && (
+            {!hasUnlimitedAccess && memoizedUserStats.questionsMarked === 0 && (
               <div className={`hidden lg:block ${darkMode ? 'bg-blue-900 text-blue-300 border-blue-700' : 'bg-blue-50 text-blue-700 border-blue-200'} px-3 py-1.5 rounded-lg border`}>
                 <div className="flex items-center space-x-2">
                   <span className="font-fredoka text-sm">🎉 3 free credits</span>
@@ -80,10 +107,10 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
             {/* Mobile User Stats - Show condensed version on mobile */}
             <div className="lg:hidden flex items-center space-x-2">
                 <div className="flex items-center space-x-2 text-xs">
-                {hasUnlimitedAccess() ? (
+                {hasUnlimitedAccess ? (
                   <>
                     <div className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
-                      <span className="font-fredoka font-bold">{userStats.questionsMarked}</span>
+                      <span className="font-fredoka font-bold">{memoizedUserStats.questionsMarked}</span>
                     </div>
                   <div className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
                       <span className="font-fredoka font-bold">Unlimited</span>
@@ -93,7 +120,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                 ) : (
                   <>
                     <div className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                      <span className="font-fredoka font-bold">{userStats.credits}</span>
+                      <span className="font-fredoka font-bold">{memoizedUserStats.credits}</span>
                 </div>
                     <div className="bg-green-100 text-green-700 px-2 py-1 rounded-full">
                       <span className="font-fredoka font-bold">Free</span>
@@ -103,7 +130,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
               </div>
               
               {/* Mobile Welcome Message - Compact */}
-              {!hasUnlimitedAccess() && userStats.questionsMarked === 0 && (
+              {!hasUnlimitedAccess && memoizedUserStats.questionsMarked === 0 && (
                 <div className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
                   <span className="font-fredoka text-xs">🎉 3 free</span>
                 </div>
@@ -154,7 +181,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
-                Analytics {!hasUnlimitedAccess() && <span className="ml-1 text-xs">🔒</span>}
+                Analytics {!hasUnlimitedAccess && <span className="ml-1 text-xs">🔒</span>}
               </button>
               
               {/* FIXED History Button - Always navigate */}
@@ -165,13 +192,13 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                History {!hasUnlimitedAccess() && <span className="ml-1 text-xs">🔒</span>}
+                History {!hasUnlimitedAccess && <span className="ml-1 text-xs">🔒</span>}
               </button>
               
               {/* User Profile Dropdown */}
               <div className="relative">
                 <button
-                  onClick={() => setShowAccountDropdown(!showAccountDropdown)}
+                  onClick={handleAccountDropdown}
                   className="flex items-center space-x-2 sm:space-x-3 hover:bg-gray-50 p-1 sm:p-2 rounded-lg transition-colors"
                 >
                   <img 
@@ -193,10 +220,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                     <div className="py-1">
                       <button 
-                        onClick={() => {
-                          onAccountSettings();
-                          setShowAccountDropdown(false);
-                        }}
+                        onClick={handleAccountSettings}
                         className="w-full px-4 py-2 text-left font-fredoka text-gray-700 hover:bg-gray-100 flex items-center"
                       >
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -206,10 +230,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                       </button>
                       
                       <button 
-                        onClick={() => {
-                          onSubscription();
-                          setShowAccountDropdown(false);
-                        }}
+                        onClick={handleSubscription}
                         className="w-full px-4 py-2 text-left font-fredoka text-gray-700 hover:bg-gray-100 flex items-center"
                       >
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -220,10 +241,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                       
                       <div className="border-t border-gray-100"></div>
                       <button 
-                        onClick={async () => {
-                          await onSignOut();
-                          setShowAccountDropdown(false);
-                        }}
+                        onClick={handleSignOut}
                         className="w-full px-4 py-2 text-left font-fredoka text-red-700 hover:bg-red-50 flex items-center"
                       >
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -303,11 +321,11 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
               className="flex justify-center space-x-12 mt-16"
             >
               <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600 font-fredoka">{userStats?.questionsMarked || 0}</div>
+                <div className="text-3xl font-bold text-purple-600 font-fredoka">{memoizedUserStats.questionsMarked}</div>
                 <div className="text-sm text-gray-600 font-fredoka">Essays Marked</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600 font-fredoka capitalize">{userStats?.currentPlan || 'Free'}</div>
+                <div className="text-3xl font-bold text-blue-600 font-fredoka capitalize">{memoizedUserStats.currentPlan}</div>
                 <div className="text-sm text-gray-600 font-fredoka">Plan</div>
               </div>
             </motion.div>

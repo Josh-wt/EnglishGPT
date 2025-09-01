@@ -60,9 +60,9 @@ const App = () => {
 
   const navigate = useNavigate();
 
-  // Fetch evaluations and user level when user is logged in
+  // Fetch evaluations when user is logged in
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchEvaluations = async () => {
       if (user?.id) {
         try {
           // Fetch evaluations
@@ -70,20 +70,21 @@ const App = () => {
           if (evalResponse.data?.evaluations) {
             setEvaluations(evalResponse.data.evaluations);
           }
-          
-          // Fetch user profile to get academic level
-          const userResponse = await api.get(`/users/${user.id}`);
-          if (userResponse.data?.user?.academic_level && userResponse.data.user.academic_level !== 'N/A') {
-            setSelectedLevel(userResponse.data.user.academic_level.toLowerCase());
-          }
         } catch (error) {
-          console.error('Error fetching user data:', error);
+          console.error('Error fetching evaluations:', error);
         }
       }
     };
 
-    fetchUserData();
+    fetchEvaluations();
   }, [user]);
+
+  // Set academic level from userStats when available
+  useEffect(() => {
+    if (userStats?.academicLevel && userStats.academicLevel !== 'N/A') {
+      setSelectedLevel(userStats.academicLevel.toLowerCase());
+    }
+  }, [userStats]);
 
 
 

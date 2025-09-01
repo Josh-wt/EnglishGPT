@@ -143,8 +143,11 @@ const AssessmentPage = ({ selectedQuestionType, onEvaluate, onBack, darkMode, ev
     }
   };
 
-  // Loading Page Component
+  // Beautiful Loading Page Component
   const LoadingPage = ({ selectedQuestionType, loadingMessages, currentMessageIndex, loadingMessage }) => {
+    const [progress, setProgress] = useState(0);
+    const [currentStep, setCurrentStep] = useState(0);
+    
     // Add a timeout fallback in case loading gets stuck
     useEffect(() => {
       const timeout = setTimeout(() => {
@@ -155,34 +158,120 @@ const AssessmentPage = ({ selectedQuestionType, onEvaluate, onBack, darkMode, ev
       
       return () => clearTimeout(timeout);
     }, []);
+
+    // Simulate progress
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 95) return prev; // Don't go to 100% until actually done
+          return prev + Math.random() * 3;
+        });
+      }, 200);
+
+      return () => clearInterval(interval);
+    }, []);
+
+    // Animate through steps
+    useEffect(() => {
+      const stepInterval = setInterval(() => {
+        setCurrentStep(prev => (prev + 1) % 4);
+      }, 1500);
+
+      return () => clearInterval(stepInterval);
+    }, []);
+
+    const steps = [
+      { icon: "📝", text: "Reading your essay", color: "from-blue-500 to-blue-600" },
+      { icon: "🔍", text: "Analyzing structure", color: "from-green-500 to-green-600" },
+      { icon: "🎯", text: "Evaluating content", color: "from-purple-500 to-purple-600" },
+      { icon: "✨", text: "Generating feedback", color: "from-pink-500 to-pink-600" }
+    ];
     
     return (
-      <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-gray-50'} flex items-center justify-center p-4`}>
-        <div className="text-center max-w-lg">
-          {/* Book Loader */}
-          <div className="mb-8">
-            <LoadingSpinner 
-              message="" 
-              size="large" 
-            />
-          </div>
-          
-          {/* Small text with spacing */}
-          <div className="text-gray-600 text-lg font-fredoka mb-8">
-            Our AI is doing the magic, please wait
-          </div>
-          
-          {/* Pink box modal with changing text */}
-          <div className="bg-gradient-to-br from-pink-100 to-pink-200 rounded-2xl p-6 shadow-lg border border-pink-300 max-w-md mx-auto">
-            <div className="text-center">
-              <div className="text-2xl mb-3">✨</div>
-              <div className="text-gray-800 font-fredoka text-lg font-medium">
-                {loadingMessage || (loadingMessages && loadingMessages[currentMessageIndex]) || "🤖 AI is analyzing your essay..."}
-              </div>
-              <div className="text-gray-600 text-sm mt-2 font-fredoka">
-                Our AI is carefully analyzing your {selectedQuestionType?.name} submission. This may take up to 60 seconds.
+      <div className={`min-h-screen ${darkMode ? 'bg-gradient-to-br from-gray-900 via-black to-gray-900' : 'bg-gradient-to-br from-blue-50 via-white to-purple-50'} flex items-center justify-center p-4 relative overflow-hidden`}>
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-600/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-pink-400/20 to-blue-600/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-green-400/10 to-purple-600/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+        </div>
+
+        <div className="text-center max-w-2xl relative z-10">
+          {/* Main Loading Animation */}
+          <div className="mb-12">
+            <div className="relative w-32 h-32 mx-auto mb-8">
+              {/* Outer rotating ring */}
+              <div className="absolute inset-0 border-4 border-transparent border-t-blue-500 border-r-purple-500 rounded-full animate-spin"></div>
+              {/* Inner pulsing circle */}
+              <div className="absolute inset-4 border-4 border-transparent border-b-pink-500 border-l-green-500 rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
+              {/* Center icon */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-4xl animate-bounce">🤖</div>
               </div>
             </div>
+          </div>
+          
+          {/* Progress Bar */}
+          <div className="mb-8">
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-4 overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full transition-all duration-500 ease-out relative"
+                style={{ width: `${progress}%` }}
+              >
+                <div className="absolute inset-0 bg-white/30 animate-pulse"></div>
+              </div>
+            </div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 font-fredoka">
+              {Math.round(progress)}% Complete
+            </div>
+          </div>
+
+          {/* Current Step Indicator */}
+          <div className="mb-8">
+            <div className="flex justify-center space-x-4 mb-6">
+              {steps.map((step, index) => (
+                <div key={index} className="flex flex-col items-center">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-xl mb-2 transition-all duration-500 ${
+                    index === currentStep 
+                      ? `bg-gradient-to-r ${step.color} shadow-lg scale-110` 
+                      : index < currentStep 
+                        ? 'bg-gradient-to-r from-green-500 to-green-600 shadow-md' 
+                        : 'bg-gray-300 dark:bg-gray-600'
+                  }`}>
+                    {index < currentStep ? '✓' : step.icon}
+                  </div>
+                  <div className={`text-xs font-fredoka transition-all duration-300 ${
+                    index === currentStep 
+                      ? 'text-gray-900 dark:text-white font-semibold' 
+                      : index < currentStep 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-gray-500 dark:text-gray-400'
+                  }`}>
+                    {step.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Dynamic Message */}
+          <div className="mb-8">
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20 dark:border-gray-700/20 max-w-lg mx-auto">
+              <div className="text-center">
+                <div className="text-3xl mb-4 animate-pulse">✨</div>
+                <div className="text-gray-800 dark:text-white font-fredoka text-xl font-medium mb-3">
+                  {loadingMessage || (loadingMessages && loadingMessages[currentMessageIndex]) || "🤖 AI is analyzing your essay..."}
+                </div>
+                <div className="text-gray-600 dark:text-gray-300 text-sm font-fredoka">
+                  Our AI is carefully analyzing your <span className="font-semibold text-purple-600 dark:text-purple-400">{selectedQuestionType?.name}</span> submission. This may take up to 60 seconds.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Fun Facts */}
+          <div className="text-xs text-gray-500 dark:text-gray-400 font-fredoka max-w-md mx-auto">
+            💡 Did you know? Our AI analyzes over 50 different writing criteria to provide comprehensive feedback!
           </div>
         </div>
       </div>
