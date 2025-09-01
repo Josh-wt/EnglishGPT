@@ -101,13 +101,15 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
 
     const metricsByType = {
       igcse_writers_effect: ['READING'],
-      igcse_descriptive: ['CONTENT', 'STRUCTURE', 'STYLE', 'ACCURACY'],
-      igcse_narrative: ['CONTENT', 'STRUCTURE', 'STYLE', 'ACCURACY'],
+      igcse_descriptive: ['READING', 'WRITING'],  // Content/Structure in reading_marks, Style/Accuracy in writing_marks
+      igcse_narrative: ['READING', 'WRITING'],    // Content/Structure in reading_marks, Style/Accuracy in writing_marks
       igcse_summary: ['READING', 'WRITING'],
+      igcse_directed: ['READING', 'WRITING'],
       alevel_directed: ['AO1', 'AO2'],
       alevel_comparative: ['AO1', 'AO2'],
-      alevel_text_analysis: ['AO1', 'AO2'],
-      alevel_language_change: ['AO1', 'AO2'],
+      alevel_text_analysis: ['AO1', 'AO3'],  // AO3 is stored in ao1_marks field
+      alevel_directed_writing: ['AO1', 'AO2'],
+      alevel_language_change: ['AO2', 'AO4', 'AO5'],  // AO4 in ao1_marks, AO5 in reading_marks
       sat_essay: ['READING', 'WRITING']
     };
 
@@ -115,7 +117,28 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
     const metrics = metricsByType[questionType] || [];
 
     return metrics.map(metric => {
-      const value = evaluation[`${metric.toLowerCase()}_marks`] || evaluation[`${metric.toLowerCase()}_marks`] || 'N/A';
+      let value = 'N/A';
+      
+      // Map metrics to the correct fields
+      if (metric === 'READING') {
+        value = evaluation.reading_marks || 'N/A';
+      } else if (metric === 'WRITING') {
+        value = evaluation.writing_marks || 'N/A';
+      } else if (metric === 'AO1') {
+        value = evaluation.ao1_marks || 'N/A';
+      } else if (metric === 'AO2') {
+        value = evaluation.ao2_marks || 'N/A';
+      } else if (metric === 'AO3') {
+        // For text_analysis, AO3 is stored in ao1_marks
+        value = evaluation.ao1_marks || 'N/A';
+      } else if (metric === 'AO4') {
+        // For language_change, AO4 is stored in ao1_marks
+        value = evaluation.ao1_marks || 'N/A';
+      } else if (metric === 'AO5') {
+        // For language_change, AO5 is stored in reading_marks
+        value = evaluation.reading_marks || 'N/A';
+      }
+      
       return {
         label: metric,
         value: value
