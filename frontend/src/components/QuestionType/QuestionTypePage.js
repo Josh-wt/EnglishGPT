@@ -133,7 +133,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
 
   const handleQuestionSelect = (questionType) => {
     setSelectedQuestionType(questionType);
-    setShowNextButton(true);
   };
 
   const handleProceed = () => {

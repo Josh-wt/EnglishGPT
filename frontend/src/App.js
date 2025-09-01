@@ -24,6 +24,7 @@ import { useQuestionTypes } from './hooks/useQuestionTypes';
 
 // Import services
 import { submitFeedback } from './services/feedback';
+import { validateEssay } from './services/evaluations';
 import api from './services/api';
 
 // Import new modular components
@@ -56,6 +57,7 @@ const App = () => {
   const [feedbackAccurate, setFeedbackAccurate] = useState(null);
   const [feedbackComments, setFeedbackComments] = useState('');
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+  const [currentPage, setCurrentPage] = useState('dashboard');
 
   const navigate = useNavigate();
 
@@ -263,7 +265,7 @@ const App = () => {
             setShowShortcutsHelp(false);
           } else if (showErrorModal) {
             setShowErrorModal(false);
-          } else if (location.pathname !== '/dashboard') {
+          } else if (window.location.pathname !== '/dashboard') {
             navigate('/dashboard');
           }
         }
@@ -276,7 +278,7 @@ const App = () => {
     
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [navigate, showErrorModal, showShortcutsHelp, location.pathname]);
+  }, [navigate, showErrorModal, showShortcutsHelp]);
 
   // Loading messages
   const loadingMessages = [

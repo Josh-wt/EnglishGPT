@@ -199,7 +199,7 @@ const HeroSection = ({ onGetStarted, onStartMarking }) => {
                 }}
               >
                 <animated.img 
-                  src={IMAGE_URLS.ANALYTICS} 
+                  src="/images/analytics.jpg" 
                   alt="Detailed strengths preview" 
                   loading="lazy" 
                   className="w-full h-auto rounded-2xl border border-purple-200/60" 
@@ -219,7 +219,7 @@ const HeroSection = ({ onGetStarted, onStartMarking }) => {
                   boxShadow: "0 15px 30px rgba(147, 51, 234, 0.2)"
                 }}
               >
-                <img src={IMAGE_URLS.MARKING} alt="Marking interface preview" loading="lazy" className="w-full h-auto rounded-xl border border-purple-200/60" onError={(e)=>{e.currentTarget.style.display='none';}} />
+                <img src="/images/marking.jpg" alt="Marking interface preview" loading="lazy" className="w-full h-auto rounded-xl border border-purple-200/60" onError={(e)=>{e.currentTarget.style.display='none';}} />
               </motion.div>
               {/* Write overlay with bounce animation */}
               <motion.div 
@@ -233,7 +233,7 @@ const HeroSection = ({ onGetStarted, onStartMarking }) => {
                   boxShadow: "0 15px 30px rgba(147, 51, 234, 0.2)"
                 }}
               >
-                <img src={IMAGE_URLS.WRITE} alt="Write page preview" loading="lazy" className="w-full h-auto rounded-xl border border-purple-200/60" onError={(e)=>{e.currentTarget.style.display='none';}} />
+                <img src="/images/write.jpg" alt="Write page preview" loading="lazy" className="w-full h-auto rounded-xl border border-purple-200/60" onError={(e)=>{e.currentTarget.style.display='none';}} />
               </motion.div>
             </div>
           </motion.div>

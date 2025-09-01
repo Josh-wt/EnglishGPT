@@ -217,12 +217,18 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
     if (feedbackAccurate === null) return;
     setFeedbackSubmitting(true);
     try {
-      await axios.post(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api/feedback`, {
+      await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
         evaluation_id: evaluation.id || evaluation?.evaluation_id || evaluation?.timestamp || 'unknown',
         user_id: evaluation.user_id,
         category: feedbackModal.category,
         accurate: !!feedbackAccurate,
         comments: feedbackComments || null,
+        }),
       });
       setFeedbackModal({ open: false, category: 'overall' });
       setFeedbackAccurate(null);
