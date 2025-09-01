@@ -551,7 +551,7 @@ const App = () => {
           </AuthRequired>
         } />
         <Route path="/analytics" element={
-          <AuthRequired>
+          <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
             <AnalyticsDashboard 
               userStats={userStats || {}}
               user={user}
@@ -562,7 +562,7 @@ const App = () => {
           </AuthRequired>
         } />
         <Route path="/account" element={
-          <AuthRequired>
+          <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
             <AccountPage 
               user={user}
               userStats={userStats || {}}
@@ -575,7 +575,7 @@ const App = () => {
           </AuthRequired>
         } />
         <Route path="/pricing" element={
-          <AuthRequired>
+          <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
             <PricingPage 
               user={user}
               onBack={handleBack}
@@ -583,7 +583,7 @@ const App = () => {
           </AuthRequired>
         } />
         <Route path="/subscription" element={
-          <AuthRequired>
+          <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
             <SubscriptionDashboard 
               user={user}
               onBack={handleBack}

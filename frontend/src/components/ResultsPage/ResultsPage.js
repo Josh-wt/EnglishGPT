@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import LoadingSpinner from '../ui/LoadingSpinner';
-import { getSubmarks } from '../../utils/submarks';
 
 const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user }) => {
   const [activeTab, setActiveTab] = useState('Summary');
@@ -69,8 +68,6 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user }) 
     }
   }, [feedbackModal.open]);
   
-<<<<<<< HEAD
-=======
   // Extract submarks dynamically per question type and present as "xx/xx"
   const getSubmarks = (evaluation) => {
     if (!evaluation) return [];
@@ -107,8 +104,6 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user }) 
       };
     }).filter(submark => submark.value !== 'N/A');
   };
-  
->>>>>>> b000b84 (Enhance ResultsPage.js and QuestionTypePage.js with user feedback and layout improvements)
   // Parse grade to get score
   const parseGrade = (gradeString) => {
     console.log('🔍 DEBUG: parseGrade called with:', gradeString);
@@ -192,18 +187,14 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user }) 
   const parseFeedbackToBullets = (feedback) => {
     if (!feedback) return [];
     
-    // Split by common delimiters and create proper bullet points
+    // Split by common delimiters
     const sentences = feedback
       .split(/[.!?]+/)
       .map(sentence => sentence.trim())
       .filter(sentence => sentence.length > 10) // Only meaningful sentences
       .slice(0, 10); // Limit to 10 points
     
-    return sentences.map((sentence, index) => (
-      <li key={index} className="mb-2">
-        {sentence}.
-      </li>
-    ));
+    return sentences;
   };
 
   const submitFeedback = useCallback(async () => {

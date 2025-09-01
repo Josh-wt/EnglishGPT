@@ -188,7 +188,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
 
   // Filter questions based on selected level
   const getQuestionsForLevel = () => {
-<<<<<<< HEAD
     if (!questionTypes || questionTypes.length === 0) {
       return { questions: [], levelName: 'Loading...', fullName: 'Loading...', color: 'gray', gradient: 'from-gray-500 to-gray-600' };
     }
@@ -199,9 +198,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     const igcseQuestions = questionTypes.filter(q => 
       q.category === 'IGCSE' || q.category === 'igcse'
     ).map(q => ({
-=======
-    const igcseQuestions = questionTypes.filter(q => q.category === 'IGCSE').map(q => ({
->>>>>>> b000b84 (Enhance ResultsPage.js and QuestionTypePage.js with user feedback and layout improvements)
       ...q,
       icon: getIconForQuestionType(q.id)
     }));
@@ -299,24 +295,8 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
             </div>
           </div>
         </div>
-      </div>
-
-<<<<<<< HEAD
-              {/* Main Content - Split Layout */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 h-[calc(100vh-200px)]">
-            
-            {/* Left Side - Question Types (20% wider) */}
-            <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-              <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-4">
-                <h2 className="text-lg font-bold text-white font-fredoka mb-1">Question Types</h2>
-                <p className="text-pink-100 text-xs">{levelData.levelName}</p>
               </div>
-              
-              <div className="p-4 overflow-y-auto h-[calc(100%-80px)]">
-                <div className="space-y-3">
-                  {levelData.questions.map((questionType, index) => (
-=======
+
       {/* Main Content - Split Layout with 20% wider question types list */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 h-[calc(100vh-200px)]">
@@ -332,7 +312,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
               <div className="space-y-3">
                 {levelData.questions.length > 0 ? (
                   levelData.questions.map((questionType, index) => (
->>>>>>> b000b84 (Enhance ResultsPage.js and QuestionTypePage.js with user feedback and layout improvements)
                     <motion.div
                       key={questionType.id}
                       initial={{ opacity: 0, x: -20 }}
@@ -390,15 +369,10 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                 )}
               </div>
             </div>
-          </div>
+                      </div>
 
-<<<<<<< HEAD
-            {/* Right Side - Writing Interface (Full Space) */}
-            <div className="lg:col-span-3 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-=======
           {/* Right Side - Writing Interface (Adjusted for wider left panel) */}
           <div className="lg:col-span-3 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
->>>>>>> b000b84 (Enhance ResultsPage.js and QuestionTypePage.js with user feedback and layout improvements)
               <div className="bg-gradient-to-r from-blue-500 to-green-600 p-6">
                 <div className="flex items-center justify-between">
                   <div>
