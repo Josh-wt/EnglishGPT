@@ -172,6 +172,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
         <LoadingSpinner message="Loading results..." size="default" />
       </div>
     );
+  }
 
   
   // Parse feedback text into bullet points
