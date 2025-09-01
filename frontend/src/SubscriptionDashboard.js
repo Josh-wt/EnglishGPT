@@ -18,7 +18,7 @@ const SubscriptionDashboard = ({ user, onBack, darkMode }) => {
     if (user?.id) {
       loadSubscriptionData();
     }
-  }, [user]);
+  }, [user, loadSubscriptionData]);
 
   const loadSubscriptionData = async () => {
     try {

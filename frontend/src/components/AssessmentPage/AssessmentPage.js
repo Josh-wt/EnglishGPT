@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import api from '../../services/api';
 import LoadingSpinner from '../ui/LoadingSpinner';
 

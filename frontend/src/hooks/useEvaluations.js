@@ -133,7 +133,7 @@ export const useEvaluations = () => {
       
       // Update the evaluation in the list
       setEvaluations(prev => prev.map(evaluation => 
-        eval.id === evaluationId ? { ...eval, ...result.evaluation } : eval
+        evaluation.id === evaluationId ? { ...evaluation, ...result.evaluation } : evaluation
       ));
       
       return result;
@@ -169,7 +169,7 @@ export const useEvaluations = () => {
    */
   const updateEvaluationInList = useCallback((evaluationId, updateData) => {
     setEvaluations(prev => prev.map(evaluation => 
-      eval.id === evaluationId ? { ...eval, ...updateData } : eval
+      evaluation.id === evaluationId ? { ...evaluation, ...updateData } : evaluation
     ));
   }, []);
 

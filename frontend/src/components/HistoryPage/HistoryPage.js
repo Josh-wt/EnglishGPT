@@ -1,9 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { supabase } from '../../supabaseClient';
-
-import { getBackendUrl } from '../../utils/backendUrl';
-import api from '../../services/api';
 
 // Enhanced Locked Analytics Page
 const LockedAnalyticsPage = ({ onBack, upgradeType, page = 'analytics' }) => {
@@ -71,7 +67,6 @@ const LockedAnalyticsPage = ({ onBack, upgradeType, page = 'analytics' }) => {
 
 // History Page
 const HistoryPage = ({ onBack, evaluations, userPlan }) => {
-  const [selectedEvaluation, setSelectedEvaluation] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [sortBy, setSortBy] = useState('newest');

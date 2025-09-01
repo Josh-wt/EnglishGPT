@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { Routes, Route, useParams, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import PaymentSuccess from './PaymentSuccess';
 import subscriptionService from './services/subscriptionService';
-import toast, { Toaster } from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
 import SubscriptionDashboard from './SubscriptionDashboard';
-import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from './supabaseClient';
 
 // Import extracted components
 import LandingPage from './components/LandingPage';
@@ -17,37 +15,16 @@ import HistoryPage from './components/HistoryPage';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import AccountPage from './components/AccountPage';
 import PricingPage from './components/PricingPage';
-import LockedAnalyticsPage from './components/LockedAnalyticsPage';
-import LockedFeatureCard from './components/LockedFeatureCard';
 import Dashboard from './components/Dashboard';
 
 // Import hooks
 import { useUser } from './hooks/useUser';
 import { useEvaluations } from './hooks/useEvaluations';
-import { useAnalytics } from './hooks/useAnalytics';
-import { useValidation } from './hooks/useValidation';
-
 import { useQuestionTypes } from './hooks/useQuestionTypes';
 
 // Import services
-import { submitEvaluation, getEvaluations, getEvaluation } from './services/evaluations';
-import { getUserAnalytics } from './services/analytics';
-import { getUserProfile, updateUserProfile } from './services/user';
 import { submitFeedback } from './services/feedback';
-import { getQuestionTypes } from './services/questionTypes';
 import api from './services/api';
-
-// Import constants
-import { API_ENDPOINTS } from './constants/apiEndpoints';
-import { VALIDATION_RULES } from './constants/validationRules';
-import { ERROR_MESSAGES } from './constants/errorMessages';
-
-// Import utilities
-import { validateEssayContent } from './utils/validation';
-
-// Import UI components
-import { Modal } from './components/ui/Modal';
-import LoadingSpinner from './components/ui/LoadingSpinner';
 
 // Import new modular components
 import LevelSelectionModal from './components/modals/LevelSelectionModal';
@@ -59,15 +36,12 @@ import KeyboardShortcutsHelp from './components/help/KeyboardShortcutsHelp';
 
 const App = () => {
   // Use custom hooks for state management
-  const { user, userStats, loading: userLoading, signInWithGoogle, signInWithDiscord, signOut, updateProfile, updateLevel } = useUser();
-  const { evaluations, submitNewEvaluation, fetchEvaluations, addEvaluation } = useEvaluations();
-  const { analytics, fetchAnalytics } = useAnalytics();
-  const { validationError, showValidationModal, validateEssay, clearValidationError, closeValidationModal } = useValidation();
-  const { questionTypes, loading: questionTypesLoading } = useQuestionTypes();
+  const { user, userStats, loading: userLoading, signInWithGoogle, signInWithDiscord, signOut, updateLevel } = useUser();
+  const { evaluations, submitNewEvaluation, fetchEvaluations } = useEvaluations();
+  const { questionTypes } = useQuestionTypes();
 
   // Local state
   const [darkMode, setDarkMode] = useState(false);
-  const [currentPage, setCurrentPage] = useState('dashboard');
   const [evaluation, setEvaluation] = useState(null);
   const [evaluationLoading, setEvaluationLoading] = useState(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
@@ -81,20 +55,9 @@ const App = () => {
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackAccurate, setFeedbackAccurate] = useState(null);
   const [feedbackComments, setFeedbackComments] = useState('');
-  const [essayHistory, setEssayHistory] = useState([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
-  const [currentEssayText, setCurrentEssayText] = useState('');
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
-  const [loadingStates, setLoadingStates] = useState({
-    userUpdate: false,
-    dataLoad: false,
-    planUpdate: false,
-    historyLoad: false,
-    fileUpload: false
-  });
 
   const navigate = useNavigate();
-  const location = useLocation();
 
   // Load evaluations when user signs in
   useEffect(() => {
@@ -102,11 +65,6 @@ const App = () => {
       fetchEvaluations(user.id);
     }
   }, [user?.id, fetchEvaluations]);
-
-  // Helper functions
-  const setLoadingState = (key, value) => {
-    setLoadingStates(prev => ({ ...prev, [key]: value }));
-  };
 
   const toggleDarkMode = () => setDarkMode(!darkMode);
 
@@ -245,15 +203,7 @@ const App = () => {
     navigate('/dashboard');
   };
 
-  const handleSelectPlan = async (plan) => {
-    try {
-      await subscriptionService.redirectToCheckout(user.id, plan);
-    } catch (error) {
-      console.error('Plan selection failed:', error);
-      setErrorMessage('Failed to process plan selection. Please try again.');
-      setShowErrorModal(true);
-    }
-  };
+
 
   // Feedback handlers
   const handleSubmitFeedback = async () => {
@@ -278,27 +228,7 @@ const App = () => {
     }
   };
 
-  // Essay history handlers
-  const addToHistory = (text) => {
-    const newHistory = essayHistory.slice(0, historyIndex + 1);
-    newHistory.push(text);
-    setEssayHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
-  };
 
-  const undoEssay = () => {
-    if (historyIndex > 0) {
-      setHistoryIndex(historyIndex - 1);
-      setCurrentEssayText(essayHistory[historyIndex - 1]);
-    }
-  };
-
-  const redoEssay = () => {
-    if (historyIndex < essayHistory.length - 1) {
-      setHistoryIndex(historyIndex + 1);
-      setCurrentEssayText(essayHistory[historyIndex + 1]);
-    }
-  };
 
   // Keyboard shortcuts
   useEffect(() => {

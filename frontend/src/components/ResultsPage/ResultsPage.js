@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
-import axios from 'axios';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
 const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
@@ -9,7 +7,6 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackAccurate, setFeedbackAccurate] = useState(null);
   const [feedbackComments, setFeedbackComments] = useState('');
-  const routerLocation = useLocation();
   const modalRef = useRef(null);
   const firstModalButtonRef = useRef(null);
 
@@ -59,7 +56,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [feedbackModal.open, feedbackSubmitting, feedbackAccurate]);
+  }, [feedbackModal.open, feedbackSubmitting, feedbackAccurate, submitFeedback]);
 
   useEffect(() => {
     // Focus trap when modal opens

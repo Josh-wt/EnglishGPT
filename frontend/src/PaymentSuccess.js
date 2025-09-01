@@ -13,7 +13,7 @@ const PaymentSuccess = ({ darkMode }) => {
   const [userId, setUserId] = useState(null);
   const [verifying, setVerifying] = useState(true);
   const [active, setActive] = useState(false);
-  const [status, setStatus] = useState(null);
+
   const [startedAt] = useState(Date.now());
 
   const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
@@ -38,7 +38,7 @@ const PaymentSuccess = ({ darkMode }) => {
       const poll = async () => {
         try {
           const result = await subscriptionService.getSubscriptionStatus(uid);
-          setStatus(result);
+
           if (result?.hasActiveSubscription) {
             setActive(true);
             setVerifying(false);

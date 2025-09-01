@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { getBackendUrl } from '../../utils/backendUrl';
 import api from '../../services/api';
 import Header from './Header';
 import UserProfile from './UserProfile';

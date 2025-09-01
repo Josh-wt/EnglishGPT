@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useSpring, animated } from '@react-spring/web';
-import { LOGO_URL, IMAGE_URLS } from '../../constants/uiConstants';
 
 const HeroSection = ({ onGetStarted, onStartMarking }) => {
   const fadeInUp = {
@@ -34,10 +33,7 @@ const HeroSection = ({ onGetStarted, onStartMarking }) => {
     transition: { duration: 0.2, ease: "easeOut" }
   };
 
-  const textHoverAnimation = {
-    scale: 1.02,
-    transition: { duration: 0.3, ease: "easeOut" }
-  };
+
 
   return (
     <section className="relative">

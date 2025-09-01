@@ -6,8 +6,7 @@ import { isLaunchPeriod, getLaunchPeriodMessage } from '../../utils/launchPeriod
 
 // Enhanced Pricing Page Component with Launch Offer
 const PricingPage = ({ onBack, user }) => {
-  const [loading, setLoading] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState(null);
+
   const [showLaunchModal, setShowLaunchModal] = useState(true);
 
 
@@ -18,16 +17,10 @@ const PricingPage = ({ onBack, user }) => {
       return;
     }
 
-    setSelectedPlan(planType);
-    setLoading(true);
-
     try {
       await subscriptionService.redirectToCheckout(user.id, planType);
     } catch (error) {
       console.error('Plan selection failed:', error);
-    } finally {
-      setLoading(false);
-      setSelectedPlan(null);
     }
   };
   

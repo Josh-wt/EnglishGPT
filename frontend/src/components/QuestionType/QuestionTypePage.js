@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Header from './Header';
+import { motion } from 'framer-motion';
 import ExampleModal from './ExampleModal';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
@@ -17,7 +16,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
 
   const [selectedQuestionType, setSelectedQuestionType] = useState(null);
   const [studentResponse, setStudentResponse] = useState('');
-  const [showNextButton, setShowNextButton] = useState(false);
   const [restoredDraft, setRestoredDraft] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [showExample, setShowExample] = useState(false);
@@ -61,7 +59,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       }
     }, 400);
     return () => clearTimeout(handle);
-  }, [studentResponse]);
+  }, [studentResponse, convertMarkdownToHtml]);
 
   // Show loading screen when evaluation is in progress
   if (evaluationLoading) {

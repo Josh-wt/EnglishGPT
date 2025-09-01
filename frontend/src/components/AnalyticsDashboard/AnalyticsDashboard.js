@@ -1,9 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { supabase } from '../../supabaseClient';
-
-import { getBackendUrl } from '../../utils/backendUrl';
-import api from '../../services/api';
 
 // Enhanced Locked Analytics Page
 const LockedAnalyticsPage = ({ onBack, upgradeType, page = 'analytics' }) => {
@@ -163,9 +159,6 @@ const LockedAnalyticsPage = ({ onBack, upgradeType, page = 'analytics' }) => {
 // Analytics Dashboard
 const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade }) => {
   const [selectedTimeRange, setSelectedTimeRange] = useState('month');
-  const [selectedPaperType, setSelectedPaperType] = useState('all');
-  const [aiRecommendations, setAiRecommendations] = useState('');
-  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   
   // Helper function for unlimited plan checking
