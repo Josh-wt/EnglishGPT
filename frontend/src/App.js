@@ -19,8 +19,6 @@ import Dashboard from './components/Dashboard';
 
 // Import hooks
 import { useUser } from './hooks/useUser';
-import { useEvaluations } from './hooks/useEvaluations';
-import { useValidation } from './hooks/useValidation';
 import { useQuestionTypes } from './hooks/useQuestionTypes';
 
 // Import services
@@ -38,8 +36,6 @@ import KeyboardShortcutsHelp from './components/help/KeyboardShortcutsHelp';
 const App = () => {
   // Use custom hooks for state management
   const { user, userStats, loading: userLoading, signInWithGoogle, signInWithDiscord, signOut, updateLevel } = useUser();
-  const { evaluations, submitNewEvaluation, fetchEvaluations } = useEvaluations();
-  const { validateEssay } = useValidation();
   const { questionTypes } = useQuestionTypes();
 
   // Local state
@@ -59,15 +55,11 @@ const App = () => {
   const [feedbackComments, setFeedbackComments] = useState('');
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const [evaluations, setEvaluations] = useState([]);
 
   const navigate = useNavigate();
 
-  // Load evaluations when user signs in
-  useEffect(() => {
-    if (user?.id) {
-      fetchEvaluations(user.id);
-    }
-  }, [user?.id, fetchEvaluations]);
+
 
   const toggleDarkMode = () => setDarkMode(!darkMode);
 
@@ -113,115 +105,192 @@ const App = () => {
     }
   };
 
+  // Validation function for essay content
+  const validateEssayContent = (studentResponse, questionType) => {
+    const wordCount = studentResponse.trim().split(/\s+/).filter(word => word.length > 0).length;
+    
+    // Skip word count validation for summary writing
+    if (questionType === 'igcse_summary') {
+      // Only check for test content
+    } else {
+      // Check word count for other question types
+      if (1 < wordCount && wordCount < 100) {
+        return {
+          isValid: false,
+          error: `Your essay is too short. You have ${wordCount} words, but you need at least 100 words for a proper evaluation. We understand you might want to test our AI, for that, please look at our examples on the dashboard. Please write a more detailed response to get meaningful feedback.`
+        };
+      }
+      if (wordCount === 1) {
+        return {
+          isValid: false,
+          error: `Your essay is too long. You have ${wordCount} word, but you need at least 100 words for a proper evaluation. We understand you might want to test our AI, for that, please look at our examples on the dashboard. Please write a more detailed response to get meaningful feedback.`
+        };
+      }
+    }
+    
+    // Check for test content
+    const testWords = ['test', 'hello', 'world', 'random', 'testing', 'sample', 'example', 'demo', 'essay', 'essay writing', 'essay help', 'essay writing help', 'essay writing service', 'essay writing assistant', 'essay writing tool', 'essay writing software', 'essay writing app', 'essay writing online', 'essay writing tool', 'essay writing software', 'essay writing app', 'essay writing online', 'okay'];
+    const lowerResponse = studentResponse.toLowerCase();
+    
+    // Check if response contains mostly test words or is very repetitive
+    const testWordCount = testWords.filter(word => lowerResponse.includes(word)).length;
+    const uniqueWords = new Set(lowerResponse.split(/\s+/).filter(word => word.length > 0));
+    const totalWords = lowerResponse.split(/\s+/).filter(word => word.length > 0).length;
+    
+    if (testWordCount > 2 || (uniqueWords.size / totalWords) < 0.3) {
+      return {
+        isValid: false,
+        error: `Your essay appears to be test content or contains repetitive text. Please write a proper essay with meaningful content to get accurate feedback. The AI needs real content to provide helpful analysis.`
+      };
+    }
+    
+    // Check for very short responses
+    if (studentResponse.trim().length < 200) {
+      return {
+        isValid: false,
+        error: `Your essay is too brief for meaningful analysis. Please write a more detailed response (at least 200 characters) to receive comprehensive feedback.`
+      };
+    }
+    
+    return { isValid: true };
+  };
+
   const handleEvaluate = async (evaluationResult) => {
-    console.log('🔍 DEBUG: handleEvaluate function exists and called');
     console.log('🔍 DEBUG: handleEvaluate called with:', evaluationResult);
-    console.log('🔍 DEBUG: User:', user);
-    console.log('🔍 DEBUG: UserStats:', userStats);
+    console.log('🔍 DEBUG: Current user:', user);
+    console.log('🔍 DEBUG: Current userStats:', userStats);
+    
+    if (!evaluationResult) {
+      console.error('🔍 DEBUG: No evaluationResult provided');
+      return;
+    }
+    
+    const userId = user?.uid || user?.id;
+    console.log('🔍 DEBUG: User ID extracted:', userId);
+    
+    if (!user || !userId) {
+      console.error('🔍 DEBUG: Cannot evaluate: user not ready');
+      setErrorMessage('Please wait for authentication to complete.');
+      setShowErrorModal(true);
+      return;
+    }
     
     // Ensure user_id is set
     if (!evaluationResult.user_id && user?.id) {
       evaluationResult.user_id = user.id;
+      console.log('🔍 DEBUG: Set user_id in evaluationResult:', evaluationResult.user_id);
     }
     
+    console.log('🔍 DEBUG: About to validate essay content');
+    console.log('🔍 DEBUG: student_response length:', evaluationResult.student_response?.length);
+    console.log('🔍 DEBUG: question_type:', evaluationResult.question_type);
+    
+    // Validate essay content before sending to API
+    const validation = validateEssayContent(evaluationResult.student_response, evaluationResult.question_type);
+    console.log('🔍 DEBUG: Validation result:', validation);
+    
+    if (!validation.isValid) {
+      console.log('🔍 DEBUG: Validation failed:', validation.error);
+      setErrorMessage(validation.error);
+      setShowErrorModal(true);
+      return;
+    }
+    
+    console.log('🔍 DEBUG: Validation passed, setting loading state');
+    setEvaluationLoading(true);
+    
     try {
-      setEvaluationLoading(true);
-      console.log('🔍 DEBUG: Set evaluation loading to true');
+      const evaluationWithUser = {
+        ...evaluationResult,
+        user_id: userId
+      };
       
-      // Validate essay content - use snake_case properties from QuestionTypePage
-      console.log('🔍 DEBUG: About to validate essay:', {
-        student_response: evaluationResult.student_response,
-        question_type: evaluationResult.question_type
+      console.log('🔍 DEBUG: Evaluation data to send:', evaluationWithUser);
+      
+      const API = `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api`;
+      console.log('🔍 DEBUG: API endpoint:', `${API}/evaluate`);
+      console.log('🔍 DEBUG: Full URL:', `${API}/evaluate`);
+      
+      console.log('🔍 DEBUG: About to make fetch request');
+      const response = await fetch(`${API}/evaluate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(evaluationWithUser),
       });
       
-      const validationResult = await validateEssay(evaluationResult.student_response, evaluationResult.question_type);
-      console.log('🔍 DEBUG: Validation result:', validationResult);
+      console.log('🔍 DEBUG: Response received:', response);
+      console.log('🔍 DEBUG: Response status:', response.status);
+      console.log('🔍 DEBUG: Response ok:', response.ok);
       
-      if (!validationResult.isValid) {
-        console.log('🔍 DEBUG: Validation failed, returning early');
-        setEvaluationLoading(false);
-        setErrorMessage(validationResult.error || 'Validation failed. Please check your essay.');
-        setShowErrorModal(true);
-        return;
-      }
-
-      console.log('🔍 DEBUG: Validation passed, about to submit evaluation');
-      // Submit evaluation
-      const result = await submitNewEvaluation(evaluationResult);
-      console.log('🔍 DEBUG: Submit result:', result);
-      console.log('🔍 DEBUG: Result structure:', {
-        hasShortId: !!result?.short_id,
-        hasId: !!result?.id,
-        hasEvaluation: !!result?.evaluation,
-        evaluationShortId: result?.evaluation?.short_id,
-        evaluationId: result?.evaluation?.id,
-        fullResult: result
-      });
-      
-      // Ensure we have a result
-      if (!result) {
-        throw new Error('No result returned from evaluation');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🔍 DEBUG: Response not ok, error text:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
       }
       
-      setEvaluation(result);
+      console.log('🔍 DEBUG: About to parse response as JSON');
+      const responseData = await response.json();
+      console.log('🔍 DEBUG: Response data:', responseData);
+      console.log('🔍 DEBUG: Response data type:', typeof responseData);
+      console.log('🔍 DEBUG: Response data keys:', Object.keys(responseData || {}));
+      
+      setEvaluation(responseData);
       console.log('🔍 DEBUG: Set evaluation state');
-      setCurrentPage('results');
-      console.log('🔍 DEBUG: Set current page to results');
+      
+      setEvaluations(prev => [responseData, ...prev]);
+      console.log('🔍 DEBUG: Added to evaluations list');
       
       // Navigate to shareable public results page (prefer short_id if present)
-      let resultId = result?.short_id || result?.id || result?.evaluation?.short_id || result?.evaluation?.id;
-      
-      // If no short_id is provided, generate one from the regular id
-      if (!resultId && result?.id) {
-        // Generate a short ID from the regular ID (first 8 characters)
-        resultId = result.id.substring(0, 8);
-      }
-      
+      const resultId = responseData?.short_id || responseData?.id;
       console.log('🔍 DEBUG: Result ID for navigation:', resultId);
+      console.log('🔍 DEBUG: responseData.short_id:', responseData?.short_id);
+      console.log('🔍 DEBUG: responseData.id:', responseData?.id);
       
-      // Navigate immediately with the result ID
       if (resultId) {
         console.log('🔍 DEBUG: Navigating to results page with ID:', resultId);
         navigate(`/results/${resultId}`);
-        // Clear loading state after navigation
-        setTimeout(() => {
-          setEvaluationLoading(false);
-          console.log('🔍 DEBUG: Cleared evaluation loading state after navigation');
-        }, 500);
+        console.log('🔍 DEBUG: Navigation called');
       } else {
-        console.warn('🔍 WARNING: No result ID available, navigating to results without ID');
-        navigate('/results');
-        setTimeout(() => {
-          setEvaluationLoading(false);
-        }, 500);
+        console.warn('🔍 WARNING: No result ID available, navigating to dashboard');
+        navigate(`/dashboard`);
+        console.log('🔍 DEBUG: Navigation to dashboard called');
       }
+      
+      console.log('🔍 DEBUG: About to clear loading state');
+      setEvaluationLoading(false);
+      console.log('🔍 DEBUG: Loading state cleared');
       
     } catch (error) {
-      console.error('🔍 DEBUG: Evaluation failed with error:', error);
-      console.error('🔍 DEBUG: Error details:', {
-        message: error.message,
-        response: error.response,
-        status: error.response?.status,
-        data: error.response?.data,
-        stack: error.stack
-      });
+      console.error('🔍 DEBUG: Error evaluating submission:', error);
+      console.error('🔍 DEBUG: Error name:', error.name);
+      console.error('🔍 DEBUG: Error message:', error.message);
+      console.error('🔍 DEBUG: Error stack:', error.stack);
       
-      // Provide more specific error messages
+      // Handle specific error messages
       let errorMsg = 'Evaluation failed. Please try again.';
-      if (error.response?.status === 402) {
-        errorMsg = 'You have reached your evaluation limit. Please upgrade your plan.';
-      } else if (error.response?.status === 404) {
+      
+      if (error.message.includes('402')) {
+        errorMsg = 'No credits remaining. Please upgrade to unlimited for unlimited marking.';
+      } else if (error.message.includes('429')) {
+        errorMsg = 'Rate limit exceeded. Please try again later.';
+      } else if (error.message.includes('404')) {
         errorMsg = 'User account not found. Please sign in again.';
-      } else if (error.response?.data?.detail) {
-        errorMsg = error.response.data.detail;
-      } else if (error.message) {
-        errorMsg = error.message;
+      } else if (error.message.includes('500')) {
+        errorMsg = 'Server error. Please try again later.';
+      } else if (error.message.includes('NetworkError')) {
+        errorMsg = 'Network error. Please check your connection and try again.';
       }
       
+      console.log('🔍 DEBUG: Setting error message:', errorMsg);
       setErrorMessage(errorMsg);
       setShowErrorModal(true);
+      console.log('🔍 DEBUG: Error modal shown');
+    } finally {
+      console.log('🔍 DEBUG: Finally block - clearing loading state');
       setEvaluationLoading(false);
-      console.log('🔍 DEBUG: Set evaluation loading to false on error');
+      console.log('🔍 DEBUG: Loading state cleared in finally block');
     }
   };
 
