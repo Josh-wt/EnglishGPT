@@ -539,6 +539,9 @@ const App = () => {
               feedbackSubmitting={feedbackSubmitting}
               onSubmitFeedback={handleSubmitFeedback}
               user={user}
+              signInWithGoogle={signInWithGoogle}
+              signInWithDiscord={signInWithDiscord}
+              navigate={navigate}
             />
           </AuthRequired>
         } />

@@ -13,12 +13,17 @@ export const useUser = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Initialize user state
+  // Initialize user state with caching
   useEffect(() => {
     const initializeUser = async () => {
       try {
         console.log('🔄 Initializing user...');
         setLoading(true);
+        
+        // Check for cached user data first
+        const cachedUserData = localStorage.getItem('userData');
+        const cacheTimestamp = localStorage.getItem('userDataTimestamp');
+        const isCacheValid = cacheTimestamp && (Date.now() - parseInt(cacheTimestamp)) < 300000; // 5 minutes cache
         
         // Get current session
         const { data: { session } } = await supabase.auth.getSession();
@@ -27,6 +32,21 @@ export const useUser = () => {
         if (session?.user) {
           console.log('✅ User found:', session.user.id);
           setUser(session.user);
+          
+          // Use cached data if valid and available
+          if (isCacheValid && cachedUserData) {
+            console.log('📦 Using cached user data');
+            const parsedData = JSON.parse(cachedUserData);
+            setUserStats(parsedData);
+            setLoading(false);
+            
+            // Instant redirect to dashboard if authenticated and on main domain
+            if (typeof window !== 'undefined' && window.location.pathname === '/') {
+              console.log('🔄 Redirecting authenticated user to dashboard');
+              window.location.href = '/dashboard';
+            }
+            return;
+          }
           
           // Fetch user profile and stats
           try {
@@ -46,6 +66,10 @@ export const useUser = () => {
             
             console.log('🎉 Final stats:', finalStats);
             setUserStats(finalStats);
+            
+            // Cache the user data
+            localStorage.setItem('userData', JSON.stringify(finalStats));
+            localStorage.setItem('userDataTimestamp', Date.now().toString());
             
             // Instant redirect to dashboard if authenticated and on main domain
             if (typeof window !== 'undefined' && window.location.pathname === '/') {
@@ -68,6 +92,10 @@ export const useUser = () => {
             const finalStats = applyLaunchPeriodBenefits(defaultStats);
             setUserStats(finalStats);
             
+            // Cache the default stats
+            localStorage.setItem('userData', JSON.stringify(finalStats));
+            localStorage.setItem('userDataTimestamp', Date.now().toString());
+            
             // Instant redirect to dashboard if authenticated and on main domain
             if (typeof window !== 'undefined' && window.location.pathname === '/') {
               console.log('🔄 Redirecting authenticated user to dashboard');
@@ -76,6 +104,9 @@ export const useUser = () => {
           }
         } else {
           console.log('👤 No user session found');
+          // Clear cached data if no session
+          localStorage.removeItem('userData');
+          localStorage.removeItem('userDataTimestamp');
         }
       } catch (err) {
         console.error('❌ Error initializing user:', err);
@@ -112,6 +143,10 @@ export const useUser = () => {
             
             setUserStats(finalStats);
             
+            // Cache the user data
+            localStorage.setItem('userData', JSON.stringify(finalStats));
+            localStorage.setItem('userDataTimestamp', Date.now().toString());
+            
             // Instant redirect to dashboard if on main domain
             if (typeof window !== 'undefined' && window.location.pathname === '/') {
               console.log('🔄 Redirecting authenticated user to dashboard');
@@ -132,6 +167,10 @@ export const useUser = () => {
             const finalStats = applyLaunchPeriodBenefits(defaultStats);
             setUserStats(finalStats);
             
+            // Cache the default stats
+            localStorage.setItem('userData', JSON.stringify(finalStats));
+            localStorage.setItem('userDataTimestamp', Date.now().toString());
+            
             // Instant redirect to dashboard if on main domain
             if (typeof window !== 'undefined' && window.location.pathname === '/') {
               console.log('🔄 Redirecting authenticated user to dashboard');
@@ -143,6 +182,9 @@ export const useUser = () => {
           setUser(null);
           setUserStats(null);
           setError(null);
+          // Clear cached data on sign out
+          localStorage.removeItem('userData');
+          localStorage.removeItem('userDataTimestamp');
         }
       }
     );
@@ -281,15 +323,25 @@ export const useUser = () => {
     try {
       if (!user?.id) return;
       
+      // Clear cache to force fresh data
+      localStorage.removeItem('userData');
+      localStorage.removeItem('userDataTimestamp');
+      
       const [profileData, statsData] = await Promise.all([
         getUserProfile(user.id),
         getUserStats(user.id),
       ]);
       
-      setUserStats({
+      const finalStats = applyLaunchPeriodBenefits({
         ...statsData,
         profile: profileData,
       });
+      
+      setUserStats(finalStats);
+      
+      // Cache the fresh data
+      localStorage.setItem('userData', JSON.stringify(finalStats));
+      localStorage.setItem('userDataTimestamp', Date.now().toString());
     } catch (err) {
       console.error('Error refreshing user data:', err);
       setError(err.message);

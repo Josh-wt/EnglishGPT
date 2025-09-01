@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import LoadingSpinner from '../ui/LoadingSpinner';
+import SignInModal from '../modals/SignInModal';
 
-const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user }) => {
+const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, signInWithGoogle, signInWithDiscord, navigate }) => {
   const [activeTab, setActiveTab] = useState('Summary');
   const [feedbackModal, setFeedbackModal] = useState({ open: false, category: 'overall' });
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
@@ -231,58 +232,12 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user }) 
       // Show sign-in modal for unauthenticated users
       setShowSignInModal(true);
     } else {
-      // For authenticated users, call the original onNewEvaluation
-      onNewEvaluation();
+      // For authenticated users, navigate to write page
+      navigate('/write');
     }
   };
 
-  // Sign In Modal Component
-  const SignInModal = ({ isOpen, onClose, darkMode }) => {
-    if (!isOpen) return null;
 
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className={`${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} rounded-2xl p-8 max-w-md mx-4 shadow-xl w-full`}>
-          <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-bold mb-2">Sign In Required</h3>
-            <p className="text-gray-600 mb-6">
-              To start a new question and access all features, please sign in to your account.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <button
-              onClick={() => {
-                // Redirect to landing page for sign in
-                window.location.href = '/';
-              }}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
-            >
-              Sign In to Continue
-            </button>
-            
-            <button
-              onClick={onClose}
-              className="w-full bg-gray-200 text-gray-700 py-3 px-4 rounded-xl font-semibold hover:bg-gray-300 transition-colors"
-            >
-              Maybe Later
-            </button>
-          </div>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-500">
-              Get unlimited access to all question types and detailed analytics
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  };
   
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-gray-50'} p-4`}>
@@ -537,7 +492,11 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user }) 
       <SignInModal 
         isOpen={showSignInModal} 
         onClose={() => setShowSignInModal(false)} 
-        darkMode={darkMode} 
+        darkMode={darkMode}
+        onGoogle={signInWithGoogle}
+        onDiscord={signInWithDiscord}
+        user={user}
+        navigate={navigate}
       />
     </div>
   );

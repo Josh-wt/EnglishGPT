@@ -708,6 +708,175 @@ IV. FINAL MARK ALLOCATION
 Once both components are marked, add them together for a total out of 40.
 The final assessment should justify the total mark by summarizing the strengths and weaknesses for each component, making direct reference to specific examples from the candidate's work and linking them to the level descriptors.
 Mark this text based on the above criteria: Do not over-scrutinize, marks can be awarded positively and negatively. Heavily limit marks when endings are rushed/not good. Please don't call every essay a rushed ending, do remember there is a word limit, however, rushed endings will cause heavy deduction of marks.""",
+    "igcse_directed": """
+Task Overview
+
+Evaluate a candidate's directed writing response based on one or two reading passages totaling 650 to 750 words. Candidates must write in a specific format - speech, letter, or article - addressing a clear purpose and audience while using ideas from the texts but in their own words. The response should be 250 to 350 words.
+Assessment Objectives Distribution
+
+Reading Assessment: 15 marks total
+R1: Demonstrate understanding of explicit meanings
+R2: Demonstrate understanding of implicit meanings and attitudes
+R3: Analyse, evaluate and develop facts, ideas and opinions, using appropriate support from the text
+R5: Select and use information for specific purposes
+
+Writing Assessment: 25 marks total
+W1: Articulate experience and express what is thought, felt and imagined
+W2: Organise and structure ideas and opinions for deliberate effect
+W3: Use a range of vocabulary and sentence structures appropriate to context
+W4: Use register appropriate to context
+W5: Make accurate use of spelling, punctuation and grammar
+Reading Criteria Detailed Breakdown
+
+Level 6: 13 to 15 marks
+Successfully evaluates ideas and opinions, both explicit and implicit. Assimilates ideas from the text to give a developed, sophisticated response.
+Award 15 marks for: Sophisticated evaluation of subtle implicit meanings, comprehensive development of textual ideas with original insight.
+Award 14 marks for: Strong evaluation with minor gaps in sophistication.
+Award 13 marks for: Good evaluation but less sophisticated development.
+
+Level 5: 10 to 12 marks
+Some successful evaluation of ideas and opinions, both explicit and implicit. A thorough response, supported by a detailed selection of relevant ideas from the text.
+Award 12 marks for: Clear evaluation with good textual support.
+Award 11 marks for: Generally thorough but uneven evaluation.
+Award 10 marks for: Adequate evaluation but limited depth.
+
+Level 4: 7 to 9 marks
+Begins to evaluate mainly explicit ideas and opinions. An appropriate response that includes relevant ideas from the text.
+Award 9 marks for: Clear identification with some evaluative comment.
+Award 8 marks for: Mainly identification with limited evaluation.
+Award 7 marks for: Basic appropriate response with minimal evaluation.
+
+Level 3: 5 to 6 marks
+Selects and comments on explicit ideas and opinions. Makes a general response including a few relevant ideas from the text.
+
+Level 2: 3 to 4 marks
+Identifies explicit ideas and opinions. Makes a limited response with little evidence from the text.
+
+Level 1: 1 to 2 marks
+Very limited response with minimal relation to the text.
+
+Level 0: 0 marks
+No creditable content.
+Writing Criteria Detailed Breakdown
+
+Level 6: 22 to 25 marks
+Highly effective style capable of conveying subtle meaning. Carefully structured for benefit of the reader. Wide range of sophisticated vocabulary, precisely used. Highly effective register for audience and purpose. Spelling, punctuation and grammar almost always accurate.
+Specific deductions: Deduct 1 mark for minor vocabulary imprecision. Deduct 2 marks for occasional structural lapses. Deduct 3+ marks for any grammar errors that impede sophisticated expression.
+
+Level 5: 18 to 21 marks
+Effective style. Secure overall structure, organised to help the reader. Wide range of vocabulary, used with some precision. Effective register for audience and purpose. Spelling, punctuation and grammar mostly accurate, with occasional minor errors.
+Specific deductions: Deduct 1 mark for limited vocabulary range. Deduct 2 marks for structural inconsistencies. Deduct 3+ marks for frequent minor errors affecting flow.
+
+Level 4: 14 to 17 marks
+Sometimes effective style. Ideas generally well sequenced. Range of vocabulary is adequate and sometimes effective. Sometimes effective register for audience and purpose. Spelling, punctuation and grammar generally accurate though with some errors.
+
+Level 3: 10 to 13 marks
+Inconsistent style, expression sometimes awkward but meaning clear. Relies on the sequence of the original text. Vocabulary is simple, limited in range or reliant on the original text. Some awareness of an appropriate register for audience and purpose. Frequent errors of spelling, punctuation and grammar, sometimes serious.
+
+Level 2: 6 to 9 marks
+Limited style. Response is not well sequenced. Limited vocabulary or words and phrases copied from the original text. Limited awareness of appropriate register for audience and purpose. Persistent errors of spelling, punctuation and grammar.
+
+Level 1: 1 to 5 marks
+Expression unclear. Poor sequencing of ideas. Very limited vocabulary or copying from the original text. Very limited awareness of appropriate register for audience and purpose. Persistent errors in spelling, punctuation and grammar impede communication.
+
+Level 0: 0 marks
+No creditable content.
+Common Examiner Deductions and Error Patterns
+
+Major Reading Deductions:
+Excessive lifting or copying from original texts without own words adaptation results in 3 to 5 mark deductions. Failure to address implicit meanings or attitudes drops candidates to Level 3 maximum. Missing evaluation component limits responses to Level 4 maximum. Irrelevant or invented content not derived from texts results in significant mark loss.
+
+Major Writing Deductions:
+Inappropriate register for specified audience reduces writing marks by 2 to 4 marks. Over-reliance on original text vocabulary and phrasing limits Level 3 maximum achievement. Poor structural organization with weak opening or closing results in 1 to 3 mark deductions. Persistent grammar errors that impede communication drop candidates below Level 4.
+
+Format-Specific Requirements – Expanded Guidance
+
+Candidates are required to write in a specified format such as a speech, letter, or article. The format must be adhered to strictly as it influences tone, style, structure, and language features. Familiarity with conventions of each format is essential for a high-scoring response.
+Speech Format
+
+    Purpose: Often to inform, persuade, motivate, or entertain an audience in a live or virtual setting.
+
+    Audience Awareness: Must directly address the audience using second-person pronouns (e.g., "you," "we"), inclusive language ("together," "our community"), and rhetorical devices to engage listeners.
+
+    Opening: Needs a strong, attention-grabbing introduction (e.g., a rhetorical question, dramatic statement, or anecdote) to hook the audience quickly.
+
+    Tone: Should reflect the context—formal or informal—but must maintain engagement and appropriate energy or passion throughout.
+
+    Structure: Clear signposting and transitions are critical. Use of phrases like "Firstly," "Furthermore," and "In conclusion" help guide listeners.
+
+    Techniques: Use of repetition, rhetorical questions, anecdotes, emotive language, and pauses or commands enhances persuasive effect.
+
+    Closing: Memorable and motivating calls to action or a summary statement encouraging reflection or decision-making.
+
+    Marking Focus: Examiners specifically look for the ability to connect with an audience, clarity of purpose, and use of features unique to spoken performance.
+
+Letter Format
+
+    Purpose: Communication directed officially or personally to a reader, with intent to inform, request, complain, or express feelings.
+
+    Audience: Formal (e.g., a professional, authority figure) or informal (e.g., friend, family), which strongly affects tone and register.
+
+    Opening: Clear and appropriate salutation (e.g., "Dear Sir/Madam," or "Dear John") that matches the relationship with the recipient.
+
+    Tone and Register: Formal letters require polite, measured language with formal vocabulary and less colloquialism; informal letters allow conversational style and personal touches.
+
+    Content Organization: Purpose should be stated early, with paragraphs serving distinct points or themes; coherence and cohesion must be strong.
+
+    Conventions: Use of conventional phraseology, appropriate endings ("Yours faithfully," "Best wishes"), and correct paragraphing.
+
+    Language Features: Politeness strategies, modal verbs for requests or suggestions, indirectness for complaints, and expressive devices for emotional content.
+
+    Closing: Should contain an appropriate sign-off reflecting the relationship and tone.
+
+    Marking Focus: Examiners check for adherence to format, tone consistency, organization, and linguistic accuracy suited to the letter type.
+
+Article Format
+
+    Purpose: To inform, entertain, or persuade readers in a magazine, newsletter, or website setting.
+
+    Audience: Readers of the publication, generally a more general audience than letter recipients, requiring accessible but engaging language.
+
+    Title/Headline: A catchy, relevant headline or title that immediately signals the article's subject and attracts interest.
+
+    Introduction: Engaging opening paragraph that introduces the topic clearly and hooks readers.
+
+    Body Paragraphs: Well-developed with clear topic sentences, supporting details, explanations, and evidence whether factual or anecdotal.
+
+    Tone and Style: Often conversational or semi-formal, balancing professionalism with approachability; use of rhetorical questions and anecdotes is common.
+
+    Techniques: Use of varied sentence structures, direct address, figurative language, and persuasive language to maintain reader interest.
+
+    Layout and Conventions: Paragraph length and structure should aid readability; suitable subheadings may be present; use of bullet points or lists where appropriate.
+
+    Conclusion: A clear, impactful closing paragraph summarizing key points or presenting a call to action or reflection.
+
+    Marking Focus: Examiners focus on effectiveness of communication, clarity of expression, engagement with the audience, and adherence to journalistic style and conventions.
+
+General Examiner Notes on Format Adherence
+
+    Failure to adhere to the prescribed format results in mark penalties, usually limiting top-level achievement in writing.
+
+    Candidates repeating phrases or phrasing directly from passage texts instead of producing original writing tailored to the format lose marks.
+
+    Format features must permeate both content and language rather than appearing only superficially (e.g., a letter must also sound like a letter, not just begin with Dear...).
+
+    Creativity and originality are rewarded, provided responses align with format conventions and audience expectations.
+
+    Consistency throughout the piece in tone, register, and structural markers signals strong command of the chosen format.
+
+
+Critical Success Indicators
+
+High-Level Reading Performance:
+Goes beyond surface identification to evaluate effectiveness of arguments. Demonstrates understanding of writers' intentions and implicit attitudes. Synthesizes ideas from both texts to create coherent response. Uses textual evidence judiciously without excessive quotation or lifting.
+
+High-Level Writing Performance:
+Maintains consistent, appropriate register throughout response. Creates engaging opening that hooks reader attention. Develops ideas logically with smooth transitions between paragraphs. Uses sophisticated vocabulary precisely and effectively. Concludes with impact, leaving lasting impression on reader.
+
+Automatic Mark Limitations:
+Responses that ignore specified format requirements cannot exceed Level 4 for writing. Excessive copying or lifting prevents achievement above Level 3 for reading. Failure to address both bullet points in task limits overall response quality. Word count significantly outside 250 to 350 range may indicate poor planning and affect both reading and writing assessmen
+
+IMPORTANT: DO NOT BE TOO STRICT WITH MARKS. DO NOT DEDUCT TOO MANY MARKS FOR SMALL ERRORS.""",
     "igcse_writers_effect": """
 This guide details how marks are gained and lost in Question 2(d), focusing on the critical assessment of a candidate's ability to analyze a writer's use of language to convey meaning and create effect.
 Core Principles:
@@ -1582,6 +1751,13 @@ Student Response: {sanitized_response}
                 logger.error("Descriptive criteria found in narrative prompt")
             else:
                 logger.debug("DEBUG: Criteria type unclear in prompt")
+                pass
+        elif submission.question_type == "igcse_directed":
+            if "Core Principle for Directed Writing Marking" in full_prompt:
+                logger.debug("DEBUG: Correct directed writing criteria found in prompt")
+                pass
+            else:
+                logger.debug("DEBUG: Directed writing criteria not found in prompt")
                 pass
         
         logger.debug("DEBUG: Calling DeepSeek API...")
