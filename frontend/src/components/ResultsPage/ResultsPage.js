@@ -101,8 +101,8 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
 
     const metricsByType = {
       igcse_writers_effect: ['READING'],
-      igcse_descriptive: ['READING', 'WRITING'],
-      igcse_narrative: ['READING', 'WRITING'],
+      igcse_descriptive: ['CONTENT', 'STRUCTURE', 'STYLE', 'ACCURACY'],
+      igcse_narrative: ['CONTENT', 'STRUCTURE', 'STYLE', 'ACCURACY'],
       igcse_summary: ['READING', 'WRITING'],
       alevel_directed: ['AO1', 'AO2'],
       alevel_comparative: ['AO1', 'AO2'],
@@ -207,14 +207,18 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
   const parseFeedbackToBullets = (feedback) => {
     if (!feedback) return [];
     
-    // Split by common delimiters
+    // Split by common delimiters and create proper bullet points
     const sentences = feedback
       .split(/[.!?]+/)
       .map(sentence => sentence.trim())
       .filter(sentence => sentence.length > 10) // Only meaningful sentences
       .slice(0, 10); // Limit to 10 points
     
-    return sentences;
+    return sentences.map((sentence, index) => (
+      <li key={index} className="mb-2">
+        {sentence}.
+      </li>
+    ));
   };
 
   return (

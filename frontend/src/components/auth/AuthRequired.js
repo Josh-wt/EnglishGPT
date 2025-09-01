@@ -5,7 +5,7 @@ import LoadingSpinner from '../ui/LoadingSpinner';
 const AuthRequired = ({ children, user, userLoading, userStats, darkMode }) => {
   const navigate = useNavigate();
 
-  if (userLoading || !userStats) {
+  if (userLoading) {
     return (
       <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-main'} flex items-center justify-center p-4`}>
         <div className="text-center max-w-lg">

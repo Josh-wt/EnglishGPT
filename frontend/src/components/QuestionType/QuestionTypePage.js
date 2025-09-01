@@ -192,15 +192,29 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       return { questions: [], levelName: 'Loading...', fullName: 'Loading...', color: 'gray', gradient: 'from-gray-500 to-gray-600' };
     }
 
-    const igcseQuestions = questionTypes.filter(q => q.category === 'IGCSE').map(q => ({
+    console.log('🔍 DEBUG: All question types:', questionTypes);
+    console.log('🔍 DEBUG: Selected level:', selectedLevel);
+
+    const igcseQuestions = questionTypes.filter(q => 
+      q.category === 'IGCSE' || q.category === 'igcse'
+    ).map(q => ({
       ...q,
       icon: getIconForQuestionType(q.id)
     }));
 
-    const alevelQuestions = questionTypes.filter(q => q.category === 'A-Level').map(q => ({
+    const alevelQuestions = questionTypes.filter(q => 
+      q.category === 'A-Level' || 
+      q.category === 'alevel' || 
+      q.category === 'a-level' ||
+      q.category === 'A-Level English (9093)' ||
+      q.category?.toLowerCase().includes('level')
+    ).map(q => ({
       ...q,
       icon: getIconForQuestionType(q.id)
     }));
+    
+    console.log('🔍 DEBUG: IGCSE questions:', igcseQuestions);
+    console.log('🔍 DEBUG: A-Level questions:', alevelQuestions);
 
     if (selectedLevel === 'igcse') {
       return {
@@ -282,10 +296,10 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
 
               {/* Main Content - Split Layout */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-6 gap-8 h-[calc(100vh-200px)]">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 h-[calc(100vh-200px)]">
             
-            {/* Left Side - Question Types (15% wider) */}
-            <div className="lg:col-span-1 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            {/* Left Side - Question Types (20% wider) */}
+            <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
               <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-4">
                 <h2 className="text-lg font-bold text-white font-fredoka mb-1">Question Types</h2>
                 <p className="text-pink-100 text-xs">{levelData.levelName}</p>
@@ -348,7 +362,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
             </div>
 
             {/* Right Side - Writing Interface (Full Space) */}
-            <div className="lg:col-span-5 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="lg:col-span-3 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
               <div className="bg-gradient-to-r from-blue-500 to-green-600 p-6">
                 <div className="flex items-center justify-between">
                   <div>
