@@ -19,7 +19,7 @@ const PublicResultPageWrapper = ({ darkMode, userStats, showSignInModal, setShow
         console.log('🔍 DEBUG: Using API URL:', getApiUrl());
         
         // Use the correct endpoint for fetching evaluation by ID
-        const response = await fetch(`${getApiUrl()}/evaluate/${id}`, {
+        const response = await fetch(`${getApiUrl()}/evaluations/${id}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
