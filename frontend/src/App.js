@@ -20,11 +20,11 @@ import Dashboard from './components/Dashboard';
 // Import hooks
 import { useUser } from './hooks/useUser';
 import { useEvaluations } from './hooks/useEvaluations';
+import { useValidation } from './hooks/useValidation';
 import { useQuestionTypes } from './hooks/useQuestionTypes';
 
 // Import services
 import { submitFeedback } from './services/feedback';
-import { validateEssay } from './services/evaluations';
 import api from './services/api';
 
 // Import new modular components
@@ -39,6 +39,7 @@ const App = () => {
   // Use custom hooks for state management
   const { user, userStats, loading: userLoading, signInWithGoogle, signInWithDiscord, signOut, updateLevel } = useUser();
   const { evaluations, submitNewEvaluation, fetchEvaluations } = useEvaluations();
+  const { validateEssay } = useValidation();
   const { questionTypes } = useQuestionTypes();
 
   // Local state
