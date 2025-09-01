@@ -60,6 +60,31 @@ const App = () => {
 
   const navigate = useNavigate();
 
+  // Fetch evaluations and user level when user is logged in
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (user?.id) {
+        try {
+          // Fetch evaluations
+          const evalResponse = await api.get(`/evaluations/user/${user.id}`);
+          if (evalResponse.data?.evaluations) {
+            setEvaluations(evalResponse.data.evaluations);
+          }
+          
+          // Fetch user profile to get academic level
+          const userResponse = await api.get(`/users/${user.id}`);
+          if (userResponse.data?.user?.academic_level && userResponse.data.user.academic_level !== 'N/A') {
+            setSelectedLevel(userResponse.data.user.academic_level.toLowerCase());
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
+
 
 
   const toggleDarkMode = () => setDarkMode(!darkMode);
@@ -440,6 +465,9 @@ const App = () => {
             userStats={userStats}
             showSignInModal={showSignInModal}
             setShowSignInModal={setShowSignInModal}
+            user={user}
+            signInWithGoogle={signInWithGoogle}
+            signInWithDiscord={signInWithDiscord}
           />
         } />
         <Route path="/payment-success" element={<PaymentSuccess darkMode={darkMode} />} />

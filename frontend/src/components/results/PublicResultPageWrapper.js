@@ -5,7 +5,7 @@ import LoadingSpinner from '../ui/LoadingSpinner';
 import ResultsPage from '../ResultsPage/ResultsPage';
 import SignInModal from '../modals/SignInModal';
 
-const PublicResultPageWrapper = ({ darkMode, userStats, showSignInModal, setShowSignInModal }) => {
+const PublicResultPageWrapper = ({ darkMode, userStats, showSignInModal, setShowSignInModal, user, signInWithGoogle, signInWithDiscord }) => {
   const { id } = useParams();
   const [loadingEval, setLoadingEval] = useState(true);
   const [publicEval, setPublicEval] = useState(null);
@@ -75,8 +75,13 @@ const PublicResultPageWrapper = ({ darkMode, userStats, showSignInModal, setShow
   }, [id]);
 
   const handlePublicNewEvaluation = () => {
-    // Show sign-in modal for unauthenticated users
-    setShowSignInModal(true);
+    // If user is logged in, redirect to write page
+    if (user) {
+      navigate('/write');
+    } else {
+      // Show sign-in modal for unauthenticated users
+      setShowSignInModal(true);
+    }
   };
 
   if (loadingEval) {
@@ -138,6 +143,10 @@ const PublicResultPageWrapper = ({ darkMode, userStats, showSignInModal, setShow
         isOpen={showSignInModal}
         onClose={() => setShowSignInModal(false)}
         darkMode={darkMode}
+        onGoogle={signInWithGoogle}
+        onDiscord={signInWithDiscord}
+        user={user}
+        navigate={navigate}
       />
     </div>
   );
