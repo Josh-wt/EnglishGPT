@@ -180,6 +180,14 @@ const App = () => {
       // Submit evaluation
       const result = await submitNewEvaluation(evaluationResult);
       console.log('🔍 DEBUG: Submit result:', result);
+      console.log('🔍 DEBUG: Result structure:', {
+        hasShortId: !!result?.short_id,
+        hasId: !!result?.id,
+        hasEvaluation: !!result?.evaluation,
+        evaluationShortId: result?.evaluation?.short_id,
+        evaluationId: result?.evaluation?.id,
+        fullResult: result
+      });
       
       setEvaluation(result);
       console.log('🔍 DEBUG: Set evaluation state');
@@ -187,7 +195,14 @@ const App = () => {
       console.log('🔍 DEBUG: Set current page to results');
       
       // Navigate to shareable public results page (prefer short_id if present)
-      const resultId = result?.short_id || result?.id || result?.evaluation?.short_id || result?.evaluation?.id;
+      let resultId = result?.short_id || result?.id || result?.evaluation?.short_id || result?.evaluation?.id;
+      
+      // If no short_id is provided, generate one from the regular id
+      if (!resultId && result?.id) {
+        // Generate a short ID from the regular ID (first 8 characters)
+        resultId = result.id.substring(0, 8);
+      }
+      
       console.log('🔍 DEBUG: Result ID for navigation:', resultId);
       
       // Set loading to false before navigation
@@ -439,6 +454,8 @@ const App = () => {
               onEvaluate={handleEvaluate}
               onBack={() => navigate('/write')}
               darkMode={darkMode}
+              evaluationLoading={evaluationLoading}
+              loadingMessage={loadingMessages[loadingMessageIndex]}
             />
           </AuthRequired>
         } />

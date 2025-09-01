@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import api from '../../services/api';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
-const AssessmentPage = ({ selectedQuestionType, onEvaluate, onBack, darkMode }) => {
+const AssessmentPage = ({ selectedQuestionType, onEvaluate, onBack, darkMode, evaluationLoading, loadingMessage }) => {
   const [markingScheme, setMarkingScheme] = useState('');
   const [uploadOption, setUploadOption] = useState('text');
   const [isLoading, setIsLoading] = useState(false);
@@ -105,20 +105,24 @@ const AssessmentPage = ({ selectedQuestionType, onEvaluate, onBack, darkMode }) 
       return;
     }
     
-    setIsLoading(true);
-    setError('');
-    setCurrentMessageIndex(0);
+    // Only set local loading if not already in evaluation loading state
+    if (!evaluationLoading) {
+      setIsLoading(true);
+      setCurrentMessageIndex(0);
+      
+      // Animate through loading messages
+      const messageInterval = setInterval(() => {
+        setCurrentMessageIndex((prev) => {
+          if (prev >= loadingMessages.length - 1) {
+            clearInterval(messageInterval);
+            return prev;
+          }
+          return prev + 1;
+        });
+      }, 1500);
+    }
     
-    // Animate through loading messages
-    const messageInterval = setInterval(() => {
-      setCurrentMessageIndex((prev) => {
-        if (prev >= loadingMessages.length - 1) {
-          clearInterval(messageInterval);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 1500);
+    setError('');
     
     try {
       const evaluationData = {
@@ -128,16 +132,16 @@ const AssessmentPage = ({ selectedQuestionType, onEvaluate, onBack, darkMode }) 
       };
       
       await onEvaluate(evaluationData);
-      clearInterval(messageInterval);
+      // Don't set isLoading to false here - let the navigation happen
+      // The loading state will be cleared when the component unmounts
     } catch (error) {
-      clearInterval(messageInterval);
       setError('Failed to evaluate submission. Please try again.');
       setIsLoading(false);
     }
   };
 
   // Loading Page Component
-  const LoadingPage = ({ selectedQuestionType, loadingMessages, currentMessageIndex }) => {
+  const LoadingPage = ({ selectedQuestionType, loadingMessages, currentMessageIndex, loadingMessage }) => {
     return (
       <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-gray-50'} flex items-center justify-center p-4`}>
         <div className="text-center max-w-lg">
@@ -159,7 +163,7 @@ const AssessmentPage = ({ selectedQuestionType, onEvaluate, onBack, darkMode }) 
             <div className="text-center">
               <div className="text-2xl mb-3">✨</div>
               <div className="text-gray-800 font-fredoka text-lg font-medium">
-                {loadingMessages && loadingMessages[currentMessageIndex] ? loadingMessages[currentMessageIndex] : "🤖 AI is analyzing your essay..."}
+                {loadingMessage || (loadingMessages && loadingMessages[currentMessageIndex]) || "🤖 AI is analyzing your essay..."}
               </div>
               <div className="text-gray-600 text-sm mt-2 font-fredoka">
                 Our AI is carefully analyzing your {selectedQuestionType?.name} submission. This may take up to 60 seconds.
@@ -171,8 +175,8 @@ const AssessmentPage = ({ selectedQuestionType, onEvaluate, onBack, darkMode }) 
     );
   };
 
-  if (isLoading) {
-    return <LoadingPage selectedQuestionType={selectedQuestionType} loadingMessages={loadingMessages} currentMessageIndex={currentMessageIndex} />;
+  if (evaluationLoading || isLoading) {
+    return <LoadingPage selectedQuestionType={selectedQuestionType} loadingMessages={loadingMessages} currentMessageIndex={currentMessageIndex} loadingMessage={loadingMessage} />;
   }
 
   return (

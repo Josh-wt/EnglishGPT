@@ -49,9 +49,15 @@ export const useEvaluations = () => {
       const result = await submitEvaluation(evaluationData);
       console.log('🔍 DEBUG: submitEvaluation result:', result);
       
-      // Add the new evaluation to the list
-      setEvaluations(prev => [result.evaluation, ...prev]);
-      console.log('🔍 DEBUG: Added evaluation to list');
+      // Handle different response structures - the evaluation might be directly in result or in result.evaluation
+      const evaluation = result.evaluation || result;
+      console.log('🔍 DEBUG: Extracted evaluation:', evaluation);
+      
+      // Add the new evaluation to the list if it has an id
+      if (evaluation && evaluation.id) {
+        setEvaluations(prev => [evaluation, ...prev]);
+        console.log('🔍 DEBUG: Added evaluation to list');
+      }
       
       return result;
     } catch (err) {
