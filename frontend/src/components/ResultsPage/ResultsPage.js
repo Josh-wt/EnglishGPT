@@ -100,46 +100,50 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
     console.log('🔍 DEBUG: parseGrade called with:', gradeString);
     console.log('🔍 DEBUG: evaluation object:', evaluation);
     
-    if (!gradeString) {
-      console.log('🔍 DEBUG: No grade string provided, checking evaluation structure');
-      // Try to construct grade from submarks
-      const submarks = getSubmarks(evaluation);
-      console.log('🔍 DEBUG: Submarks found:', submarks);
+    // Always try to calculate from submarks first, as they're more accurate
+    const submarks = getSubmarks(evaluation);
+    console.log('🔍 DEBUG: Submarks found:', submarks);
+    
+    if (submarks.length > 0) {
+      let totalScore = 0;
+      let maxScore = 0;
+      submarks.forEach(submark => {
+        console.log('🔍 DEBUG: Processing submark:', submark);
+        // Handle different formats: "5/16 |", "6/24", etc.
+        const cleanValue = submark.value.replace(/\|/g, '').trim();
+        const [score, max] = cleanValue.split('/').map(Number);
+        console.log('🔍 DEBUG: Parsed submark - score:', score, 'max:', max);
+        if (!isNaN(score) && !isNaN(max)) {
+          totalScore += score;
+          maxScore += max;
+        }
+      });
+      console.log('🔍 DEBUG: Calculated from submarks - totalScore:', totalScore, 'maxScore:', maxScore);
       
-      if (submarks.length > 0) {
-        let totalScore = 0;
-        let maxScore = 0;
-        submarks.forEach(submark => {
-          const [score, max] = submark.value.split('/').map(Number);
-          if (!isNaN(score) && !isNaN(max)) {
-            totalScore += score;
-            maxScore += max;
-          }
-        });
-        console.log('🔍 DEBUG: Calculated from submarks - score:', totalScore, 'maxScore:', maxScore);
+      if (maxScore > 0) {
         return { 
           score: totalScore, 
           maxScore, 
-          percentage: maxScore > 0 ? (totalScore / maxScore * 100).toFixed(1) : 0 
+          percentage: (totalScore / maxScore * 100).toFixed(1) 
         };
       }
-      
-      // Fallback to default values
-      return { score: 0, maxScore: 40, percentage: 0 };
     }
     
-    // Extract numbers from grade string
-    const matches = gradeString.match(/(\d+)\/(\d+)/g);
-    if (matches) {
-      let totalScore = 0;
-      let maxScore = 0;
-      matches.forEach(match => {
-        const [score, max] = match.split('/').map(Number);
-        totalScore += score;
-        maxScore += max;
-      });
-      console.log('🔍 DEBUG: Parsed from grade string - score:', totalScore, 'maxScore:', maxScore);
-      return { score: totalScore, maxScore, percentage: (totalScore / maxScore * 100).toFixed(1) };
+    // Fallback to parsing grade string if no submarks available
+    if (gradeString) {
+      console.log('🔍 DEBUG: Falling back to grade string parsing');
+      const matches = gradeString.match(/(\d+)\/(\d+)/g);
+      if (matches) {
+        let totalScore = 0;
+        let maxScore = 0;
+        matches.forEach(match => {
+          const [score, max] = match.split('/').map(Number);
+          totalScore += score;
+          maxScore += max;
+        });
+        console.log('🔍 DEBUG: Parsed from grade string - score:', totalScore, 'maxScore:', maxScore);
+        return { score: totalScore, maxScore, percentage: (totalScore / maxScore * 100).toFixed(1) };
+      }
     }
     
     console.log('🔍 DEBUG: No valid grade format found, using defaults');
