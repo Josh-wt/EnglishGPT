@@ -67,6 +67,34 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
     }
   }, [feedbackModal.open]);
   
+  // Extract submarks dynamically per question type and present as "xx/xx"
+  const getSubmarks = (evaluation) => {
+    if (!evaluation) return [];
+
+    const metricsByType = {
+      igcse_writers_effect: ['READING'],
+      igcse_descriptive: ['READING', 'WRITING'],
+      igcse_narrative: ['READING', 'WRITING'],
+      igcse_summary: ['READING', 'WRITING'],
+      alevel_directed: ['AO1', 'AO2'],
+      alevel_comparative: ['AO1', 'AO2'],
+      alevel_text_analysis: ['AO1', 'AO2'],
+      alevel_language_change: ['AO1', 'AO2'],
+      sat_essay: ['READING', 'WRITING']
+    };
+
+    const questionType = evaluation.question_type;
+    const metrics = metricsByType[questionType] || [];
+
+    return metrics.map(metric => {
+      const value = evaluation[`${metric.toLowerCase()}_marks`] || evaluation[`${metric.toLowerCase()}_marks`] || 'N/A';
+      return {
+        label: metric,
+        value: value
+      };
+    }).filter(submark => submark.value !== 'N/A');
+  };
+  
   // Parse grade to get score
   const parseGrade = (gradeString) => {
     console.log('🔍 DEBUG: parseGrade called with:', gradeString);
@@ -140,63 +168,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
         <LoadingSpinner message="Loading results..." size="default" />
       </div>
     );
-  }
-  
-  // Extract submarks dynamically per question type and present as "xx/xx"
-  const getSubmarks = (evaluation) => {
-    if (!evaluation) return [];
 
-    const metricsByType = {
-      igcse_writers_effect: ['READING'],
-      igcse_descriptive: ['READING', 'WRITING'],
-      igcse_narrative: ['READING', 'WRITING'],
-      igcse_summary: ['READING', 'WRITING'],
-      alevel_directed: ['AO1', 'AO2'],
-      alevel_directed_writing: ['AO1', 'AO2'],
-      alevel_comparative: ['AO1', 'AO3'],
-      alevel_text_analysis: ['AO1', 'AO3'],
-    };
-
-    const defaultMax = {
-      igcse_writers_effect: { READING: 15 },
-      igcse_descriptive: { READING: 16, WRITING: 24 },
-      igcse_narrative: { READING: 16, WRITING: 24 },
-      igcse_summary: { READING: 10, WRITING: 5 },
-      alevel_directed: { AO1: 5, AO2: 5 },
-      alevel_directed_writing: { AO1: 5, AO2: 5 },
-      alevel_comparative: { AO1: 5, AO3: 10 },
-      alevel_text_analysis: { AO1: 5, AO3: 20 },
-    };
-
-    const formatValue = (raw, fallbackMax) => {
-      if (!raw || typeof raw !== 'string') return '';
-      const text = raw.replace(/\|/g, ' ').replace(/\s+/g, ' ').trim();
-      const slash = text.match(/(\d+)\s*\/\s*(\d+)/);
-      if (slash) return `${slash[1]}/${slash[2]}`;
-      const outOf = text.match(/(\d+)\s*(?:out of|of)\s*(\d+)/i);
-      if (outOf) return `${outOf[1]}/${outOf[2]}`;
-      const firstNum = text.match(/\d+/);
-      if (firstNum && fallbackMax) return `${firstNum[0]}/${fallbackMax}`;
-      return firstNum ? firstNum[0] : '';
-    };
-
-    const type = evaluation.question_type;
-    const metrics = metricsByType[type] || [];
-    const results = [];
-
-    metrics.forEach((metric) => {
-      let raw = '';
-      if (metric === 'READING') raw = evaluation.reading_marks || '';
-      if (metric === 'WRITING') raw = evaluation.writing_marks || '';
-      if (metric === 'AO1') raw = evaluation.ao1_marks || '';
-      if (metric === 'AO2') raw = evaluation.ao2_marks || '';
-      if (metric === 'AO3') raw = evaluation.ao2_marks || evaluation.ao1_marks || '';
-      const value = formatValue(raw, defaultMax[type]?.[metric]);
-      if (value) results.push({ label: metric === 'READING' || metric === 'WRITING' ? metric.charAt(0) + metric.slice(1).toLowerCase() : metric, value });
-    });
-
-    return results;
-  };
   
   // Parse feedback text into bullet points
   const parseFeedbackToBullets = (feedback) => {
