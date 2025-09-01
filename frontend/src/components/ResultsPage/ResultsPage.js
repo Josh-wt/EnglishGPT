@@ -11,6 +11,34 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user }) 
   const modalRef = useRef(null);
   const firstModalButtonRef = useRef(null);
 
+  const submitFeedback = useCallback(async () => {
+    if (!evaluation) return;
+    if (feedbackAccurate === null) return;
+    setFeedbackSubmitting(true);
+    try {
+      await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+        evaluation_id: evaluation.id || evaluation?.evaluation_id || evaluation?.timestamp || 'unknown',
+        user_id: evaluation.user_id,
+        category: feedbackModal.category,
+        accurate: !!feedbackAccurate,
+        comments: feedbackComments || null,
+        }),
+      });
+      setFeedbackModal({ open: false, category: 'overall' });
+      setFeedbackAccurate(null);
+      setFeedbackComments('');
+    } catch (e) {
+      console.error('Feedback submit failed', e);
+    } finally {
+      setFeedbackSubmitting(false);
+    }
+  }, [evaluation, feedbackAccurate, feedbackComments, feedbackModal.category]);
+
   useEffect(() => {
     // Keyboard shortcuts: 1/2/3 switch tabs; Esc closes modal; Enter submits when modal open
     const handler = (e) => {
@@ -196,34 +224,6 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user }) 
     
     return sentences;
   };
-
-  const submitFeedback = useCallback(async () => {
-    if (!evaluation) return;
-    if (feedbackAccurate === null) return;
-    setFeedbackSubmitting(true);
-    try {
-      await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api/feedback`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-        evaluation_id: evaluation.id || evaluation?.evaluation_id || evaluation?.timestamp || 'unknown',
-        user_id: evaluation.user_id,
-        category: feedbackModal.category,
-        accurate: !!feedbackAccurate,
-        comments: feedbackComments || null,
-        }),
-      });
-      setFeedbackModal({ open: false, category: 'overall' });
-      setFeedbackAccurate(null);
-      setFeedbackComments('');
-    } catch (e) {
-      console.error('Feedback submit failed', e);
-    } finally {
-      setFeedbackSubmitting(false);
-    }
-  }, [evaluation, feedbackAccurate, feedbackComments, feedbackModal.category]);
 
   // Handle new evaluation button click
   const handleNewEvaluation = () => {
