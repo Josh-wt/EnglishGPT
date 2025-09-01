@@ -17,7 +17,6 @@ import HistoryPage from './components/HistoryPage';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import AccountPage from './components/AccountPage';
 import PricingPage from './components/PricingPage';
-import KeyboardShortcutsHelp from './components/KeyboardShortcutsHelp';
 import LockedAnalyticsPage from './components/LockedAnalyticsPage';
 import LockedFeatureCard from './components/LockedFeatureCard';
 import Dashboard from './components/Dashboard';
@@ -516,6 +515,8 @@ const App = () => {
               isOpen={showSignInModal}
               onClose={() => setShowSignInModal(false)}
               darkMode={darkMode}
+              onDiscord={signInWithDiscord}
+              onGoogle={signInWithGoogle}
             />
             <LevelSelectionModal
               isOpen={showLevelSelectionModal}
