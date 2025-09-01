@@ -1,43 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { getSubmarks } from '../../utils/submarks';
 
-const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
+const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user }) => {
   const [activeTab, setActiveTab] = useState('Summary');
   const [feedbackModal, setFeedbackModal] = useState({ open: false, category: 'overall' });
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackAccurate, setFeedbackAccurate] = useState(null);
   const [feedbackComments, setFeedbackComments] = useState('');
+  const [showSignInModal, setShowSignInModal] = useState(false);
   const modalRef = useRef(null);
   const firstModalButtonRef = useRef(null);
-
-  const submitFeedback = async () => {
-    if (!evaluation) return;
-    if (feedbackAccurate === null) return;
-    setFeedbackSubmitting(true);
-    try {
-      await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api/feedback`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-        evaluation_id: evaluation.id || evaluation?.evaluation_id || evaluation?.timestamp || 'unknown',
-        user_id: evaluation.user_id,
-        category: feedbackModal.category,
-        accurate: !!feedbackAccurate,
-        comments: feedbackComments || null,
-        }),
-      });
-      setFeedbackModal({ open: false, category: 'overall' });
-      setFeedbackAccurate(null);
-      setFeedbackComments('');
-    } catch (e) {
-      console.error('Feedback submit failed', e);
-    } finally {
-      setFeedbackSubmitting(false);
-    }
-  };
 
   useEffect(() => {
     // Keyboard shortcuts: 1/2/3 switch tabs; Esc closes modal; Enter submits when modal open
@@ -80,7 +53,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
         setActiveTab((prev) => prev === 'Strengths' ? 'Summary' : prev === 'Improvements' ? 'Strengths' : 'Improvements');
       }
       if (e.key === 'ArrowRight') {
-        setActiveTab((prev) => prev === 'Summary' ? 'Strengths' : prev === 'Strengths' ? 'Improvements' : 'Summary');
+        setActiveTab((prev) => prev === 'Summary' ? 'Strengths' : prev === 'Improvements' ? 'Summary' : 'Summary');
       }
     };
     window.addEventListener('keydown', handler);
@@ -96,6 +69,46 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
     }
   }, [feedbackModal.open]);
   
+<<<<<<< HEAD
+=======
+  // Extract submarks dynamically per question type and present as "xx/xx"
+  const getSubmarks = (evaluation) => {
+    if (!evaluation) return [];
+
+    const metricsByType = {
+      igcse_writers_effect: ['READING'],
+      igcse_descriptive: ['CONTENT_AND_STRUCTURE', 'STYLE_AND_ACCURACY'],
+      igcse_narrative: ['CONTENT_AND_STRUCTURE', 'STYLE_AND_ACCURACY'],
+      igcse_summary: ['READING', 'WRITING'],
+      alevel_directed: ['AO1', 'AO2'],
+      alevel_comparative: ['AO1', 'AO2'],
+      alevel_text_analysis: ['AO1', 'AO2'],
+      alevel_language_change: ['AO1', 'AO2'],
+      sat_essay: ['READING', 'WRITING']
+    };
+
+    const questionType = evaluation.question_type;
+    const metrics = metricsByType[questionType] || [];
+
+    return metrics.map(metric => {
+      let value = 'N/A';
+      
+      if (metric === 'CONTENT_AND_STRUCTURE') {
+        value = evaluation.content_and_structure_marks || evaluation.content_marks || 'N/A';
+      } else if (metric === 'STYLE_AND_ACCURACY') {
+        value = evaluation.style_and_accuracy_marks || evaluation.style_marks || 'N/A';
+      } else {
+        value = evaluation[`${metric.toLowerCase()}_marks`] || 'N/A';
+      }
+      
+      return {
+        label: metric.replace('_', ' '),
+        value: value
+      };
+    }).filter(submark => submark.value !== 'N/A');
+  };
+  
+>>>>>>> b000b84 (Enhance ResultsPage.js and QuestionTypePage.js with user feedback and layout improvements)
   // Parse grade to get score
   const parseGrade = (gradeString) => {
     console.log('🔍 DEBUG: parseGrade called with:', gradeString);
@@ -175,7 +188,6 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
     );
   }
 
-  
   // Parse feedback text into bullet points
   const parseFeedbackToBullets = (feedback) => {
     if (!feedback) return [];
@@ -194,6 +206,93 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
     ));
   };
 
+  const submitFeedback = useCallback(async () => {
+    if (!evaluation) return;
+    if (feedbackAccurate === null) return;
+    setFeedbackSubmitting(true);
+    try {
+      await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+        evaluation_id: evaluation.id || evaluation?.evaluation_id || evaluation?.timestamp || 'unknown',
+        user_id: evaluation.user_id,
+        category: feedbackModal.category,
+        accurate: !!feedbackAccurate,
+        comments: feedbackComments || null,
+        }),
+      });
+      setFeedbackModal({ open: false, category: 'overall' });
+      setFeedbackAccurate(null);
+      setFeedbackComments('');
+    } catch (e) {
+      console.error('Feedback submit failed', e);
+    } finally {
+      setFeedbackSubmitting(false);
+    }
+  }, [evaluation, feedbackAccurate, feedbackComments, feedbackModal.category]);
+
+  // Handle new evaluation button click
+  const handleNewEvaluation = () => {
+    if (!user) {
+      // Show sign-in modal for unauthenticated users
+      setShowSignInModal(true);
+    } else {
+      // For authenticated users, call the original onNewEvaluation
+      onNewEvaluation();
+    }
+  };
+
+  // Sign In Modal Component
+  const SignInModal = ({ isOpen, onClose, darkMode }) => {
+    if (!isOpen) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className={`${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} rounded-2xl p-8 max-w-md mx-4 shadow-xl w-full`}>
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold mb-2">Sign In Required</h3>
+            <p className="text-gray-600 mb-6">
+              To start a new question and access all features, please sign in to your account.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <button
+              onClick={() => {
+                // Redirect to landing page for sign in
+                window.location.href = '/';
+              }}
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
+            >
+              Sign In to Continue
+            </button>
+            
+            <button
+              onClick={onClose}
+              className="w-full bg-gray-200 text-gray-700 py-3 px-4 rounded-xl font-semibold hover:bg-gray-300 transition-colors"
+            >
+              Maybe Later
+            </button>
+          </div>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-500">
+              Get unlimited access to all question types and detailed analytics
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+  
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-gray-50'} p-4`}>
       <div className="max-w-4xl mx-auto">
@@ -374,7 +473,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
         {/* Action Button */}
         <div className="text-center">
           <button
-            onClick={onNewEvaluation}
+            onClick={handleNewEvaluation}
             className="bg-black text-white px-8 py-4 rounded-xl font-semibold hover:bg-gray-800 transition-colors"
           >
             Start New Question
@@ -442,6 +541,13 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode }) => {
           </div>
         </div>
       )}
+
+      {/* Sign In Modal */}
+      <SignInModal 
+        isOpen={showSignInModal} 
+        onClose={() => setShowSignInModal(false)} 
+        darkMode={darkMode} 
+      />
     </div>
   );
 };

@@ -137,6 +137,7 @@ const PublicResultPageWrapper = ({ darkMode, userStats, showSignInModal, setShow
         onNewEvaluation={handlePublicNewEvaluation}
         userPlan={userStats?.currentPlan || 'free'}
         darkMode={darkMode}
+        user={null}
       />
       {/* Sign-in modal for unauthenticated users */}
       <SignInModal

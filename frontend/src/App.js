@@ -537,6 +537,7 @@ const App = () => {
               setFeedbackComments={setFeedbackComments}
               feedbackSubmitting={feedbackSubmitting}
               onSubmitFeedback={handleSubmitFeedback}
+              user={user}
             />
           </AuthRequired>
         } />
