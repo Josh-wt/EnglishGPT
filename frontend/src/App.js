@@ -24,6 +24,7 @@ import { useQuestionTypes } from './hooks/useQuestionTypes';
 // Import services
 import { submitFeedback } from './services/feedback';
 import api from './services/api';
+import { getApiUrl } from './utils/backendUrl';
 
 // Import new modular components
 import LevelSelectionModal from './components/modals/LevelSelectionModal';
@@ -207,7 +208,7 @@ const App = () => {
       
       console.log('🔍 DEBUG: Evaluation data to send:', evaluationWithUser);
       
-      const API = `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api`;
+      const API = getApiUrl();
       console.log('🔍 DEBUG: API endpoint:', `${API}/evaluate`);
       console.log('🔍 DEBUG: Full URL:', `${API}/evaluate`);
       
