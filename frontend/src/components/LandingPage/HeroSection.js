@@ -5,7 +5,7 @@ import { LOGO_URL, IMAGE_URLS } from '../../constants/uiConstants';
 
 const HeroSection = ({ onGetStarted, onStartMarking }) => {
   const fadeInUp = {
-    initial: { opacity: 0, y: 60 },
+    initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.6, ease: "easeOut" }
   };
@@ -22,12 +22,22 @@ const HeroSection = ({ onGetStarted, onStartMarking }) => {
     from: { transform: 'translateY(0px)' },
     to: async (next) => {
       while (true) {
-        await next({ transform: 'translateY(-10px)' });
+        await next({ transform: 'translateY(-6px)' });
         await next({ transform: 'translateY(0px)' });
       }
     },
-    config: { duration: 3000 }
+    config: { duration: 3000, tension: 120, friction: 15 }
   });
+
+  const buttonHoverAnimation = {
+    scale: 1.05,
+    transition: { duration: 0.2, ease: "easeOut" }
+  };
+
+  const textHoverAnimation = {
+    scale: 1.02,
+    transition: { duration: 0.3, ease: "easeOut" }
+  };
 
   return (
     <section className="relative">
@@ -35,7 +45,7 @@ const HeroSection = ({ onGetStarted, onStartMarking }) => {
         className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.8 }}
+        transition={{ delay: 0.1, duration: 1.2, ease: "easeOut" }}
       >
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <motion.div
@@ -44,9 +54,10 @@ const HeroSection = ({ onGetStarted, onStartMarking }) => {
             animate="animate"
           >
             <motion.div 
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-300/40 text-purple-700 text-xs mb-4 backdrop-blur-md"
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-300/40 text-purple-700 text-xs mb-4 backdrop-blur-md cursor-pointer"
               variants={fadeInUp}
-              whileHover={{ scale: 1.05 }}
+              whileHover={buttonHoverAnimation}
+              whileTap={{ scale: 0.95 }}
             >
               <motion.span 
                 className="h-2 w-2 rounded-full bg-purple-600"
@@ -62,17 +73,17 @@ const HeroSection = ({ onGetStarted, onStartMarking }) => {
             >
               <motion.span
                 className="inline-block"
-                initial={{ opacity: 0, y: 50 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.6 }}
+                transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
               >
                 AI English
               </motion.span>{" "}
               <motion.span
                 className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent"
-                initial={{ opacity: 0, y: 50 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6, duration: 0.6 }}
+                transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
               >
                 Marking
               </motion.span>
@@ -97,10 +108,10 @@ const HeroSection = ({ onGetStarted, onStartMarking }) => {
             >
               <motion.button 
                 onClick={onGetStarted} 
-                className="px-6 py-3 rounded-xl text-white bg-gradient-to-br from-purple-500 to-purple-700 shadow-lg shadow-purple-600/30 hover:shadow-purple-600/40 relative overflow-hidden"
-                whileHover={{ scale: 1.05, y: -3 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: "spring", stiffness: 300 }}
+                className="px-6 py-3 rounded-xl text-white bg-gradient-to-br from-purple-500 to-purple-700 shadow-lg shadow-purple-600/30 hover:shadow-purple-600/40 relative overflow-hidden group"
+                whileHover={{ scale: 1.03, y: -2 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
               >
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600"
@@ -112,10 +123,10 @@ const HeroSection = ({ onGetStarted, onStartMarking }) => {
               </motion.button>
               <motion.button 
                 onClick={onStartMarking} 
-                className="px-6 py-3 rounded-xl border border-purple-300/60 text-purple-700 hover:bg-purple-50/70 backdrop-blur-md relative overflow-hidden"
-                whileHover={{ scale: 1.05, y: -3 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: "spring", stiffness: 300 }}
+                className="px-6 py-3 rounded-xl border border-purple-300/60 text-purple-700 hover:bg-purple-50/70 backdrop-blur-md relative overflow-hidden group"
+                whileHover={{ scale: 1.03, y: -2 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
               >
                 <motion.div
                   className="absolute inset-0 bg-purple-50"
@@ -149,14 +160,16 @@ const HeroSection = ({ onGetStarted, onStartMarking }) => {
               ].map((s,i)=> (
                 <motion.div 
                   key={i} 
-                  className="rounded-2xl p-4 bg-purple-400/10 border border-purple-300/40 backdrop-blur-md"
+                  className="rounded-2xl p-4 bg-purple-400/10 border border-purple-300/40 backdrop-blur-md cursor-pointer"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 1.6 + i * 0.1, duration: 0.4 }}
                   whileHover={{ 
-                    scale: 1.05,
-                    boxShadow: "0 10px 25px rgba(147, 51, 234, 0.15)"
+                    scale: 1.03,
+                    boxShadow: "0 10px 25px rgba(147, 51, 234, 0.15)",
+                    transition: { duration: 0.2, ease: "easeOut" }
                   }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   <div className="text-sm text-gray-600">{s.label}</div>
                   <motion.div 
@@ -172,9 +185,9 @@ const HeroSection = ({ onGetStarted, onStartMarking }) => {
             </motion.div>
           </motion.div>
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
+            initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.8, duration: 0.8 }}
+            transition={{ delay: 0.6, duration: 1.2, ease: "easeOut" }}
           >
             <div className="relative h-[420px] md:h-[460px]">
               {/* Strengths (primary) with floating animation */}
@@ -185,7 +198,8 @@ const HeroSection = ({ onGetStarted, onStartMarking }) => {
                 transition={{ delay: 1.2, duration: 0.6 }}
                 whileHover={{ 
                   scale: 1.02,
-                  boxShadow: "0 20px 40px rgba(147, 51, 234, 0.15)"
+                  boxShadow: "0 20px 40px rgba(147, 51, 234, 0.15)",
+                  transition: { duration: 0.2, ease: "easeOut" }
                 }}
               >
                 <animated.img 

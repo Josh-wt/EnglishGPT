@@ -50,6 +50,14 @@ import { validateEssayContent } from './utils/validation';
 import { Modal } from './components/ui/Modal';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 
+// Import new modular components
+import LevelSelectionModal from './components/modals/LevelSelectionModal';
+import SignInModal from './components/modals/SignInModal';
+import ErrorModal from './components/modals/ErrorModal';
+import AuthRequired from './components/auth/AuthRequired';
+import PublicResultPageWrapper from './components/results/PublicResultPageWrapper';
+import KeyboardShortcutsHelp from './components/help/KeyboardShortcutsHelp';
+
 const App = () => {
   // Use custom hooks for state management
   const { user, userStats, loading: userLoading, signInWithGoogle, signInWithDiscord, signOut, updateProfile, updateLevel } = useUser();
@@ -67,6 +75,7 @@ const App = () => {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  const [showLevelSelectionModal, setShowLevelSelectionModal] = useState(false);
   const [selectedQuestionType, setSelectedQuestionType] = useState(null);
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [feedbackModal, setFeedbackModal] = useState({ open: false, category: 'overall' });
@@ -104,14 +113,44 @@ const App = () => {
 
   // Navigation handlers
   const handleStartQuestion = () => {
+    if (selectedLevel) {
+      setCurrentPage('questionTypes');
+      navigate('/write');
+    } else {
+      // Show level selection modal for first-time users
+      setShowLevelSelectionModal(true);
+    }
+  };
+
+  const handleLevelSelect = async (level) => {
+    setSelectedLevel(level);
+    setShowLevelSelectionModal(false);
+    
+    // Save level to user account
+    if (user?.id) {
+      try {
+        await api.put(`/users/${user.id}`, { academic_level: level });
+      } catch (error) {
+        console.error('Error saving academic level:', error);
+      }
+    }
+    
+    // Navigate to write page
     setCurrentPage('questionTypes');
     navigate('/write');
   };
 
   const handleSelectQuestionType = (questionType) => {
     setSelectedQuestionType(questionType);
-    setCurrentPage('assessment');
-    navigate('/assessment');
+    if (questionType.studentResponse) {
+      // This is coming from QuestionTypePage with student response
+      setCurrentPage('assessment');
+      navigate('/assessment');
+    } else {
+      // This is a regular question type selection
+      setCurrentPage('assessment');
+      navigate('/assessment');
+    }
   };
 
   const handleEvaluate = async (evaluationResult) => {
@@ -151,6 +190,11 @@ const App = () => {
       // Navigate to shareable public results page (prefer short_id if present)
       const resultId = result?.short_id || result?.id || result?.evaluation?.short_id || result?.evaluation?.id;
       console.log('🔍 DEBUG: Result ID for navigation:', resultId);
+      
+      // Set loading to false before navigation
+      setEvaluationLoading(false);
+      console.log('🔍 DEBUG: Set evaluation loading to false before navigation');
+      
       if (resultId) {
         navigate(`/results/${resultId}`);
         console.log('🔍 DEBUG: Navigated to results page with ID:', resultId);
@@ -168,9 +212,8 @@ const App = () => {
       });
       setErrorMessage('Evaluation failed. Please try again.');
       setShowErrorModal(true);
-    } finally {
       setEvaluationLoading(false);
-      console.log('🔍 DEBUG: Set evaluation loading to false');
+      console.log('🔍 DEBUG: Set evaluation loading to false on error');
     }
   };
 
@@ -328,180 +371,32 @@ const App = () => {
     }
   }, [evaluationLoading, loadingMessages.length]);
 
-  // Public Result route wrapper component to fetch by ID and render ResultsPage
-  const PublicResultPageWrapper = () => {
-    const { id } = useParams();
-    const [loadingEval, setLoadingEval] = useState(true);
-    const [publicEval, setPublicEval] = useState(null);
-    const navigate = useNavigate();
 
-    useEffect(() => {
-      let isMounted = true;
-      const fetchEvaluation = async () => {
-        try {
-          console.log('🔍 DEBUG: Fetching evaluation with ID:', id);
-          // Try different endpoint patterns
-          let response;
-          try {
-            response = await api.get(`/evaluate/${id}`);
-            console.log('🔍 DEBUG: Success with /evaluate endpoint:', response.data);
-          } catch (err1) {
-            console.log('🔍 DEBUG: /evaluate failed, trying /evaluations:', err1);
-            try {
-              response = await api.get(`/evaluations/${id}`);
-              console.log('🔍 DEBUG: Success with /evaluations endpoint:', response.data);
-            } catch (err2) {
-              console.log('🔍 DEBUG: /evaluations failed, trying /history:', err2);
-              response = await api.get(`/history/${id}`);
-              console.log('🔍 DEBUG: Success with /history endpoint:', response.data);
-            }
-          }
-          
-          if (!isMounted) return;
-          
-          // Handle different response structures
-          const evaluationData = response.data.evaluation || response.data || response.data.data;
-          console.log('🔍 DEBUG: Final evaluation data:', evaluationData);
-          setPublicEval(evaluationData);
-        } catch (err) {
-          console.error('🔍 DEBUG: All endpoints failed to load evaluation:', err);
-        } finally {
-          if (isMounted) setLoadingEval(false);
-        }
-      };
-      fetchEvaluation();
-      return () => { isMounted = false; };
-    }, [id]);
 
-    if (loadingEval) {
-      return (
-        <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50'} flex items-center justify-center`}>
-          <LoadingSpinner message="Loading result..." size="default" />
-        </div>
-      );
-    }
 
-    if (!publicEval) {
-      return (
-        <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50'} flex items-center justify-center`}>
-          <div className="text-center">
-            <h1 className="text-2xl font-fredoka font-bold mb-2">Result not found</h1>
-            <p className="text-gray-600">The evaluation you are looking for does not exist or has been removed.</p>
-            <button onClick={() => navigate('/')} className="mt-6 bg-blue-600 text-white px-4 py-2 rounded-lg">Go Home</button>
-          </div>
-        </div>
-      );
-    }
 
-    return (
-      <div className={darkMode ? 'dark' : ''}>
-        <ResultsPage 
-          evaluation={publicEval}
-          onNewEvaluation={handleNewEvaluation}
-          userPlan={userStats?.currentPlan || 'free'}
-          darkMode={darkMode}
-        />
-      </div>
-    );
-  };
 
-  // Auth required component
-  const AuthRequired = ({ children }) => {
-    if (userLoading || !userStats) {
-      return (
-        <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-main'} flex items-center justify-center`}>
-          <div className="text-center">
-            <LoadingSpinner message="Loading your data..." size="default" />
-            <p className="mt-2 text-sm opacity-75">Please wait while we fetch your information</p>
-          </div>
-        </div>
-      );
-    }
 
-    if (!user) {
-      navigate('/', { replace: true });
-      return null;
-    }
 
-    return (
-      <div className={darkMode ? 'dark' : ''}>
-        {children}
-      </div>
-    );
-  };
-
-  // Sign in modal component
-  const SignInModal = ({ isOpen, onClose, darkMode }) => {
-    if (!isOpen) return null;
-
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div className="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl">
-          <div className="text-center">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Sign In Required</h3>
-            <p className="text-gray-600 mb-6">Please sign in to access this feature.</p>
-            <div className="space-y-3">
-              <button
-                onClick={() => { onClose(); signInWithGoogle(); }}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-              >
-                Sign in with Google
-              </button>
-              <button
-                onClick={() => { onClose(); signInWithDiscord(); }}
-                className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
-              >
-                Sign in with Discord
-              </button>
-            </div>
-            <button
-              onClick={onClose}
-              className="mt-4 text-gray-500 hover:text-gray-700"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Error modal component
-  const ErrorModal = ({ isOpen, onClose, message, darkMode }) => {
-    if (!isOpen) return null;
-
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div className="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">❌</span>
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Error</h3>
-            <p className="text-gray-600 mb-6">{message}</p>
-            <button
-              onClick={onClose}
-              className="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <>
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<LandingPage onDiscord={signInWithDiscord} onGoogle={signInWithGoogle} />} />
-        <Route path="/results/:id" element={<PublicResultPageWrapper />} />
+        <Route path="/results/:id" element={
+          <PublicResultPageWrapper 
+            darkMode={darkMode}
+            userStats={userStats}
+            showSignInModal={showSignInModal}
+            setShowSignInModal={setShowSignInModal}
+          />
+        } />
         <Route path="/payment-success" element={<PaymentSuccess darkMode={darkMode} />} />
         
         {/* Protected routes */}
         <Route path="/dashboard" element={
-          <AuthRequired>
+          <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
             <Dashboard 
               questionTypes={questionTypes}
               onStartQuestion={handleStartQuestion}
@@ -518,7 +413,7 @@ const App = () => {
           </AuthRequired>
         } />
         <Route path="/write" element={
-          <AuthRequired>
+          <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
             {(() => {
               console.log('🔍 DEBUG: Rendering QuestionTypePage with handleEvaluate:', !!handleEvaluate);
               console.log('🔍 DEBUG: handleEvaluate function:', handleEvaluate);
@@ -539,24 +434,17 @@ const App = () => {
           </AuthRequired>
         } />
         <Route path="/assessment" element={
-          <AuthRequired>
+          <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
             <AssessmentPage 
               selectedQuestionType={selectedQuestionType}
               onEvaluate={handleEvaluate}
               onBack={() => navigate('/write')}
-              evaluationLoading={evaluationLoading}
-              loadingMessage={loadingMessages[loadingMessageIndex]}
-              essayHistory={essayHistory}
-              historyIndex={historyIndex}
-              currentEssayText={currentEssayText}
-              addToHistory={addToHistory}
-              undoEssay={undoEssay}
-              redoEssay={redoEssay}
+              darkMode={darkMode}
             />
           </AuthRequired>
         } />
         <Route path="/results" element={
-          <AuthRequired>
+          <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
             <ResultsPage 
               evaluation={evaluation}
               onNewEvaluation={handleNewEvaluation}
@@ -573,7 +461,7 @@ const App = () => {
           </AuthRequired>
         } />
         <Route path="/history" element={
-          <AuthRequired>
+          <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
             <HistoryPage 
               evaluations={evaluations}
               onBack={handleBack}
@@ -624,17 +512,23 @@ const App = () => {
       </Routes>
 
       {/* Global modals and components */}
-      <SignInModal
-        isOpen={showSignInModal}
-        onClose={() => setShowSignInModal(false)}
-        darkMode={darkMode}
-      />
-      <ErrorModal 
-        isOpen={showErrorModal} 
-        onClose={() => setShowErrorModal(false)}
-        message={errorMessage}
-        darkMode={darkMode}
-      />
+                  <SignInModal
+              isOpen={showSignInModal}
+              onClose={() => setShowSignInModal(false)}
+              darkMode={darkMode}
+            />
+            <LevelSelectionModal
+              isOpen={showLevelSelectionModal}
+              onClose={() => setShowLevelSelectionModal(false)}
+              onLevelSelect={handleLevelSelect}
+              darkMode={darkMode}
+            />
+            <ErrorModal 
+              isOpen={showErrorModal} 
+              onClose={() => setShowErrorModal(false)}
+              message={errorMessage}
+              darkMode={darkMode}
+            />
       <KeyboardShortcutsHelp 
         isVisible={showShortcutsHelp}
         onClose={() => setShowShortcutsHelp(false)}

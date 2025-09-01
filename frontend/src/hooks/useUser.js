@@ -46,6 +46,12 @@ export const useUser = () => {
             
             console.log('🎉 Final stats:', finalStats);
             setUserStats(finalStats);
+            
+            // Instant redirect to dashboard if authenticated and on main domain
+            if (typeof window !== 'undefined' && window.location.pathname === '/') {
+              console.log('🔄 Redirecting authenticated user to dashboard');
+              window.location.href = '/dashboard';
+            }
           } catch (profileError) {
             console.error('❌ Error fetching user data:', profileError);
             // Don't fail completely if profile fetch fails
@@ -61,6 +67,12 @@ export const useUser = () => {
             // Apply launch period benefits to default stats
             const finalStats = applyLaunchPeriodBenefits(defaultStats);
             setUserStats(finalStats);
+            
+            // Instant redirect to dashboard if authenticated and on main domain
+            if (typeof window !== 'undefined' && window.location.pathname === '/') {
+              console.log('🔄 Redirecting authenticated user to dashboard');
+              window.location.href = '/dashboard';
+            }
           }
         } else {
           console.log('👤 No user session found');
@@ -99,6 +111,12 @@ export const useUser = () => {
             });
             
             setUserStats(finalStats);
+            
+            // Instant redirect to dashboard if on main domain
+            if (typeof window !== 'undefined' && window.location.pathname === '/') {
+              console.log('🔄 Redirecting authenticated user to dashboard');
+              window.location.href = '/dashboard';
+            }
           } catch (profileError) {
             console.error('❌ Error fetching user data on sign in:', profileError);
             // Set default stats to prevent infinite loading
@@ -113,6 +131,12 @@ export const useUser = () => {
             // Apply launch period benefits to default stats
             const finalStats = applyLaunchPeriodBenefits(defaultStats);
             setUserStats(finalStats);
+            
+            // Instant redirect to dashboard if on main domain
+            if (typeof window !== 'undefined' && window.location.pathname === '/') {
+              console.log('🔄 Redirecting authenticated user to dashboard');
+              window.location.href = '/dashboard';
+            }
           }
         } else if (event === 'SIGNED_OUT') {
           console.log('👋 User signed out');

@@ -66,15 +66,32 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   // Show loading screen when evaluation is in progress
   if (evaluationLoading) {
     return (
-      <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-main'} flex items-center justify-center`}>
-        <div className="text-center max-w-md">
-          <LoadingSpinner 
-            message={loadingMessage || "🤖 AI is analyzing your essay..."} 
-            size="large" 
-          />
+      <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-main'} flex items-center justify-center p-4`}>
+        <div className="text-center max-w-lg">
+          {/* Book Loader */}
+          <div className="mb-8">
+            <LoadingSpinner 
+              message="" 
+              size="large" 
+            />
+          </div>
           
-          <div className="loading-subtext mt-4">
-            Our AI is carefully analyzing your {selectedQuestionType?.name} submission. This may take up to 60 seconds.
+          {/* Small text with spacing */}
+          <div className="text-gray-600 text-lg font-fredoka mb-8">
+            Our AI is doing the magic, please wait
+          </div>
+          
+          {/* Pink box modal with changing text */}
+          <div className="bg-gradient-to-br from-pink-100 to-pink-200 rounded-2xl p-6 shadow-lg border border-pink-300 max-w-md mx-auto">
+            <div className="text-center">
+              <div className="text-2xl mb-3">✨</div>
+              <div className="text-gray-800 font-fredoka text-lg font-medium">
+                {loadingMessage || "🤖 AI is analyzing your essay..."}
+              </div>
+              <div className="text-gray-600 text-sm mt-2 font-fredoka">
+                This may take up to 60 seconds
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -136,6 +153,27 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       return;
     }
 
+    // Check if question type requires marking scheme
+    const requiresMarkingScheme = selectedQuestionType.requires_marking_scheme === true;
+    const isWritersEffect = selectedQuestionType.id === 'igcse_writers_effect';
+    
+    if (requiresMarkingScheme || isWritersEffect) {
+      // Pass student response and go to assessment page for marking scheme
+      const questionTypeWithResponse = {
+        ...selectedQuestionType,
+        studentResponse: studentResponse,
+        requiresScheme: requiresMarkingScheme
+      };
+      
+      console.log('🔍 DEBUG: Question requires marking scheme, navigating to assessment page');
+      console.log('🔍 DEBUG: Question type with response:', questionTypeWithResponse);
+      
+      // Navigate to assessment page
+      onSelectQuestionType(questionTypeWithResponse);
+      return;
+    }
+
+    // No marking scheme needed - evaluate directly
     const evaluationData = {
       question_type: selectedQuestionType.id,
       student_response: studentResponse,
@@ -286,6 +324,17 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                           <p className="font-fredoka text-gray-600 text-xs leading-tight line-clamp-2">
                             {questionType.description}
                           </p>
+                          {/* Marking Scheme Tag */}
+                          {(questionType.requires_marking_scheme === true || questionType.id === 'igcse_writers_effect') && (
+                            <div className="mt-2">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
+                                </svg>
+                                Marking Scheme Required
+                              </span>
+                            </div>
+                          )}
                         </div>
                         {selectedQuestionType?.id === questionType.id && (
                           <div className="w-4 h-4 bg-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
