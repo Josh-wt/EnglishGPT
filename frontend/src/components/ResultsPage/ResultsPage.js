@@ -99,39 +99,65 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
   
   // Extract submarks dynamically per question type and present as "xx/xx"
   const getSubmarks = (evaluation) => {
-    if (!evaluation) return [];
+    console.log('🔍 DEBUG: getSubmarks called with evaluation:', evaluation);
+    
+    if (!evaluation) {
+      console.log('❌ No evaluation provided to getSubmarks');
+      return [];
+    }
 
     const metricsByType = {
       igcse_writers_effect: ['READING'],
-      igcse_descriptive: ['CONTENT_AND_STRUCTURE', 'STYLE_AND_ACCURACY'],
-      igcse_narrative: ['CONTENT_AND_STRUCTURE', 'STYLE_AND_ACCURACY'],
+      igcse_descriptive: ['CONTENT_STRUCTURE', 'STYLE_ACCURACY'],
+      igcse_narrative: ['CONTENT_STRUCTURE', 'STYLE_ACCURACY'],
       igcse_summary: ['READING', 'WRITING'],
+      igcse_directed: ['READING', 'WRITING'],
       alevel_directed: ['AO1', 'AO2'],
-      alevel_comparative: ['AO1', 'AO2'],
-      alevel_text_analysis: ['AO1', 'AO2'],
-      alevel_language_change: ['AO1', 'AO2'],
+      alevel_comparative: ['AO1', 'AO2'], // AO3 is stored in ao2_marks field
+      alevel_text_analysis: ['AO1', 'AO2'], // AO3 is stored in ao2_marks field
+      alevel_language_change: ['AO2', 'AO1', 'READING'], // AO4 stored in ao1_marks, AO5 stored in reading_marks
       sat_essay: ['READING', 'WRITING']
     };
 
     const questionType = evaluation.question_type;
+    console.log('🔍 DEBUG: Question type:', questionType);
+    
     const metrics = metricsByType[questionType] || [];
+    console.log('🔍 DEBUG: Metrics for this question type:', metrics);
 
-    return metrics.map(metric => {
+    const submarks = metrics.map(metric => {
       let value = 'N/A';
       
-      if (metric === 'CONTENT_AND_STRUCTURE') {
-        value = evaluation.content_and_structure_marks || evaluation.content_marks || 'N/A';
-      } else if (metric === 'STYLE_AND_ACCURACY') {
-        value = evaluation.style_and_accuracy_marks || evaluation.style_marks || 'N/A';
+      console.log('🔍 DEBUG: Processing metric:', metric);
+      
+      if (metric === 'CONTENT_STRUCTURE') {
+        value = evaluation.content_structure_marks || 'N/A';
+        console.log('🔍 DEBUG: Content Structure marks:', value);
+      } else if (metric === 'STYLE_ACCURACY') {
+        value = evaluation.style_accuracy_marks || 'N/A';
+        console.log('🔍 DEBUG: Style Accuracy marks:', value);
+      } else if (metric === 'AO3') {
+        // AO3 is stored in ao2_marks field for some question types
+        value = evaluation.ao2_marks || 'N/A';
+        console.log('🔍 DEBUG: AO3 marks (from ao2_marks):', value);
       } else {
-        value = evaluation[`${metric.toLowerCase()}_marks`] || 'N/A';
+        const fieldName = `${metric.toLowerCase()}_marks`;
+        value = evaluation[fieldName] || 'N/A';
+        console.log('🔍 DEBUG: Field name:', fieldName, 'Value:', value);
       }
       
       return {
         label: metric.replace('_', ' '),
         value: value
       };
-    }).filter(submark => submark.value !== 'N/A');
+    }).filter(submark => {
+      const isValid = submark.value !== 'N/A' && submark.value !== null && submark.value !== undefined;
+      console.log('🔍 DEBUG: Submark validation:', submark.label, submark.value, 'Valid:', isValid);
+      return isValid;
+    });
+
+    console.log('🔍 DEBUG: Final submarks:', submarks);
+    return submarks;
   };
   // Parse grade to get score
   const parseGrade = (gradeString) => {
@@ -259,12 +285,30 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
             ></div>
           </div>
           <div className="flex flex-wrap justify-center gap-6 mt-4">
-            {getSubmarks(evaluation).map((submark, idx) => (
-              <div className="text-center px-4 py-2 rounded-xl bg-green-50 border border-green-200" key={submark.label + idx}>
-                <div className="text-2xl font-extrabold text-green-700 tracking-tight">{submark.value}</div>
-                <div className="text-green-700 text-sm mt-0.5">{submark.label}</div>
-              </div>
-            ))}
+            {(() => {
+              const submarks = getSubmarks(evaluation);
+              console.log('🔍 DEBUG: Rendering submarks:', submarks);
+              console.log('🔍 DEBUG: Submarks length:', submarks.length);
+              
+              if (submarks.length === 0) {
+                console.log('⚠️ No submarks to display');
+                return (
+                  <div className="text-center px-4 py-2 rounded-xl bg-gray-50 border border-gray-200">
+                    <div className="text-gray-500 text-sm">No detailed marks available</div>
+                  </div>
+                );
+              }
+              
+              return submarks.map((submark, idx) => {
+                console.log('🔍 DEBUG: Rendering submark:', submark, 'index:', idx);
+                return (
+                  <div className="text-center px-4 py-2 rounded-xl bg-green-50 border border-green-200" key={submark.label + idx}>
+                    <div className="text-2xl font-extrabold text-green-700 tracking-tight">{submark.value}</div>
+                    <div className="text-green-700 text-sm mt-0.5">{submark.label}</div>
+                  </div>
+                );
+              });
+            })()}
           </div>
                 </div>
 

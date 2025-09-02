@@ -9,15 +9,19 @@ import { applyLaunchPeriodBenefits, isLaunchPeriod } from '../utils/launchPeriod
  * @returns {Promise} - API response
  */
 export const createUser = async (userId, userData = {}) => {
+  const startTime = Date.now();
   try {
-    console.log('🆕 Creating new user record for:', userId);
+    console.log('🆕 Creating new user record for:', userId, {
+      timestamp: new Date().toISOString()
+    });
     const response = await apiHelpers.post(`${API_ENDPOINTS.USERS}`, {
       user_id: userId, // Backend expects user_id, not uid
       email: userData.email || '',
       name: userData.name || '',
       academic_level: userData.academic_level || 'N/A'
     });
-    console.log('✅ User created successfully:', response.data);
+    const duration = Date.now() - startTime;
+    console.log('✅ User created successfully in', duration, 'ms:', response.data);
     
     // Backend returns {user: {...}}, so extract the user data
     const userInfo = response.data.user || response.data;
@@ -27,11 +31,14 @@ export const createUser = async (userId, userData = {}) => {
       console.log('🎉 Launch period: New user granted Unlimited plan!');
       // Update the backend to reflect unlimited status
       try {
+        const updateStartTime = Date.now();
         await apiHelpers.put(`${API_ENDPOINTS.USERS}/${userId}`, {
           current_plan: 'unlimited',
           credits: '∞',
           evaluations_limit: '∞'
         });
+        const updateDuration = Date.now() - updateStartTime;
+        console.log('✅ User updated to unlimited in', updateDuration, 'ms');
         userInfo.current_plan = 'unlimited';
         userInfo.credits = '∞';
         userInfo.evaluations_limit = '∞';
@@ -42,7 +49,8 @@ export const createUser = async (userId, userData = {}) => {
     
     return userInfo;
   } catch (error) {
-    console.error('❌ Error creating user:', error);
+    const duration = Date.now() - startTime;
+    console.error('❌ Error creating user after', duration, 'ms:', error);
     throw error;
   }
 };
@@ -53,10 +61,14 @@ export const createUser = async (userId, userData = {}) => {
  * @returns {Promise} - API response
  */
 export const getUserProfile = async (userId) => {
+  const startTime = Date.now();
   try {
-    console.log('🔍 Fetching user profile for:', userId);
+    console.log('🔍 Fetching user profile for:', userId, {
+      timestamp: new Date().toISOString()
+    });
     const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}`);
-    console.log('📊 User profile response:', response.data);
+    const duration = Date.now() - startTime;
+    console.log('📊 User profile response received in', duration, 'ms:', response.data);
     
     // Handle both response structures: {user: {...}} and direct user data
     const userData = response.data.user || response.data;
@@ -71,13 +83,17 @@ export const getUserProfile = async (userId) => {
     
     return userData;
   } catch (error) {
-    console.error('❌ Error fetching user profile:', error);
+    const duration = Date.now() - startTime;
+    console.error('❌ Error fetching user profile after', duration, 'ms:', error);
     
     // If user doesn't exist (404), create them
     if (error.response?.status === 404) {
       console.log('🔄 User not found, creating new user record...');
       try {
+        const createStartTime = Date.now();
         const newUser = await createUser(userId);
+        const createDuration = Date.now() - createStartTime;
+        console.log('✅ New user created in', createDuration, 'ms');
         return newUser;
       } catch (createError) {
         console.error('❌ Failed to create user:', createError);
@@ -96,111 +112,89 @@ export const getUserProfile = async (userId) => {
  * @returns {Promise} - API response
  */
 export const updateUserProfile = async (userId, userData) => {
+  const startTime = Date.now();
   try {
+    console.log('📝 Updating user profile for:', userId, {
+      updates: userData,
+      timestamp: new Date().toISOString()
+    });
     const response = await apiHelpers.put(`${API_ENDPOINTS.USERS}/${userId}`, userData);
-    return response.data;
+    const duration = Date.now() - startTime;
+    console.log('✅ User profile updated in', duration, 'ms:', response.data);
+    return response.data.user || response.data;
   } catch (error) {
-    console.error('Error updating user profile:', error);
+    const duration = Date.now() - startTime;
+    console.error('❌ Error updating user profile after', duration, 'ms:', error);
     throw error;
   }
 };
 
 /**
- * Update user academic level
+ * Update academic level
  * @param {string} userId - The user ID
  * @param {string} academicLevel - The academic level
  * @returns {Promise} - API response
  */
 export const updateAcademicLevel = async (userId, academicLevel) => {
+  const startTime = Date.now();
   try {
-    const response = await apiHelpers.put(`${API_ENDPOINTS.USERS}/${userId}`, {
-      academic_level: academicLevel,
+    console.log('📝 Updating academic level for:', userId, {
+      level: academicLevel,
+      timestamp: new Date().toISOString()
     });
-    return response.data;
+    const response = await apiHelpers.put(`${API_ENDPOINTS.USERS}/${userId}`, {
+      academic_level: academicLevel
+    });
+    const duration = Date.now() - startTime;
+    console.log('✅ Academic level updated in', duration, 'ms:', response.data);
+    return response.data.user || response.data;
   } catch (error) {
-    console.error('Error updating academic level:', error);
+    const duration = Date.now() - startTime;
+    console.error('❌ Error updating academic level after', duration, 'ms:', error);
     throw error;
   }
 };
 
 /**
- * Get user statistics
+ * Get user stats
  * @param {string} userId - The user ID
  * @returns {Promise} - API response
  */
 export const getUserStats = async (userId) => {
+  const startTime = Date.now();
   try {
-    console.log('🔍 Fetching user stats for:', userId);
-    // Use the existing /users/{user_id} endpoint since there's no dedicated /stats endpoint
+    console.log('📊 Fetching user stats for:', userId, {
+      timestamp: new Date().toISOString()
+    });
     const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}`);
-    console.log('📊 User stats response:', response.data);
+    const duration = Date.now() - startTime;
+    console.log('📈 User stats received in', duration, 'ms:', response.data);
     
     // Handle both response structures: {user: {...}} and direct user data
     const userData = response.data.user || response.data;
     
-    // Construct user stats from user data (like old App.js)
-    const userStats = {
-      currentPlan: userData.current_plan || 'free',
-      credits: userData.credits || 3,
-      questionsMarked: userData.questions_marked || 0,
-      evaluationsLimit: userData.evaluations_limit || 3,
-      evaluationsUsed: userData.evaluations_used || 0,
-      academicLevel: userData.academic_level || '',
-      dodoCustomerId: userData.dodo_customer_id || null,
-      createdAt: userData.created_at,
-      updatedAt: userData.updated_at,
-      // Include the full user data for compatibility
-      ...userData
-    };
-    
-    // Apply launch period benefits
-    const finalStats = applyLaunchPeriodBenefits(userStats);
-    
-    // If launch period is active and user doesn't have unlimited, update backend
-    if (isLaunchPeriod() && finalStats.currentPlan === 'unlimited' && userData.current_plan !== 'unlimited') {
-      console.log('🎉 Launch period: Updating user to unlimited in backend...');
-      try {
-        await apiHelpers.put(`${API_ENDPOINTS.USERS}/${userId}`, {
-          current_plan: 'unlimited',
-          credits: '∞',
-          evaluations_limit: '∞'
-        });
-      } catch (updateError) {
-        console.error('❌ Failed to update user to unlimited in backend:', updateError);
-      }
+    // Apply launch period benefits to stats data
+    if (isLaunchPeriod()) {
+      console.log('🎉 Launch period: Applying unlimited benefits to stats...');
+      userData.current_plan = 'unlimited';
+      userData.credits = '∞';
+      userData.evaluations_limit = '∞';
     }
     
-    console.log('🎯 Constructed user stats:', finalStats);
-    return finalStats;
+    return userData;
   } catch (error) {
-    console.error('❌ Error fetching user stats:', error);
+    const duration = Date.now() - startTime;
+    console.error('❌ Error fetching user stats after', duration, 'ms:', error);
     
     // If user doesn't exist (404), create them
     if (error.response?.status === 404) {
       console.log('🔄 User not found, creating new user record...');
       try {
+        const createStartTime = Date.now();
         const newUser = await createUser(userId);
-        
-        // Construct user stats from new user data
-        const userStats = {
-          currentPlan: newUser.current_plan || 'free',
-          credits: newUser.credits || 3,
-          questionsMarked: newUser.questions_marked || 0,
-          evaluationsLimit: newUser.evaluations_limit || 3,
-          evaluationsUsed: newUser.evaluations_used || 0,
-          academicLevel: newUser.academic_level || '',
-          dodoCustomerId: newUser.dodo_customer_id || null,
-          createdAt: newUser.created_at,
-          updatedAt: newUser.updated_at,
-          // Include the full user data for compatibility
-          ...newUser
-        };
-        
-        // Apply launch period benefits
-        const finalStats = applyLaunchPeriodBenefits(userStats);
-        
-        console.log('🎯 Constructed user stats from new user:', finalStats);
-        return finalStats;
+        const createDuration = Date.now() - createStartTime;
+        console.log('✅ New user created in', createDuration, 'ms');
+        return newUser;
       } catch (createError) {
         console.error('❌ Failed to create user:', createError);
         throw createError;

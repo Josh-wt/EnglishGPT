@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import PaymentSuccess from './PaymentSuccess';
 import subscriptionService from './services/subscriptionService';
 import { Toaster } from 'react-hot-toast';
@@ -35,6 +35,50 @@ import PublicResultPageWrapper from './components/results/PublicResultPageWrappe
 import KeyboardShortcutsHelp from './components/help/KeyboardShortcutsHelp';
 
 const App = () => {
+  // Debug tracking
+  const renderCount = useRef(0);
+  const lastRenderTime = useRef(Date.now());
+  const navigationHistory = useRef([]);
+  const location = useLocation();
+
+  // Track app renders and performance
+  useEffect(() => {
+    renderCount.current += 1;
+    const currentTime = Date.now();
+    const timeSinceLastRender = currentTime - lastRenderTime.current;
+    
+    console.log('🚀 App Debug:', {
+      renderCount: renderCount.current,
+      timeSinceLastRender: `${timeSinceLastRender}ms`,
+      currentPath: location.pathname,
+      timestamp: new Date().toISOString()
+    });
+
+    lastRenderTime.current = currentTime;
+  });
+
+  // Track navigation history
+  useEffect(() => {
+    navigationHistory.current.push({
+      pathname: location.pathname,
+      timestamp: new Date().toISOString(),
+      renderCount: renderCount.current
+    });
+
+    // Keep only last 10 navigation events
+    if (navigationHistory.current.length > 10) {
+      navigationHistory.current = navigationHistory.current.slice(-10);
+    }
+
+    console.log('🧭 App Navigation:', {
+      pathname: location.pathname,
+      search: location.search,
+      hash: location.hash,
+      navigationHistory: navigationHistory.current.slice(-3), // Last 3 events
+      timestamp: new Date().toISOString()
+    });
+  }, [location]);
+
   // Use custom hooks for state management
   const { user, userStats, loading: userLoading, signInWithGoogle, signInWithDiscord, signOut, updateLevel } = useUser();
   const { questionTypes } = useQuestionTypes();
@@ -60,18 +104,48 @@ const App = () => {
 
   const navigate = useNavigate();
 
+  // Track user state changes
+  useEffect(() => {
+    console.log('👤 App User State:', {
+      userLoading,
+      hasUser: !!user,
+      hasUserStats: !!userStats,
+      userData: user ? {
+        id: user.id,
+        email: user.email,
+        uid: user.uid
+      } : null,
+      userStatsData: userStats ? {
+        currentPlan: userStats.currentPlan,
+        credits: userStats.credits,
+        questionsMarked: userStats.questionsMarked
+      } : null,
+      timestamp: new Date().toISOString()
+    });
+  }, [user, userStats, userLoading]);
+
   // Fetch evaluations when user is logged in
   useEffect(() => {
     const fetchEvaluations = async () => {
       if (user?.id) {
         try {
+          console.log('📊 Fetching evaluations for user:', user.id);
+          const startTime = Date.now();
+          
           // Fetch evaluations
           const evalResponse = await api.get(`/evaluations/user/${user.id}`);
+          const duration = Date.now() - startTime;
+          
+          console.log('📊 Evaluations fetched in', duration, 'ms:', {
+            count: evalResponse.data?.evaluations?.length || 0,
+            hasData: !!evalResponse.data?.evaluations
+          });
+          
           if (evalResponse.data?.evaluations) {
             setEvaluations(evalResponse.data.evaluations);
           }
         } catch (error) {
-          console.error('Error fetching evaluations:', error);
+          console.error('❌ Error fetching evaluations:', error);
         }
       }
     };
@@ -82,35 +156,50 @@ const App = () => {
   // Set academic level from userStats when available
   useEffect(() => {
     if (userStats?.academicLevel && userStats.academicLevel !== 'N/A') {
+      console.log('🎓 Setting academic level from userStats:', userStats.academicLevel);
       setSelectedLevel(userStats.academicLevel.toLowerCase());
     }
   }, [userStats]);
-
-
 
   const toggleDarkMode = () => setDarkMode(!darkMode);
 
   // Navigation handlers
   const handleStartQuestion = () => {
+    console.log('🎯 handleStartQuestion called:', {
+      selectedLevel,
+      currentPage,
+      timestamp: new Date().toISOString()
+    });
+    
     if (selectedLevel) {
       setCurrentPage('questionTypes');
       navigate('/write');
     } else {
       // Show level selection modal for first-time users
+      console.log('🎓 Showing level selection modal');
       setShowLevelSelectionModal(true);
     }
   };
 
   const handleLevelSelect = async (level) => {
+    console.log('🎓 handleLevelSelect called:', {
+      level,
+      userId: user?.id,
+      timestamp: new Date().toISOString()
+    });
+    
     setSelectedLevel(level);
     setShowLevelSelectionModal(false);
     
     // Save level to user account
     if (user?.id) {
       try {
+        const startTime = Date.now();
         await api.put(`/users/${user.id}`, { academic_level: level });
+        const duration = Date.now() - startTime;
+        console.log('✅ Academic level saved in', duration, 'ms');
       } catch (error) {
-        console.error('Error saving academic level:', error);
+        console.error('❌ Error saving academic level:', error);
       }
     }
     
@@ -120,6 +209,12 @@ const App = () => {
   };
 
   const handleSelectQuestionType = (questionType) => {
+    console.log('📝 handleSelectQuestionType called:', {
+      questionType: questionType?.id,
+      hasStudentResponse: !!questionType?.studentResponse,
+      timestamp: new Date().toISOString()
+    });
+    
     setSelectedQuestionType(questionType);
     if (questionType.studentResponse) {
       // This is coming from QuestionTypePage with student response
@@ -603,6 +698,8 @@ const App = () => {
               darkMode={darkMode}
               onDiscord={signInWithDiscord}
               onGoogle={signInWithGoogle}
+              user={user}
+              navigate={navigate}
             />
             <LevelSelectionModal
               isOpen={showLevelSelectionModal}
