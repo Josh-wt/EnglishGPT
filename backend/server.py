@@ -858,8 +858,8 @@ That being said, PLEASE give the student the highest marks possible if the user'
 # --- Mark totals configuration for dynamic grade computation ---
 QUESTION_TOTALS = {
     "igcse_writers_effect": {"total": 15, "components": {"reading": 15}},
-    "igcse_narrative": {"total": 40, "components": {"content_structure": 16, "style_accuracy": 24}},
-    "igcse_descriptive": {"total": 40, "components": {"content_structure": 16, "style_accuracy": 24}},
+            "igcse_narrative": {"total": 40, "components": {"content_structure": 16, "style_accuracy": 24}},
+        "igcse_descriptive": {"total": 40, "components": {"content_structure": 16, "style_accuracy": 24}},
     # Summary is 15 (reading) + 25 (writing) = 40 total
     "igcse_summary": {"total": 40, "components": {"reading": 15, "writing": 25}},
     # Directed writing in IGCSE typically 15 + 25 = 40

@@ -18,7 +18,7 @@ docker build -t englishgpt-backend .
 echo "🏃 Starting container..."
 docker run -d \
     --name englishgpt-api \
-    -p 8000:8000 \
+    -p 5000:5000 \
     --env-file .env \
     --restart unless-stopped \
     englishgpt-backend
@@ -37,7 +37,7 @@ docker logs englishgpt-api --tail 20
 
 # Health check
 echo "🏥 Health check:"
-if curl -f http://localhost:8000/api/health 2>/dev/null; then
+if curl -f http://localhost:5000/api/health 2>/dev/null; then
     echo "✅ Backend is healthy!"
 else
     echo "❌ Health check failed. Checking logs..."
