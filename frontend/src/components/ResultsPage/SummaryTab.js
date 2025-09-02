@@ -54,33 +54,104 @@ const SummaryTab = ({ evaluation, gradeInfo, letterGrade, darkMode, onFeedback }
           📝 Question Details
         </h2>
         
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Question Type:</span>
-            <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              {evaluation.question_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-            </span>
-          </div>
-          
-          <div className="flex justify-between items-center">
-            <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Evaluation Date:</span>
-            <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              {new Date(evaluation.timestamp).toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
-            </span>
-          </div>
-          
-          <div className="flex justify-between items-center">
-            <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Word Count:</span>
-            <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              {evaluation.student_response.split(/\s+/).filter(word => word.length > 0).length} words
-            </span>
-          </div>
+        <div className="space-y-3">
+          <ul className={`space-y-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            <li className="flex items-start">
+              <span className="mr-2 text-purple-500">•</span>
+              <span>
+                <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Question Type:</span>
+                <span className="ml-2">
+                  {evaluation.question_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                </span>
+              </span>
+            </li>
+            
+            <li className="flex items-start">
+              <span className="mr-2 text-purple-500">•</span>
+              <span>
+                <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Evaluation Date:</span>
+                <span className="ml-2">
+                  {new Date(evaluation.timestamp).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </span>
+              </span>
+            </li>
+            
+            <li className="flex items-start">
+              <span className="mr-2 text-purple-500">•</span>
+              <span>
+                <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Word Count:</span>
+                <span className="ml-2">
+                  {evaluation.student_response.split(/\s+/).filter(word => word.length > 0).length} words
+                </span>
+              </span>
+            </li>
+            
+            {evaluation.reading_marks && evaluation.reading_marks !== "N/A" && (
+              <li className="flex items-start">
+                <span className="mr-2 text-purple-500">•</span>
+                <span>
+                  <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Reading Marks:</span>
+                  <span className="ml-2">{evaluation.reading_marks}</span>
+                </span>
+              </li>
+            )}
+            
+            {evaluation.writing_marks && evaluation.writing_marks !== "N/A" && (
+              <li className="flex items-start">
+                <span className="mr-2 text-purple-500">•</span>
+                <span>
+                  <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Writing Marks:</span>
+                  <span className="ml-2">{evaluation.writing_marks}</span>
+                </span>
+              </li>
+            )}
+            
+            {evaluation.content_structure_marks && evaluation.content_structure_marks !== "N/A" && (
+              <li className="flex items-start">
+                <span className="mr-2 text-purple-500">•</span>
+                <span>
+                  <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Content & Structure:</span>
+                  <span className="ml-2">{evaluation.content_structure_marks}</span>
+                </span>
+              </li>
+            )}
+            
+            {evaluation.style_accuracy_marks && evaluation.style_accuracy_marks !== "N/A" && (
+              <li className="flex items-start">
+                <span className="mr-2 text-purple-500">•</span>
+                <span>
+                  <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Style & Accuracy:</span>
+                  <span className="ml-2">{evaluation.style_accuracy_marks}</span>
+                </span>
+              </li>
+            )}
+            
+            {evaluation.ao1_marks && evaluation.ao1_marks !== "N/A" && (
+              <li className="flex items-start">
+                <span className="mr-2 text-purple-500">•</span>
+                <span>
+                  <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>AO1 Marks:</span>
+                  <span className="ml-2">{evaluation.ao1_marks}</span>
+                </span>
+              </li>
+            )}
+            
+            {evaluation.ao2_marks && evaluation.ao2_marks !== "N/A" && (
+              <li className="flex items-start">
+                <span className="mr-2 text-purple-500">•</span>
+                <span>
+                  <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>AO2 Marks:</span>
+                  <span className="ml-2">{evaluation.ao2_marks}</span>
+                </span>
+              </li>
+            )}
+          </ul>
         </div>
       </motion.div>
 
