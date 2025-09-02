@@ -24,9 +24,6 @@ import PyPDF2
 import io
 from collections import defaultdict
 
-# Import billing API module
-# billing_api removed
-
 # Import user management services
 from user_management_service import UserManagementService
 from auth_recovery_middleware import create_auth_recovery_middleware, auth_recovery_required
@@ -53,27 +50,8 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger("PIL").setLevel(logging.WARNING)
 logging.getLogger("supabase").setLevel(logging.INFO)
 
-# Optional: Enable debug logging for specific modules when needed
-# Uncomment the following lines to debug specific components:
-# logging.getLogger("subscription_service").setLevel(logging.DEBUG)
-# logging.getLogger("webhook_processor").setLevel(logging.DEBUG)
-
 # Supabase connection
 from supabase import create_client, Client
-
-# Payment integration removed
-try:
-    from subscription_service import SubscriptionService
-    logger.info("Subscription service available")
-except ImportError as e:
-    logger.warning(f"Subscription service not available: {e}")
-    SubscriptionService = None
-
-# Initialize subscription service and webhook validator variables
-subscription_service = None
-webhook_validator = None
-
-# Payment integration removed
 
 ROOT_DIR = Path(__file__).resolve().parent
 
@@ -128,9 +106,6 @@ if user_management_service:
 else:
     logger.warning("Auth recovery middleware not added - user management service not available")
 
-# Include billing router
-# billing_router removed
-
 # CORS middleware
 @app.middleware("http")
 async def cors_middleware(request: Request, call_next):
@@ -166,43 +141,6 @@ app.add_middleware(
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
-@api_router.post("/subscriptions/create-checkout")
-async def create_subscription_checkout(request: Request):
-    """Create a checkout session for subscription"""
-    if not subscription_service:
-        raise HTTPException(status_code=503, detail="Subscription service unavailable")
-    try:
-        # Parse JSON request body
-        request_data = await request.json()
-
-        
-        user_id = request_data.get('userId')
-        plan_type = request_data.get('planType')
-        metadata = request_data.get('metadata', {})
-        billing_address = request_data.get('billingAddress')
-        discount_code = request_data.get('discountCode')
-        
-
-        
-        if not user_id:
-            raise HTTPException(status_code=400, detail="User ID is required")
-        if not plan_type or plan_type not in ['monthly', 'yearly']:
-            raise HTTPException(status_code=400, detail="Valid plan type is required")
-        
-        result = await subscription_service.create_checkout_session(
-            user_id, plan_type, metadata, billing_address, discount_code
-        )
-        return result
-        
-    except HTTPException as he:
-
-        raise
-    except Exception as e:
-        logger.error(f"Checkout creation error: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Checkout creation failed: {str(e)}")
-
 @api_router.get("/")
 async def root():
     return {"message": "English Marking AI API"}
@@ -233,9 +171,7 @@ async def health_check():
     return {
         "status": "healthy",
         "message": "Backend is running",
-        "supabase_connected": supabase is not None,
-        "payment_integration": False,
-        "subscription_service": subscription_service is not None
+        "supabase_connected": supabase is not None
     }
 
 @api_router.get("/test-user/{user_id}")
@@ -261,52 +197,6 @@ async def test_user(user_id: str):
 async def hello():
     return {"message": "Hello from FastAPI!"}
 
-# Debug endpoints for subscription troubleshooting
-@api_router.get("/debug/webhook-status")
-async def debug_webhook_status():
-    """Check webhook configuration"""
-    return {
-        "subscription_service": subscription_service is not None,
-        "payment_integration": False
-    }
-
-@api_router.get("/debug/subscription-check/{user_id}")
-async def debug_subscription_check(user_id: str):
-    """Check user subscription status for debugging"""
-    try:
-        # Check user record
-        user_resp = supabase.table('assessment_users').select('*').eq('uid', user_id).execute()
-        user_data = user_resp.data[0] if user_resp.data else None
-        
-        # Check subscription access
-        has_access = await subscription_service._check_user_subscription_access(user_id) if subscription_service else False
-        
-        # Check subscription records
-        sub_resp = supabase.table('subscriptions').select('*').eq('user_id', user_id).execute()
-        
-        # Check recent webhook events
-        webhook_resp = supabase.table('webhook_events').select('*').order('created_at', desc=True).limit(5).execute()
-        
-        return {
-            "user_found": bool(user_data),
-            "user_id": user_id,
-            "current_plan": user_data.get('current_plan') if user_data else None,
-            "subscription_status": user_data.get('subscription_status') if user_data else None,
-            "customer_id": user_data.get('customer_id') if user_data else None,
-            "has_subscription_access": has_access,
-            "subscription_records": sub_resp.data,
-            "subscription_count": len(sub_resp.data),
-            "questions_marked": user_data.get('questions_marked') if user_data else 0,
-            "credits": user_data.get('credits') if user_data else 0,
-            "recent_webhook_events": webhook_resp.data
-        }
-    except Exception as e:
-        return {"error": str(e)}
-
-
-
-    
-
 # AI Configuration (env only; no hardcoded defaults)
 DEEPSEEK_API_KEY = os.environ.get('DEEPSEEK_API_KEY')
 QWEN_API_KEY = os.environ.get('QWEN_API_KEY')
@@ -331,8 +221,6 @@ class SubmissionRequest(BaseModel):
     user_id: str
     marking_scheme: Optional[str] = None
     insert_document: Optional[str] = None
-
-
 
 class FeedbackResponse(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -374,51 +262,6 @@ class UserModel(BaseModel):
     credits: int = 3
     current_plan: str = "free"
     dark_mode: bool = False
-
-class TransactionModel(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    order_id: str
-    user_email: str
-    amount_inr: int
-    status: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
-
-# Subscription API Models
-class SubscriptionCreateRequest(BaseModel):
-    plan: str = Field(..., description="Subscription plan: 'monthly' or 'yearly'")
-    user_id: str = Field(..., description="User UUID")
-    success_url: Optional[str] = Field(None, description="Success redirect URL")
-    cancel_url: Optional[str] = Field(None, description="Cancel redirect URL")
-
-class SubscriptionCreateResponse(BaseModel):
-    success: bool
-    checkout_url: Optional[str] = None
-    session_id: Optional[str] = None
-    message: Optional[str] = None
-    error: Optional[str] = None
-
-class SubscriptionStatusResponse(BaseModel):
-    has_active_subscription: bool
-    subscription_status: str
-    current_plan: str
-    subscription_start_date: Optional[str] = None
-    subscription_end_date: Optional[str] = None
-    subscription_type: Optional[str] = None
-    customer_id: Optional[str] = None
-    cancel_at_period_end: bool = False
-
-class SubscriptionActionRequest(BaseModel):
-    user_id: str = Field(..., description="User UUID")
-    action: str = Field(..., description="Action to perform: 'cancel', 'reactivate'")
-
-    # Payment Config - Ready for future payment integration
-USD_TO_INR = 86.6
-MIN_USD = 3
-
-    # PayU endpoints removed - ready for future payment integration
-
-# Payment endpoints removed - ready for future payment integration
 
 # Question Types Configuration
 QUESTION_TYPES = [
@@ -1015,8 +858,8 @@ That being said, PLEASE give the student the highest marks possible if the user'
 # --- Mark totals configuration for dynamic grade computation ---
 QUESTION_TOTALS = {
     "igcse_writers_effect": {"total": 15, "components": {"reading": 15}},
-            "igcse_narrative": {"total": 40, "components": {"content_structure": 16, "style_accuracy": 24}},
-        "igcse_descriptive": {"total": 40, "components": {"content_structure": 16, "style_accuracy": 24}},
+    "igcse_narrative": {"total": 40, "components": {"content_structure": 16, "style_accuracy": 24}},
+    "igcse_descriptive": {"total": 40, "components": {"content_structure": 16, "style_accuracy": 24}},
     # Summary is 15 (reading) + 25 (writing) = 40 total
     "igcse_summary": {"total": 40, "components": {"reading": 15, "writing": 25}},
     # Directed writing in IGCSE typically 15 + 25 = 40
@@ -1387,42 +1230,6 @@ async def recover_user(user_data: dict):
         logger.error(f"Exception in recover_user: {str(e)}")
         raise HTTPException(status_code=500, detail=f"User recovery error: {str(e)}")
 
-@api_router.get("/debug/webhook-status")
-async def debug_webhook_status():
-    """Check webhook configuration"""
-    return {
-        "webhook_key_configured": False,
-        "subscription_service": subscription_service is not None,
-        "endpoint_url": "https://englishgpt.everythingenglish.xyz/api/webhooks"
-    }
-
-@api_router.get("/debug/subscription-check/{user_id}")
-async def debug_subscription_check(user_id: str):
-    """Check user subscription status"""
-    try:
-        if not user_management_service:
-            return {"error": "User management service not available"}
-        
-        # Check user record using the user management service
-        user_data = await user_management_service.get_user_by_id(user_id)
-        
-        # Check subscription access
-        has_access = await subscription_service._check_user_subscription_access(user_id) if subscription_service else False
-        
-        # Check subscription records
-        sub_resp = supabase.table('subscriptions').select('*').eq('user_id', user_id).execute()
-        
-        return {
-            "user_found": bool(user_data),
-            "current_plan": user_data.get('current_plan') if user_data else None,
-            "customer_id": user_data.get('customer_id') if user_data else None,
-            "has_subscription_access": has_access,
-            "subscription_records": sub_resp.data,
-            "questions_marked": user_data.get('questions_marked') if user_data else 0
-        }
-    except Exception as e:
-        return {"error": str(e)}
-
 @api_router.get("/users/stats")
 async def get_user_management_stats():
     """Get user management statistics"""
@@ -1460,36 +1267,6 @@ async def debug_env_check():
         "environment": None,
         "base_url": None
     }
-        
-
-@api_router.post("/test-plan-update/{user_id}")
-async def test_plan_update(user_id: str, plan_data: dict):
-    """Test endpoint to update user plan"""
-    try:
-
-        
-        if not user_management_service:
-            return {"error": "User management service not available"}
-        
-        updates = {
-            'current_plan': plan_data.get('plan', 'free')
-        }
-        
-        # Use the user management service to update user
-        updated_user = await user_management_service.update_user(user_id, updates)
-        
-        if updated_user:
-            return {
-                "success": True,
-                "user": updated_user,
-                "message": f"Plan updated to {updates['current_plan']}"
-            }
-        else:
-            return {"error": "User not found"}
-        
-    except Exception as e:
-        logger.error(f"Plan update error: {str(e)}")
-        return {"error": str(e)}
 
 @api_router.put("/users/{user_id}/preferences")
 async def update_user_preferences(user_id: str, preferences: dict):
@@ -1561,7 +1338,7 @@ async def evaluate_submission(submission: SubmissionRequest):
         # Debug logging removed for production
         # print(f"DEBUG: Starting evaluation for user {submission.user_id}, question type: {submission.question_type}")
         
-        # Get user data and validate limits using the user management service
+        # Get user data using the user management service
         if not user_management_service:
             raise HTTPException(status_code=500, detail="User management service not available")
         
@@ -1573,16 +1350,6 @@ async def evaluate_submission(submission: SubmissionRequest):
         questions_marked = user_data.get('questions_marked', 0)
         
         logger.debug(f"DEBUG: User plan: {current_plan}, credits: {credits}")
-        
-        # Check subscription status for access control
-        has_active_subscription = await subscription_service._check_user_subscription_access(submission.user_id) if subscription_service else False
-        
-        # Enforce access limits based on subscription status
-        if not has_active_subscription:
-            # Free users get 3 total evaluations
-            if questions_marked >= 3:
-                raise HTTPException(status_code=402, detail="Free plan limit reached. Upgrade to Unlimited to continue.")
-        # Users with active subscription have unlimited access
         
         # Check if question type requires marking scheme
         requires_marking_scheme = submission.question_type in ['igcse_summary', 'alevel_comparative', 'alevel_text_analysis', 'alevel_language_change']
@@ -1625,9 +1392,13 @@ async def evaluate_submission(submission: SubmissionRequest):
             else:
                 logger.debug("DEBUG: Criteria type unclear")
                 pass
-
-                
-                
+        elif submission.question_type == "igcse_directed":
+            if "Core Principle for Directed Writing Marking" in marking_criteria:
+                logger.debug("DEBUG: Correct directed writing criteria found in prompt")
+                pass
+            else:
+                logger.debug("DEBUG: Directed writing criteria not found in prompt")
+                pass
         
         # Add marking scheme to criteria if provided
         if submission.marking_scheme:
@@ -2013,7 +1784,7 @@ Student Response: {sanitized_response}
         
         logger.debug("DEBUG: Created feedback response, updating user stats...")
         
-        # Update user stats (credits no longer decremented)
+        # Update user stats
         new_questions_marked = questions_marked + 1
         await user_management_service.update_user(submission.user_id, {
             "questions_marked": new_questions_marked
@@ -2038,7 +1809,7 @@ Student Response: {sanitized_response}
         return feedback_response
         
     except HTTPException as http_exc:
-        # Preserve intended HTTP error codes (e.g., 400, 402, 404)
+        # Preserve intended HTTP error codes (e.g., 400, 404)
         raise http_exc
     except Exception as e:
         logger.error("ERROR in evaluate_submission", extra={"error": str(e)})
@@ -2196,8 +1967,6 @@ def extract_numeric_grade(grade_str):
     """Extract numeric value from grade string"""
     match = re.search(r'(\d+)', grade_str)
     return int(match.group(1)) if match else 0
-
-
 
 @api_router.get("/badges/{user_id}")
 async def get_user_badges(user_id: str):
@@ -2540,45 +2309,6 @@ async def get_evaluation_by_id(evaluation_id: str):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-@api_router.get("/transactions/{user_id}")
-async def get_transaction_history(user_id: str):
-    """Get transaction history for a specific user"""
-    try:
-
-        
-        # First get user email
-        user_response = supabase.table('assessment_users').select('email').eq('uid', user_id).execute()
-        if not user_response.data:
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        user_email = user_response.data[0]['email']
-        
-        # Get transactions for this user's email
-        transactions_response = supabase.table('assessment_transactions').select('*').eq('user_email', user_email).order('created_at', desc=True).execute()
-        transactions = transactions_response.data
-        
-
-        return {"transactions": transactions}
-    except Exception as e:
-        logger.error(f"Transaction history endpoint error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
-
-# Router will be included after all routes are defined
-
-# Serve frontend build (SPA) with client-side routing fallback
-FRONTEND_BUILD_DIR = (ROOT_DIR.parent / 'frontend' / 'build')
-if FRONTEND_BUILD_DIR.exists():
-    app.mount("/", StaticFiles(directory=str(FRONTEND_BUILD_DIR), html=True), name="frontend")
-
-# Note: Logging is already configured at the top of the file
-# This is just getting the logger instance for this section
-logger = logging.getLogger(__name__)
-
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    # No explicit close needed for supabase, it manages its own state
-    pass
-
 # --- Feedback collection ---
 
 class FeedbackSubmitModel(BaseModel):
@@ -2588,7 +2318,6 @@ class FeedbackSubmitModel(BaseModel):
     accurate: bool
     comments: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
-
 
 @api_router.post("/feedback")
 async def submit_feedback(feedback: FeedbackSubmitModel):
@@ -2623,415 +2352,19 @@ async def submit_feedback(feedback: FeedbackSubmitModel):
         logger.error(f"Unexpected error in submit_feedback: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Feedback save error: {str(e)}")
 
-# Subscription API endpoints
-# Initialize subscription service if available
-if SubscriptionService:
-    try:
-        subscription_service = SubscriptionService(supabase)
-        # Initialize webhook validator for server webhook endpoint
-        # Note: create_webhook_validator and WebhookValidator are not imported, so we'll set to None
-        webhook_validator = None
-    except Exception as e:
-        logger.warning(f"Failed to initialize subscription service: {e}")
-        subscription_service = None
-        webhook_validator = None
-else:
-    subscription_service = None
-    webhook_validator = None
-
-@api_router.get("/subscriptions/test")
-async def test_subscription_endpoint():
-    """Test endpoint for subscription service"""
-    return {
-        "message": "Subscription endpoint accessible",
-        "service_available": subscription_service is not None,
-        "payment_integration": False,
-        "cors_test": "✅ CORS working if you can see this"
-    }
-
-@api_router.post("/subscriptions/create-checkout")
-async def create_subscription_checkout(request: Request):
-    """Create a checkout session for subscription"""
-    if not subscription_service:
-        raise HTTPException(status_code=503, detail="Subscription service unavailable")
-    try:
-        # Parse JSON request body
-        request_data = await request.json()
-
-        
-        user_id = request_data.get('userId')
-        plan_type = request_data.get('planType')
-        metadata = request_data.get('metadata', {})
-        billing_address = request_data.get('billingAddress')
-        discount_code = request_data.get('discountCode')
-        
-        logger.info("create-checkout request", extra={
-            "component": "subscriptions",
-            "action": "create_checkout",
-            "user_id": user_id,
-            "plan_type": plan_type,
-            "has_metadata": bool(metadata),
-            "has_billing": bool(billing_address),
-            "has_discount": bool(discount_code)
-        })
-        if not user_id:
-            raise HTTPException(status_code=400, detail="User ID is required")
-        if not plan_type or plan_type not in ['monthly', 'yearly']:
-            raise HTTPException(status_code=400, detail="Valid plan type is required")
-        
-        result = await subscription_service.create_checkout_session(
-            user_id, plan_type, metadata, billing_address, discount_code
-        )
-        logger.info("create-checkout response", extra={
-            "component": "subscriptions",
-            "action": "create_checkout.success",
-            "user_id": user_id,
-            "has_url": bool(result.get('checkout_url') or result.get('checkoutUrl'))
-        })
-        return result
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Checkout creation failed: {str(e)}")
-
-@api_router.get("/subscriptions/status")
-async def get_subscription_status(user_id: str):
-    """Get user's subscription status"""
-    if not subscription_service:
-        raise HTTPException(status_code=503, detail="Subscription service unavailable")
-    try:
-        logger.debug("status request", extra={"component": "subscriptions", "action": "status", "user_id": user_id})
-        if not user_id:
-            raise HTTPException(status_code=400, detail="User ID is required")
-        
-        status = await subscription_service.get_subscription_status(user_id)
-        logger.debug("status response", extra={"component": "subscriptions", "action": "status.success", "user_id": user_id, "active": status.has_active_subscription})
-        return status.dict()
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get subscription status: {str(e)}")
-
-@api_router.post("/subscriptions/cancel")
-async def cancel_subscription(request: dict):
-    """Cancel user's subscription"""
-    if not subscription_service:
-        raise HTTPException(status_code=503, detail="Subscription service unavailable")
-    try:
-        user_id = request.get('userId')
-        subscription_id = request.get('subscriptionId')
-        cancel_at_period_end = request.get('cancelAtPeriodEnd', True)
-        logger.info("cancel request", extra={"component": "subscriptions", "action": "cancel", "user_id": user_id, "subscription_id": subscription_id, "at_period_end": cancel_at_period_end})
-        
-        if not user_id:
-            raise HTTPException(status_code=400, detail="User ID is required")
-        if not subscription_id:
-            raise HTTPException(status_code=400, detail="Subscription ID is required")
-        
-        result = await subscription_service.cancel_subscription(user_id, subscription_id, cancel_at_period_end)
-        logger.info("cancel response", extra={"component": "subscriptions", "action": "cancel.success", "user_id": user_id, "subscription_id": subscription_id})
-        return result
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Subscription cancellation failed: {str(e)}")
-
-@api_router.post("/subscriptions/reactivate")
-async def reactivate_subscription(request: dict):
-    """Reactivate user's subscription"""
-    if not subscription_service:
-        raise HTTPException(status_code=503, detail="Subscription service unavailable")
-    try:
-        user_id = request.get('userId')
-        subscription_id = request.get('subscriptionId')
-        logger.info("reactivate request", extra={"component": "subscriptions", "action": "reactivate", "user_id": user_id, "subscription_id": subscription_id})
-        
-        if not user_id:
-            raise HTTPException(status_code=400, detail="User ID is required")
-        if not subscription_id:
-            raise HTTPException(status_code=400, detail="Subscription ID is required")
-        
-        result = await subscription_service.reactivate_subscription(user_id, subscription_id)
-        logger.info("reactivate response", extra={"component": "subscriptions", "action": "reactivate.success", "user_id": user_id, "subscription_id": subscription_id})
-        return result
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Subscription reactivation failed: {str(e)}")
-
-@api_router.post("/subscriptions/customer-portal")
-async def create_customer_portal_session(request: dict):
-    """Create customer portal session for payment method management"""
-    if not subscription_service:
-        raise HTTPException(status_code=503, detail="Subscription service unavailable")
-    try:
-        user_id = request.get('userId')
-        logger.info("customer-portal request", extra={"component": "subscriptions", "action": "customer_portal", "user_id": user_id})
-        
-        if not user_id:
-            raise HTTPException(status_code=400, detail="User ID is required")
-        
-        result = await subscription_service.create_customer_portal_session(user_id)
-        logger.info("customer-portal response", extra={"component": "subscriptions", "action": "customer_portal.success", "user_id": user_id, "has_url": bool(result.get('portal_url'))})
-        return result
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Customer portal creation failed: {str(e)}")
-
-@api_router.get("/subscriptions/billing-history")
-async def get_billing_history(user_id: str, limit: int = 50):
-    """Get user's billing history with proper error handling"""
-    if not subscription_service:
-        raise HTTPException(status_code=503, detail="Subscription service unavailable")
-    try:
-        logger.info(f"Billing history request: user_id={user_id}, limit={limit}")
-        
-        if not user_id:
-            raise HTTPException(status_code=400, detail="User ID is required")
-        
-        # Validate limit parameter
-        if limit < 1 or limit > 100:
-            limit = 50  # Default to reasonable limit
-        
-        # Call the corrected method with both parameters
-        history = await subscription_service.get_billing_history(user_id, limit)
-        
-        result = {"data": [item.dict() for item in history]}
-        logger.info(f"Billing history response: user_id={user_id}, count={len(result['data'])}")
-        return result
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Failed to get billing history for user {user_id}: {str(e)}")
-        logger.error(f"Error type: {type(e).__name__}")
-        import traceback
-        logger.error(f"Stack trace: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Failed to get billing history: {str(e)}")
-
-
-
-
-@api_router.post("/subscriptions/confirm/{user_id}")
-async def confirm_subscription(user_id: str):
-    """Manual endpoint to confirm subscription and grant premium access"""
-    if not subscription_service:
-        raise HTTPException(status_code=503, detail="Subscription service unavailable")
-    
-    try:
-        # Update user to unlimited - SIMPLE AND DIRECT
-        supabase.table('assessment_users').update({
-            'current_plan': 'unlimited'
-        }).eq('uid', user_id).execute()
-        
-        logger.info(f"Manually confirmed subscription for user {user_id} - set current_plan='unlimited'")
-        
-        return {
-            "status": "success",
-            "message": f"User {user_id} now has unlimited access",
-            "current_plan": "unlimited"
-        }
-    except Exception as e:
-        logger.error(f"Failed to confirm subscription: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@api_router.get("/subscriptions/status/{user_id}", response_model=SubscriptionStatusResponse)
-async def get_subscription_status_by_id(user_id: str):
-    """
-    Get user's current subscription status
-    
-    Returns detailed subscription information including:
-    - Active subscription status
-    - Plan type and dates
-    - Customer information
-    """
-    try:
-        logger.info(f"Getting subscription status for user: {user_id}")
-        
-        user_result = supabase.table('assessment_users').select('*').eq('uid', user_id).execute()
-        
-        if not user_result.data:
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        user = user_result.data[0]
-        
-        # Determine if subscription is active
-        subscription_status = user.get('subscription_status', 'free')
-        is_active = subscription_status not in ['free', 'inactive', 'cancelled', 'expired']
-        
-        return SubscriptionStatusResponse(
-            has_active_subscription=is_active,
-            subscription_status=subscription_status,
-            current_plan=user.get('current_plan', 'free'),
-            subscription_start_date=user.get('subscription_start_date'),
-            subscription_end_date=user.get('subscription_end_date'),
-            subscription_type=user.get('subscription_type'),
-            customer_id=user.get('customer_id'),
-            cancel_at_period_end=user.get('cancel_at_period_end', False)
-        )
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error getting subscription status: {e}")
-        raise HTTPException(status_code=500, detail="Failed to get subscription status")
-
-@api_router.post("/subscriptions/action")
-async def subscription_action(request: SubscriptionActionRequest):
-    """
-    Perform subscription actions (cancel, reactivate)
-    
-    Supports:
-    - cancel: Cancel active subscription
-    - reactivate: Reactivate cancelled subscription
-    """
-    try:
-        logger.info(f"Performing subscription action '{request.action}' for user {request.user_id}")
-        
-        # Get user data
-        user_result = supabase.table('assessment_users').select('*').eq('uid', request.user_id).execute()
-        
-        if not user_result.data:
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        user = user_result.data[0]
-        
-        if request.action == "cancel":
-            # Update user subscription status to cancelled
-            supabase.table('assessment_users').update({
-                'subscription_status': 'cancelled',
-                'cancel_at_period_end': True,
-                'updated_at': datetime.utcnow().isoformat()
-            }).eq('uid', request.user_id).execute()
-            
-            return {"success": True, "message": "Subscription cancelled successfully"}
-            
-        elif request.action == "reactivate":
-            # Reactivate subscription
-            supabase.table('assessment_users').update({
-                'subscription_status': 'active',
-                'cancel_at_period_end': False,
-                'updated_at': datetime.utcnow().isoformat()
-            }).eq('uid', request.user_id).execute()
-            
-            return {"success": True, "message": "Subscription reactivated successfully"}
-            
-        else:
-            raise HTTPException(status_code=400, detail="Invalid action. Use 'cancel' or 'reactivate'")
-            
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Subscription action error: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to perform action: {str(e)}")
-
-@api_router.get("/subscriptions/plans")
-async def get_subscription_plans():
-    """Get available subscription plans with pricing"""
-    return {
-        "plans": [
-            {
-                "id": "monthly",
-                "name": "Monthly Plan",
-                "price": 4.99,
-                "currency": "USD",
-                "interval": "month",
-                "product_id": None,
-                "features": [
-                    "Unlimited assessments",
-                    "Advanced analytics", 
-                    "Priority support",
-                    "Export results"
-                ]
-            },
-            {
-                "id": "yearly", 
-                "name": "Yearly Plan",
-                "price": 49.00,
-                "currency": "USD", 
-                "interval": "year",
-                "product_id": None,
-                "features": [
-                    "Unlimited assessments",
-                    "Advanced analytics",
-                    "Priority support", 
-                    "Export results",
-                    "Save 17% annually"
-                ],
-                "popular": True
-            }
-        ]
-    }
-
-@api_router.post("/debug/webhook-signature-test")
-async def test_webhook_signature(request: Request):
-    """Debug endpoint to test webhook signature validation"""
-    import hmac
-    import hashlib
-    import base64
-    
-    body = await request.body()
-    
-    # Get headers
-    signature = request.headers.get('webhook-signature', '')
-    timestamp = request.headers.get('webhook-timestamp', '')
-    
-    # Get webhook secret
-    webhook_secret = ''
-    
-    # Extract signature from v1, format
-    actual_sig = signature[3:] if signature.startswith('v1,') else signature
-    
-    # Generate expected signatures with different formats
-    payload_str = body.decode('utf-8')
-    
-    results = {}
-    
-    # Format 1: timestamp.payload
-    signing_1 = f"{timestamp}.{payload_str}"
-    expected_1 = base64.b64encode(
-        hmac.new(webhook_secret.encode(), signing_1.encode(), hashlib.sha256).digest()
-    ).decode()
-    results['timestamp.payload'] = {
-        'expected': expected_1[:20] + '...',
-        'matches': actual_sig == expected_1
-    }
-    
-    # Format 2: payload only
-    expected_2 = base64.b64encode(
-        hmac.new(webhook_secret.encode(), payload_str.encode(), hashlib.sha256).digest()
-    ).decode()
-    results['payload_only'] = {
-        'expected': expected_2[:20] + '...',
-        'matches': actual_sig == expected_2
-    }
-    
-    # Format 3: timestamp:payload
-    signing_3 = f"{timestamp}:{payload_str}"
-    expected_3 = base64.b64encode(
-        hmac.new(webhook_secret.encode(), signing_3.encode(), hashlib.sha256).digest()
-    ).decode()
-    results['timestamp:payload'] = {
-        'expected': expected_3[:20] + '...',
-        'matches': actual_sig == expected_3
-    }
-    
-    return {
-        'provided_signature': actual_sig[:20] + '...',
-        'timestamp': timestamp,
-        'payload_length': len(body),
-        'secret_configured': bool(webhook_secret),
-        'secret_length': len(webhook_secret),
-        'formats_tested': results,
-        'validation_bypass': False
-    }
-        
 # Include the API router after all routes are defined
 app.include_router(api_router)
+
+# Serve frontend build (SPA) with client-side routing fallback
+FRONTEND_BUILD_DIR = (ROOT_DIR.parent / 'frontend' / 'build')
+if FRONTEND_BUILD_DIR.exists():
+    app.mount("/", StaticFiles(directory=str(FRONTEND_BUILD_DIR), html=True), name="frontend")
+
+# Note: Logging is already configured at the top of the file
+# This is just getting the logger instance for this section
+logger = logging.getLogger(__name__)
+
+@app.on_event("shutdown")
+async def shutdown_db_client():
+    # No explicit close needed for supabase, it manages its own state
+    pass

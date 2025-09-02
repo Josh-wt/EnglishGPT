@@ -7,28 +7,110 @@ import { motion } from 'framer-motion';
 export class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null, errorInfo: null };
+    this.state = { 
+      hasError: false, 
+      error: null, 
+      errorInfo: null,
+      isSecurityError: false 
+    };
   }
 
   static getDerivedStateFromError(error) {
-    return { hasError: true };
+    // Check if this is a security-related error
+    const isSecurityError = error.message && (
+      error.message.includes('nodeType') ||
+      error.message.includes('Permission denied') ||
+      error.message.includes('cross-origin') ||
+      error.message.includes('SecurityError')
+    );
+
+    return { 
+      hasError: true, 
+      isSecurityError,
+      error 
+    };
   }
 
   componentDidCatch(error, errorInfo) {
-    this.setState({
-      error: error,
-      errorInfo: errorInfo,
+    console.error('🔒 ErrorBoundary caught an error:', {
+      error: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+      isSecurityError: this.state.isSecurityError,
+      timestamp: new Date().toISOString()
     });
-    
-    // Log error to console in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error caught by boundary:', error, errorInfo);
+
+    // Log additional debugging information
+    if (this.state.isSecurityError) {
+      console.warn('🔒 Security-related error detected. This may be caused by:', {
+        browserExtensions: 'Browser extensions trying to access DOM',
+        recordingTools: 'Screen recording or automation tools',
+        iframeAccess: 'Cross-origin iframe access attempts',
+        corsPolicy: 'Cross-origin resource sharing restrictions',
+        timestamp: new Date().toISOString()
+      });
     }
   }
 
   render() {
     if (this.state.hasError) {
-      return <ErrorFallback error={this.state.error} errorInfo={this.state.errorInfo} />;
+      if (this.state.isSecurityError) {
+        // Show a user-friendly message for security errors
+        return (
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+            <div className="max-w-md mx-auto text-center">
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <div className="text-6xl mb-4">🔒</div>
+                <h1 className="text-xl font-semibold text-gray-900 mb-2">
+                  Browser Security Restriction
+                </h1>
+                <p className="text-gray-600 mb-4">
+                  A browser security policy is preventing this page from loading properly. 
+                  This is usually caused by browser extensions or recording tools.
+                </p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <h3 className="font-semibold text-blue-900 mb-2">To fix this:</h3>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• Disable browser extensions temporarily</li>
+                    <li>• Try opening in an incognito/private window</li>
+                    <li>• Disable screen recording tools</li>
+                    <li>• Try a different browser</li>
+                  </ul>
+                </div>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Reload Page
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // Show a generic error message for other errors
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="max-w-md mx-auto text-center">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="text-6xl mb-4">⚠️</div>
+              <h1 className="text-xl font-semibold text-gray-900 mb-2">
+                Something went wrong
+              </h1>
+              <p className="text-gray-600 mb-4">
+                An unexpected error occurred. Please try refreshing the page.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Reload Page
+              </button>
+            </div>
+          </div>
+        </div>
+      );
     }
 
     return this.props.children;
