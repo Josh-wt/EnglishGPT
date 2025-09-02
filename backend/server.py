@@ -17,13 +17,15 @@ import hmac
 import httpx
 import json
 import base64
+import re
 from io import BytesIO
 from PIL import Image
 import PyPDF2
 import io
+from collections import defaultdict
 
 # Import billing API module
-from billing_api import router as billing_router
+# billing_api removed
 
 # Import user management services
 from user_management_service import UserManagementService
@@ -66,6 +68,11 @@ try:
 except ImportError as e:
     logger.warning(f"Subscription service not available: {e}")
     SubscriptionService = None
+
+# Initialize subscription service and webhook validator variables
+subscription_service = None
+webhook_validator = None
+
 # Payment integration removed
 
 ROOT_DIR = Path(__file__).resolve().parent
@@ -122,7 +129,7 @@ else:
     logger.warning("Auth recovery middleware not added - user management service not available")
 
 # Include billing router
-app.include_router(billing_router)
+# billing_router removed
 
 # CORS middleware
 @app.middleware("http")
@@ -1029,7 +1036,6 @@ def parse_marks_value(marks_text: Optional[str]) -> int:
     if not marks_text:
         return 0
     try:
-        import re
         # Find all integers and take the first as achieved marks
         numbers = re.findall(r"\d+", str(marks_text))
         return int(numbers[0]) if numbers else 0
@@ -1569,7 +1575,7 @@ async def evaluate_submission(submission: SubmissionRequest):
         logger.debug(f"DEBUG: User plan: {current_plan}, credits: {credits}")
         
         # Check subscription status for access control
-        has_active_subscription = await subscription_service._check_user_subscription_access(submission.user_id)
+        has_active_subscription = await subscription_service._check_user_subscription_access(submission.user_id) if subscription_service else False
         
         # Enforce access limits based on subscription status
         if not has_active_subscription:
@@ -2188,7 +2194,6 @@ def calculate_streak(dates):
 
 def extract_numeric_grade(grade_str):
     """Extract numeric value from grade string"""
-    import re
     match = re.search(r'(\d+)', grade_str)
     return int(match.group(1)) if match else 0
 
@@ -2246,14 +2251,12 @@ async def get_user_analytics(user_id: str):
 
                 if refresh_needed or not cached:
                     # Aggregate per question type: average score and improvement suggestions
-                    from collections import defaultdict
                     type_to_scores = defaultdict(list)
                     type_to_improvements = defaultdict(list)
                     for ev in evaluations:
                         qtype = ev.get('question_type')
                         grade_str = ev.get('grade', '')
                         # Extract achieved and total
-                        import re
                         nums = re.findall(r"(\d+)\/(\d+)", str(grade_str))
                         if nums:
                             achieved = int(nums[0][0])
@@ -2626,7 +2629,8 @@ if SubscriptionService:
     try:
         subscription_service = SubscriptionService(supabase)
         # Initialize webhook validator for server webhook endpoint
-        webhook_validator = create_webhook_validator() if create_webhook_validator else WebhookValidator()
+        # Note: create_webhook_validator and WebhookValidator are not imported, so we'll set to None
+        webhook_validator = None
     except Exception as e:
         logger.warning(f"Failed to initialize subscription service: {e}")
         subscription_service = None
