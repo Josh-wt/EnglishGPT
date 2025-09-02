@@ -381,6 +381,80 @@ class UserManagementService:
             logger.error(f"Error finding orphaned users: {str(e)}")
             return []
     
+    async def merge_user_accounts(self, auth_user_id: str, existing_user_id: str) -> Dict[str, Any]:
+        """
+        Merge two user accounts when the same email exists with different user IDs
+        
+        Args:
+            auth_user_id: The current auth user ID
+            existing_user_id: The existing user ID in the database
+            
+        Returns:
+            Dict containing merge result
+        """
+        try:
+            logger.info(f"Merging user accounts: auth_user_id={auth_user_id}, existing_user_id={existing_user_id}")
+            
+            # Get both user records
+            auth_user = await self.get_user_by_id(auth_user_id)
+            existing_user = await self.get_user_by_id(existing_user_id)
+            
+            if not existing_user:
+                logger.error(f"Existing user {existing_user_id} not found")
+                return {
+                    'success': False,
+                    'error': 'Existing user not found'
+                }
+            
+            # Merge strategy: keep the newer/more complete data
+            merged_data = {}
+            
+            # Prefer existing user's data for most fields, but update with auth user's data
+            if auth_user:
+                merged_data.update(auth_user)
+            
+            merged_data.update(existing_user)
+            merged_data['uid'] = auth_user_id  # Always use the auth user ID
+            merged_data['updated_at'] = datetime.utcnow().isoformat()
+            
+            # Update the existing user record with the new UID
+            try:
+                update_result = self.supabase.table('assessment_users').update({
+                    'uid': auth_user_id,
+                    'updated_at': datetime.utcnow().isoformat()
+                }).eq('uid', existing_user_id).execute()
+                
+                if update_result.data:
+                    logger.info(f"Successfully merged user accounts: {existing_user_id} -> {auth_user_id}")
+                    
+                    # Get the merged user data
+                    merged_user = await self.get_user_by_id(auth_user_id)
+                    if merged_user:
+                        return {
+                            'success': True,
+                            'user': merged_user,
+                            'message': f'User accounts merged: {existing_user_id} -> {auth_user_id}'
+                        }
+                
+                return {
+                    'success': False,
+                    'error': 'Failed to update user record'
+                }
+                
+            except Exception as update_error:
+                logger.error(f"Error updating user record: {str(update_error)}")
+                return {
+                    'success': False,
+                    'error': f'Update error: {str(update_error)}'
+                }
+                
+        except Exception as e:
+            logger.error(f"Error merging user accounts: {str(e)}")
+            return {
+                'success': False,
+                'error': f'Merge error: {str(e)}'
+            }
+    
     async def handle_auth_database_mismatch(
         self,
         auth_user_id: str,
@@ -402,7 +476,28 @@ class UserManagementService:
         try:
             logger.info(f"Handling auth/database mismatch for user: {auth_user_id} ({email})")
             
-            # First, try to sync the user from auth
+            # First, check if there's already a user with this email but different ID
+            existing_user = await self.get_user_by_email(email)
+            if existing_user and existing_user.get('uid') != auth_user_id:
+                logger.warning(f"Email {email} already exists with different user ID: {existing_user.get('uid')}")
+                
+                # Merge the user accounts
+                logger.info(f"Merging user accounts: {existing_user.get('uid')} -> {auth_user_id}")
+                merge_result = await self.merge_user_accounts(auth_user_id, existing_user.get('uid'))
+                
+                if merge_result['success']:
+                    logger.info(f"Successfully merged user accounts: {existing_user.get('uid')} -> {auth_user_id}")
+                    return {
+                        'success': True,
+                        'recovery_method': 'account_merge',
+                        'user': merge_result['user'],
+                        'message': merge_result['message']
+                    }
+                else:
+                    logger.error(f"Failed to merge user accounts: {merge_result.get('error')}")
+                    # Continue with other recovery methods
+            
+            # Try to sync the user from auth
             sync_result = await self.sync_user_from_auth(auth_user_id, email, metadata)
             
             if sync_result['success']:
