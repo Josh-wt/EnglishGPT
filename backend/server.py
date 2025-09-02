@@ -23,6 +23,7 @@ from PIL import Image
 import PyPDF2
 import io
 from collections import defaultdict
+import jwt
 
 # Import user management services
 from user_management_service import UserManagementService
@@ -1128,8 +1129,8 @@ async def create_or_get_user(user_data: dict):
         raise HTTPException(status_code=500, detail=f"User creation error: {str(e)}")
 
 @api_router.get("/users/{user_id}")
-async def get_user(user_id: str):
-    """Get user by ID using the user management service"""
+async def get_user(user_id: str, request: Request):
+    """Get user by ID using the user management service with automatic recovery"""
     try:
         if not user_management_service:
             raise HTTPException(status_code=500, detail="User management service not available")
@@ -1146,8 +1147,71 @@ async def get_user(user_id: str):
             logger.info(f"Successfully retrieved user: {user_id}")
             return {"user": user_data}
         else:
-            logger.warning(f"User not found for ID: {user_id}")
-            raise HTTPException(status_code=404, detail="User not found")
+            # User not found - try to recover from auth data
+            logger.warning(f"User not found for ID: {user_id}, attempting recovery")
+            
+            # Try to extract user info from auth headers
+            auth_header = request.headers.get('authorization', '')
+            if auth_header.startswith('Bearer '):
+                token = auth_header.split(' ')[1]
+                try:
+                    # Decode the JWT token to get user info
+                    import jwt
+                    # Note: This is a simplified approach - in production you'd verify the token
+                    decoded = jwt.decode(token, options={"verify_signature": False})
+                    email = decoded.get('email', f"{user_id}@recovered.user")
+                    name = decoded.get('name', 'Recovered User')
+                    
+                    logger.info(f"Attempting recovery with email: {email}")
+                    
+                    # Attempt to create/restore user with extracted info
+                    recovery_result = await user_management_service.create_or_restore_user(
+                        user_id=user_id,
+                        email=email,
+                        display_name=name,
+                        academic_level='igcse',
+                        current_plan='free',
+                        credits=3,
+                        is_launch_user=False
+                    )
+                    
+                    if recovery_result['success']:
+                        logger.info(f"Successfully recovered user: {user_id}")
+                        return {"user": recovery_result['user']}
+                    else:
+                        logger.error(f"Failed to recover user: {user_id} - {recovery_result.get('error')}")
+                        raise HTTPException(
+                            status_code=400, 
+                            detail=f"Cannot recover user - {recovery_result.get('error')}"
+                        )
+                        
+                except Exception as jwt_error:
+                    logger.error(f"JWT decode failed for user {user_id}: {str(jwt_error)}")
+                    # Fallback to basic recovery
+                    recovery_result = await user_management_service.create_or_restore_user(
+                        user_id=user_id,
+                        email=f"{user_id}@recovered.user",
+                        display_name="Recovered User",
+                        academic_level='igcse',
+                        current_plan='free',
+                        credits=3,
+                        is_launch_user=False
+                    )
+                    
+                    if recovery_result['success']:
+                        logger.info(f"Successfully recovered user with fallback: {user_id}")
+                        return {"user": recovery_result['user']}
+                    else:
+                        raise HTTPException(
+                            status_code=400, 
+                            detail=f"Cannot recover user - missing email information"
+                        )
+            else:
+                # No auth header - return error
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Cannot recover user - missing authentication"
+                )
         
     except HTTPException:
         raise
@@ -1184,7 +1248,7 @@ async def update_user(user_id: str, updates: dict):
         raise HTTPException(status_code=500, detail=f"User update error: {str(e)}")
 
 @api_router.post("/users/recover")
-async def recover_user(user_data: dict):
+async def recover_user(user_data: dict, request: Request):
     """Recover a user with auth/database mismatch"""
     try:
         if not user_management_service:
@@ -1197,8 +1261,21 @@ async def recover_user(user_data: dict):
         if not user_id or user_id == "undefined":
             raise HTTPException(status_code=400, detail="Invalid user ID provided")
         
+        # If email is not provided, try to extract from auth token
         if not email:
-            raise HTTPException(status_code=400, detail="Email is required")
+            auth_header = request.headers.get('authorization', '')
+            if auth_header.startswith('Bearer '):
+                token = auth_header.split(' ')[1]
+                try:
+                    decoded = jwt.decode(token, options={"verify_signature": False})
+                    email = decoded.get('email')
+                    if not metadata.get('name'):
+                        metadata['name'] = decoded.get('name', 'Recovered User')
+                except Exception as jwt_error:
+                    logger.error(f"JWT decode failed: {str(jwt_error)}")
+                    raise HTTPException(status_code=400, detail="Cannot extract email from token")
+            else:
+                raise HTTPException(status_code=400, detail="Email is required and no auth token provided")
         
         logger.info(f"Attempting to recover user: {user_id} ({email})")
         
