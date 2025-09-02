@@ -59,19 +59,14 @@ logging.getLogger("supabase").setLevel(logging.INFO)
 # Supabase connection
 from supabase import create_client, Client
 
-# Dodo Payments integration
+# Payment integration removed
 try:
     from subscription_service import SubscriptionService
-    from dodo_payments_client import DodoPaymentsClient, WebhookValidator, create_webhook_validator
-    DODO_INTEGRATION_AVAILABLE = True
-    logger.info("Dodo Payments integration available")
+    logger.info("Subscription service available")
 except ImportError as e:
-    logger.warning(f"Dodo Payments integration not available: {e}")
+    logger.warning(f"Subscription service not available: {e}")
     SubscriptionService = None
-    DodoPaymentsClient = None
-    WebhookValidator = None
-    create_webhook_validator = None
-    DODO_INTEGRATION_AVAILABLE = False
+# Payment integration removed
 
 ROOT_DIR = Path(__file__).resolve().parent
 
@@ -232,7 +227,7 @@ async def health_check():
         "status": "healthy",
         "message": "Backend is running",
         "supabase_connected": supabase is not None,
-        "dodo_integration": DODO_INTEGRATION_AVAILABLE,
+        "payment_integration": False,
         "subscription_service": subscription_service is not None
     }
 
@@ -264,13 +259,8 @@ async def hello():
 async def debug_webhook_status():
     """Check webhook configuration"""
     return {
-        "webhook_key_configured": bool(os.environ.get('DODO_PAYMENTS_WEBHOOK_KEY')),
         "subscription_service": subscription_service is not None,
-        "dodo_integration": DODO_INTEGRATION_AVAILABLE,
-        "api_key_configured": bool(os.environ.get('DODO_PAYMENTS_API_KEY')),
-        "environment": os.environ.get('DODO_PAYMENTS_ENVIRONMENT'),
-        "base_url": os.environ.get('DODO_PAYMENTS_BASE_URL'),
-        "endpoint_url": "https://englishgpt.everythingenglish.xyz/api/webhooks/dodo"
+        "payment_integration": False
     }
 
 @api_router.get("/debug/subscription-check/{user_id}")
@@ -285,17 +275,17 @@ async def debug_subscription_check(user_id: str):
         has_access = await subscription_service._check_user_subscription_access(user_id) if subscription_service else False
         
         # Check subscription records
-        sub_resp = supabase.table('dodo_subscriptions').select('*').eq('user_id', user_id).execute()
+        sub_resp = supabase.table('subscriptions').select('*').eq('user_id', user_id).execute()
         
         # Check recent webhook events
-        webhook_resp = supabase.table('dodo_webhook_events').select('*').order('created_at', desc=True).limit(5).execute()
+        webhook_resp = supabase.table('webhook_events').select('*').order('created_at', desc=True).limit(5).execute()
         
         return {
             "user_found": bool(user_data),
             "user_id": user_id,
             "current_plan": user_data.get('current_plan') if user_data else None,
             "subscription_status": user_data.get('subscription_status') if user_data else None,
-            "dodo_customer_id": user_data.get('dodo_customer_id') if user_data else None,
+            "customer_id": user_data.get('customer_id') if user_data else None,
             "has_subscription_access": has_access,
             "subscription_records": sub_resp.data,
             "subscription_count": len(sub_resp.data),
@@ -306,94 +296,9 @@ async def debug_subscription_check(user_id: str):
     except Exception as e:
         return {"error": str(e)}
 
-@api_router.post("/debug/check-webhook-events")
-async def check_webhook_events(request: dict):
-    """Check webhook events for debugging"""
-    try:
-        customer_id = request.get('customer_id')
-        
-        # Get recent webhook events
-        webhook_events = supabase.table('dodo_webhook_events').select('*').order('created_at', desc=True).limit(10).execute()
-        
-        # Filter events that might be related to this customer
-        related_events = []
-        all_events = []
-        
-        for event in webhook_events.data:
-            payload = event.get('payload', {})
-            event_data = payload.get('data', {})
-            
-            # Extract customer ID from various possible locations
-            event_customer_id = (
-                event_data.get('customer_id') or 
-                event_data.get('customer', {}).get('customer_id') or
-                event_data.get('customer', {}).get('id')
-            )
-            
-            event_summary = {
-                'event_type': event.get('event_type'),
-                'processed': event.get('processed'),
-                'error_message': event.get('error_message'),
-                'created_at': event.get('created_at'),
-                'customer_id': event_customer_id,
-                'metadata': event_data.get('metadata', {})
-            }
-            
-            all_events.append(event_summary)
-            
-            # Check if this event is related to our customer
-            if event_customer_id == customer_id or not customer_id:
-                related_events.append({
-                    **event_summary,
-                    'full_payload': payload
-                })
-        
-        return {
-            "total_webhook_events": len(webhook_events.data),
-            "all_events_summary": all_events,
-            "related_events": related_events,
-            "customer_id_searched": customer_id
-        }
-        
-    except Exception as e:
-        return {"error": str(e)}
 
-@api_router.post("/debug/manual-activate-subscription")
-async def manual_activate_subscription(request: dict):
-    """Manually activate subscription for paid user (emergency fix)"""
-    user_id = request.get('userId')
-    plan_type = request.get('planType', 'monthly')
+
     
-    try:
-        # Create subscription record manually
-        subscription_record = {
-            'id': str(uuid.uuid4()),
-            'user_id': user_id,
-            'dodo_subscription_id': f'manual_{int(datetime.utcnow().timestamp())}',
-            'dodo_customer_id': request.get('customerId', 'manual_customer'),
-            'status': 'active',
-            'plan_type': plan_type,
-            'current_period_start': datetime.utcnow().isoformat(),
-            'current_period_end': (datetime.utcnow() + timedelta(days=30 if plan_type == 'monthly' else 365)).isoformat(),
-            'cancel_at_period_end': False,
-            'created_at': datetime.utcnow().isoformat(),
-            'updated_at': datetime.utcnow().isoformat()
-        }
-        
-        # Insert subscription record
-        supabase.table('dodo_subscriptions').insert(subscription_record).execute()
-        
-        # Update user plan
-        supabase.table('assessment_users').update({
-            'current_plan': 'unlimited',
-            'subscription_status': 'active',
-            'updated_at': datetime.utcnow().isoformat()
-        }).eq('uid', user_id).execute()
-        
-        return {"success": True, "message": "Subscription manually activated", "subscription": subscription_record}
-        
-    except Exception as e:
-        return {"error": str(e)}    
 
 # AI Configuration (env only; no hardcoded defaults)
 DEEPSEEK_API_KEY = os.environ.get('DEEPSEEK_API_KEY')
@@ -433,6 +338,8 @@ class FeedbackResponse(BaseModel):
     writing_marks: Optional[str] = None
     ao1_marks: Optional[str] = None
     ao2_marks: Optional[str] = None
+    content_structure_marks: Optional[str] = None
+    style_accuracy_marks: Optional[str] = None
     improvement_suggestions: List[str]
     strengths: List[str] = Field(default_factory=list)
     timestamp: datetime = Field(default_factory=datetime.utcnow)
@@ -491,20 +398,20 @@ class SubscriptionStatusResponse(BaseModel):
     subscription_start_date: Optional[str] = None
     subscription_end_date: Optional[str] = None
     subscription_type: Optional[str] = None
-    dodo_customer_id: Optional[str] = None
+    customer_id: Optional[str] = None
     cancel_at_period_end: bool = False
 
 class SubscriptionActionRequest(BaseModel):
     user_id: str = Field(..., description="User UUID")
     action: str = Field(..., description="Action to perform: 'cancel', 'reactivate'")
 
-# Payment Config - Ready for DodoPayments integration
+    # Payment Config - Ready for future payment integration
 USD_TO_INR = 86.6
 MIN_USD = 3
 
-# PayU endpoints removed - ready for DodoPayments integration
+    # PayU endpoints removed - ready for future payment integration
 
-# Payment endpoints removed - ready for DodoPayments integration
+# Payment endpoints removed - ready for future payment integration
 
 # Question Types Configuration
 QUESTION_TYPES = [
@@ -1101,8 +1008,8 @@ That being said, PLEASE give the student the highest marks possible if the user'
 # --- Mark totals configuration for dynamic grade computation ---
 QUESTION_TOTALS = {
     "igcse_writers_effect": {"total": 15, "components": {"reading": 15}},
-    "igcse_narrative": {"total": 40, "components": {"reading": 16, "writing": 24}},
-    "igcse_descriptive": {"total": 40, "components": {"reading": 16, "writing": 24}},
+            "igcse_narrative": {"total": 40, "components": {"content_structure": 16, "style_accuracy": 24}},
+        "igcse_descriptive": {"total": 40, "components": {"content_structure": 16, "style_accuracy": 24}},
     # Summary is 15 (reading) + 25 (writing) = 40 total
     "igcse_summary": {"total": 40, "components": {"reading": 15, "writing": 25}},
     # Directed writing in IGCSE typically 15 + 25 = 40
@@ -1129,7 +1036,7 @@ def parse_marks_value(marks_text: Optional[str]) -> int:
     except Exception:
         return 0
 
-def compute_overall_grade(question_type: str, reading_marks: Optional[str], writing_marks: Optional[str], ao1_marks: Optional[str], ao2_or_ao3_marks: Optional[str]) -> str:
+def compute_overall_grade(question_type: str, reading_marks: Optional[str], writing_marks: Optional[str], ao1_marks: Optional[str], ao2_or_ao3_marks: Optional[str], content_structure_marks: Optional[str] = None, style_accuracy_marks: Optional[str] = None) -> str:
     """Compute a dynamic overall grade string 'score/total' for the given question type.
     Uses QUESTION_TOTALS and the extracted component marks.
     """
@@ -1142,8 +1049,14 @@ def compute_overall_grade(question_type: str, reading_marks: Optional[str], writ
     # Map component values based on type
     components = cfg["components"]
     
+    # Special handling for descriptive/narrative questions which use content_structure and style_accuracy
+    if question_type in ["igcse_narrative", "igcse_descriptive"]:
+        if "content_structure" in components:
+            achieved += parse_marks_value(content_structure_marks)
+        if "style_accuracy" in components:
+            achieved += parse_marks_value(style_accuracy_marks)
     # Special handling for alevel_language_change which uses AO2/AO4/AO5
-    if question_type == "alevel_language_change":
+    elif question_type == "alevel_language_change":
         # For language change: ao2_or_ao3_marks contains AO2, ao1_marks contains AO4, reading_marks contains AO5
         if "ao2" in components:
             achieved += parse_marks_value(ao2_or_ao3_marks)  # AO2 marks
@@ -1472,9 +1385,9 @@ async def recover_user(user_data: dict):
 async def debug_webhook_status():
     """Check webhook configuration"""
     return {
-        "webhook_key_configured": bool(os.environ.get('DODO_PAYMENTS_WEBHOOK_KEY')),
+        "webhook_key_configured": False,
         "subscription_service": subscription_service is not None,
-        "endpoint_url": "https://englishgpt.everythingenglish.xyz/api/webhooks/dodo"
+        "endpoint_url": "https://englishgpt.everythingenglish.xyz/api/webhooks"
     }
 
 @api_router.get("/debug/subscription-check/{user_id}")
@@ -1491,12 +1404,12 @@ async def debug_subscription_check(user_id: str):
         has_access = await subscription_service._check_user_subscription_access(user_id) if subscription_service else False
         
         # Check subscription records
-        sub_resp = supabase.table('dodo_subscriptions').select('*').eq('user_id', user_id).execute()
+        sub_resp = supabase.table('subscriptions').select('*').eq('user_id', user_id).execute()
         
         return {
             "user_found": bool(user_data),
             "current_plan": user_data.get('current_plan') if user_data else None,
-            "dodo_customer_id": user_data.get('dodo_customer_id') if user_data else None,
+            "customer_id": user_data.get('customer_id') if user_data else None,
             "has_subscription_access": has_access,
             "subscription_records": sub_resp.data,
             "questions_marked": user_data.get('questions_marked') if user_data else 0
@@ -1536,10 +1449,10 @@ async def get_orphaned_users():
 async def debug_env_check():
     """Check environment variables"""
     return {
-        "api_key_configured": bool(os.environ.get('DODO_PAYMENTS_API_KEY')),
-        "api_key_first_10": os.environ.get('DODO_PAYMENTS_API_KEY', '')[:10],
-        "environment": os.environ.get('DODO_PAYMENTS_ENVIRONMENT'),
-        "base_url": os.environ.get('DODO_PAYMENTS_BASE_URL')
+        "api_key_configured": False,
+        "api_key_first_10": '',
+        "environment": None,
+        "base_url": None
     }
         
 
@@ -1858,6 +1771,8 @@ Student Response: {sanitized_response}
             writing_marks = "N/A"
             ao1_marks = "N/A"
             ao2_marks = "N/A"
+            content_structure_marks = "N/A"
+            style_accuracy_marks = "N/A"
             
             # Only extract marks that are relevant for this question type
             if submission.question_type in ['igcse_writers_effect']:
@@ -1872,23 +1787,33 @@ Student Response: {sanitized_response}
                             break
             elif submission.question_type in ['igcse_narrative', 'igcse_descriptive']:
                 # IGCSE narrative/descriptive need Content and Structure (16 marks) and Style and Accuracy (24 marks)
+                # Extract Content and Structure marks (stored in content_structure_marks)
                 if "READING_MARKS:" in ai_response:
                     reading_part = ai_response.split("READING_MARKS:")[1]
                     next_sections = ["WRITING_MARKS:", "IMPROVEMENTS:", "STRENGTHS:"]
-                    reading_marks = reading_part.strip()
+                    content_structure_marks = reading_part.strip()
                     for section in next_sections:
                         if section in reading_part:
-                            reading_marks = reading_part.split(section)[0].strip()
+                            content_structure_marks = reading_part.split(section)[0].strip()
                             break
+                else:
+                    content_structure_marks = "N/A"
                 
+                # Extract Style and Accuracy marks (stored in style_accuracy_marks)
                 if "WRITING_MARKS:" in ai_response:
                     writing_part = ai_response.split("WRITING_MARKS:")[1]
                     next_sections = ["IMPROVEMENTS:", "STRENGTHS:"]
-                    writing_marks = writing_part.strip()
+                    style_accuracy_marks = writing_part.strip()
                     for section in next_sections:
                         if section in writing_part:
-                            writing_marks = writing_part.split(section)[0].strip()
+                            style_accuracy_marks = writing_part.split(section)[0].strip()
                             break
+                else:
+                    style_accuracy_marks = "N/A"
+                
+                # Set reading_marks and writing_marks to N/A for these question types
+                reading_marks = "N/A"
+                writing_marks = "N/A"
             elif submission.question_type in ['alevel_directed', 'alevel_directed_writing']:
                 # A-Level directed writing needs AO1 and AO2 marks
                 if "AO1_MARKS:" in ai_response:
@@ -2057,6 +1982,8 @@ Student Response: {sanitized_response}
             writing_marks,
             ao1_marks,
             ao2_marks,
+            content_structure_marks,
+            style_accuracy_marks
         )
         if dynamic_grade:
             grade = dynamic_grade
@@ -2072,6 +1999,8 @@ Student Response: {sanitized_response}
             writing_marks=writing_marks,
             ao1_marks=ao1_marks,
             ao2_marks=ao2_marks,
+            content_structure_marks=content_structure_marks if submission.question_type in ['igcse_narrative', 'igcse_descriptive'] else None,
+            style_accuracy_marks=style_accuracy_marks if submission.question_type in ['igcse_narrative', 'igcse_descriptive'] else None,
             improvement_suggestions=improvements,
             strengths=strengths
         )
@@ -2693,7 +2622,7 @@ async def submit_feedback(feedback: FeedbackSubmitModel):
 
 # Subscription API endpoints
 # Initialize subscription service if available
-if DODO_INTEGRATION_AVAILABLE and SubscriptionService:
+if SubscriptionService:
     try:
         subscription_service = SubscriptionService(supabase)
         # Initialize webhook validator for server webhook endpoint
@@ -2712,7 +2641,7 @@ async def test_subscription_endpoint():
     return {
         "message": "Subscription endpoint accessible",
         "service_available": subscription_service is not None,
-        "dodo_integration": DODO_INTEGRATION_AVAILABLE,
+        "payment_integration": False,
         "cors_test": "✅ CORS working if you can see this"
     }
 
@@ -2881,122 +2810,9 @@ async def get_billing_history(user_id: str, limit: int = 50):
         import traceback
         logger.error(f"Stack trace: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Failed to get billing history: {str(e)}")
-@api_router.post("/webhooks/dodo")
-async def handle_dodo_webhook(request: Request):
-    """Enhanced webhook handler with proper validation and debugging"""
-    try:
-        logger.info("🔔 Webhook received")
-        
-        body = await request.body()
-        
-        # Get webhook headers - Dodo uses standard webhook headers
-        webhook_id = request.headers.get('webhook-id')
-        webhook_timestamp = request.headers.get('webhook-timestamp')
-        webhook_signature = request.headers.get('webhook-signature')
-        
-        # Log webhook details for debugging
-        logger.info(f"📋 Webhook ID: {webhook_id}")
-        logger.info(f"⏰ Webhook Timestamp: {webhook_timestamp}")
-        logger.info(f"🔐 Webhook Signature: {webhook_signature[:20]}..." if webhook_signature else "None")
-        logger.info(f"📦 Body length: {len(body)} bytes")
-        
-        # Log the signing key being used (first few chars only for security)
-        signing_key = os.environ.get('DODO_PAYMENTS_WEBHOOK_KEY', '')
-        logger.info(f"🔑 Using signing key: {signing_key[:10]}..." if signing_key else "NO KEY SET!")
 
-        # Log all headers for debugging
-        all_headers = dict(request.headers)
-        logger.debug("All webhook headers:", extra={
-            "headers": all_headers,
-            "component": "subscriptions"
-        })
 
-        logger.info("webhook received", extra={
-            "component": "subscriptions",
-            "action": "webhook.received",
-            "sig_full": webhook_signature[:50] if webhook_signature else 'MISSING',  # Show more of signature for debugging
-            "timestamp": webhook_timestamp if webhook_timestamp else 'MISSING',
-            "body_len": len(body),
-            "webhook_id": webhook_id if webhook_id else 'MISSING',
-            "all_headers": str(all_headers)[:200]  # Log first 200 chars of all headers
-        })
-        
-        # Check for bypass mode (DEVELOPMENT ONLY)
-        bypass_validation = os.environ.get('DODO_BYPASS_WEBHOOK_VALIDATION', 'false').lower() == 'true'
-        
-        if bypass_validation:
-            logger.warning("⚠️ BYPASSING WEBHOOK VALIDATION - DEVELOPMENT MODE ONLY!")
-            is_valid = True
-        else:
-            # Validate webhook signature using Standard Webhooks specification
-            is_valid = webhook_validator.validate_webhook(body, webhook_signature, webhook_timestamp, webhook_id)
-        
-        if not is_valid:
-            logger.error("❌ Webhook signature validation failed", extra={"component": "subscriptions", "action": "webhook.invalid_signature"})
-            logger.error(f"🔍 Validation error details:")
-            logger.error(f"   - Signature provided: {webhook_signature[:30]}..." if webhook_signature else "NO SIGNATURE")
-            logger.error(f"   - Timestamp provided: {webhook_timestamp}")
-            logger.error(f"   - Webhook ID provided: {webhook_id}")
-            logger.error(f"   - Webhook key configured: {'Yes' if signing_key else 'No'}")
-            raise HTTPException(status_code=400, detail="Invalid webhook signature")
-        
-        # Parse webhook data
-        webhook_data = json.loads(body.decode('utf-8'))
-        event_id = webhook_data.get('id')
-        event_type = webhook_data.get('type')
-        logger.info("webhook parsed", extra={
-            "component": "subscriptions",
-            "action": "webhook.parsed",
-            "event_id": event_id,
-            "event_type": event_type
-        })
-        
-        # Process webhook
-        success = await subscription_service.handle_subscription_webhook(webhook_data)
-        logger.info("webhook handled", extra={
-            "component": "subscriptions",
-            "action": "webhook.handled",
-            "event_id": event_id,
-            "event_type": event_type,
-            "success": success
-        })
-        
-        if success:
-            logger.info("webhook processed", extra={"component": "subscriptions", "action": "webhook.success"})
-            return {"status": "success"}
-        else:
-            logger.error("webhook processing failed", extra={"component": "subscriptions", "action": "webhook.failure"})
-            raise HTTPException(status_code=500, detail="Webhook processing failed")
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Unexpected webhook error: {e}")
-        raise HTTPException(status_code=500, detail=f"Webhook error: {str(e)}")
 
-@api_router.get("/debug/subscription-status/{user_id}")
-async def debug_subscription_status(user_id: str):
-    """Debug endpoint to check user's subscription status"""
-    try:
-        # Get user data
-        user_resp = supabase.table('assessment_users').select('*').eq('uid', user_id).execute()
-        
-        # Get subscription data
-        sub_resp = supabase.table('dodo_subscriptions').select('*').eq('user_id', user_id).execute()
-        
-        # Get recent payments
-        payment_resp = supabase.table('dodo_payments').select('*').eq('user_id', user_id).order('created_at', desc=True).limit(5).execute()
-        
-        return {
-            "user": user_resp.data[0] if user_resp.data else None,
-            "subscriptions": sub_resp.data,
-            "recent_payments": payment_resp.data,
-            "current_plan": user_resp.data[0].get('current_plan') if user_resp.data else None,
-            "subscription_status": user_resp.data[0].get('subscription_status') if user_resp.data else None
-        }
-    except Exception as e:
-        logger.error(f"Failed to get debug info: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.post("/subscriptions/confirm/{user_id}")
 async def confirm_subscription(user_id: str):
@@ -3021,175 +2837,6 @@ async def confirm_subscription(user_id: str):
         logger.error(f"Failed to confirm subscription: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# New comprehensive subscription endpoints
-@api_router.post("/subscriptions/create", response_model=SubscriptionCreateResponse)
-async def create_subscription_checkout(request: SubscriptionCreateRequest):
-    """
-    Create a Dodo Payments checkout session for subscription
-    
-    This endpoint:
-    1. Validates the user exists
-    2. Creates/updates Dodo customer if needed
-    3. Creates checkout session with proper product ID
-    4. Returns checkout URL for payment
-    """
-    try:
-        logger.info(f"Creating subscription checkout for user {request.user_id}, plan: {request.plan}")
-        
-        # Get user data from database
-        user_result = supabase.table('assessment_users').select('*').eq('uid', request.user_id).execute()
-        
-        if not user_result.data:
-            logger.error(f"User not found: {request.user_id}")
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        user = user_result.data[0]
-        logger.info(f"Found user: {user['email']}")
-        
-        # Determine product ID based on plan
-        if request.plan == "monthly":
-            product_id = os.environ.get('DODO_MONTHLY_PRODUCT_ID')
-        elif request.plan == "yearly":
-            product_id = os.environ.get('DODO_YEARLY_PRODUCT_ID')
-        else:
-            raise HTTPException(status_code=400, detail="Invalid plan type. Must be 'monthly' or 'yearly'")
-        
-        if not product_id:
-            logger.error(f"Product ID not configured for plan: {request.plan}")
-            raise HTTPException(status_code=500, detail=f"Product ID not configured for {request.plan} plan")
-        
-        # Get Dodo Payments configuration
-        api_key = os.environ.get('DODO_PAYMENTS_API_KEY')
-        base_url = os.environ.get('DODO_PAYMENTS_BASE_URL', 'https://test.dodopayments.com')
-        
-        if not api_key:
-            logger.error("Dodo API key not configured")
-            raise HTTPException(status_code=500, detail="Payment system not configured")
-        
-        # Prepare checkout session creation
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            customer_id = user.get('dodo_customer_id')
-            
-            # Create customer if doesn't exist
-            if not customer_id:
-                logger.info(f"Creating Dodo customer for {user['email']}")
-                
-                customer_payload = {
-                    "email": user['email'],
-                    "name": user.get('display_name', user['email'].split('@')[0])
-                }
-                
-                customer_response = await client.post(
-                    f"{base_url}/customers",
-                    json=customer_payload,
-                    headers={
-                        "Authorization": f"Bearer {api_key}",
-                        "Content-Type": "application/json"
-                    }
-                )
-                
-                if customer_response.status_code in [200, 201]:
-                    customer_data = customer_response.json()
-                    customer_id = customer_data.get('id') or customer_data.get('customer_id')
-                    
-                    # Update user with customer ID
-                    supabase.table('assessment_users').update({
-                        'dodo_customer_id': customer_id
-                    }).eq('uid', request.user_id).execute()
-                    
-                    logger.info(f"Created Dodo customer: {customer_id}")
-                else:
-                    error_text = customer_response.text
-                    logger.error(f"Failed to create customer: {customer_response.status_code} - {error_text}")
-                    return SubscriptionCreateResponse(
-                        success=False,
-                        error="Failed to create customer account"
-                    )
-            
-            # Create checkout session
-            checkout_payload = {
-                "product_id": product_id,
-                "customer_id": customer_id,
-                "success_url": request.success_url or os.environ.get('SUCCESS_REDIRECT_URL', 'https://englishgpt.everythingenglish.xyz/dashboard/payment-success'),
-                "cancel_url": request.cancel_url or os.environ.get('CANCEL_REDIRECT_URL', 'https://englishgpt.everythingenglish.xyz/pricing'),
-                "metadata": {
-                    "user_id": request.user_id,
-                    "plan": request.plan,
-                    "email": user['email']
-                }
-            }
-            
-            logger.info(f"Creating checkout session with payload: {checkout_payload}")
-            
-            # Try checkout-sessions endpoint first, fallback to subscriptions
-            checkout_response = await client.post(
-                f"{base_url}/checkout-sessions",
-                json=checkout_payload,
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json"
-                }
-            )
-            
-            if checkout_response.status_code in [200, 201]:
-                data = checkout_response.json()
-                checkout_url = data.get('url') or data.get('checkout_url') or data.get('payment_url')
-                
-                logger.info(f"Created checkout session: {data.get('id')}")
-                
-                return SubscriptionCreateResponse(
-                    success=True,
-                    checkout_url=checkout_url,
-                    session_id=data.get('id'),
-                    message="Checkout session created successfully"
-                )
-            else:
-                # Fallback to subscriptions endpoint
-                logger.warning(f"Checkout sessions failed ({checkout_response.status_code}), trying subscriptions endpoint")
-                
-                subscription_payload = {
-                    "customer": {"customer_id": customer_id},
-                    "product_id": product_id,
-                    "payment_link": True,
-                    "return_url": request.success_url or os.environ.get('SUCCESS_REDIRECT_URL'),
-                    "metadata": checkout_payload["metadata"]
-                }
-                
-                subscription_response = await client.post(
-                    f"{base_url}/subscriptions",
-                    json=subscription_payload,
-                    headers={
-                        "Authorization": f"Bearer {api_key}",
-                        "Content-Type": "application/json"
-                    }
-                )
-                
-                if subscription_response.status_code in [200, 201]:
-                    data = subscription_response.json()
-                    checkout_url = data.get('payment_link') or data.get('checkout_url') or data.get('url')
-                    
-                    return SubscriptionCreateResponse(
-                        success=True,
-                        checkout_url=checkout_url,
-                        session_id=data.get('id'),
-                        message="Subscription created successfully"
-                    )
-                else:
-                    error_text = subscription_response.text
-                    logger.error(f"Both endpoints failed. Final error: {subscription_response.status_code} - {error_text}")
-                    return SubscriptionCreateResponse(
-                        success=False,
-                        error=f"Payment setup failed: {error_text}"
-                    )
-                
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Subscription creation error: {e}")
-        return SubscriptionCreateResponse(
-            success=False,
-            error=f"Internal error: {str(e)}"
-        )
 
 @api_router.get("/subscriptions/status/{user_id}", response_model=SubscriptionStatusResponse)
 async def get_subscription_status_by_id(user_id: str):
@@ -3199,7 +2846,7 @@ async def get_subscription_status_by_id(user_id: str):
     Returns detailed subscription information including:
     - Active subscription status
     - Plan type and dates
-    - Dodo customer information
+    - Customer information
     """
     try:
         logger.info(f"Getting subscription status for user: {user_id}")
@@ -3222,7 +2869,7 @@ async def get_subscription_status_by_id(user_id: str):
             subscription_start_date=user.get('subscription_start_date'),
             subscription_end_date=user.get('subscription_end_date'),
             subscription_type=user.get('subscription_type'),
-            dodo_customer_id=user.get('dodo_customer_id'),
+            customer_id=user.get('customer_id'),
             cancel_at_period_end=user.get('cancel_at_period_end', False)
         )
         
@@ -3292,7 +2939,7 @@ async def get_subscription_plans():
                 "price": 4.99,
                 "currency": "USD",
                 "interval": "month",
-                "product_id": os.environ.get('DODO_MONTHLY_PRODUCT_ID'),
+                "product_id": None,
                 "features": [
                     "Unlimited assessments",
                     "Advanced analytics", 
@@ -3306,7 +2953,7 @@ async def get_subscription_plans():
                 "price": 49.00,
                 "currency": "USD", 
                 "interval": "year",
-                "product_id": os.environ.get('DODO_YEARLY_PRODUCT_ID'),
+                "product_id": None,
                 "features": [
                     "Unlimited assessments",
                     "Advanced analytics",
@@ -3333,7 +2980,7 @@ async def test_webhook_signature(request: Request):
     timestamp = request.headers.get('webhook-timestamp', '')
     
     # Get webhook secret
-    webhook_secret = os.getenv('DODO_PAYMENTS_WEBHOOK_KEY', '')
+    webhook_secret = ''
     
     # Extract signature from v1, format
     actual_sig = signature[3:] if signature.startswith('v1,') else signature
@@ -3379,7 +3026,7 @@ async def test_webhook_signature(request: Request):
         'secret_configured': bool(webhook_secret),
         'secret_length': len(webhook_secret),
         'formats_tested': results,
-        'validation_bypass': os.getenv('DODO_BYPASS_WEBHOOK_VALIDATION', '').lower() == 'true'
+        'validation_bypass': False
     }
         
 # Include the API router after all routes are defined

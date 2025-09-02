@@ -66,7 +66,7 @@ def configure_logging(app_level: str = None) -> None:
         'server': app_level,
         'subscription_service': 'INFO',
         'webhook_processor': 'INFO',
-        'dodo_payments_client': 'INFO',
+        # 'dodo_payments_client': 'INFO',  # Removed
     }
     
     # Apply logging levels
