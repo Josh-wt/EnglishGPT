@@ -8,6 +8,8 @@ frontend/yarn.lock
 .env
 .DS_Store
 
+/database
+
 backend/.env
 backend/.env.txt
 frontend/.env

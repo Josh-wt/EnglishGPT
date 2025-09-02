@@ -25,6 +25,10 @@ import io
 # Import billing API module
 from billing_api import router as billing_router
 
+# Import user management services
+from user_management_service import UserManagementService
+from auth_recovery_middleware import create_auth_recovery_middleware, auth_recovery_required
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -96,8 +100,31 @@ except Exception as e:
     logger.error(f"Error initializing Supabase: {e}")
     supabase = None
 
+# Initialize user management service
+user_management_service = None
+if supabase:
+    try:
+        user_management_service = UserManagementService(supabase)
+        logger.info("User management service initialized successfully")
+    except Exception as e:
+        logger.error(f"Error initializing user management service: {e}")
+        user_management_service = None
+else:
+    logger.warning("Cannot initialize user management service - Supabase client not available")
+
 # Create the main app without a prefix
 app = FastAPI(title="Universal Service API", version="1.0.0")
+
+# Add auth recovery middleware if user management service is available
+if user_management_service:
+    try:
+        auth_recovery_middleware = create_auth_recovery_middleware(user_management_service)
+        app.add_middleware(type(auth_recovery_middleware), user_management_service=user_management_service)
+        logger.info("Auth recovery middleware added successfully")
+    except Exception as e:
+        logger.error(f"Error adding auth recovery middleware: {e}")
+else:
+    logger.warning("Auth recovery middleware not added - user management service not available")
 
 # Include billing router
 app.include_router(billing_router)
@@ -1074,10 +1101,10 @@ That being said, PLEASE give the student the highest marks possible if the user'
 # --- Mark totals configuration for dynamic grade computation ---
 QUESTION_TOTALS = {
     "igcse_writers_effect": {"total": 15, "components": {"reading": 15}},
-    "igcse_narrative": {"total": 40, "components": {"content and structure": 16, "style and accuracy": 24}},
-    "igcse_descriptive": {"total": 40, "components": {"content and structure": 16, "style and accuracy": 24}},
-    # Summary is 10 (reading) + 5 (writing) = 15 total
-    "igcse_summary": {"total": 15, "components": {"reading": 10, "writing": 5}},
+    "igcse_narrative": {"total": 40, "components": {"reading": 16, "writing": 24}},
+    "igcse_descriptive": {"total": 40, "components": {"reading": 16, "writing": 24}},
+    # Summary is 15 (reading) + 25 (writing) = 40 total
+    "igcse_summary": {"total": 40, "components": {"reading": 15, "writing": 25}},
     # Directed writing in IGCSE typically 15 + 25 = 40
     "igcse_directed": {"total": 40, "components": {"reading": 15, "writing": 25}},
     # A-Level
@@ -1291,8 +1318,11 @@ async def get_all_users():
 
 @api_router.post("/users")
 async def create_or_get_user(user_data: dict):
-    """Create a new user or get existing user"""
+    """Create a new user or get existing user using the user management service"""
     try:
+        if not user_management_service:
+            raise HTTPException(status_code=500, detail="User management service not available")
+        
         user_id = user_data.get('user_id')
         email = user_data.get('email')
         name = user_data.get('name')
@@ -1300,129 +1330,144 @@ async def create_or_get_user(user_data: dict):
         if not user_id or user_id == "undefined":
             raise HTTPException(status_code=400, detail="Invalid user ID provided")
         
-
+        if not email:
+            raise HTTPException(status_code=400, detail="Email is required")
         
-        # Check if user already exists
-        response = supabase.table('assessment_users').select('*').eq('uid', user_id).execute()
-        logger.debug(f"DEBUG: Check existing user response: {response}")
+        logger.info(f"Creating or getting user: {user_id} ({email})")
         
-        if response.data:
-            # User exists, check if they need upgrade to unlimited (launch event)
-            existing_user = response.data[0]
-            
-            # If user is on free plan, upgrade them to unlimited
-            if existing_user.get('current_plan') == 'free':
-                update_data = {
-                    "current_plan": "unlimited",
-                    "credits": 999999,  # Effectively unlimited
-                    "updated_at": datetime.utcnow().isoformat(),
-                    "is_launch_user": True
-                }
-                
-                update_response = supabase.table('assessment_users').update(update_data).eq('uid', user_id).execute()
-                if update_response.data:
-                    existing_user = update_response.data[0]
-                    logger.info(f"Upgraded user {user_id} to unlimited plan (launch event)")
-            
-            existing_user['id'] = existing_user['uid']  # For compatibility
-            logger.debug(f"DEBUG: Returning existing user: {existing_user}")
-            return {"user": existing_user}
+        # Use the user management service to create or restore user
+        result = await user_management_service.create_or_restore_user(
+            user_id=user_id,
+            email=email,
+            display_name=name,
+            academic_level='igcse',
+            current_plan='unlimited',  # Launch event benefit
+            credits=999999,  # Effectively unlimited
+            is_launch_user=True,  # Track users who got the launch benefit
+            photo_url=None,
+            dark_mode=False
+        )
         
-        # Create new user with unlimited plan (launch event)
-        new_user_data = {
-            "uid": user_id,
-            "email": email,
-            "display_name": name,
-            "credits": 999999,  # Effectively unlimited
-            "current_plan": "unlimited",
-            "questions_marked": 0,
-            "academic_level": "N/A",  # Default to N/A
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat(),
-            "is_launch_user": True  # Track users who got the launch benefit
-        }
-        
-        logger.debug(f"DEBUG: Creating new user with data: {new_user_data}")
-        
-        # Save to Supabase
-        insert_response = supabase.table('assessment_users').insert(new_user_data).execute()
-        logger.debug(f"DEBUG: Insert response: {insert_response}")
-        
-        if insert_response.data:
-            user_dict = insert_response.data[0]
-            user_dict['id'] = user_dict['uid']  # For compatibility
-            logger.debug(f"DEBUG: Created user successfully: {user_dict}")
-            return {"user": user_dict}
+        if result['success']:
+            logger.info(f"Successfully created/restored user: {user_id}")
+            return {
+                "user": result['user'],
+                "operation": result['operation'],
+                "message": result['message']
+            }
         else:
-            raise HTTPException(status_code=500, detail="Failed to create user")
+            logger.error(f"Failed to create/restore user: {user_id} - {result.get('error')}")
+            raise HTTPException(status_code=500, detail=f"User creation/restoration failed: {result.get('error')}")
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.debug(f"DEBUG: Exception in create_or_get_user: {str(e)}")
+        logger.error(f"Exception in create_or_get_user: {str(e)}")
         raise HTTPException(status_code=500, detail=f"User creation error: {str(e)}")
 
 @api_router.get("/users/{user_id}")
 async def get_user(user_id: str):
-    """Get user by ID"""
+    """Get user by ID using the user management service"""
     try:
+        if not user_management_service:
+            raise HTTPException(status_code=500, detail="User management service not available")
+        
         if not user_id or user_id == "undefined":
             raise HTTPException(status_code=400, detail="Invalid user ID provided")
         
-        logger.debug(f"DEBUG: Getting user with ID: {user_id}")
-        response = supabase.table('assessment_users').select('*').eq('uid', user_id).execute()
+        logger.info(f"Getting user with ID: {user_id}")
         
-        if not response.data:
-            logger.debug(f"DEBUG: User not found for ID: {user_id}")
+        # Use the user management service to get user
+        user_data = await user_management_service.get_user_by_id(user_id)
+        
+        if user_data:
+            logger.info(f"Successfully retrieved user: {user_id}")
+            return {"user": user_data}
+        else:
+            logger.warning(f"User not found for ID: {user_id}")
             raise HTTPException(status_code=404, detail="User not found")
-        
-        user_data = response.data[0]
-        user_data['id'] = user_data['uid']  # For compatibility
-        logger.debug(f"DEBUG: Retrieved user data: {user_data}")
-        logger.debug(f"DEBUG: Academic level in user data: {user_data.get('academic_level')}")
-        return {"user": user_data}
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.debug(f"DEBUG: Exception in get_user: {str(e)}")
+        logger.error(f"Exception in get_user: {str(e)}")
         raise HTTPException(status_code=500, detail=f"User retrieval error: {str(e)}")
 
 @api_router.put("/users/{user_id}")
 async def update_user(user_id: str, updates: dict):
-    """Update user information"""
+    """Update user information using the user management service"""
     try:
+        if not user_management_service:
+            raise HTTPException(status_code=500, detail="User management service not available")
+        
         if not user_id or user_id == "undefined":
             raise HTTPException(status_code=400, detail="Invalid user ID provided")
         
-        # Debug logging removed for production
-        # print(f"DEBUG: Updating user {user_id} with: {updates}")
+        logger.info(f"Updating user: {user_id}")
         
-        # Update timestamp
-        updates['updated_at'] = datetime.utcnow().isoformat()
+        # Use the user management service to update user
+        updated_user = await user_management_service.update_user(user_id, updates)
         
-        # Update in Supabase
-        response = supabase.table('assessment_users').update(updates).eq('uid', user_id).execute()
-        
-        if not response.data:
-            logger.debug(f"DEBUG: User not found for update, ID: {user_id}")
+        if updated_user:
+            logger.info(f"Successfully updated user: {user_id}")
+            return {"user": updated_user}
+        else:
+            logger.warning(f"User not found for update, ID: {user_id}")
             raise HTTPException(status_code=404, detail="User not found")
         
-        updated_user = response.data[0]
-        updated_user['id'] = updated_user['uid']  # For compatibility
-        logger.debug(f"DEBUG: User updated successfully: {updated_user}")
-        
-        # Debug: Check if academic_level was updated
-        if 'academic_level' in updates:
-            logger.debug(f"DEBUG: Academic level updated to: {updates['academic_level']}")
-            logger.debug(f"DEBUG: User document now has academic_level: {updated_user.get('academic_level')}")
-        
-        return {"user": updated_user}
-        
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error("User update error", extra={"error": str(e)})
+        logger.error(f"User update error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"User update error: {str(e)}")
+
+@api_router.post("/users/recover")
+async def recover_user(user_data: dict):
+    """Recover a user with auth/database mismatch"""
+    try:
+        if not user_management_service:
+            raise HTTPException(status_code=500, detail="User management service not available")
         
+        user_id = user_data.get('user_id')
+        email = user_data.get('email')
+        metadata = user_data.get('metadata', {})
+        
+        if not user_id or user_id == "undefined":
+            raise HTTPException(status_code=400, detail="Invalid user ID provided")
+        
+        if not email:
+            raise HTTPException(status_code=400, detail="Email is required")
+        
+        logger.info(f"Attempting to recover user: {user_id} ({email})")
+        
+        # Use the user management service to handle the mismatch
+        recovery_result = await user_management_service.handle_auth_database_mismatch(
+            auth_user_id=user_id,
+            email=email,
+            metadata=metadata
+        )
+        
+        if recovery_result['success']:
+            logger.info(f"Successfully recovered user: {user_id}")
+            return {
+                "success": True,
+                "user": recovery_result['user'],
+                "recovery_method": recovery_result['recovery_method'],
+                "message": recovery_result['message']
+            }
+        else:
+            logger.error(f"Failed to recover user: {user_id} - {recovery_result.get('error')}")
+            raise HTTPException(
+                status_code=500, 
+                detail=f"User recovery failed: {recovery_result.get('error')}"
+            )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Exception in recover_user: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"User recovery error: {str(e)}")
+
 @api_router.get("/debug/webhook-status")
 async def debug_webhook_status():
     """Check webhook configuration"""
@@ -1436,9 +1481,11 @@ async def debug_webhook_status():
 async def debug_subscription_check(user_id: str):
     """Check user subscription status"""
     try:
-        # Check user record
-        user_resp = supabase.table('assessment_users').select('*').eq('uid', user_id).execute()
-        user_data = user_resp.data[0] if user_resp.data else None
+        if not user_management_service:
+            return {"error": "User management service not available"}
+        
+        # Check user record using the user management service
+        user_data = await user_management_service.get_user_by_id(user_id)
         
         # Check subscription access
         has_access = await subscription_service._check_user_subscription_access(user_id) if subscription_service else False
@@ -1456,7 +1503,35 @@ async def debug_subscription_check(user_id: str):
         }
     except Exception as e:
         return {"error": str(e)}
+
+@api_router.get("/users/stats")
+async def get_user_management_stats():
+    """Get user management statistics"""
+    try:
+        if not user_management_service:
+            raise HTTPException(status_code=500, detail="User management service not available")
         
+        stats = await user_management_service.get_user_management_stats()
+        return {"stats": stats}
+        
+    except Exception as e:
+        logger.error(f"Error getting user management stats: {str(e)}")
+        return {"error": str(e)}
+
+@api_router.get("/users/orphaned")
+async def get_orphaned_users():
+    """Get list of potentially orphaned users (soft-deleted)"""
+    try:
+        if not user_management_service:
+            raise HTTPException(status_code=500, detail="User management service not available")
+        
+        orphaned_users = await user_management_service.find_orphaned_users()
+        return {"orphaned_users": orphaned_users}
+        
+    except Exception as e:
+        logger.error(f"Error getting orphaned users: {str(e)}")
+        return {"error": str(e)}
+
 @api_router.get("/debug/env-check")
 async def debug_env_check():
     """Check environment variables"""
@@ -1474,25 +1549,24 @@ async def test_plan_update(user_id: str, plan_data: dict):
     try:
 
         
+        if not user_management_service:
+            return {"error": "User management service not available"}
+        
         updates = {
-            'current_plan': plan_data.get('plan', 'free'),
-            'updated_at': datetime.utcnow().isoformat()
+            'current_plan': plan_data.get('plan', 'free')
         }
         
-        # Update in Supabase
-        response = supabase.table('assessment_users').update(updates).eq('uid', user_id).execute()
+        # Use the user management service to update user
+        updated_user = await user_management_service.update_user(user_id, updates)
         
-        if not response.data:
+        if updated_user:
+            return {
+                "success": True,
+                "user": updated_user,
+                "message": f"Plan updated to {updates['current_plan']}"
+            }
+        else:
             return {"error": "User not found"}
-        
-        updated_user = response.data[0]
-        updated_user['id'] = updated_user['uid']  # For compatibility
-        
-        return {
-            "success": True,
-            "user": updated_user,
-            "message": f"Plan updated to {updates['current_plan']}"
-        }
         
     except Exception as e:
         logger.error(f"Plan update error: {str(e)}")
@@ -1500,8 +1574,11 @@ async def test_plan_update(user_id: str, plan_data: dict):
 
 @api_router.put("/users/{user_id}/preferences")
 async def update_user_preferences(user_id: str, preferences: dict):
-    """Update user preferences (dark mode, etc.)"""
+    """Update user preferences (dark mode, etc.) using the user management service"""
     try:
+        if not user_management_service:
+            raise HTTPException(status_code=500, detail="User management service not available")
+        
         # Validate preferences
         allowed_preferences = ['dark_mode']
         filtered_preferences = {k: v for k, v in preferences.items() if k in allowed_preferences}
@@ -1509,19 +1586,16 @@ async def update_user_preferences(user_id: str, preferences: dict):
         if not filtered_preferences:
             raise HTTPException(status_code=400, detail="No valid preferences provided")
         
-        # Update timestamp
-        filtered_preferences['updated_at'] = datetime.utcnow().isoformat()
+        # Use the user management service to update user
+        updated_user = await user_management_service.update_user(user_id, filtered_preferences)
         
-        # Update in Supabase
-        response = supabase.table('assessment_users').update(filtered_preferences).eq('uid', user_id).execute()
-        
-        if not response.data:
+        if updated_user:
+            return {"user": updated_user}
+        else:
             raise HTTPException(status_code=404, detail="User not found")
         
-        updated_user = response.data[0]
-        updated_user['id'] = updated_user['uid']  # For compatibility
-        return {"user": updated_user}
-        
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Preferences update error: {str(e)}")
 
@@ -1568,12 +1642,13 @@ async def evaluate_submission(submission: SubmissionRequest):
         # Debug logging removed for production
         # print(f"DEBUG: Starting evaluation for user {submission.user_id}, question type: {submission.question_type}")
         
-        # Get user data and validate limits
-        user_response = supabase.table('assessment_users').select('*').eq('uid', submission.user_id).execute()
-        if not user_response.data:
-            raise HTTPException(status_code=404, detail="User not found")
+        # Get user data and validate limits using the user management service
+        if not user_management_service:
+            raise HTTPException(status_code=500, detail="User management service not available")
         
-        user_data = user_response.data[0]
+        user_data = await user_management_service.get_user_by_id(submission.user_id)
+        if not user_data:
+            raise HTTPException(status_code=404, detail="User not found")
         current_plan = user_data.get('current_plan', 'free')
         credits = user_data.get('credits', 3)
         questions_marked = user_data.get('questions_marked', 0)
@@ -2005,10 +2080,9 @@ Student Response: {sanitized_response}
         
         # Update user stats (credits no longer decremented)
         new_questions_marked = questions_marked + 1
-        supabase.table('assessment_users').update({
-            "questions_marked": new_questions_marked,
-            "updated_at": datetime.utcnow().isoformat()
-        }).eq('uid', submission.user_id).execute()
+        await user_management_service.update_user(submission.user_id, {
+            "questions_marked": new_questions_marked
+        })
         
         # Save to database
         # Generate a short, URL-safe id (5 chars) for shareable URLs
@@ -2041,12 +2115,13 @@ Student Response: {sanitized_response}
 async def check_and_award_badges(user_id: str):
     """Check user activity and award badges"""
     try:
-        # Get user and evaluations
-        user_response = supabase.table('assessment_users').select('*').eq('uid', user_id).execute()
-        if not user_response.data:
-            raise HTTPException(status_code=404, detail="User not found")
+        # Get user and evaluations using the user management service
+        if not user_management_service:
+            raise HTTPException(status_code=500, detail="User management service not available")
         
-        user_data = user_response.data[0]
+        user_data = await user_management_service.get_user_by_id(user_id)
+        if not user_data:
+            raise HTTPException(status_code=404, detail="User not found")
         
         evaluations_response = supabase.table('assessment_evaluations').select('*').eq('user_id', user_id).execute()
         evaluations = evaluations_response.data
@@ -2204,12 +2279,13 @@ async def get_user_badges(user_id: str):
 async def get_user_analytics(user_id: str):
     """Get analytics data for a specific user"""
     try:
-        # Get user to check if they have analytics access
-        user_response = supabase.table('assessment_users').select('*').eq('uid', user_id).execute()
-        if not user_response.data:
-            raise HTTPException(status_code=404, detail="User not found")
+        # Get user to check if they have analytics access using the user management service
+        if not user_management_service:
+            raise HTTPException(status_code=500, detail="User management service not available")
         
-        user_data = user_response.data[0]
+        user_data = await user_management_service.get_user_by_id(user_id)
+        if not user_data:
+            raise HTTPException(status_code=404, detail="User not found")
         
         # Check if user has analytics access (unlimited plan)
         if user_data.get('current_plan') != 'unlimited':
@@ -2423,6 +2499,32 @@ async def get_evaluation_history(user_id: str):
         return {"evaluations": evaluations}
     except Exception as e:
         logger.error(f"History endpoint error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@api_router.get("/evaluations/user/{user_id}")
+async def get_user_evaluations(user_id: str):
+    """Get all evaluations for a specific user"""
+    try:
+        if not user_management_service:
+            raise HTTPException(status_code=500, detail="User management service not available")
+        
+        # Verify user exists
+        user_data = await user_management_service.get_user_by_id(user_id)
+        if not user_data:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get evaluations for this user
+        response = supabase.table('assessment_evaluations').select('*').eq('user_id', user_id).order('timestamp', desc=True).execute()
+        
+        evaluations = response.data or []
+        logger.info(f"Retrieved {len(evaluations)} evaluations for user {user_id}")
+        
+        return {"evaluations": evaluations}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting user evaluations: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @api_router.get("/evaluations/{evaluation_id}")
