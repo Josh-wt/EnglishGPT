@@ -4,15 +4,15 @@ import { motion } from 'framer-motion';
 const TestimonialsSection = () => {
   const testimonials = [
     {
-      quote: 'I went from a C to an A in 6 weeks. The feedback was clear and motivating.',
+      quote: 'I tried it out on a high level writers effect and it turned out to be really accurate',
       name: 'Student, IGCSE'
     },
     {
-      quote: 'The marks map perfectly to our rubrics. Saves me hours of grading.',
+      quote: 'It can definitely mark low level essays accurately. This is good, something I\'ve seen other AI\'s struggle with',
       name: 'Teacher, A‑Level'
     },
     {
-      quote: 'Finally understood what "analysis" really meant. The step‑by‑step tips are gold.',
+      quote: 'Turned out to be really accurate, better than ChatGPT',
       name: 'Student, A‑Level'
     }
   ];

@@ -1,22 +1,68 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useSpring, animated } from '@react-spring/web';
+import { supabase } from '../../supabaseClient';
+import AuthModal from './AuthModal';
 
-const HeroSection = ({ onGetStarted, onStartMarking }) => {
+const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
+  const [selectedLevel, setSelectedLevel] = useState('IGCSE');
+  const [studentResponse, setStudentResponse] = useState('');
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  
+  // Sample questions for the interactive section
+  const sampleQuestions = {
+    IGCSE: [
+      "Describe a place that is special to you. Explain why it holds significance in your life.",
+      "Write about a time when you had to make a difficult decision. What did you learn from the experience?",
+      "Describe a person who has influenced you greatly. How have they shaped who you are today?"
+    ],
+    'A Level': [
+      "Analyze the theme of identity in a literary work you have studied. How does the author explore this concept?",
+      "Compare and contrast two different perspectives on a contemporary social issue.",
+      "Evaluate the effectiveness of symbolism in conveying meaning in a text you have studied."
+    ]
+  };
+
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const currentQuestion = sampleQuestions[selectedLevel][currentQuestionIndex];
+
+  // Rotate questions every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentQuestionIndex((prev) => (prev + 1) % sampleQuestions[selectedLevel].length);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [selectedLevel]);
+
+  // Save draft to localStorage
+  useEffect(() => {
+    if (studentResponse.trim()) {
+      localStorage.setItem('draft_essay', studentResponse);
+      localStorage.setItem('draft_question', currentQuestion);
+      localStorage.setItem('draft_level', selectedLevel);
+    }
+  }, [studentResponse, currentQuestion, selectedLevel]);
+
+  const handleGetAIFeedback = async () => {
+    // Check if user is authenticated
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session?.user) {
+      // Redirect to write page
+      window.location.href = 'https://englishgpt.everythingenglish.xyz/write';
+    } else {
+      // Show auth modal
+      setShowAuthModal(true);
+    }
+  };
+
   const fadeInUp = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.6, ease: "easeOut" }
   };
-  
-  const staggerContainer = {
-    animate: {
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-  
+
   const floatingAnimation = useSpring({
     from: { transform: 'translateY(0px)' },
     to: async (next) => {
@@ -28,13 +74,6 @@ const HeroSection = ({ onGetStarted, onStartMarking }) => {
     config: { duration: 3000, tension: 120, friction: 15 }
   });
 
-  const buttonHoverAnimation = {
-    scale: 1.05,
-    transition: { duration: 0.2, ease: "easeOut" }
-  };
-
-
-
   return (
     <section className="relative">
       <motion.div 
@@ -43,202 +82,167 @@ const HeroSection = ({ onGetStarted, onStartMarking }) => {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1, duration: 1.2, ease: "easeOut" }}
       >
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <motion.div
-            variants={staggerContainer}
+        {/* Header and Subheader */}
+        <div className="text-center mb-12">
+          <motion.h1 
+            className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4 text-gray-900"
+            variants={fadeInUp}
             initial="initial"
             animate="animate"
           >
-            <motion.div 
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-300/40 text-purple-700 text-xs mb-4 backdrop-blur-md cursor-pointer"
-              variants={fadeInUp}
-              whileHover={buttonHoverAnimation}
-              whileTap={{ scale: 0.95 }}
-            >
-              <motion.span 
-                className="h-2 w-2 rounded-full bg-purple-600"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
-              IGCSE & A-Level aligned
-            </motion.div>
-            
-            <motion.h1 
-              className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-gray-900"
-              variants={fadeInUp}
-            >
-              <motion.span
-                className="inline-block"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
-              >
-                AI English
-              </motion.span>{" "}
-              <motion.span
-                className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
-              >
-                Marking
-              </motion.span>
-            </motion.h1>
-            
-            <motion.p 
-              className="text-lg text-gray-700/90 mb-6"
-              variants={fadeInUp}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8, duration: 0.6 }}
-            >
-              Master English with transparent, AI‑powered marking
-            </motion.p>
-            
-            <motion.div 
-              className="flex flex-col sm:flex-row gap-3"
-              variants={fadeInUp}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.0, duration: 0.6 }}
-            >
-              <motion.button 
-                onClick={onGetStarted} 
-                className="px-6 py-3 rounded-xl text-white bg-gradient-to-br from-purple-500 to-purple-700 shadow-lg shadow-purple-600/30 hover:shadow-purple-600/40 relative overflow-hidden group"
-                whileHover={{ scale: 1.03, y: -2 }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: "spring", stiffness: 400, damping: 20 }}
-              >
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600"
-                  initial={{ x: "-100%" }}
-                  whileHover={{ x: "0%" }}
-                  transition={{ duration: 0.4 }}
-                />
-                <span className="relative z-10">Get Started</span>
-              </motion.button>
-              <motion.button 
-                onClick={onStartMarking} 
-                className="px-6 py-3 rounded-xl border border-purple-300/60 text-purple-700 hover:bg-purple-50/70 backdrop-blur-md relative overflow-hidden group"
-                whileHover={{ scale: 1.03, y: -2 }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: "spring", stiffness: 400, damping: 20 }}
-              >
-                <motion.div
-                  className="absolute inset-0 bg-purple-50"
-                  initial={{ scale: 0 }}
-                  whileHover={{ scale: 1 }}
-                  transition={{ duration: 0.3 }}
-                />
-                <span className="relative z-10">Start Marking</span>
-              </motion.button>
-            </motion.div>
-            
-            <motion.p 
-              className="text-xs text-gray-500 mt-3"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.2, duration: 0.6 }}
-            >
-              No credit card required. Cheap & Simple.
-            </motion.p>
-            
-            <motion.div 
-              className="mt-8 grid grid-cols-3 gap-6"
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.4, duration: 0.6 }}
-            >
-              {[
-                {label:'Avg. improvement', value:'+27%'},
-                {label:'Marking speed', value:'< 30s'},
-                {label:'Simple Pricing', value:'Just $4.99/m'}
-              ].map((s,i)=> (
-                <motion.div 
-                  key={i} 
-                  className="rounded-2xl p-4 bg-purple-400/10 border border-purple-300/40 backdrop-blur-md cursor-pointer"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 1.6 + i * 0.1, duration: 0.4 }}
-                  whileHover={{ 
-                    scale: 1.03,
-                    boxShadow: "0 10px 25px rgba(147, 51, 234, 0.15)",
-                    transition: { duration: 0.2, ease: "easeOut" }
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="text-sm text-gray-600">{s.label}</div>
-                  <motion.div 
-                    className="text-xl font-bold text-gray-900 mt-1"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1.8 + i * 0.1, duration: 0.4 }}
-                  >
-                    {s.value}
-                  </motion.div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6, duration: 1.2, ease: "easeOut" }}
+            Accurate AI English Marking
+          </motion.h1>
+          
+          <motion.p 
+            className="text-xl md:text-2xl text-gray-700"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
           >
-            <div className="relative h-[420px] md:h-[460px]">
-              {/* Strengths (primary) with floating animation */}
+            Instant results. Instant Feedback.
+          </motion.p>
+        </div>
+
+        {/* Interactive Write Section */}
+        <motion.div
+          className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-purple-200/60"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.8 }}
+        >
+          {/* Level Toggle */}
+          <div className="bg-purple-50 p-4 border-b border-purple-200/40">
+            <div className="flex items-center justify-center gap-4">
+              <span className="text-gray-700 font-medium">Select Level:</span>
+              <div className="flex bg-white rounded-full p-1 shadow-inner">
+                <button
+                  onClick={() => setSelectedLevel('IGCSE')}
+                  className={`px-6 py-2 rounded-full transition-all duration-300 ${
+                    selectedLevel === 'IGCSE'
+                      ? 'bg-purple-600 text-white shadow-md'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  IGCSE
+                </button>
+                <button
+                  onClick={() => setSelectedLevel('A Level')}
+                  className={`px-6 py-2 rounded-full transition-all duration-300 ${
+                    selectedLevel === 'A Level'
+                      ? 'bg-purple-600 text-white shadow-md'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  A Level
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-0">
+            {/* Question Section */}
+            <div className="p-8 bg-gradient-to-br from-purple-50 to-pink-50 border-r border-purple-200/40">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Sample Question:</h3>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentQuestion}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.5 }}
+                  className="text-gray-700 leading-relaxed"
+                >
+                  {currentQuestion}
+                </motion.div>
+              </AnimatePresence>
+              
               <motion.div 
-                className="absolute left-0 top-0 right-6 rounded-3xl p-2 sm:p-4 bg-white/70 backdrop-blur-xl border border-purple-200/60 shadow-xl shadow-purple-600/10"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1.2, duration: 0.6 }}
-                whileHover={{ 
-                  scale: 1.02,
-                  boxShadow: "0 20px 40px rgba(147, 51, 234, 0.15)",
-                  transition: { duration: 0.2, ease: "easeOut" }
-                }}
+                className="mt-6 flex items-center gap-2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1, duration: 0.6 }}
               >
-                <animated.img 
-                  src="/images/analytics.jpg" 
-                  alt="Detailed strengths preview" 
-                  loading="lazy" 
-                  className="w-full h-auto rounded-2xl border border-purple-200/60" 
-                  onError={(e)=>{e.currentTarget.style.display='none';}}
-                  style={floatingAnimation}
-                />
-              </motion.div>
-              {/* Marking overlay with rotation animation */}
-              <motion.div 
-                className="absolute -right-2 md:-right-6 top-24 w-1/2 rounded-2xl p-2 bg-purple-500/10 border border-purple-300/40 backdrop-blur-md shadow-lg shadow-purple-600/10 rotate-3"
-                initial={{ opacity: 0, scale: 0.8, rotate: 0 }}
-                animate={{ opacity: 1, scale: 1, rotate: 3 }}
-                transition={{ delay: 1.6, duration: 0.8, type: "spring" }}
-                whileHover={{ 
-                  scale: 1.05,
-                  rotate: 6,
-                  boxShadow: "0 15px 30px rgba(147, 51, 234, 0.2)"
-                }}
-              >
-                <img src="/images/marking.jpg" alt="Marking interface preview" loading="lazy" className="w-full h-auto rounded-xl border border-purple-200/60" onError={(e)=>{e.currentTarget.style.display='none';}} />
-              </motion.div>
-              {/* Write overlay with bounce animation */}
-              <motion.div 
-                className="absolute left-3 bottom-2 w-2/3 rounded-2xl p-2 bg-purple-500/10 border border-purple-300/40 backdrop-blur-md shadow-lg shadow-purple-600/10 -rotate-3"
-                initial={{ opacity: 0, scale: 0.8, rotate: 0 }}
-                animate={{ opacity: 1, scale: 1, rotate: -3 }}
-                transition={{ delay: 2.0, duration: 0.8, type: "spring", bounce: 0.4 }}
-                whileHover={{ 
-                  scale: 1.05,
-                  rotate: -6,
-                  boxShadow: "0 15px 30px rgba(147, 51, 234, 0.2)"
-                }}
-              >
-                <img src="/images/write.jpg" alt="Write page preview" loading="lazy" className="w-full h-auto rounded-xl border border-purple-200/60" onError={(e)=>{e.currentTarget.style.display='none';}} />
+                {sampleQuestions[selectedLevel].map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentQuestionIndex(index)}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      index === currentQuestionIndex
+                        ? 'bg-purple-600 w-8'
+                        : 'bg-purple-300 hover:bg-purple-400'
+                    }`}
+                  />
+                ))}
               </motion.div>
             </div>
-          </motion.div>
-        </div>
+
+            {/* Essay Writing Section */}
+            <div className="p-8">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Write Your Essay:</h3>
+              <textarea
+                value={studentResponse}
+                onChange={(e) => setStudentResponse(e.target.value)}
+                placeholder="Start writing your essay here..."
+                className="w-full h-64 p-4 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+              
+              <div className="mt-4 flex items-center justify-between">
+                <span className="text-sm text-gray-500">
+                  {studentResponse.split(/\s+/).filter(word => word.length > 0).length} words
+                </span>
+                
+                <motion.button
+                  onClick={handleGetAIFeedback}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105"
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Get AI Feedback
+                </motion.button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Stats Section */}
+        <motion.div 
+          className="mt-12 grid grid-cols-3 gap-6"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.2, duration: 0.6 }}
+        >
+          {[
+            {label:'Avg. improvement', value:'+27%'},
+            {label:'Marking speed', value:'< 30s'},
+            {label:'Simple Pricing', value:'Just $4.99/m'}
+          ].map((s,i)=> (
+            <motion.div 
+              key={i} 
+              className="rounded-2xl p-6 bg-white border border-purple-200/60 backdrop-blur-md text-center"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 1.4 + i * 0.1, duration: 0.4 }}
+              whileHover={{ 
+                scale: 1.05,
+                boxShadow: "0 10px 25px rgba(147, 51, 234, 0.15)",
+              }}
+            >
+              <div className="text-sm text-gray-600">{s.label}</div>
+              <div className="text-2xl font-bold text-gray-900 mt-1">{s.value}</div>
+            </motion.div>
+          ))}
+        </motion.div>
       </motion.div>
+
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onDiscord={onDiscord}
+          onGoogle={onGoogle}
+        />
+      )}
     </section>
   );
 };

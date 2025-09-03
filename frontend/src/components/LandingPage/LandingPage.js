@@ -109,7 +109,7 @@ const LandingPage = ({ onDiscord, onGoogle }) => {
       </div>
 
       <Header onGetStarted={handleGetStarted} />
-      <HeroSection onGetStarted={handleGetStarted} onStartMarking={handleStartMarking} />
+      <HeroSection onGetStarted={handleGetStarted} onStartMarking={handleStartMarking} onDiscord={onDiscord} onGoogle={onGoogle} />
       <FeatureSection />
       <TestimonialsSection />
       <FAQSection />
