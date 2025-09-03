@@ -25,9 +25,9 @@ export const getBackendUrl = () => {
       return url;
     }
     
-    // In production, backend is on the same domain without port
-    const url = origin;
-    console.log('🔧 Production detected, using same domain:', url);
+    // In production, backend is on the same domain with port 5000
+    const url = `${origin}:5000`;
+    console.log('🔧 Production detected, using same domain with port 5000:', url);
     return url;
   }
   
