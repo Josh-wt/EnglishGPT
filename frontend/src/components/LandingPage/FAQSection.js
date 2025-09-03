@@ -18,6 +18,22 @@ const FAQSection = () => {
     {
       question: 'Can teachers use this?',
       answer: 'Yes. Many teachers use it to save time and guide students faster.'
+    },
+    {
+      question: 'How accurate is the AI marking?',
+      answer: 'Our AI has been trained on thousands of marked essays and provides accuracy comparable to experienced examiners.'
+    },
+    {
+      question: 'Can I save my essays?',
+      answer: 'Yes. All your essays are automatically saved and you can access them anytime from your dashboard.'
+    },
+    {
+      question: 'What types of essays can it mark?',
+      answer: 'We support all IGCSE and A-Level question types including descriptive, narrative, argumentative, and analytical essays.'
+    },
+    {
+      question: 'Is there a free trial?',
+      answer: 'Yes. You can try marking a few essays for free before subscribing to our affordable monthly plan.'
     }
   ];
 
