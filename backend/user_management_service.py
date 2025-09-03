@@ -497,6 +497,36 @@ class UserManagementService:
                     logger.error(f"Failed to merge user accounts: {merge_result.get('error')}")
                     # Continue with other recovery methods
             
+            # Check if there's a user with the auth_user_id but different email
+            # This handles the case where the user exists but with a different email
+            user_by_id = await self.get_user_by_id(auth_user_id)
+            if user_by_id and user_by_id.get('email') != email:
+                logger.warning(f"User {auth_user_id} exists but with different email: {user_by_id.get('email')} vs {email}")
+                
+                # Update the user's email to match the auth email
+                try:
+                    update_result = self.supabase.table('assessment_users').update({
+                        'email': email,
+                        'updated_at': datetime.utcnow().isoformat()
+                    }).eq('uid', auth_user_id).execute()
+                    
+                    if update_result.data:
+                        logger.info(f"Successfully updated user email from {user_by_id.get('email')} to {email}")
+                        
+                        # Get the updated user data
+                        updated_user = await self.get_user_by_id(auth_user_id)
+                        if updated_user:
+                            return {
+                                'success': True,
+                                'recovery_method': 'email_update',
+                                'user': updated_user,
+                                'message': f'User email updated from {user_by_id.get("email")} to {email}'
+                            }
+                    
+                except Exception as update_error:
+                    logger.error(f"Failed to update user email: {str(update_error)}")
+                    # Continue with other recovery methods
+            
             # Try to sync the user from auth
             sync_result = await self.sync_user_from_auth(auth_user_id, email, metadata)
             

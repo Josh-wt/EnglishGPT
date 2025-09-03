@@ -10,9 +10,24 @@ const api = axios.create({
   },
 });
 
-// Add request interceptor for debugging
+// Combined request interceptor for debugging and auth token
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    // Add auth token first
+    try {
+      const { data: { session } } = await import('../supabaseClient').then(module => module.supabase.auth.getSession());
+      
+      if (session?.access_token) {
+        config.headers.Authorization = `Bearer ${session.access_token}`;
+        console.log('🔐 Auth token added to request');
+      } else {
+        console.warn('⚠️ No auth session found for request');
+      }
+    } catch (error) {
+      console.error('❌ Error getting auth session:', error);
+    }
+    
+    // Debug logging
     console.log('🔍 API Request:', {
       method: config.method?.toUpperCase(),
       url: config.url,
@@ -20,8 +35,10 @@ api.interceptors.request.use(
       fullUrl: config.baseURL + config.url,
       data: config.data,
       headers: config.headers,
+      hasAuth: !!config.headers.Authorization,
       component: new Error().stack?.split('\n')[2]?.trim() || 'Unknown'
     });
+    
     return config;
   },
   (error) => {
@@ -30,7 +47,7 @@ api.interceptors.request.use(
   }
 );
 
-// Add response interceptor for debugging
+// Combined response interceptor for debugging and error handling
 api.interceptors.response.use(
   (response) => {
     console.log('✅ API Response:', {
@@ -41,40 +58,6 @@ api.interceptors.response.use(
       hasShortId: !!response.data?.short_id,
       shortId: response.data?.short_id
     });
-    return response;
-  },
-  (error) => {
-    console.error('❌ API Response Error:', {
-      status: error.response?.status,
-      url: error.config?.url,
-      method: error.config?.method?.toUpperCase(),
-      message: error.message,
-      responseData: error.response?.data
-    });
-    return Promise.reject(error);
-  }
-);
-
-// Request interceptor to add auth token
-api.interceptors.request.use(
-  async (config) => {
-    // Get session from Supabase
-    const { data: { session } } = await import('../supabaseClient').then(module => module.supabase.auth.getSession());
-    
-    if (session?.access_token) {
-      config.headers.Authorization = `Bearer ${session.access_token}`;
-    }
-    
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Response interceptor for error handling
-api.interceptors.response.use(
-  (response) => {
     return response;
   },
   (error) => {
@@ -108,6 +91,14 @@ api.interceptors.response.use(
       // Other error
       console.error('Error:', error.message);
     }
+    
+    console.error('❌ API Response Error:', {
+      status: error.response?.status,
+      url: error.config?.url,
+      method: error.config?.method?.toUpperCase(),
+      message: error.message,
+      responseData: error.response?.data
+    });
     
     return Promise.reject(error);
   }

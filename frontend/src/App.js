@@ -334,11 +334,27 @@ const App = () => {
       console.log('🔍 DEBUG: Full URL:', `${API}/evaluate`);
       
       console.log('🔍 DEBUG: About to make fetch request');
+      
+      // Get auth token for the request
+      let authHeaders = {
+        'Content-Type': 'application/json',
+      };
+      
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          authHeaders.Authorization = `Bearer ${session.access_token}`;
+          console.log('🔐 Auth token added to evaluate request');
+        } else {
+          console.warn('⚠️ No auth session found for evaluate request');
+        }
+      } catch (authError) {
+        console.error('❌ Error getting auth session for evaluate:', authError);
+      }
+      
       const response = await fetch(`${API}/evaluate`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: authHeaders,
         body: JSON.stringify(evaluationWithUser),
       });
       
