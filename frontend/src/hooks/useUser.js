@@ -129,7 +129,7 @@ export const useUser = () => {
             ]);
             
             const apiTime = Date.now() - apiStartTime;
-            console.log('�� User data received in', apiTime, 'ms:', { 
+            console.log('📊 User data received in', apiTime, 'ms:', { 
               profile: profileData, 
               stats: statsData 
             });
@@ -165,6 +165,65 @@ export const useUser = () => {
             console.error('❌ Error fetching user data:', profileError);
             const errorTime = Date.now() - initStartTime.current;
             console.log('❌ User initialization failed after', errorTime, 'ms');
+            
+            // Check if this is a "missing email" error (400) - means user needs to be created
+            if (profileError.response?.status === 400 && 
+                profileError.response?.data?.error?.includes('missing email information')) {
+              console.log('🔄 Detected missing user error, attempting user creation...');
+              
+              try {
+                const createStartTime = Date.now();
+                const createResponse = await fetch(`${getApiUrl()}/api/users`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+                  },
+                  body: JSON.stringify({
+                    user_id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                    academic_level: 'N/A'
+                  })
+                });
+                
+                if (createResponse.ok) {
+                  const createData = await createResponse.json();
+                  console.log('✅ User created after error detection in', Date.now() - createStartTime, 'ms:', createData);
+                  
+                  // Now try to fetch the user data again
+                  try {
+                    const [profileData, statsData] = await Promise.all([
+                      getUserProfile(session.user.id),
+                      getUserStats(session.user.id),
+                    ]);
+                    
+                    const finalStats = applyLaunchPeriodBenefits({
+                      ...statsData,
+                      profile: profileData,
+                    });
+                    
+                    setUserStats(finalStats);
+                    localStorage.setItem('userData', JSON.stringify(finalStats));
+                    localStorage.setItem('userDataTimestamp', Date.now().toString());
+                    
+                    const totalInitTime = Date.now() - initStartTime.current;
+                    console.log('✅ User initialization completed after recovery in', totalInitTime, 'ms');
+                    
+                    if (typeof window !== 'undefined' && window.location.pathname === '/') {
+                      window.location.href = '/dashboard';
+                    }
+                    return; // Success, exit early
+                  } catch (retryError) {
+                    console.error('❌ Failed to fetch user data after creation:', retryError);
+                  }
+                } else {
+                  console.log('❌ User creation failed after error detection:', createResponse.status, createResponse.statusText);
+                }
+              } catch (createError) {
+                console.error('❌ Failed to create user after error detection:', createError);
+              }
+            }
             
             // Don't fail completely if profile fetch fails
             // Set default stats to prevent infinite loading
@@ -295,6 +354,65 @@ export const useUser = () => {
             console.error('❌ Error fetching user data on sign in:', profileError);
             const errorTime = Date.now() - authChangeStartTime;
             console.log('❌ Auth change (SIGNED_IN) failed after', errorTime, 'ms');
+            
+            // Check if this is a "missing email" error (400) - means user needs to be created
+            if (profileError.response?.status === 400 && 
+                profileError.response?.data?.error?.includes('missing email information')) {
+              console.log('🔄 Detected missing user error during sign in, attempting user creation...');
+              
+              try {
+                const createStartTime = Date.now();
+                const createResponse = await fetch(`${getApiUrl()}/api/users`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`
+                  },
+                  body: JSON.stringify({
+                    user_id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                    academic_level: 'N/A'
+                  })
+                });
+                
+                if (createResponse.ok) {
+                  const createData = await createResponse.json();
+                  console.log('✅ User created after error detection during sign in in', Date.now() - createStartTime, 'ms:', createData);
+                  
+                  // Now try to fetch the user data again
+                  try {
+                    const [profileData, statsData] = await Promise.all([
+                      getUserProfile(session.user.id),
+                      getUserStats(session.user.id),
+                    ]);
+                    
+                    const finalStats = applyLaunchPeriodBenefits({
+                      ...statsData,
+                      profile: profileData,
+                    });
+                    
+                    setUserStats(finalStats);
+                    localStorage.setItem('userData', JSON.stringify(finalStats));
+                    localStorage.setItem('userDataTimestamp', Date.now().toString());
+                    
+                    const totalAuthChangeTime = Date.now() - authChangeStartTime;
+                    console.log('✅ Auth change (SIGNED_IN) completed after recovery in', totalAuthChangeTime, 'ms');
+                    
+                    if (typeof window !== 'undefined' && window.location.pathname === '/') {
+                      window.location.href = '/dashboard';
+                    }
+                    return; // Success, exit early
+                  } catch (retryError) {
+                    console.error('❌ Failed to fetch user data after creation during sign in:', retryError);
+                  }
+                } else {
+                  console.log('❌ User creation failed after error detection during sign in:', createResponse.status, createResponse.statusText);
+                }
+              } catch (createError) {
+                console.error('❌ Failed to create user after error detection during sign in:', createError);
+              }
+            }
             
             // Set default stats to prevent infinite loading
             const defaultStats = {
