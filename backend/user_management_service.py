@@ -431,10 +431,13 @@ class UserManagementService:
                 if not existing_new_user:
                     logger.info(f"Creating new user record for {auth_user_id}")
                     try:
-                        # Create a minimal user record with the new ID
+                        # Create a minimal user record with a TEMPORARY email to avoid conflicts
+                        # We'll update it to the correct email in Phase 3
+                        temp_email = f"temp_{auth_user_id}@merge.temp"
+                        
                         create_result = self.supabase.table('assessment_users').insert({
                             'uid': auth_user_id,
-                            'email': existing_user.get('email'),
+                            'email': temp_email,  # Use temporary email to avoid constraint violation
                             'display_name': existing_user.get('display_name', 'Merged User'),
                             'photo_url': existing_user.get('photo_url'),
                             'academic_level': existing_user.get('academic_level', 'igcse'),
@@ -454,7 +457,7 @@ class UserManagementService:
                                 'error': 'Failed to create new user record'
                             }
                         
-                        logger.info(f"Successfully created new user record for {auth_user_id}")
+                        logger.info(f"Successfully created temporary user record for {auth_user_id}")
                     except Exception as create_error:
                         logger.error(f"Error creating new user record: {str(create_error)}")
                         return {
@@ -503,7 +506,24 @@ class UserManagementService:
                 except Exception as meta_error:
                     logger.warning(f"Could not update meta: {str(meta_error)}")
                 
-                # Phase 3: Now we can safely delete the old user record
+                # Phase 3: Update the email and delete the old user record
+                logger.info(f"Updating email for {auth_user_id} from temporary to correct email")
+                try:
+                    # Update the new user with the correct email
+                    update_result = self.supabase.table('assessment_users').update({
+                        'email': existing_user.get('email'),  # Use the original email
+                        'updated_at': datetime.utcnow().isoformat()
+                    }).eq('uid', auth_user_id).execute()
+                    
+                    if not update_result.data:
+                        logger.warning(f"Could not update email for {auth_user_id}")
+                    else:
+                        logger.info(f"Successfully updated email for {auth_user_id}")
+                        
+                except Exception as update_error:
+                    logger.warning(f"Could not update email: {str(update_error)}")
+                
+                # Now delete the old user record
                 logger.info(f"Deleting old user record: {existing_user_id}")
                 try:
                     delete_result = self.supabase.table('assessment_users').delete().eq('uid', existing_user_id).execute()
