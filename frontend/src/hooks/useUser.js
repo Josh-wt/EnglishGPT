@@ -97,8 +97,18 @@ export const useUser = () => {
             // This ensures new users get launch period benefits immediately
             try {
               console.log('🆕 Attempting to create/ensure user exists during initialization...');
+              const finalUrl = `${getApiUrl()}/users`;
+              console.log('🔧 Debug info:', {
+                userId: session.user.id,
+                userEmail: session.user.email,
+                userName: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                backendUrl: getApiUrl(),
+                finalUrl,
+                hasAccessToken: !!(await supabase.auth.getSession()).data.session?.access_token
+              });
+              
               const createStartTime = Date.now();
-              const createResponse = await fetch(`${getApiUrl()}/api/users`, {
+              const createResponse = await fetch(finalUrl, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -112,15 +122,35 @@ export const useUser = () => {
                 })
               });
               
+              console.log('📡 User creation response:', {
+                status: createResponse.status,
+                statusText: createResponse.statusText,
+                ok: createResponse.ok,
+                url: createResponse.url,
+                headers: Object.fromEntries(createResponse.headers.entries())
+              });
+              
               if (createResponse.ok) {
                 const createData = await createResponse.json();
                 console.log('✅ User created/ensured during initialization in', Date.now() - createStartTime, 'ms:', createData);
               } else {
-                console.log('ℹ️ User creation response during initialization:', createResponse.status, createResponse.statusText);
+                const errorText = await createResponse.text();
+                console.log('❌ User creation failed during initialization:', {
+                  status: createResponse.status,
+                  statusText: createResponse.statusText,
+                  errorText,
+                  duration: Date.now() - createStartTime,
+                  responseUrl: createResponse.url,
+                  requestUrl: finalUrl
+                });
               }
             } catch (createError) {
-              console.log('ℹ️ User creation attempt during initialization result:', createError.message);
-              // Continue with normal flow even if creation fails
+              console.error('❌ User creation attempt during initialization failed:', createError);
+              console.log('🔧 Create error details:', {
+                message: createError.message,
+                stack: createError.stack,
+                name: createError.name
+              });
             }
             
             const [profileData, statsData] = await Promise.all([
@@ -170,10 +200,19 @@ export const useUser = () => {
             if (profileError.response?.status === 400 && 
                 profileError.response?.data?.error?.includes('missing email information')) {
               console.log('🔄 Detected missing user error, attempting user creation...');
+              console.log('🔧 Error details:', {
+                status: profileError.response?.status,
+                error: profileError.response?.data?.error,
+                userId: session.user.id,
+                userEmail: session.user.email
+              });
               
               try {
                 const createStartTime = Date.now();
-                const createResponse = await fetch(`${getApiUrl()}/api/users`, {
+                const finalUrl = `${getApiUrl()}/users`;
+                console.log('🆕 Creating user with URL:', finalUrl);
+                
+                const createResponse = await fetch(finalUrl, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -187,12 +226,20 @@ export const useUser = () => {
                   })
                 });
                 
+                console.log('📡 User creation recovery response:', {
+                  status: createResponse.status,
+                  statusText: createResponse.statusText,
+                  ok: createResponse.ok,
+                  url: createResponse.url
+                });
+                
                 if (createResponse.ok) {
                   const createData = await createResponse.json();
                   console.log('✅ User created after error detection in', Date.now() - createStartTime, 'ms:', createData);
                   
                   // Now try to fetch the user data again
                   try {
+                    console.log('🔄 Retrying user data fetch after successful creation...');
                     const [profileData, statsData] = await Promise.all([
                       getUserProfile(session.user.id),
                       getUserStats(session.user.id),
@@ -218,10 +265,23 @@ export const useUser = () => {
                     console.error('❌ Failed to fetch user data after creation:', retryError);
                   }
                 } else {
-                  console.log('❌ User creation failed after error detection:', createResponse.status, createResponse.statusText);
+                  const errorText = await createResponse.text();
+                  console.log('❌ User creation failed after error detection:', {
+                    status: createResponse.status,
+                    statusText: createResponse.statusText,
+                    errorText,
+                    duration: Date.now() - createStartTime,
+                    responseUrl: createResponse.url,
+                    requestUrl: finalUrl
+                  });
                 }
               } catch (createError) {
                 console.error('❌ Failed to create user after error detection:', createError);
+                console.log('🔧 Create error details:', {
+                  message: createError.message,
+                  stack: createError.stack,
+                  name: createError.name
+                });
               }
             }
             
@@ -297,7 +357,7 @@ export const useUser = () => {
             try {
               console.log('🆕 Attempting to create/ensure user exists...');
               const createStartTime = Date.now();
-              const createResponse = await fetch(`${getApiUrl()}/api/users`, {
+              const createResponse = await fetch(`${getApiUrl()}/users`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -359,10 +419,19 @@ export const useUser = () => {
             if (profileError.response?.status === 400 && 
                 profileError.response?.data?.error?.includes('missing email information')) {
               console.log('🔄 Detected missing user error during sign in, attempting user creation...');
+              console.log('🔧 Error details during sign in:', {
+                status: profileError.response?.status,
+                error: profileError.response?.data?.error,
+                userId: session.user.id,
+                userEmail: session.user.email
+              });
               
               try {
                 const createStartTime = Date.now();
-                const createResponse = await fetch(`${getApiUrl()}/api/users`, {
+                const finalUrl = `${getApiUrl()}/users`;
+                console.log('🆕 Creating user during sign in with URL:', finalUrl);
+                
+                const createResponse = await fetch(finalUrl, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -376,12 +445,20 @@ export const useUser = () => {
                   })
                 });
                 
+                console.log('📡 User creation during sign in response:', {
+                  status: createResponse.status,
+                  statusText: createResponse.statusText,
+                  ok: createResponse.ok,
+                  url: createResponse.url
+                });
+                
                 if (createResponse.ok) {
                   const createData = await createResponse.json();
                   console.log('✅ User created after error detection during sign in in', Date.now() - createStartTime, 'ms:', createData);
                   
                   // Now try to fetch the user data again
                   try {
+                    console.log('🔄 Retrying user data fetch after creation during sign in...');
                     const [profileData, statsData] = await Promise.all([
                       getUserProfile(session.user.id),
                       getUserStats(session.user.id),
@@ -407,10 +484,23 @@ export const useUser = () => {
                     console.error('❌ Failed to fetch user data after creation during sign in:', retryError);
                   }
                 } else {
-                  console.log('❌ User creation failed after error detection during sign in:', createResponse.status, createResponse.statusText);
+                  const errorText = await createResponse.text();
+                  console.log('❌ User creation failed after error detection during sign in:', {
+                    status: createResponse.status,
+                    statusText: createResponse.statusText,
+                    errorText,
+                    duration: Date.now() - createStartTime,
+                    responseUrl: createResponse.url,
+                    requestUrl: finalUrl
+                  });
                 }
               } catch (createError) {
                 console.error('❌ Failed to create user after error detection during sign in:', createError);
+                console.log('🔧 Create error details during sign in:', {
+                  message: createError.message,
+                  stack: createError.stack,
+                  name: createError.name
+                });
               }
             }
             
