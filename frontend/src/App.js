@@ -23,7 +23,7 @@ import { useQuestionTypes } from './hooks/useQuestionTypes';
 
 // Import services
 import { submitFeedback } from './services/feedback';
-import api from './services/api';
+import api, { debugPendingRequests, debugAllRequests } from './services/api';
 import { getApiUrl } from './utils/backendUrl';
 import { supabase } from './supabaseClient';
 
@@ -41,6 +41,50 @@ const App = () => {
   const lastRenderTime = useRef(Date.now());
   const navigationHistory = useRef([]);
   const location = useLocation();
+
+  // Add global debugging functions to window for console access
+  useEffect(() => {
+    // Make debugging functions available globally
+    window.debugAPI = {
+      pendingRequests: debugPendingRequests,
+      allRequests: debugAllRequests,
+      backendUrl: getApiUrl,
+      userState: () => ({ user, userStats, loading: userLoading }),
+      supabase: supabase,
+      api: api
+    };
+
+    console.log('🔧 Global debugging functions available:');
+    console.log('  - window.debugAPI.pendingRequests() - Check pending API requests');
+    console.log('  - window.debugAPI.allRequests() - Check all tracked requests');
+    console.log('  - window.debugAPI.backendUrl() - Get current backend URL');
+    console.log('  - window.debugAPI.userState() - Get current user state');
+    console.log('  - window.debugAPI.supabase - Access Supabase client');
+    console.log('  - window.debugAPI.api - Access API instance');
+
+    // Cleanup function
+    return () => {
+      delete window.debugAPI;
+    };
+  }, [user, userStats, userLoading]);
+
+  // Debug panel state
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
+
+  // Debug panel toggle
+  const toggleDebugPanel = () => {
+    setShowDebugPanel(!showDebugPanel);
+  };
+
+  // Add debug panel toggle to window
+  useEffect(() => {
+    window.toggleDebugPanel = toggleDebugPanel;
+    console.log('🔧 Debug panel toggle available: window.toggleDebugPanel()');
+    
+    return () => {
+      delete window.toggleDebugPanel;
+    };
+  }, [showDebugPanel]);
 
   // Track app renders and performance
   useEffect(() => {
@@ -734,6 +778,66 @@ const App = () => {
         isVisible={showShortcutsHelp}
         onClose={() => setShowShortcutsHelp(false)}
       />
+      
+      {/* Debug Panel */}
+      {showDebugPanel && (
+        <div className="fixed top-4 right-4 bg-black bg-opacity-90 text-white p-4 rounded-lg shadow-lg z-50 max-w-md text-sm">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="font-bold">🔧 Debug Panel</h3>
+            <button 
+              onClick={toggleDebugPanel}
+              className="text-gray-400 hover:text-white"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <div className="space-y-2">
+            <div>
+              <strong>Backend URL:</strong> {getApiUrl()}
+            </div>
+            <div>
+              <strong>User Loading:</strong> {userLoading ? '🔄 Yes' : '✅ No'}
+            </div>
+            <div>
+              <strong>Has User:</strong> {user ? '✅ Yes' : '❌ No'}
+            </div>
+            <div>
+              <strong>Has User Stats:</strong> {userStats ? '✅ Yes' : '❌ No'}
+            </div>
+            <div>
+              <strong>Current Path:</strong> {location.pathname}
+            </div>
+            <div>
+              <strong>Render Count:</strong> {renderCount.current}
+            </div>
+            
+            <hr className="border-gray-600 my-2" />
+            
+            <button 
+              onClick={() => window.debugAPI.pendingRequests()}
+              className="bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-xs w-full"
+            >
+              Check Pending Requests
+            </button>
+            
+            <button 
+              onClick={() => window.debugAPI.allRequests()}
+              className="bg-green-600 hover:bg-green-700 px-2 py-1 rounded text-xs w-full"
+            >
+              Check All Requests
+            </button>
+            
+            <button 
+              onClick={() => console.log('User State:', window.debugAPI.userState())}
+              className="bg-purple-600 hover:bg-purple-700 px-2 py-1 rounded text-xs w-full"
+            >
+              Log User State
+            </button>
+          </div>
+        </div>
+      )}
+      
       <Toaster 
         position="top-right"
         toastOptions={{
