@@ -422,9 +422,49 @@ class UserManagementService:
             merged_data['uid'] = auth_user_id  # Always use the auth user ID
             merged_data['updated_at'] = datetime.utcnow().isoformat()
             
-            # Update the existing user record with the new UID
+            # Two-phase account merge to handle foreign key constraints
             try:
-                # First, update all foreign key references in related tables
+                logger.info(f"Starting two-phase account merge: {existing_user_id} -> {auth_user_id}")
+                
+                # Phase 1: Create the new user record first (if it doesn't exist)
+                existing_new_user = await self.get_user_by_id(auth_user_id)
+                if not existing_new_user:
+                    logger.info(f"Creating new user record for {auth_user_id}")
+                    try:
+                        # Create a minimal user record with the new ID
+                        create_result = self.supabase.table('assessment_users').insert({
+                            'uid': auth_user_id,
+                            'email': existing_user.get('email'),
+                            'display_name': existing_user.get('display_name', 'Merged User'),
+                            'photo_url': existing_user.get('photo_url'),
+                            'academic_level': existing_user.get('academic_level', 'igcse'),
+                            'questions_marked': existing_user.get('questions_marked', 0),
+                            'credits': existing_user.get('credits', 3),
+                            'current_plan': existing_user.get('current_plan', 'free'),
+                            'dark_mode': existing_user.get('dark_mode', False),
+                            'created_at': existing_user.get('created_at'),
+                            'updated_at': datetime.utcnow().isoformat(),
+                            'is_launch_user': existing_user.get('is_launch_user', False)
+                        }).execute()
+                        
+                        if not create_result.data:
+                            logger.error(f"Failed to create new user record for {auth_user_id}")
+                            return {
+                                'success': False,
+                                'error': 'Failed to create new user record'
+                            }
+                        
+                        logger.info(f"Successfully created new user record for {auth_user_id}")
+                    except Exception as create_error:
+                        logger.error(f"Error creating new user record: {str(create_error)}")
+                        return {
+                            'success': False,
+                            'error': f'Create error: {str(create_error)}'
+                        }
+                else:
+                    logger.info(f"New user record already exists for {auth_user_id}")
+                
+                # Phase 2: Update foreign key references now that both users exist
                 logger.info(f"Updating foreign key references from {existing_user_id} to {auth_user_id}")
                 
                 # Update evaluations table
@@ -463,34 +503,37 @@ class UserManagementService:
                 except Exception as meta_error:
                     logger.warning(f"Could not update meta: {str(meta_error)}")
                 
-                # Now update the user record
-                update_result = self.supabase.table('assessment_users').update({
-                    'uid': auth_user_id,
-                    'updated_at': datetime.utcnow().isoformat()
-                }).eq('uid', existing_user_id).execute()
+                # Phase 3: Now we can safely delete the old user record
+                logger.info(f"Deleting old user record: {existing_user_id}")
+                try:
+                    delete_result = self.supabase.table('assessment_users').delete().eq('uid', existing_user_id).execute()
+                    if delete_result.data:
+                        logger.info(f"Successfully deleted old user record: {existing_user_id}")
+                    else:
+                        logger.warning(f"Could not delete old user record: {existing_user_id}")
+                except Exception as delete_error:
+                    logger.warning(f"Could not delete old user record: {str(delete_error)}")
                 
-                if update_result.data:
-                    logger.info(f"Successfully merged user accounts: {existing_user_id} -> {auth_user_id}")
-                    
-                    # Get the merged user data
-                    merged_user = await self.get_user_by_id(auth_user_id)
-                    if merged_user:
-                        return {
-                            'success': True,
-                            'user': merged_user,
-                            'message': f'User accounts merged: {existing_user_id} -> {auth_user_id}'
-                        }
+                # Get the merged user data
+                merged_user = await self.get_user_by_id(auth_user_id)
+                if merged_user:
+                    logger.info(f"Successfully completed two-phase account merge: {existing_user_id} -> {auth_user_id}")
+                    return {
+                        'success': True,
+                        'user': merged_user,
+                        'message': f'User accounts merged via two-phase process: {existing_user_id} -> {auth_user_id}'
+                    }
                 
                 return {
                     'success': False,
-                    'error': 'Failed to update user record'
+                    'error': 'Failed to retrieve merged user data'
                 }
                 
-            except Exception as update_error:
-                logger.error(f"Error updating user record: {str(update_error)}")
+            except Exception as merge_error:
+                logger.error(f"Error in two-phase account merge: {str(merge_error)}")
                 return {
                     'success': False,
-                    'error': f'Update error: {str(update_error)}'
+                    'error': f'Two-phase merge error: {str(merge_error)}'
                 }
                 
         except Exception as e:
