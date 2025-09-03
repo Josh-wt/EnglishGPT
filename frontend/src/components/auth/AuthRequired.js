@@ -76,68 +76,13 @@ const AuthRequired = ({ children, user, userLoading, userStats, darkMode }) => {
   const startAPIMonitoring = () => {
     console.log('🔍 Starting API call monitoring...');
     
-    // Monitor network requests using Performance API
-    if ('PerformanceObserver' in window) {
-      try {
-        const observer = new PerformanceObserver((list) => {
-          list.getEntries().forEach((entry) => {
-            if (entry.name && entry.name.includes('/api/')) {
-              const requestId = Math.random().toString(36).substr(2, 9);
-              const startTime = Date.now();
-              
-              apiCallTracker.current.set(requestId, {
-                url: entry.name,
-                startTime,
-                status: 'pending',
-                entry: entry
-              });
-              
-              console.log(`📡 [${requestId}] API call detected:`, {
-                url: entry.name,
-                startTime: new Date().toISOString(),
-                entryType: entry.entryType
-              });
-              
-              // Check if this request completes
-              setTimeout(() => {
-                const tracked = apiCallTracker.current.get(requestId);
-                if (tracked && tracked.status === 'pending') {
-                  const duration = Date.now() - tracked.startTime;
-                  console.warn(`⚠️ [${requestId}] API call still pending after 5s:`, {
-                    url: tracked.url,
-                    duration: `${duration}ms`,
-                    timestamp: new Date().toISOString()
-                  });
-                }
-              }, 5000);
-            }
-          });
-        });
-        
-        observer.observe({ entryTypes: ['navigation', 'resource'] });
-        
-        // Store observer for cleanup
-        apiCallTracker.current.observer = observer;
-        
-      } catch (error) {
-        console.error('❌ Error setting up PerformanceObserver:', error);
-      }
-    }
-    
-    // Also monitor using fetch/XHR interception
+    // Simple fetch monitoring without complex state
     const originalFetch = window.fetch;
     window.fetch = function(...args) {
       const url = args[0];
       if (typeof url === 'string' && url.includes('/api/')) {
         const requestId = Math.random().toString(36).substr(2, 9);
         const startTime = Date.now();
-        
-        apiCallTracker.current.set(requestId, {
-          url,
-          startTime,
-          status: 'pending',
-          type: 'fetch'
-        });
         
         console.log(`📡 [${requestId}] Fetch API call:`, {
           url,
@@ -146,32 +91,20 @@ const AuthRequired = ({ children, user, userLoading, userStats, darkMode }) => {
         
         return originalFetch.apply(this, args)
           .then(response => {
-            const tracked = apiCallTracker.current.get(requestId);
-            if (tracked) {
-              tracked.status = 'completed';
-              tracked.duration = Date.now() - tracked.startTime;
-              tracked.response = response;
-              
-              console.log(`✅ [${requestId}] Fetch completed in ${tracked.duration}ms:`, {
-                url,
-                status: response.status,
-                statusText: response.statusText
-              });
-            }
+            const duration = Date.now() - startTime;
+            console.log(`✅ [${requestId}] Fetch completed in ${duration}ms:`, {
+              url,
+              status: response.status,
+              statusText: response.statusText
+            });
             return response;
           })
           .catch(error => {
-            const tracked = apiCallTracker.current.get(requestId);
-            if (tracked) {
-              tracked.status = 'failed';
-              tracked.duration = Date.now() - tracked.startTime;
-              tracked.error = error;
-              
-              console.error(`❌ [${requestId}] Fetch failed after ${tracked.duration}ms:`, {
-                url,
-                error: error.message
-              });
-            }
+            const duration = Date.now() - startTime;
+            console.error(`❌ [${requestId}] Fetch failed after ${duration}ms:`, {
+              url,
+              error: error.message
+            });
             throw error;
           });
       }
@@ -185,24 +118,10 @@ const AuthRequired = ({ children, user, userLoading, userStats, darkMode }) => {
   const stopAPIMonitoring = () => {
     console.log('🛑 Stopping API call monitoring...');
     
-    // Clean up PerformanceObserver
-    if (apiCallTracker.current.observer) {
-      apiCallTracker.current.observer.disconnect();
-      delete apiCallTracker.current.observer;
-    }
-    
     // Restore original fetch
     if (apiCallTracker.current.originalFetch) {
       window.fetch = apiCallTracker.current.originalFetch;
       delete apiCallTracker.current.originalFetch;
-    }
-    
-    // Log final API call status
-    const pending = Array.from(apiCallTracker.current.entries())
-      .filter(([id, info]) => info.status === 'pending');
-    
-    if (pending.length > 0) {
-      console.warn('⚠️ API calls still pending when loading stopped:', pending);
     }
     
     // Clear tracker
@@ -223,14 +142,6 @@ const AuthRequired = ({ children, user, userLoading, userStats, darkMode }) => {
             hasUser: !!user,
             timestamp: new Date().toISOString()
           });
-          
-          // Check for pending API calls
-          const pending = Array.from(apiCallTracker.current.entries())
-            .filter(([id, info]) => info.status === 'pending');
-          
-          if (pending.length > 0) {
-            console.warn('⚠️ Pending API calls detected:', pending);
-          }
         }
       }
     };
