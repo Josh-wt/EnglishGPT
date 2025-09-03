@@ -25,6 +25,7 @@ import { useQuestionTypes } from './hooks/useQuestionTypes';
 import { submitFeedback } from './services/feedback';
 import api from './services/api';
 import { getApiUrl } from './utils/backendUrl';
+import { supabase } from './supabaseClient';
 
 // Import new modular components
 import LevelSelectionModal from './components/modals/LevelSelectionModal';
