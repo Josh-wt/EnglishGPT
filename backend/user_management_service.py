@@ -128,12 +128,13 @@ class UserManagementService:
             logger.error(f"Error retrieving user {user_id}: {str(e)}")
             return None
     
-    async def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+    async def get_user_by_email(self, email: str, include_deleted: bool = False) -> Optional[Dict[str, Any]]:
         """
-        Get user by email from the active users view
+        Get user by email from the active users view or main table
         
         Args:
             email: Email address to search for
+            include_deleted: Whether to include soft-deleted users
             
         Returns:
             User data dict or None if not found
@@ -142,8 +143,12 @@ class UserManagementService:
             if not email:
                 return None
                 
-            # Use the active_assessment_users view to only get non-deleted users
-            response = self.supabase.table('active_assessment_users').select('*').eq('email', email).execute()
+            if include_deleted:
+                # Search in the main table to include soft-deleted users
+                response = self.supabase.table('assessment_users').select('*').eq('email', email).execute()
+            else:
+                # Use the active_assessment_users view to only get non-deleted users
+                response = self.supabase.table('active_assessment_users').select('*').eq('email', email).execute()
             
             if response.data:
                 user_data = response.data[0]
@@ -476,8 +481,8 @@ class UserManagementService:
         try:
             logger.info(f"Handling auth/database mismatch for user: {auth_user_id} ({email})")
             
-            # First, check if there's already a user with this email but different ID
-            existing_user = await self.get_user_by_email(email)
+            # First, check if there's already a user with this email but different ID (including soft-deleted)
+            existing_user = await self.get_user_by_email(email, include_deleted=True)
             if existing_user and existing_user.get('uid') != auth_user_id:
                 logger.warning(f"Email {email} already exists with different user ID: {existing_user.get('uid')}")
                 
@@ -539,8 +544,49 @@ class UserManagementService:
                     'message': 'User recovered successfully from auth sync'
                 }
             
-            # If auth sync fails, try to create/restore the user
-            logger.info(f"Auth sync failed, attempting user creation/restoration: {auth_user_id}")
+            # If auth sync fails due to duplicate email, try to find and merge the existing user
+            if 'duplicate key value violates unique constraint "assessment_users_email_key"' in str(sync_result.get('error', '')):
+                logger.info(f"Auth sync failed due to duplicate email, searching for existing user: {email}")
+                
+                # Search for any user with this email (including soft-deleted ones)
+                try:
+                    search_result = self.supabase.table('assessment_users').select('*').eq('email', email).execute()
+                    if search_result.data:
+                        existing_user = search_result.data[0]
+                        existing_user_id = existing_user.get('uid')
+                        
+                        if existing_user_id != auth_user_id:
+                            logger.info(f"Found existing user with email {email}: {existing_user_id}")
+                            
+                            # Try to merge the accounts
+                            merge_result = await self.merge_user_accounts(auth_user_id, existing_user_id)
+                            
+                            if merge_result['success']:
+                                logger.info(f"Successfully merged user accounts after duplicate email error: {existing_user_id} -> {auth_user_id}")
+                                return {
+                                    'success': True,
+                                    'recovery_method': 'duplicate_email_merge',
+                                    'user': merge_result['user'],
+                                    'message': merge_result['message']
+                                }
+                            else:
+                                logger.error(f"Failed to merge user accounts after duplicate email error: {merge_result.get('error')}")
+                        else:
+                            logger.info(f"User {auth_user_id} already exists with email {email}")
+                            # User exists but sync failed - try to get the existing user
+                            existing_user_data = await self.get_user_by_id(auth_user_id)
+                            if existing_user_data:
+                                return {
+                                    'success': True,
+                                    'recovery_method': 'existing_user_found',
+                                    'user': existing_user_data,
+                                    'message': 'User already exists in database'
+                                }
+                except Exception as search_error:
+                    logger.error(f"Error searching for existing user with email {email}: {str(search_error)}")
+            
+            # If all else fails, try to create/restore the user
+            logger.info(f"All recovery methods failed, attempting user creation/restoration: {auth_user_id}")
             create_result = await self.create_or_restore_user(
                 user_id=auth_user_id,
                 email=email,
