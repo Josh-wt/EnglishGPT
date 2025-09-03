@@ -424,6 +424,46 @@ class UserManagementService:
             
             # Update the existing user record with the new UID
             try:
+                # First, update all foreign key references in related tables
+                logger.info(f"Updating foreign key references from {existing_user_id} to {auth_user_id}")
+                
+                # Update evaluations table
+                try:
+                    eval_update = self.supabase.table('assessment_evaluations').update({
+                        'user_id': auth_user_id
+                    }).eq('user_id', existing_user_id).execute()
+                    logger.info(f"Updated {len(eval_update.data) if eval_update.data else 0} evaluations")
+                except Exception as eval_error:
+                    logger.warning(f"Could not update evaluations: {str(eval_error)}")
+                
+                # Update badges table
+                try:
+                    badge_update = self.supabase.table('assessment_badges').update({
+                        'user_id': auth_user_id
+                    }).eq('user_id', existing_user_id).execute()
+                    logger.info(f"Updated {len(badge_update.data) if badge_update.data else 0} badges")
+                except Exception as badge_error:
+                    logger.warning(f"Could not update badges: {str(badge_error)}")
+                
+                # Update feedback table
+                try:
+                    feedback_update = self.supabase.table('assessment_feedback').update({
+                        'user_id': auth_user_id
+                    }).eq('user_id', existing_user_id).execute()
+                    logger.info(f"Updated {len(feedback_update.data) if feedback_update.data else 0} feedback records")
+                except Exception as feedback_error:
+                    logger.warning(f"Could not update feedback: {str(feedback_error)}")
+                
+                # Update meta table
+                try:
+                    meta_update = self.supabase.table('assessment_meta').update({
+                        'user_id': auth_user_id
+                    }).eq('user_id', existing_user_id).execute()
+                    logger.info(f"Updated {len(meta_update.data) if meta_update.data else 0} meta records")
+                except Exception as meta_error:
+                    logger.warning(f"Could not update meta: {str(meta_error)}")
+                
+                # Now update the user record
                 update_result = self.supabase.table('assessment_users').update({
                     'uid': auth_user_id,
                     'updated_at': datetime.utcnow().isoformat()
