@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { getUserProfile, updateUserProfile, updateAcademicLevel, getUserStats } from '../services/user';
 import { applyLaunchPeriodBenefits } from '../utils/launchPeriod';
+import { getApiUrl } from '../utils/backendUrl';
 
 /**
  * Custom hook for user state management
@@ -92,13 +93,43 @@ export const useUser = () => {
             console.log('📡 Fetching user data...');
             const apiStartTime = Date.now();
             
+            // First, try to create the user if they don't exist
+            // This ensures new users get launch period benefits immediately
+            try {
+              console.log('🆕 Attempting to create/ensure user exists during initialization...');
+              const createStartTime = Date.now();
+              const createResponse = await fetch(`${getApiUrl()}/api/users`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+                },
+                body: JSON.stringify({
+                  user_id: session.user.id,
+                  email: session.user.email,
+                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                  academic_level: 'N/A'
+                })
+              });
+              
+              if (createResponse.ok) {
+                const createData = await createResponse.json();
+                console.log('✅ User created/ensured during initialization in', Date.now() - createStartTime, 'ms:', createData);
+              } else {
+                console.log('ℹ️ User creation response during initialization:', createResponse.status, createResponse.statusText);
+              }
+            } catch (createError) {
+              console.log('ℹ️ User creation attempt during initialization result:', createError.message);
+              // Continue with normal flow even if creation fails
+            }
+            
             const [profileData, statsData] = await Promise.all([
               getUserProfile(session.user.id),
               getUserStats(session.user.id),
             ]);
             
             const apiTime = Date.now() - apiStartTime;
-            console.log('📊 User data received in', apiTime, 'ms:', { 
+            console.log('�� User data received in', apiTime, 'ms:', { 
               profile: profileData, 
               stats: statsData 
             });
@@ -201,6 +232,36 @@ export const useUser = () => {
           try {
             console.log('📡 Fetching user data on sign in...');
             const apiStartTime = Date.now();
+            
+            // First, try to create the user if they don't exist
+            // This ensures new users get launch period benefits immediately
+            try {
+              console.log('🆕 Attempting to create/ensure user exists...');
+              const createStartTime = Date.now();
+              const createResponse = await fetch(`${getApiUrl()}/api/users`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${session.access_token}`
+                },
+                body: JSON.stringify({
+                  user_id: session.user.id,
+                  email: session.user.email,
+                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                  academic_level: 'N/A'
+                })
+              });
+              
+              if (createResponse.ok) {
+                const createData = await createResponse.json();
+                console.log('✅ User created/ensured in', Date.now() - createStartTime, 'ms:', createData);
+              } else {
+                console.log('ℹ️ User creation response:', createResponse.status, createResponse.statusText);
+              }
+            } catch (createError) {
+              console.log('ℹ️ User creation attempt result:', createError.message);
+              // Continue with normal flow even if creation fails
+            }
             
             const [profileData, statsData] = await Promise.all([
               getUserProfile(session.user.id),
