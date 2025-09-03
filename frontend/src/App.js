@@ -66,7 +66,7 @@ const App = () => {
     return () => {
       delete window.debugAPI;
     };
-  }, [user, userStats, userLoading]);
+  }, []); // Remove complex dependencies
 
   // Debug panel state
   const [showDebugPanel, setShowDebugPanel] = useState(false);
@@ -84,7 +84,7 @@ const App = () => {
     return () => {
       delete window.toggleDebugPanel;
     };
-  }, [showDebugPanel]);
+  }, []); // Remove dependency
 
   // Track app renders and performance
   useEffect(() => {
@@ -803,36 +803,35 @@ const App = () => {
               <strong>Has User:</strong> {user ? '✅ Yes' : '❌ No'}
             </div>
             <div>
-              <strong>Has User Stats:</strong> {userStats ? '✅ Yes' : '❌ No'}
-            </div>
-            <div>
               <strong>Current Path:</strong> {location.pathname}
-            </div>
-            <div>
-              <strong>Render Count:</strong> {renderCount.current}
             </div>
             
             <hr className="border-gray-600 my-2" />
             
             <button 
-              onClick={() => window.debugAPI.pendingRequests()}
+              onClick={() => {
+                try {
+                  window.debugAPI?.pendingRequests();
+                } catch (e) {
+                  console.error('Debug function error:', e);
+                }
+              }}
               className="bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-xs w-full"
             >
               Check Pending Requests
             </button>
             
             <button 
-              onClick={() => window.debugAPI.allRequests()}
+              onClick={() => {
+                try {
+                  window.debugAPI?.allRequests();
+                } catch (e) {
+                  console.error('Debug function error:', e);
+                }
+              }}
               className="bg-green-600 hover:bg-green-700 px-2 py-1 rounded text-xs w-full"
             >
               Check All Requests
-            </button>
-            
-            <button 
-              onClick={() => console.log('User State:', window.debugAPI.userState())}
-              className="bg-purple-600 hover:bg-purple-700 px-2 py-1 rounded text-xs w-full"
-            >
-              Log User State
             </button>
           </div>
         </div>
