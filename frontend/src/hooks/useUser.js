@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient';
 import { getUserProfile, updateUserProfile, updateAcademicLevel, getUserStats } from '../services/user';
 import { applyLaunchPeriodBenefits } from '../utils/launchPeriod';
 import { getApiUrl } from '../utils/backendUrl';
+import axios from 'axios';
 
 /**
  * Custom hook for user state management
@@ -104,43 +105,37 @@ export const useUser = () => {
                 userName: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
                 backendUrl: getApiUrl(),
                 finalUrl,
-                hasAccessToken: !!(await supabase.auth.getSession()).data.session?.access_token
+                hasAccessToken: !!(await supabase.auth.getSession()).data.session?.access_token,
+                // Simple URL verification
+                expectedUrl: process.env.REACT_APP_BACKEND_URL ? `${process.env.REACT_APP_BACKEND_URL}/api/users` : 'http://localhost:8000/api/users'
               });
               
               const createStartTime = Date.now();
-              const createResponse = await fetch(finalUrl, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-                },
-                body: JSON.stringify({
-                  user_id: session.user.id,
-                  email: session.user.email,
-                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                  academic_level: 'N/A'
-                })
+              
+              // Use axios like the backup file for consistency
+              const createResponse = await axios.post(finalUrl, {
+                user_id: session.user.id,
+                email: session.user.email,
+                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || ''
               });
               
               console.log('📡 User creation response:', {
                 status: createResponse.status,
                 statusText: createResponse.statusText,
-                ok: createResponse.ok,
-                url: createResponse.url,
-                headers: Object.fromEntries(createResponse.headers.entries())
+                ok: createResponse.status >= 200 && createResponse.status < 300,
+                url: createResponse.config?.url,
+                data: createResponse.data
               });
               
-              if (createResponse.ok) {
-                const createData = await createResponse.json();
-                console.log('✅ User created/ensured during initialization in', Date.now() - createStartTime, 'ms:', createData);
+              if (createResponse.status >= 200 && createResponse.status < 300) {
+                console.log('✅ User created/ensured during initialization in', Date.now() - createStartTime, 'ms:', createResponse.data);
               } else {
-                const errorText = await createResponse.text();
                 console.log('❌ User creation failed during initialization:', {
                   status: createResponse.status,
                   statusText: createResponse.statusText,
-                  errorText,
+                  data: createResponse.data,
                   duration: Date.now() - createStartTime,
-                  responseUrl: createResponse.url,
+                  responseUrl: createResponse.config?.url,
                   requestUrl: finalUrl
                 });
               }
@@ -149,7 +144,9 @@ export const useUser = () => {
               console.log('🔧 Create error details:', {
                 message: createError.message,
                 stack: createError.stack,
-                name: createError.name
+                name: createError.name,
+                response: createError.response?.data,
+                status: createError.response?.status
               });
             }
             
@@ -212,30 +209,23 @@ export const useUser = () => {
                 const finalUrl = `${getApiUrl()}/users`;
                 console.log('🆕 Creating user with URL:', finalUrl);
                 
-                const createResponse = await fetch(finalUrl, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-                  },
-                  body: JSON.stringify({
-                    user_id: session.user.id,
-                    email: session.user.email,
-                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                    academic_level: 'N/A'
-                  })
+                // Use axios like the backup file for consistency
+                const createResponse = await axios.post(finalUrl, {
+                  user_id: session.user.id,
+                  email: session.user.email,
+                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || ''
                 });
                 
                 console.log('📡 User creation recovery response:', {
                   status: createResponse.status,
                   statusText: createResponse.statusText,
-                  ok: createResponse.ok,
-                  url: createResponse.url
+                  ok: createResponse.status >= 200 && createResponse.status < 300,
+                  url: createResponse.config?.url,
+                  data: createResponse.data
                 });
                 
-                if (createResponse.ok) {
-                  const createData = await createResponse.json();
-                  console.log('✅ User created after error detection in', Date.now() - createStartTime, 'ms:', createData);
+                if (createResponse.status >= 200 && createResponse.status < 300) {
+                  console.log('✅ User created after error detection in', Date.now() - createStartTime, 'ms:', createResponse.data);
                   
                   // Now try to fetch the user data again
                   try {
@@ -265,13 +255,12 @@ export const useUser = () => {
                     console.error('❌ Failed to fetch user data after creation:', retryError);
                   }
                 } else {
-                  const errorText = await createResponse.text();
                   console.log('❌ User creation failed after error detection:', {
                     status: createResponse.status,
                     statusText: createResponse.statusText,
-                    errorText,
+                    data: createResponse.data,
                     duration: Date.now() - createStartTime,
-                    responseUrl: createResponse.url,
+                    responseUrl: createResponse.config?.url,
                     requestUrl: finalUrl
                   });
                 }
@@ -280,7 +269,9 @@ export const useUser = () => {
                 console.log('🔧 Create error details:', {
                   message: createError.message,
                   stack: createError.stack,
-                  name: createError.name
+                  name: createError.name,
+                  response: createError.response?.data,
+                  status: createError.response?.status
                 });
               }
             }
@@ -431,30 +422,23 @@ export const useUser = () => {
                 const finalUrl = `${getApiUrl()}/users`;
                 console.log('🆕 Creating user during sign in with URL:', finalUrl);
                 
-                const createResponse = await fetch(finalUrl, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}`
-                  },
-                  body: JSON.stringify({
-                    user_id: session.user.id,
-                    email: session.user.email,
-                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                    academic_level: 'N/A'
-                  })
+                // Use axios like the backup file for consistency
+                const createResponse = await axios.post(finalUrl, {
+                  user_id: session.user.id,
+                  email: session.user.email,
+                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || ''
                 });
                 
                 console.log('📡 User creation during sign in response:', {
                   status: createResponse.status,
                   statusText: createResponse.statusText,
-                  ok: createResponse.ok,
-                  url: createResponse.url
+                  ok: createResponse.status >= 200 && createResponse.status < 300,
+                  url: createResponse.config?.url,
+                  data: createResponse.data
                 });
                 
-                if (createResponse.ok) {
-                  const createData = await createResponse.json();
-                  console.log('✅ User created after error detection during sign in in', Date.now() - createStartTime, 'ms:', createData);
+                if (createResponse.status >= 200 && createResponse.status < 300) {
+                  console.log('✅ User created after error detection during sign in in', Date.now() - createStartTime, 'ms:', createResponse.data);
                   
                   // Now try to fetch the user data again
                   try {
@@ -484,13 +468,12 @@ export const useUser = () => {
                     console.error('❌ Failed to fetch user data after creation during sign in:', retryError);
                   }
                 } else {
-                  const errorText = await createResponse.text();
                   console.log('❌ User creation failed after error detection during sign in:', {
                     status: createResponse.status,
                     statusText: createResponse.statusText,
-                    errorText,
+                    data: createResponse.data,
                     duration: Date.now() - createStartTime,
-                    responseUrl: createResponse.url,
+                    responseUrl: createResponse.config?.url,
                     requestUrl: finalUrl
                   });
                 }
@@ -499,7 +482,9 @@ export const useUser = () => {
                 console.log('🔧 Create error details during sign in:', {
                   message: createError.message,
                   stack: createError.stack,
-                  name: createError.name
+                  name: createError.name,
+                  response: createError.response?.data,
+                  status: createError.response?.status
                 });
               }
             }
