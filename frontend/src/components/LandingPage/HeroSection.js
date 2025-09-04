@@ -179,7 +179,7 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-0" style={{ gridTemplateColumns: '45% 55%' }}>
+          <div className="grid lg:grid-cols-2 gap-0" style={{ gridTemplateColumns: '35% 65%' }}>
             {/* Question Types Panel - Left Side */}
             <div className="p-8 bg-gradient-to-br from-purple-50 to-pink-50 border-r border-purple-200/40">
               <div className="mb-6">

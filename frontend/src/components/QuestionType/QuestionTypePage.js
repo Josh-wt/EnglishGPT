@@ -302,7 +302,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 h-[calc(100vh-200px)]">
           
           {/* Left Side - Question Types (10% narrower) */}
-          <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden" style={{ width: '90%' }}>
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden" style={{ width: '80%' }}>
             <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-4">
               <h2 className="text-lg font-bold text-white font-fredoka mb-1">Question Types</h2>
               <p className="text-pink-100 text-xs">{levelData.levelName}</p>
@@ -361,7 +361,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                       </div>
 
           {/* Right Side - Writing Interface (10% wider) */}
-          <div className="lg:col-span-3 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden" style={{ width: '110%' }}>
+          <div className="lg:col-span-3 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden" style={{ width: '120%' }}>
               <div className="bg-gradient-to-r from-blue-500 to-green-600 p-6">
                 <div className="flex items-center justify-between">
                   <div>
