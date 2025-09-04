@@ -336,20 +336,9 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                           <h3 className="font-fredoka font-bold text-gray-900 text-sm mb-1 truncate">
                             {questionType.name}
                           </h3>
-                          <p className="font-fredoka text-gray-600 text-xs leading-tight line-clamp-2">
+                          <p className="text-gray-600 text-sm leading-relaxed">
                             {questionType.description}
                           </p>
-                          {/* Marking Scheme Tag */}
-                          {(questionType.requires_marking_scheme === true || questionType.id === 'igcse_writers_effect') && (
-                            <div className="mt-2">
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
-                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 9.26L12 2Z"/>
-                                </svg>
-                                Marking Scheme Required
-                              </span>
-                            </div>
-                          )}
                         </div>
                         {selectedQuestionType?.id === questionType.id && (
                           <div className="w-4 h-4 bg-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
