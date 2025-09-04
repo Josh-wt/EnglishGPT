@@ -105,38 +105,19 @@ export const useUser = () => {
             // First, try to create the user if they don't exist
             // This ensures new users get launch period benefits immediately
             try {
-              console.log('🆕 Attempting to create/ensure user exists during initialization...');
-              const finalUrl = `${getApiUrl()}/users`;
-              console.log('🔧 Debug info:', {
-                userId: session.user.id,
-                userEmail: session.user.email,
-                userName: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                backendUrl: getApiUrl(),
-                finalUrl,
-                hasAccessToken: !!(await supabase.auth.getSession()).data.session?.access_token,
-                // Simple URL verification
-                expectedUrl: process.env.REACT_APP_BACKEND_URL ? `${process.env.REACT_APP_BACKEND_URL}/api/users` : 'http://localhost:8000/api/users'
-              });
-              
+              console.log('🆕 Attempting to create/ensure user exists...');
               const createStartTime = Date.now();
+              const finalUrl = `${getApiUrl()}/users`;
               
-              // Use axios like the backup file for consistency
               const createResponse = await axios.post(finalUrl, {
                 user_id: session.user.id,
                 email: session.user.email,
                 name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || ''
               });
               
-              console.log('📡 User creation response:', {
-                status: createResponse.status,
-                statusText: createResponse.statusText,
-                ok: createResponse.status >= 200 && createResponse.status < 300,
-                url: createResponse.config?.url,
-                data: createResponse.data
-              });
-              
               if (createResponse.status >= 200 && createResponse.status < 300) {
-                console.log('✅ User created/ensured during initialization in', Date.now() - createStartTime, 'ms:', createResponse.data);
+                const createData = createResponse.data;
+                console.log('✅ User created/ensured in', Date.now() - createStartTime, 'ms:', createData);
                 
                 // Set user to unlimited immediately like the backup file
                 try {
@@ -150,24 +131,11 @@ export const useUser = () => {
                   console.error('❌ Failed to set unlimited plan:', unlimitedError);
                 }
               } else {
-                console.log('❌ User creation failed during initialization:', {
-                  status: createResponse.status,
-                  statusText: createResponse.statusText,
-                  data: createResponse.data,
-                  duration: Date.now() - createStartTime,
-                  responseUrl: createResponse.config?.url,
-                  requestUrl: finalUrl
-                });
+                console.log('ℹ️ User creation response:', createResponse.status, createResponse.statusText);
               }
             } catch (createError) {
-              console.error('❌ User creation attempt during initialization failed:', createError);
-              console.log('🔧 Create error details:', {
-                message: createError.message,
-                stack: createError.stack,
-                name: createError.name,
-                response: createError.response?.data,
-                status: createError.response?.status
-              });
+              console.log('ℹ️ User creation attempt result:', createError.message);
+              // Continue with normal flow even if creation fails
             }
             
             const [profileData, statsData] = await Promise.all([
@@ -176,7 +144,7 @@ export const useUser = () => {
             ]);
             
             const apiTime = Date.now() - apiStartTime;
-            console.log('📊 User data received in', apiTime, 'ms:', { 
+            console.log('�� User data received in', apiTime, 'ms:', { 
               profile: profileData, 
               stats: statsData 
             });
@@ -215,6 +183,14 @@ export const useUser = () => {
               await fetchAcademicLevel();
             } catch (levelError) {
               console.error('❌ Failed to fetch academic level:', levelError);
+            }
+            
+            // Ensure user has unlimited access
+            try {
+              console.log('🚀 Ensuring unlimited access after user data load...');
+              await ensureUnlimitedAccess();
+            } catch (unlimitedError) {
+              console.error('❌ Failed to ensure unlimited access:', unlimitedError);
             }
             
             const totalInitTime = Date.now() - initStartTime.current;
@@ -413,23 +389,29 @@ export const useUser = () => {
             try {
               console.log('🆕 Attempting to create/ensure user exists...');
               const createStartTime = Date.now();
-              const createResponse = await fetch(`${getApiUrl()}/users`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${session.access_token}`
-                },
-                body: JSON.stringify({
-                  user_id: session.user.id,
-                  email: session.user.email,
-                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                  academic_level: 'N/A'
-                })
+              const finalUrl = `${getApiUrl()}/users`;
+              
+              const createResponse = await axios.post(finalUrl, {
+                user_id: session.user.id,
+                email: session.user.email,
+                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || ''
               });
               
-              if (createResponse.ok) {
-                const createData = await createResponse.json();
+              if (createResponse.status >= 200 && createResponse.status < 300) {
+                const createData = createResponse.data;
                 console.log('✅ User created/ensured in', Date.now() - createStartTime, 'ms:', createData);
+                
+                // Set user to unlimited immediately like the backup file
+                try {
+                  console.log('🚀 Setting user to unlimited plan...');
+                  const unlimitedResponse = await axios.put(`${getApiUrl()}/users/${session.user.id}`, {
+                    current_plan: 'unlimited',
+                    updated_at: new Date().toISOString()
+                  });
+                  console.log('✅ User set to unlimited plan:', unlimitedResponse.data);
+                } catch (unlimitedError) {
+                  console.error('❌ Failed to set unlimited plan:', unlimitedError);
+                }
               } else {
                 console.log('ℹ️ User creation response:', createResponse.status, createResponse.statusText);
               }
@@ -452,11 +434,35 @@ export const useUser = () => {
               profile: profileData,
             });
             
-            setUserStats(finalStats);
+            // Set to unlimited by default like the backup file
+            const unlimitedStats = {
+              ...finalStats,
+              currentPlan: 'unlimited',
+              credits: 999999, // Unlimited credits
+              showWelcomeMessage: false
+            };
+            
+            setUserStats(unlimitedStats);
             
             // Cache the user data
-            localStorage.setItem('userData', JSON.stringify(finalStats));
+            localStorage.setItem('userData', JSON.stringify(unlimitedStats));
             localStorage.setItem('userDataTimestamp', Date.now().toString());
+            
+            // Fetch academic level from backend like the backup file
+            try {
+              console.log('📥 Fetching academic level after user data load...');
+              await fetchAcademicLevel();
+            } catch (levelError) {
+              console.error('❌ Failed to fetch academic level:', levelError);
+            }
+            
+            // Ensure user has unlimited access
+            try {
+              console.log('🚀 Ensuring unlimited access after user data load...');
+              await ensureUnlimitedAccess();
+            } catch (unlimitedError) {
+              console.error('❌ Failed to ensure unlimited access:', unlimitedError);
+            }
             
             const totalAuthChangeTime = Date.now() - authChangeStartTime;
             console.log('✅ Auth change (SIGNED_IN) completed in', totalAuthChangeTime, 'ms');
@@ -815,6 +821,107 @@ export const useUser = () => {
     }
   };
 
+  // Ensure user has unlimited access
+  const ensureUnlimitedAccess = async () => {
+    if (!user?.id) {
+      console.error('Cannot ensure unlimited access: user not ready');
+      return false;
+    }
+    
+    try {
+      console.log('🚀 Ensuring user has unlimited access...');
+      
+      // Check current plan in backend
+      const response = await axios.get(`${getApiUrl()}/users/${user.id}`);
+      const currentPlan = response.data.user?.current_plan;
+      
+      if (currentPlan !== 'unlimited') {
+        console.log('🔄 Setting user to unlimited plan...');
+        const unlimitedResponse = await axios.put(`${getApiUrl()}/users/${user.id}`, {
+          current_plan: 'unlimited',
+          updated_at: new Date().toISOString()
+        });
+        console.log('✅ User set to unlimited plan:', unlimitedResponse.data);
+      } else {
+        console.log('✅ User already has unlimited plan');
+      }
+      
+      // Update local state
+      setUserStats(prev => {
+        if (prev) {
+          return {
+            ...prev,
+            currentPlan: 'unlimited',
+            credits: 999999
+          };
+        }
+        return prev;
+      });
+      
+      // Update localStorage
+      const currentData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const updatedData = {
+        ...currentData,
+        currentPlan: 'unlimited',
+        credits: 999999
+      };
+      localStorage.setItem('userData', JSON.stringify(updatedData));
+      
+      console.log('✅ Unlimited access ensured');
+      return true;
+    } catch (error) {
+      console.error('❌ Failed to ensure unlimited access:', error);
+      return false;
+    }
+  };
+
+  // Force refresh user data from backend
+  const forceRefreshUserData = async () => {
+    if (!user?.id) {
+      console.error('Cannot refresh user data: user not ready');
+      return false;
+    }
+    
+    try {
+      console.log('🔄 Force refreshing user data from backend...');
+      
+      // Fetch fresh data
+      const [profileData, statsData] = await Promise.all([
+        getUserProfile(user.id),
+        getUserStats(user.id),
+      ]);
+      
+      // Apply launch period benefits
+      const finalStats = applyLaunchPeriodBenefits({
+        ...statsData,
+        profile: profileData,
+      });
+      
+      // Set to unlimited by default like the backup file
+      const unlimitedStats = {
+        ...finalStats,
+        currentPlan: 'unlimited',
+        credits: 999999, // Unlimited credits
+        showWelcomeMessage: false
+      };
+      
+      setUserStats(unlimitedStats);
+      
+      // Update localStorage
+      localStorage.setItem('userData', JSON.stringify(unlimitedStats));
+      localStorage.setItem('userDataTimestamp', Date.now().toString());
+      
+      // Fetch academic level
+      await fetchAcademicLevel();
+      
+      console.log('✅ User data force refreshed successfully');
+      return true;
+    } catch (error) {
+      console.error('❌ Failed to force refresh user data:', error);
+      return false;
+    }
+  };
+
   // Fetch academic level from backend like the backup file
   const fetchAcademicLevel = async () => {
     if (!user?.id) {
@@ -833,14 +940,19 @@ export const useUser = () => {
         const normalizedLevel = backendLevel.toLowerCase().replace(/[^a-z]/g, '');
         console.log('✅ Normalized academic level:', normalizedLevel);
         
-        // Update local state
-        setUserStats(prev => ({
-          ...prev,
-          profile: {
-            ...prev.profile,
-            academic_level: normalizedLevel
+        // Update local state if userStats exists
+        setUserStats(prev => {
+          if (prev) {
+            return {
+              ...prev,
+              profile: {
+                ...prev.profile,
+                academic_level: normalizedLevel
+              }
+            };
           }
-        }));
+          return prev;
+        });
         
         // Update localStorage
         const currentData = JSON.parse(localStorage.getItem('userData') || '{}');
@@ -861,6 +973,57 @@ export const useUser = () => {
     } catch (error) {
       console.error('❌ Failed to fetch academic level:', error);
       return null;
+    }
+  };
+
+  // Check if user has unlimited access
+  const hasUnlimitedAccess = () => {
+    return userStats?.currentPlan === 'unlimited';
+  };
+
+  // Set academic level (called from components)
+  const setAcademicLevel = async (level) => {
+    if (!user?.id) {
+      console.error('Cannot set academic level: user not ready');
+      return false;
+    }
+    
+    try {
+      console.log('💾 Setting academic level:', level);
+      
+      // Save to backend first
+      await saveAcademicLevel(level);
+      
+      // Update local state immediately
+      setUserStats(prev => {
+        if (prev) {
+          return {
+            ...prev,
+            profile: {
+              ...prev.profile,
+              academic_level: level
+            }
+          };
+        }
+        return prev;
+      });
+      
+      // Update localStorage
+      const currentData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const updatedData = {
+        ...currentData,
+        profile: {
+          ...currentData.profile,
+          academic_level: level
+        }
+      };
+      localStorage.setItem('userData', JSON.stringify(updatedData));
+      
+      console.log('✅ Academic level set successfully:', level);
+      return true;
+    } catch (error) {
+      console.error('❌ Failed to set academic level:', error);
+      return false;
     }
   };
 
@@ -916,7 +1079,11 @@ export const useUser = () => {
     updateProfile,
     updateLevel,
     refreshUserData,
+    forceRefreshUserData,
     saveAcademicLevel,
     fetchAcademicLevel,
+    setAcademicLevel,
+    hasUnlimitedAccess,
+    ensureUnlimitedAccess,
   };
 };
