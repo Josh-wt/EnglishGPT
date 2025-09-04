@@ -45,6 +45,48 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     }
   }, []);
 
+  // Check for landing page essay and restore it
+  useEffect(() => {
+    const landingPageEssay = localStorage.getItem('landingPageEssay');
+    if (landingPageEssay && !studentResponse) {
+      try {
+        const essayData = JSON.parse(landingPageEssay);
+        console.log('📝 Restoring landing page essay:', essayData);
+        
+        // Set the essay content
+        setStudentResponse(essayData.content);
+        setFormattedText(convertMarkdownToHtml(essayData.content));
+        
+        // Set the question type if it matches available types
+        if (essayData.questionType && essayData.level) {
+          // Find the matching question type
+          const matchingQuestion = questionTypes?.find(qt => 
+            qt.id === essayData.questionType.id && 
+            (qt.category === essayData.level || 
+             qt.category === 'IGCSE' && essayData.level === 'IGCSE' ||
+             qt.category === 'A-Level' && essayData.level === 'A Level')
+          );
+          
+          if (matchingQuestion) {
+            setSelectedQuestionType(matchingQuestion);
+            console.log('✅ Restored question type:', matchingQuestion.name);
+          }
+        }
+        
+        // Clear the landing page essay from localStorage
+        localStorage.removeItem('landingPageEssay');
+        
+        // Show restored message
+        setRestoredDraft(true);
+        setTimeout(() => setRestoredDraft(false), 5000);
+        
+      } catch (error) {
+        console.error('❌ Error restoring landing page essay:', error);
+        localStorage.removeItem('landingPageEssay');
+      }
+    }
+  }, [questionTypes, studentResponse, convertMarkdownToHtml]);
+
   // Autosave on change (debounced)
   useEffect(() => {
     const key = 'draft_student_response';

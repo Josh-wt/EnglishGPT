@@ -73,14 +73,37 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
   };
 
   const handleGetAIFeedback = async () => {
+    // Validate that a question type is selected and essay has content
+    if (!selectedQuestionType) {
+      console.log('❌ No question type selected');
+      return;
+    }
+    
+    if (!studentResponse.trim()) {
+      console.log('❌ No essay content to evaluate');
+      return;
+    }
+    
+    // Save the current essay to localStorage
+    const essayData = {
+      content: studentResponse,
+      questionType: selectedQuestionType,
+      level: selectedLevel,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('landingPageEssay', JSON.stringify(essayData));
+    console.log('💾 Essay saved to localStorage:', essayData);
+    
     // Check if user is authenticated
     const { data: { session } } = await supabase.auth.getSession();
     
     if (session?.user) {
-      // Redirect to write page
-      window.location.href = 'https://englishgpt.everythingenglish.xyz/write';
+      // User is authenticated - redirect to write page
+      console.log('✅ User authenticated, redirecting to /write page');
+      window.location.href = '/write';
     } else {
-      // Show auth modal
+      // User is not authenticated - show auth modal
+      console.log('❌ User not authenticated, showing sign-in modal');
       setShowAuthModal(true);
     }
   };
@@ -181,7 +204,7 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
 
           <div className="grid lg:grid-cols-2 gap-0" style={{ gridTemplateColumns: '35% 65%' }}>
             {/* Question Types Panel - Left Side */}
-            <div className="p-8 bg-gradient-to-br from-purple-50 to-pink-50 border-r border-purple-200/40">
+            <div className="p-8 bg-white border-r border-purple-200/40">
               <div className="mb-6">
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Question Types</h3>
                 <div className={`bg-gradient-to-r ${selectedLevel === 'IGCSE' ? 'from-purple-500 to-pink-500' : 'from-blue-500 to-green-500'} text-white px-3 py-1 rounded-lg shadow-md inline-block`}>
@@ -281,9 +304,14 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
                     
                     <motion.button
                       onClick={handleGetAIFeedback}
-                      className="px-6 py-3 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105"
-                      whileHover={{ y: -2 }}
-                      whileTap={{ scale: 0.95 }}
+                      disabled={!selectedQuestionType || !studentResponse.trim()}
+                      className={`px-6 py-3 rounded-xl font-semibold shadow-lg transform transition-all duration-300 ${
+                        selectedQuestionType && studentResponse.trim()
+                          ? 'bg-gradient-to-r from-blue-600 to-green-600 text-white hover:shadow-xl hover:scale-105'
+                          : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                      }`}
+                      whileHover={selectedQuestionType && studentResponse.trim() ? { y: -2 } : {}}
+                      whileTap={selectedQuestionType && studentResponse.trim() ? { scale: 0.95 } : {}}
                     >
                       Get AI Feedback Now!
                     </motion.button>
