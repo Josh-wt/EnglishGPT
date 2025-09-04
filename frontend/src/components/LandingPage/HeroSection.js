@@ -179,7 +179,7 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-0">
+          <div className="grid lg:grid-cols-2 gap-0" style={{ gridTemplateColumns: '45% 55%' }}>
             {/* Question Types Panel - Left Side */}
             <div className="p-8 bg-gradient-to-br from-purple-50 to-pink-50 border-r border-purple-200/40">
               <div className="mb-6">
@@ -276,7 +276,7 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
                       onClick={() => setSelectedQuestionType(null)}
                       className="px-6 py-3 bg-gray-500 text-white rounded-xl font-semibold hover:bg-gray-600 transition-all duration-300"
                     >
-                      Change Question
+                      Change Question Type
                     </button>
                     
                     <motion.button
@@ -285,7 +285,7 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
                       whileHover={{ y: -2 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      Evaluate Essay
+                      Get AI Feedback Now!
                     </motion.button>
                   </div>
                 </>
@@ -311,9 +311,9 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
           transition={{ delay: 1.2, duration: 0.6 }}
         >
           {[
-            {label:'Avg. improvement', value:'+27%'},
-            {label:'Marking speed', value:'< 30s'},
-            {label:'Simple Pricing', value:'Just $4.99/m'}
+            {label:'Avg. improvement', value:'+57%'},
+            {label:'Marking speed', value:'< 20s'},
+            {label:'Simple Pricing', value:'Just $4.99/m (Free for launch period!)'}
           ].map((s,i)=> (
             <motion.div 
               key={i} 
