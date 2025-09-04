@@ -58,7 +58,7 @@ export const UI_CONSTANTS = {
 export const LOGO_URL = 'https://ik.imagekit.io/lqf8a8nmt/logo-modified.png?updatedAt=1752578868143';
 
 export const IMAGE_URLS = {
-  WRITE: 'https://ik.imagekit.io/lqf8a8nmt/Screenshot%202025-08-17%20at%2012-10-47%20EnglishGPT%20-%20AI%20English%20Marking.png?updatedAt=1755509276693',
+  WRITE: 'https://ik.imagekit.io/lqf8a8nmt/EnglishGPT-AI-English-Marking-09-04-2025_03_41_PM.png?updatedAt=1756980809376',
   MARKING: 'https://ik.imagekit.io/lqf8a8nmt/Screenshot%202025-08-17%20at%2012-17-35%20EnglishGPT%20-%20AI%20English%20Marking.png?updatedAt=1755509276578',
   PRICING: 'https://ik.imagekit.io/lqf8a8nmt/Screenshot%202025-08-17%20at%2012-11-06%20EnglishGPT%20-%20AI%20English%20Marking.png?updatedAt=1755509276757',
   ANALYTICS: 'https://ik.imagekit.io/lqf8a8nmt/Screenshot%202025-08-17%20at%2012-17-17%20EnglishGPT%20-%20AI%20English%20Marking.png?updatedAt=1755509276805',
