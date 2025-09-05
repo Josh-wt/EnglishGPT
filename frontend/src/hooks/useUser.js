@@ -36,6 +36,11 @@ export const useUser = () => {
   // Initialize user state with caching
   useEffect(() => {
     const initializeUser = async () => {
+      // Add timeout to prevent hanging
+      const timeoutId = setTimeout(() => {
+        console.warn('⚠️ User initialization timeout - forcing loading to false');
+        setLoading(false);
+      }, 10000); // 10 second timeout
       try {
         initStartTime.current = Date.now();
         console.log('🔄 Initializing user...', {
@@ -43,6 +48,7 @@ export const useUser = () => {
           cacheCheck: 'starting'
         });
         setLoading(true);
+        console.log('🔄 Loading state set to true');
         
         // Check for cached user data first
         const cacheStartTime = Date.now();
@@ -84,6 +90,7 @@ export const useUser = () => {
             };
             
             setUserStats(unlimitedCachedData);
+            console.log('🔄 Setting loading to false (cached data path)');
             setLoading(false);
             
             const totalInitTime = Date.now() - initStartTime.current;
@@ -359,7 +366,8 @@ export const useUser = () => {
         console.log('❌ User initialization failed after', errorTime, 'ms');
         setError(err.message);
       } finally {
-        console.log('✅ User initialization complete');
+        clearTimeout(timeoutId);
+        console.log('✅ User initialization complete - setting loading to false');
         setLoading(false);
       }
     };
