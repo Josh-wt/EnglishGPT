@@ -59,7 +59,8 @@ export const useUser = () => {
         console.log('📦 Cache check completed in', Date.now() - cacheStartTime, 'ms', {
           hasCachedData: !!cachedUserData,
           isCacheValid,
-          cacheAge: cacheTimestamp ? Date.now() - parseInt(cacheTimestamp) : 'N/A'
+          cacheAge: cacheTimestamp ? Date.now() - parseInt(cacheTimestamp) : 'N/A',
+          cachedData: cachedUserData ? JSON.parse(cachedUserData) : null
         });
         
         // Get current session
@@ -99,7 +100,15 @@ export const useUser = () => {
             // Instant redirect to dashboard if authenticated and on main domain
             if (typeof window !== 'undefined' && window.location.pathname === '/') {
               console.log('🔄 Redirecting authenticated user to dashboard');
-              window.location.href = '/dashboard';
+              console.log('🔄 User data before redirect:', {
+                hasUser: !!user,
+                hasUserStats: !!userStats,
+                userStats: userStats
+              });
+              // Use setTimeout to ensure state is updated before redirect
+              setTimeout(() => {
+                window.location.href = '/dashboard';
+              }, 100);
             }
             return;
           }
@@ -174,12 +183,14 @@ export const useUser = () => {
               showWelcomeMessage: false
             };
             
+            console.log('🔄 Setting user stats to unlimited:', unlimitedStats);
             setUserStats(unlimitedStats);
             
             // Cache the user data
             const cacheWriteStartTime = Date.now();
             localStorage.setItem('userData', JSON.stringify(unlimitedStats));
             localStorage.setItem('userDataTimestamp', Date.now().toString());
+            console.log('💾 User data cached to localStorage:', unlimitedStats);
             const cacheWriteTime = Date.now() - cacheWriteStartTime;
             
             console.log('💾 Cache written in', cacheWriteTime, 'ms');

@@ -126,7 +126,7 @@ const App = () => {
   }, [location]);
 
   // Use custom hooks for state management
-  const { user, userStats, loading: userLoading, signInWithGoogle, signInWithDiscord, signOut, updateLevel } = useUser();
+  const { user, userStats, loading: userLoading, signInWithGoogle, signInWithDiscord, signOut, updateLevel, refreshUserData } = useUser();
   const { questionTypes } = useQuestionTypes();
 
   // Debug user state changes
@@ -437,6 +437,15 @@ const App = () => {
       
       setEvaluations(prev => [responseData, ...prev]);
       console.log('🔍 DEBUG: Added to evaluations list');
+      
+      // Refresh user data to get updated questions marked counter from backend
+      console.log('🔍 DEBUG: Refreshing user data to get updated questions marked counter');
+      try {
+        await refreshUserData();
+        console.log('🔍 DEBUG: User data refreshed successfully');
+      } catch (refreshError) {
+        console.error('🔍 DEBUG: Error refreshing user data:', refreshError);
+      }
       
       // Navigate to shareable public results page (prefer short_id if present)
       const resultId = responseData?.short_id || responseData?.id;

@@ -15,13 +15,15 @@ export const useQuestionTypes = () => {
    */
   const fetchQuestionTypes = useCallback(async () => {
     try {
+      console.log('🔄 Fetching question types...');
       setLoading(true);
       setError(null);
       
       const data = await getQuestionTypes();
+      console.log('✅ Question types fetched:', data);
       setQuestionTypes(data.question_types || []);
     } catch (err) {
-      console.error('Error fetching question types:', err);
+      console.error('❌ Error fetching question types:', err);
       setError(err.message);
     } finally {
       setLoading(false);
