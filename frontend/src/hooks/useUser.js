@@ -83,14 +83,8 @@ export const useUser = () => {
             console.log('📦 Using cached user data');
             const parsedData = JSON.parse(cachedUserData);
             
-            // Ensure cached data has unlimited plan
-            const unlimitedCachedData = {
-              ...parsedData,
-              currentPlan: 'unlimited',
-              credits: 999999
-            };
-            
-            setUserStats(unlimitedCachedData);
+            // Use cached data as-is, don't force unlimited plan
+            setUserStats(parsedData);
             console.log('🔄 Setting loading to false (cached data path)');
             setLoading(false);
             
@@ -178,26 +172,66 @@ export const useUser = () => {
               console.error('❌ API calls failed or timed out:', apiError);
               console.log('🔄 Using fallback user data...');
               
-              // Use fallback data when API calls fail
-              profileData = {
-                id: session.user.id,
-                email: session.user.email,
-                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                current_plan: 'unlimited',
-                credits: 999999,
-                questions_marked: 0,
-                academic_level: 'N/A'
-              };
-              
-              statsData = {
-                id: session.user.id,
-                email: session.user.email,
-                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                current_plan: 'unlimited',
-                credits: 999999,
-                questions_marked: 0,
-                academic_level: 'N/A'
-              };
+              // Use fallback data when API calls fail - use cached data if available
+              const cachedData = localStorage.getItem('userData');
+              if (cachedData) {
+                try {
+                  const parsedCachedData = JSON.parse(cachedData);
+                  profileData = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                    ...parsedCachedData
+                  };
+                  statsData = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                    ...parsedCachedData
+                  };
+                } catch (parseError) {
+                  console.error('❌ Error parsing cached data:', parseError);
+                  // Fall back to default values
+                  profileData = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                    current_plan: 'free',
+                    credits: 3,
+                    questions_marked: 0,
+                    academic_level: 'N/A'
+                  };
+                  statsData = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                    current_plan: 'free',
+                    credits: 3,
+                    questions_marked: 0,
+                    academic_level: 'N/A'
+                  };
+                }
+              } else {
+                // No cached data available, use default values
+                profileData = {
+                  id: session.user.id,
+                  email: session.user.email,
+                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                  current_plan: 'free',
+                  credits: 3,
+                  questions_marked: 0,
+                  academic_level: 'N/A'
+                };
+                statsData = {
+                  id: session.user.id,
+                  email: session.user.email,
+                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                  current_plan: 'free',
+                  credits: 3,
+                  questions_marked: 0,
+                  academic_level: 'N/A'
+                };
+              }
             }
             
             const apiTime = Date.now() - apiStartTime;
@@ -216,22 +250,20 @@ export const useUser = () => {
             
             console.log('🎉 Final stats processed in', benefitsTime, 'ms:', finalStats);
             
-            // Set to unlimited by default like the backup file
-            const unlimitedStats = {
+            // Use the actual user data from backend, don't force unlimited
+            const userStats = {
               ...finalStats,
-              currentPlan: 'unlimited',
-              credits: 999999, // Unlimited credits
               showWelcomeMessage: false
             };
             
-            console.log('🔄 Setting user stats to unlimited:', unlimitedStats);
-            setUserStats(unlimitedStats);
+            console.log('🔄 Setting user stats from backend:', userStats);
+            setUserStats(userStats);
             
             // Cache the user data
             const cacheWriteStartTime = Date.now();
-            localStorage.setItem('userData', JSON.stringify(unlimitedStats));
+            localStorage.setItem('userData', JSON.stringify(userStats));
             localStorage.setItem('userDataTimestamp', Date.now().toString());
-            console.log('💾 User data cached to localStorage:', unlimitedStats);
+            console.log('💾 User data cached to localStorage:', userStats);
             const cacheWriteTime = Date.now() - cacheWriteStartTime;
             
             console.log('💾 Cache written in', cacheWriteTime, 'ms');
@@ -504,26 +536,66 @@ export const useUser = () => {
               console.error('❌ API calls failed or timed out:', apiError);
               console.log('🔄 Using fallback user data...');
               
-              // Use fallback data when API calls fail
-              profileData = {
-                id: session.user.id,
-                email: session.user.email,
-                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                current_plan: 'unlimited',
-                credits: 999999,
-                questions_marked: 0,
-                academic_level: 'N/A'
-              };
-              
-              statsData = {
-                id: session.user.id,
-                email: session.user.email,
-                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                current_plan: 'unlimited',
-                credits: 999999,
-                questions_marked: 0,
-                academic_level: 'N/A'
-              };
+              // Use fallback data when API calls fail - use cached data if available
+              const cachedData = localStorage.getItem('userData');
+              if (cachedData) {
+                try {
+                  const parsedCachedData = JSON.parse(cachedData);
+                  profileData = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                    ...parsedCachedData
+                  };
+                  statsData = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                    ...parsedCachedData
+                  };
+                } catch (parseError) {
+                  console.error('❌ Error parsing cached data:', parseError);
+                  // Fall back to default values
+                  profileData = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                    current_plan: 'free',
+                    credits: 3,
+                    questions_marked: 0,
+                    academic_level: 'N/A'
+                  };
+                  statsData = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                    current_plan: 'free',
+                    credits: 3,
+                    questions_marked: 0,
+                    academic_level: 'N/A'
+                  };
+                }
+              } else {
+                // No cached data available, use default values
+                profileData = {
+                  id: session.user.id,
+                  email: session.user.email,
+                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                  current_plan: 'free',
+                  credits: 3,
+                  questions_marked: 0,
+                  academic_level: 'N/A'
+                };
+                statsData = {
+                  id: session.user.id,
+                  email: session.user.email,
+                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                  current_plan: 'free',
+                  credits: 3,
+                  questions_marked: 0,
+                  academic_level: 'N/A'
+                };
+              }
             }
             
             const apiTime = Date.now() - apiStartTime;

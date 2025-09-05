@@ -292,9 +292,11 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
               
               return submarks.map((submark, idx) => {
                 console.log('🔍 DEBUG: Rendering submark:', submark, 'index:', idx);
+                // Remove "|" character from submark value for display
+                const cleanValue = submark.value.replace(/\|/g, '').trim();
                 return (
                   <div className="text-center px-4 py-2 rounded-xl bg-green-50 border border-green-200" key={submark.label + idx}>
-                    <div className="text-2xl font-extrabold text-green-700 tracking-tight">{submark.value}</div>
+                    <div className="text-2xl font-extrabold text-green-700 tracking-tight">{cleanValue}</div>
                     <div className="text-green-700 text-sm mt-0.5">{submark.label}</div>
                   </div>
                 );

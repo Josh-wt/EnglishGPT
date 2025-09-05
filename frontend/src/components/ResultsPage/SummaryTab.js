@@ -97,7 +97,7 @@ const SummaryTab = ({ evaluation, gradeInfo, letterGrade, darkMode, onFeedback }
                 <span className="mr-2 text-purple-500">•</span>
                 <span>
                   <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Reading Marks:</span>
-                  <span className="ml-2">{evaluation.reading_marks}</span>
+                  <span className="ml-2">{evaluation.reading_marks.replace(/\|/g, '').trim()}</span>
                 </span>
               </li>
             )}
@@ -107,7 +107,7 @@ const SummaryTab = ({ evaluation, gradeInfo, letterGrade, darkMode, onFeedback }
                 <span className="mr-2 text-purple-500">•</span>
                 <span>
                   <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Writing Marks:</span>
-                  <span className="ml-2">{evaluation.writing_marks}</span>
+                  <span className="ml-2">{evaluation.writing_marks.replace(/\|/g, '').trim()}</span>
                 </span>
               </li>
             )}
@@ -117,7 +117,7 @@ const SummaryTab = ({ evaluation, gradeInfo, letterGrade, darkMode, onFeedback }
                 <span className="mr-2 text-purple-500">•</span>
                 <span>
                   <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Content & Structure:</span>
-                  <span className="ml-2">{evaluation.content_structure_marks}</span>
+                  <span className="ml-2">{evaluation.content_structure_marks.replace(/\|/g, '').trim()}</span>
                 </span>
               </li>
             )}
@@ -127,7 +127,7 @@ const SummaryTab = ({ evaluation, gradeInfo, letterGrade, darkMode, onFeedback }
                 <span className="mr-2 text-purple-500">•</span>
                 <span>
                   <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Style & Accuracy:</span>
-                  <span className="ml-2">{evaluation.style_accuracy_marks}</span>
+                  <span className="ml-2">{evaluation.style_accuracy_marks.replace(/\|/g, '').trim()}</span>
                 </span>
               </li>
             )}
@@ -137,7 +137,7 @@ const SummaryTab = ({ evaluation, gradeInfo, letterGrade, darkMode, onFeedback }
                 <span className="mr-2 text-purple-500">•</span>
                 <span>
                   <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>AO1 Marks:</span>
-                  <span className="ml-2">{evaluation.ao1_marks}</span>
+                  <span className="ml-2">{evaluation.ao1_marks.replace(/\|/g, '').trim()}</span>
                 </span>
               </li>
             )}
@@ -147,7 +147,7 @@ const SummaryTab = ({ evaluation, gradeInfo, letterGrade, darkMode, onFeedback }
                 <span className="mr-2 text-purple-500">•</span>
                 <span>
                   <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>AO2 Marks:</span>
-                  <span className="ml-2">{evaluation.ao2_marks}</span>
+                  <span className="ml-2">{evaluation.ao2_marks.replace(/\|/g, '').trim()}</span>
                 </span>
               </li>
             )}
