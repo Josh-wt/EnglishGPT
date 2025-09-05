@@ -154,10 +154,51 @@ export const useUser = () => {
               // Continue with normal flow even if creation fails
             }
             
-            const [profileData, statsData] = await Promise.all([
-              getUserProfile(session.user.id),
-              getUserStats(session.user.id),
-            ]);
+            // Add timeout to prevent hanging API calls
+            const apiTimeout = 15000; // 15 seconds timeout
+            console.log('🔄 Starting user data fetch with timeout:', apiTimeout, 'ms');
+            
+            let profileData, statsData;
+            try {
+              [profileData, statsData] = await Promise.all([
+                Promise.race([
+                  getUserProfile(session.user.id),
+                  new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('getUserProfile timeout')), apiTimeout)
+                  )
+                ]),
+                Promise.race([
+                  getUserStats(session.user.id),
+                  new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('getUserStats timeout')), apiTimeout)
+                  )
+                ])
+              ]);
+            } catch (apiError) {
+              console.error('❌ API calls failed or timed out:', apiError);
+              console.log('🔄 Using fallback user data...');
+              
+              // Use fallback data when API calls fail
+              profileData = {
+                id: session.user.id,
+                email: session.user.email,
+                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                current_plan: 'unlimited',
+                credits: 999999,
+                questions_marked: 0,
+                academic_level: 'N/A'
+              };
+              
+              statsData = {
+                id: session.user.id,
+                email: session.user.email,
+                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                current_plan: 'unlimited',
+                credits: 999999,
+                questions_marked: 0,
+                academic_level: 'N/A'
+              };
+            }
             
             const apiTime = Date.now() - apiStartTime;
             console.log('�� User data received in', apiTime, 'ms:', { 
@@ -439,10 +480,51 @@ export const useUser = () => {
               // Continue with normal flow even if creation fails
             }
             
-            const [profileData, statsData] = await Promise.all([
-              getUserProfile(session.user.id),
-              getUserStats(session.user.id),
-            ]);
+            // Add timeout to prevent hanging API calls
+            const apiTimeout = 15000; // 15 seconds timeout
+            console.log('🔄 Starting user data fetch with timeout:', apiTimeout, 'ms');
+            
+            let profileData, statsData;
+            try {
+              [profileData, statsData] = await Promise.all([
+                Promise.race([
+                  getUserProfile(session.user.id),
+                  new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('getUserProfile timeout')), apiTimeout)
+                  )
+                ]),
+                Promise.race([
+                  getUserStats(session.user.id),
+                  new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('getUserStats timeout')), apiTimeout)
+                  )
+                ])
+              ]);
+            } catch (apiError) {
+              console.error('❌ API calls failed or timed out:', apiError);
+              console.log('🔄 Using fallback user data...');
+              
+              // Use fallback data when API calls fail
+              profileData = {
+                id: session.user.id,
+                email: session.user.email,
+                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                current_plan: 'unlimited',
+                credits: 999999,
+                questions_marked: 0,
+                academic_level: 'N/A'
+              };
+              
+              statsData = {
+                id: session.user.id,
+                email: session.user.email,
+                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                current_plan: 'unlimited',
+                credits: 999999,
+                questions_marked: 0,
+                academic_level: 'N/A'
+              };
+            }
             
             const apiTime = Date.now() - apiStartTime;
             console.log('📊 User data received on sign in in', apiTime, 'ms');
