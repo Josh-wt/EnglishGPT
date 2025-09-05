@@ -83,8 +83,16 @@ export const useUser = () => {
             console.log('📦 Using cached user data');
             const parsedData = JSON.parse(cachedUserData);
             
-            // Use cached data as-is, don't force unlimited plan
-            setUserStats(parsedData);
+            // Apply the same field mapping to cached data
+            const mappedCachedData = {
+              ...parsedData,
+              // Map backend field names to frontend field names
+              currentPlan: parsedData.current_plan || parsedData.currentPlan || 'free',
+              questionsMarked: parsedData.questions_marked || parsedData.questionsMarked || 0,
+              credits: parsedData.credits || 3,
+            };
+            
+            setUserStats(mappedCachedData);
             console.log('🔄 Setting loading to false (cached data path)');
             setLoading(false);
             
