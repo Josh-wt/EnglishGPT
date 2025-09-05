@@ -242,14 +242,18 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
   const parseFeedbackToBullets = (feedback) => {
     if (!feedback) return [];
     
-    // Split by common delimiters
+    // Split by common delimiters and also by common transition words
     const sentences = feedback
-      .split(/[.!?]+/)
+      .split(/[.!?]+|However|However,|Additionally|Furthermore|Moreover|In addition|On the other hand|Nevertheless|Therefore|Thus|As a result|For example|For instance|Specifically|In particular|Overall|In conclusion|To summarize/)
       .map(sentence => sentence.trim())
-      .filter(sentence => sentence.length > 10) // Only meaningful sentences
+      .filter(sentence => sentence.length > 15) // Only meaningful sentences
       .slice(0, 10); // Limit to 10 points
     
-    return sentences;
+    return sentences.map((sentence, index) => (
+      <li key={index} className="mb-2">
+        {sentence}
+      </li>
+    ));
   };
 
   // Note: handleNewEvaluation is now passed as a prop from App.js

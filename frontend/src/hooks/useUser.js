@@ -172,66 +172,26 @@ export const useUser = () => {
               console.error('❌ API calls failed or timed out:', apiError);
               console.log('🔄 Using fallback user data...');
               
-              // Use fallback data when API calls fail - use cached data if available
-              const cachedData = localStorage.getItem('userData');
-              if (cachedData) {
-                try {
-                  const parsedCachedData = JSON.parse(cachedData);
-                  profileData = {
-                    id: session.user.id,
-                    email: session.user.email,
-                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                    ...parsedCachedData
-                  };
-                  statsData = {
-                    id: session.user.id,
-                    email: session.user.email,
-                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                    ...parsedCachedData
-                  };
-                } catch (parseError) {
-                  console.error('❌ Error parsing cached data:', parseError);
-                  // Fall back to default values
-                  profileData = {
-                    id: session.user.id,
-                    email: session.user.email,
-                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                    current_plan: 'free',
-                    credits: 3,
-                    questions_marked: 0,
-                    academic_level: 'N/A'
-                  };
-                  statsData = {
-                    id: session.user.id,
-                    email: session.user.email,
-                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                    current_plan: 'free',
-                    credits: 3,
-                    questions_marked: 0,
-                    academic_level: 'N/A'
-                  };
-                }
-              } else {
-                // No cached data available, use default values
-                profileData = {
-                  id: session.user.id,
-                  email: session.user.email,
-                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                  current_plan: 'free',
-                  credits: 3,
-                  questions_marked: 0,
-                  academic_level: 'N/A'
-                };
-                statsData = {
-                  id: session.user.id,
-                  email: session.user.email,
-                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                  current_plan: 'free',
-                  credits: 3,
-                  questions_marked: 0,
-                  academic_level: 'N/A'
-                };
-              }
+              // Use fallback data when API calls fail - since user was just created and set to unlimited, use unlimited plan
+              console.log('🔄 Using unlimited plan fallback data since user was just created');
+              profileData = {
+                id: session.user.id,
+                email: session.user.email,
+                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                current_plan: 'unlimited',
+                credits: 999999,
+                questions_marked: 0,
+                academic_level: 'N/A'
+              };
+              statsData = {
+                id: session.user.id,
+                email: session.user.email,
+                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                current_plan: 'unlimited',
+                credits: 999999,
+                questions_marked: 0,
+                academic_level: 'N/A'
+              };
             }
             
             const apiTime = Date.now() - apiStartTime;
@@ -536,66 +496,26 @@ export const useUser = () => {
               console.error('❌ API calls failed or timed out:', apiError);
               console.log('🔄 Using fallback user data...');
               
-              // Use fallback data when API calls fail - use cached data if available
-              const cachedData = localStorage.getItem('userData');
-              if (cachedData) {
-                try {
-                  const parsedCachedData = JSON.parse(cachedData);
-                  profileData = {
-                    id: session.user.id,
-                    email: session.user.email,
-                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                    ...parsedCachedData
-                  };
-                  statsData = {
-                    id: session.user.id,
-                    email: session.user.email,
-                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                    ...parsedCachedData
-                  };
-                } catch (parseError) {
-                  console.error('❌ Error parsing cached data:', parseError);
-                  // Fall back to default values
-                  profileData = {
-                    id: session.user.id,
-                    email: session.user.email,
-                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                    current_plan: 'free',
-                    credits: 3,
-                    questions_marked: 0,
-                    academic_level: 'N/A'
-                  };
-                  statsData = {
-                    id: session.user.id,
-                    email: session.user.email,
-                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                    current_plan: 'free',
-                    credits: 3,
-                    questions_marked: 0,
-                    academic_level: 'N/A'
-                  };
-                }
-              } else {
-                // No cached data available, use default values
-                profileData = {
-                  id: session.user.id,
-                  email: session.user.email,
-                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                  current_plan: 'free',
-                  credits: 3,
-                  questions_marked: 0,
-                  academic_level: 'N/A'
-                };
-                statsData = {
-                  id: session.user.id,
-                  email: session.user.email,
-                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                  current_plan: 'free',
-                  credits: 3,
-                  questions_marked: 0,
-                  academic_level: 'N/A'
-                };
-              }
+              // Use fallback data when API calls fail - since user was just created and set to unlimited, use unlimited plan
+              console.log('🔄 Using unlimited plan fallback data since user was just created');
+              profileData = {
+                id: session.user.id,
+                email: session.user.email,
+                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                current_plan: 'unlimited',
+                credits: 999999,
+                questions_marked: 0,
+                academic_level: 'N/A'
+              };
+              statsData = {
+                id: session.user.id,
+                email: session.user.email,
+                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                current_plan: 'unlimited',
+                credits: 999999,
+                questions_marked: 0,
+                academic_level: 'N/A'
+              };
             }
             
             const apiTime = Date.now() - apiStartTime;
