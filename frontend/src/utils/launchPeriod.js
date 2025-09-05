@@ -66,13 +66,13 @@ export const applyLaunchPeriodBenefits = (userStats) => {
   }
 
   // Always grant unlimited plan during launch period
-  console.log('🎉 Launch period: User granted Unlimited plan!');
+  console.log('🎉 Launch period: User granted unlimited plan!');
   return {
     ...userStats,
-    currentPlan: 'Unlimited',
-    credits: '∞',
-    questionsMarked: userStats?.questionsMarked || 0,
+    currentPlan: 'unlimited',
+    credits: 999999,
+    questionsMarked: userStats?.questions_marked || userStats?.questionsMarked || 0,
     evaluationsLimit: '∞',
-    evaluationsUsed: userStats?.evaluationsUsed || 0,
+    evaluationsUsed: userStats?.evaluations_used || userStats?.evaluationsUsed || 0,
   };
 };

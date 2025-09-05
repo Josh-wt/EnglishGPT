@@ -210,9 +210,13 @@ export const useUser = () => {
             
             console.log('🎉 Final stats processed in', benefitsTime, 'ms:', finalStats);
             
-            // Use the actual user data from backend, don't force unlimited
+            // Use the actual user data from backend, properly map field names
             const userStats = {
               ...finalStats,
+              // Map backend field names to frontend field names
+              currentPlan: finalStats.current_plan || finalStats.currentPlan || 'free',
+              questionsMarked: finalStats.questions_marked || finalStats.questionsMarked || 0,
+              credits: finalStats.credits || 3,
               showWelcomeMessage: false
             };
             

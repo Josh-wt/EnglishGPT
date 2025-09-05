@@ -249,11 +249,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       .filter(sentence => sentence.length > 15) // Only meaningful sentences
       .slice(0, 10); // Limit to 10 points
     
-    return sentences.map((sentence, index) => (
-      <li key={index} className="mb-2">
-        {sentence}
-      </li>
-    ));
+    return sentences;
   };
 
   // Note: handleNewEvaluation is now passed as a prop from App.js
@@ -354,7 +350,11 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
                 <h4 className="font-semibold text-gray-800 mb-4">Detailed Feedback</h4>
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                   <ul className="list-disc pl-5 text-gray-700 leading-relaxed space-y-2">
-                    {parseFeedbackToBullets(evaluation.feedback)}
+                    {parseFeedbackToBullets(evaluation.feedback).map((sentence, index) => (
+                      <li key={index} className="mb-2">
+                        {sentence}
+                      </li>
+                    ))}
                   </ul>
                 </div>
               </div>
