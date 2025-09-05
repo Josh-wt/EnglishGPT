@@ -1,9 +1,7 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { LOGO_URL } from '../../constants/uiConstants';
 
-const Footer = () => {
+const Footer = ({ darkMode = false }) => {
   const currentYear = new Date().getFullYear();
 
   const footerSections = [
@@ -49,76 +47,39 @@ const Footer = () => {
   ];
 
   return (
-    <motion.footer 
-      className="relative border-t border-purple-200/50 bg-white/60 backdrop-blur-xl"
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.8 }}
-    >
+    <footer className={`${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-700'} border-t border-gray-200`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Logo and description */}
           <div className="lg:col-span-1">
-            <motion.div 
-              className="flex items-center space-x-2 mb-4"
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-            >
-              <motion.img 
-                src={LOGO_URL} 
-                alt="EnglishGPT logo" 
-                className="w-8 h-8 rounded-xl object-cover shadow-md shadow-purple-600/30"
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.6 }}
-              />
-              <span className="font-fredoka font-semibold text-gray-900">EnglishGPT</span>
-            </motion.div>
-            <motion.p 
-              className="text-sm text-gray-600 mb-4"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-            >
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">E</span>
+              </div>
+              <span className="font-bold text-lg">EnglishGPT</span>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
               AI-powered essay marking and feedback for students and educators.
-            </motion.p>
-            <motion.div 
-              className="flex space-x-4"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.4, duration: 0.6 }}
-            >
-              {socialLinks.map((social, index) => (
-                <motion.a
+            </p>
+            <div className="flex space-x-4">
+              {socialLinks.map((social) => (
+                <a
                   key={social.name}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-gray-600 transition-colors"
-                  whileHover={{ scale: 1.2 }}
-                  transition={{ duration: 0.2 }}
                 >
                   <span className="sr-only">{social.name}</span>
                   <span className="text-lg">{social.icon}</span>
-                </motion.a>
+                </a>
               ))}
-            </motion.div>
+            </div>
           </div>
 
           {/* Footer sections */}
-          {footerSections.map((section, sectionIndex) => (
-            <motion.div 
-              key={section.title} 
-              className="lg:col-span-1"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 + (sectionIndex * 0.1), duration: 0.6 }}
-            >
+          {footerSections.map((section) => (
+            <div key={section.title} className="lg:col-span-1">
               <h3 className="font-semibold text-gray-900 mb-4">{section.title}</h3>
               <ul className="space-y-2">
                 {section.links.map((link) => (
@@ -132,18 +93,12 @@ const Footer = () => {
                   </li>
                 ))}
               </ul>
-            </motion.div>
+            </div>
           ))}
         </div>
 
         {/* Bottom section */}
-        <motion.div 
-          className="mt-8 pt-8 border-t border-gray-200"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.6, duration: 0.6 }}
-        >
+        <div className="mt-8 pt-8 border-t border-gray-200">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-gray-600">
               © {currentYear} EnglishGPT. All rights reserved.
@@ -152,9 +107,9 @@ const Footer = () => {
               Made with ❤️ for students and educators
             </p>
           </div>
-        </motion.div>
+        </div>
       </div>
-    </motion.footer>
+    </footer>
   );
 };
 

@@ -13,7 +13,7 @@ const TestimonialsSection = () => {
     },
     {
       quote: 'Turned out to be really accurate, better than ChatGPT',
-      name: 'Student, A‑Level'
+      name: 'Student, IGCSE'
     }
   ];
 

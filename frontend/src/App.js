@@ -16,6 +16,7 @@ import AnalyticsDashboard from './components/AnalyticsDashboard';
 import AccountPage from './components/AccountPage';
 import PricingPage from './components/PricingPage';
 import Dashboard from './components/Dashboard';
+import { TermsOfService, RefundPolicy, PrivacyPolicy } from './components/legal';
 
 // Import hooks
 import { useUser } from './hooks/useUser';
@@ -478,10 +479,16 @@ const App = () => {
   };
 
   const handleNewEvaluation = () => {
-    setEvaluation(null);
-    setSelectedQuestionType(null);
-    setCurrentPage('questionTypes');
-    navigate('/write');
+    if (!user) {
+      // Show sign-in modal for unauthenticated users
+      setShowSignInModal(true);
+    } else {
+      // For authenticated users, navigate to write page
+      setEvaluation(null);
+      setSelectedQuestionType(null);
+      setCurrentPage('questionTypes');
+      navigate('/write');
+    }
   };
 
 
@@ -750,6 +757,9 @@ const App = () => {
             />
           </AuthRequired>
         } />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/refund" element={<RefundPolicy />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
       </Routes>
 
       {/* Global modals and components */}

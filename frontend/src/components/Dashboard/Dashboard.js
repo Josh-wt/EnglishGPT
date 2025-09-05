@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import Footer from '../ui/Footer';
 
 const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAnalytics, onAccountSettings, onSubscription, userStats, user, darkMode, onSignOut }) => {
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
@@ -432,6 +433,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
           </div>
         </div>
       </div>
+      <Footer darkMode={darkMode} />
     </div>
   );
 };

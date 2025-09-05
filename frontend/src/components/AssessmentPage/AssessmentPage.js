@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import LoadingSpinner from '../ui/LoadingSpinner';
+import Footer from '../ui/Footer';
 
 const AssessmentPage = ({ selectedQuestionType, onEvaluate, onBack, darkMode, evaluationLoading, loadingMessage }) => {
   const [markingScheme, setMarkingScheme] = useState('');
@@ -439,6 +440,7 @@ const AssessmentPage = ({ selectedQuestionType, onEvaluate, onBack, darkMode, ev
           </div>
         </div>
       )}
+      <Footer darkMode={darkMode} />
     </div>
   );
 };

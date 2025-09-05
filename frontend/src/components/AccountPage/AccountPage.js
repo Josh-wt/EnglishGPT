@@ -6,6 +6,7 @@ import UserProfile from './UserProfile';
 import SubscriptionInfo from './SubscriptionInfo';
 import TransactionHistory from './TransactionHistory';
 import AcademicLevelSelector from './AcademicLevelSelector';
+import Footer from '../ui/Footer';
 
 const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt = false, darkMode, toggleDarkMode, onPricing }) => {
   const [academicLevel, setAcademicLevel] = useState('');
@@ -270,6 +271,7 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
           )}
         </motion.div>
       </div>
+      <Footer darkMode={darkMode} />
     </div>
   );
 };

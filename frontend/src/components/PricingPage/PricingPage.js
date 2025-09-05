@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import subscriptionService from '../../services/subscriptionService';
 import { isLaunchPeriod, getLaunchPeriodMessage } from '../../utils/launchPeriod';
+import Footer from '../ui/Footer';
 
 // Enhanced Pricing Page Component with Launch Offer
 const PricingPage = ({ onBack, user }) => {
@@ -328,6 +329,7 @@ const PricingPage = ({ onBack, user }) => {
           </div>
         </motion.div>
       </div>
+      <Footer />
     </motion.div>
   );
 };

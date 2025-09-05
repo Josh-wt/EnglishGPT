@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import Footer from '../ui/Footer';
 
 // Enhanced Locked Analytics Page
 const LockedAnalyticsPage = ({ onBack, upgradeType, page = 'analytics' }) => {
@@ -246,6 +247,7 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 };
