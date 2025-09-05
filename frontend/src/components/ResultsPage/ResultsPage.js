@@ -252,16 +252,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
     return sentences;
   };
 
-  // Handle new evaluation button click
-  const handleNewEvaluation = () => {
-    if (!user) {
-      // Show sign-in modal for unauthenticated users
-      setShowSignInModal(true);
-    } else {
-      // For authenticated users, navigate to write page
-      navigate('/write');
-    }
-  };
+  // Note: handleNewEvaluation is now passed as a prop from App.js
 
 
   
@@ -463,7 +454,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         {/* Action Button */}
         <div className="text-center">
           <button
-            onClick={handleNewEvaluation}
+            onClick={onNewEvaluation}
             className="bg-black text-white px-8 py-4 rounded-xl font-semibold hover:bg-gray-800 transition-colors"
           >
             Start New Question

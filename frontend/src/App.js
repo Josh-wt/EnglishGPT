@@ -129,6 +129,18 @@ const App = () => {
   const { user, userStats, loading: userLoading, signInWithGoogle, signInWithDiscord, signOut, updateLevel } = useUser();
   const { questionTypes } = useQuestionTypes();
 
+  // Debug user state changes
+  useEffect(() => {
+    console.log('🔍 DEBUG: User state changed in App.js:', {
+      user: user,
+      hasUser: !!user,
+      userId: user?.id,
+      userEmail: user?.email,
+      userLoading: userLoading,
+      timestamp: new Date().toISOString()
+    });
+  }, [user, userLoading]);
+
   // Local state
   const [darkMode, setDarkMode] = useState(false);
   const [evaluation, setEvaluation] = useState(null);
@@ -479,10 +491,22 @@ const App = () => {
   };
 
   const handleNewEvaluation = () => {
+    console.log('🔍 DEBUG: handleNewEvaluation called');
+    console.log('🔍 DEBUG: user state:', {
+      user: user,
+      hasUser: !!user,
+      userId: user?.id,
+      userEmail: user?.email,
+      userLoading: userLoading,
+      timestamp: new Date().toISOString()
+    });
+    
     if (!user) {
+      console.log('❌ DEBUG: No user found, showing sign-in modal');
       // Show sign-in modal for unauthenticated users
       setShowSignInModal(true);
     } else {
+      console.log('✅ DEBUG: User authenticated, redirecting to /write');
       // For authenticated users, navigate to write page
       setEvaluation(null);
       setSelectedQuestionType(null);
