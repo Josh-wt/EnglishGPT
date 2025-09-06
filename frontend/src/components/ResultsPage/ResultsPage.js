@@ -238,18 +238,29 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
     );
   }
 
-  // Parse feedback text into bullet points
+  // Parse feedback text into bullet points - simple copy-paste approach
   const parseFeedbackToBullets = (feedback) => {
     if (!feedback) return [];
     
-    // Split by common delimiters (same as App.js.backup)
-    const sentences = feedback
-      .split(/[.!?]+/)
-      .map(sentence => sentence.trim())
-      .filter(sentence => sentence.length > 10) // Only meaningful sentences
+    // Simple approach: split by bullet points and clean up
+    // Look for common bullet point patterns: •, -, *, or numbered lists
+    const bulletPoints = feedback
+      .split(/(?:^|\n)\s*[•\-*]\s+/) // Split by bullet points at start of line
+      .map(point => point.trim())
+      .filter(point => point.length > 0) // Remove empty points
       .slice(0, 10); // Limit to 10 points
     
-    return sentences;
+    // If no bullet points found, try splitting by line breaks
+    if (bulletPoints.length <= 1) {
+      const lines = feedback
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 10) // Only meaningful lines
+        .slice(0, 10);
+      return lines;
+    }
+    
+    return bulletPoints;
   };
 
   // Note: handleNewEvaluation is now passed as a prop from App.js

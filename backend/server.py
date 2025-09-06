@@ -1561,11 +1561,13 @@ IMPORTANT: For strengths, analyze the actual content and identify specific, uniq
 - Specific aspects of organization or structure that work
 
 Format your response as:
-FEEDBACK: [detailed feedback]
+FEEDBACK: [detailed feedback in bullet points - each point should be a complete, standalone sentence that makes sense on its own]
 GRADE: [overall grade]
 {sub_marks_requirement}
 IMPROVEMENTS: [improvement 1] | [improvement 2] | [improvement 3]
 STRENGTHS: [strength 1 - specific to this essay] | [strength 2 - specific to this essay] | [strength 3 - specific to this essay]
+
+CRITICAL: For the FEEDBACK section, format it as bullet points where each bullet point is a complete, standalone sentence. Do NOT split sentences across bullet points. Each bullet point should be a full, meaningful sentence that can be read independently.
 
 Student Response: {sanitized_response}
 
