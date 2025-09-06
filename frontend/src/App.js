@@ -249,13 +249,11 @@ const App = () => {
     setSelectedLevel(level);
     setShowLevelSelectionModal(false);
     
-    // Save level to user account
+    // Save level to user account using the useUser hook function
     if (user?.id) {
       try {
-        const startTime = Date.now();
-        await api.put(`/users/${user.id}`, { academic_level: level });
-        const duration = Date.now() - startTime;
-        console.log('✅ Academic level saved in', duration, 'ms');
+        await updateLevel(level);
+        console.log('✅ Academic level saved and cached');
       } catch (error) {
         console.error('❌ Error saving academic level:', error);
       }

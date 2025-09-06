@@ -9,7 +9,7 @@ import AcademicLevelSelector from './AcademicLevelSelector';
 import Footer from '../ui/Footer';
 
 const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt = false, darkMode, toggleDarkMode, onPricing }) => {
-  const [academicLevel, setAcademicLevel] = useState('');
+  const [academicLevel, setAcademicLevel] = useState(userStats?.academicLevel || '');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [transactions, setTransactions] = useState([]);
@@ -26,17 +26,19 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
     setError('');
     const userId = user?.uid || user?.id;
     if (user && userId) {
-      // Fetch user data and academic level
-      
-
+      // Use academic level from userStats if available, otherwise fetch from API
+      if (userStats?.academicLevel) {
+        setAcademicLevel(userStats.academicLevel);
+      } else {
         api.get(`/users/${userId}`).then(res => {
-        if (!mounted) return;
-        let backendLevel = res.data.user?.academic_level || '';
-        backendLevel = backendLevel.toLowerCase().replace(/[^a-z]/g, '');
-        setAcademicLevel(backendLevel);
-      }).catch(() => {
-        // Silently handle error
-      });
+          if (!mounted) return;
+          let backendLevel = res.data.user?.academic_level || '';
+          backendLevel = backendLevel.toLowerCase().replace(/[^a-z]/g, '');
+          setAcademicLevel(backendLevel);
+        }).catch(() => {
+          // Silently handle error
+        });
+      }
 
       // Fetch transaction history
       setTransactionsLoading(true);
@@ -49,7 +51,7 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
       });
     }
     return () => { mounted = false; };
-  }, [user]);
+  }, [user, userStats?.academicLevel]);
 
   // Helper function to format transaction amount
   const formatTransactionAmount = (amountInr) => {
@@ -63,11 +65,13 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
     const normalized = level.toLowerCase().replace(/[^a-z]/g, '');
     setAcademicLevel(normalized);
     setError('');
-    const userId = user?.uid || user?.id;
-    if (user && userId) {
+    
+    if (user && user.id) {
       try {
-        await api.put(`/users/${userId}`, { academic_level: level });
-        if (onLevelChange) onLevelChange(normalized);
+        // Use the onLevelChange prop which is the updateLevel function from useUser
+        if (onLevelChange) {
+          await onLevelChange(normalized);
+        }
         
         // If this was triggered by the level prompt, redirect to question types
         if (showLevelPrompt) {

@@ -154,15 +154,9 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
           </motion.p>
         </div>
 
-        {/* Interactive Writing Modal - 20% wider and 25% vertically longer */}
+        {/* Interactive Writing Modal - Responsive */}
         <motion.div
-          className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-purple-200/60 mx-auto"
-          style={{ 
-            width: '120%', // 20% wider
-            maxWidth: '1400px', // Increased max width
-            marginLeft: '-10%', // Center the wider modal
-            marginRight: '-10%'
-          }}
+          className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-purple-200/60 mx-auto w-full max-w-7xl"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.8 }}
@@ -202,9 +196,9 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-0" style={{ gridTemplateColumns: '35% 65%' }}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
             {/* Question Types Panel - Left Side */}
-            <div className="p-8 bg-white border-r border-purple-200/40">
+            <div className="p-4 sm:p-6 lg:p-8 bg-white border-b lg:border-b-0 lg:border-r border-purple-200/40">
               <div className="mb-6">
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Question Types</h3>
                 <div className={`bg-gradient-to-r ${selectedLevel === 'IGCSE' ? 'from-purple-500 to-pink-500' : 'from-blue-500 to-green-500'} text-white px-3 py-1 rounded-lg shadow-md inline-block`}>
@@ -251,7 +245,7 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
             </div>
 
             {/* Writing Interface - Right Side */}
-            <div className="p-8">
+            <div className="p-4 sm:p-6 lg:p-8">
               <div className="mb-6">
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Write Your Essay</h3>
                 {selectedQuestionType ? (
@@ -289,15 +283,15 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
                     value={studentResponse}
                     onChange={(e) => setStudentResponse(e.target.value)}
                     placeholder="Start writing your essay here... Use the toolbar above for formatting."
-                    className="w-full h-80 p-4 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    style={{ minHeight: '320px' }} // 25% vertically longer
+                    className="w-full h-64 sm:h-80 p-4 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    style={{ minHeight: '256px' }} // Responsive min height
                   />
                   
                   {/* Action Buttons */}
-                  <div className="flex items-center justify-between mt-6">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-6">
                     <button
                       onClick={() => setSelectedQuestionType(null)}
-                      className="px-6 py-3 bg-gray-500 text-white rounded-xl font-semibold hover:bg-gray-600 transition-all duration-300"
+                      className="px-4 sm:px-6 py-3 bg-gray-500 text-white rounded-xl font-semibold hover:bg-gray-600 transition-all duration-300 text-sm sm:text-base"
                     >
                       Change Question Type
                     </button>
@@ -305,7 +299,7 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
                     <motion.button
                       onClick={handleGetAIFeedback}
                       disabled={!selectedQuestionType || !studentResponse.trim()}
-                      className={`px-6 py-3 rounded-xl font-semibold shadow-lg transform transition-all duration-300 ${
+                      className={`px-4 sm:px-6 py-3 rounded-xl font-semibold shadow-lg transform transition-all duration-300 text-sm sm:text-base ${
                         selectedQuestionType && studentResponse.trim()
                           ? 'bg-gradient-to-r from-blue-600 to-green-600 text-white hover:shadow-xl hover:scale-105'
                           : 'bg-gray-400 text-gray-200 cursor-not-allowed'
@@ -319,7 +313,7 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
                 </>
               ) : (
                 /* Placeholder when no question type selected */
-                <div className="flex flex-col items-center justify-center h-80 text-center">
+                <div className="flex flex-col items-center justify-center h-64 sm:h-80 text-center">
                   <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-green-100 rounded-full flex items-center justify-center mb-4">
                     <span className="text-2xl">✍️</span>
                   </div>
@@ -333,7 +327,7 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
 
         {/* Stats Section */}
         <motion.div 
-          className="mt-12 grid grid-cols-3 gap-6"
+          className="mt-8 sm:mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6"
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.2, duration: 0.6 }}
@@ -345,7 +339,7 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
           ].map((s,i)=> (
             <motion.div 
               key={i} 
-              className="rounded-2xl p-6 bg-white border border-purple-200/60 backdrop-blur-md text-center"
+              className="rounded-2xl p-4 sm:p-6 bg-white border border-purple-200/60 backdrop-blur-md text-center"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 1.4 + i * 0.1, duration: 0.4 }}
@@ -354,8 +348,8 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
                 boxShadow: "0 10px 25px rgba(147, 51, 234, 0.15)",
               }}
             >
-              <div className="text-sm text-gray-600">{s.label}</div>
-              <div className="text-2xl font-bold text-gray-900 mt-1">{s.value}</div>
+              <div className="text-xs sm:text-sm text-gray-600">{s.label}</div>
+              <div className="text-lg sm:text-2xl font-bold text-gray-900 mt-1">{s.value}</div>
             </motion.div>
           ))}
         </motion.div>

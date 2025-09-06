@@ -56,6 +56,9 @@ export const useUser = () => {
         const cacheTimestamp = localStorage.getItem('userDataTimestamp');
         const isCacheValid = cacheTimestamp && (Date.now() - parseInt(cacheTimestamp)) < 300000; // 5 minutes cache
         
+        // Check for cached academic level separately
+        const cachedAcademicLevel = localStorage.getItem('academicLevel');
+        
         console.log('📦 Cache check completed in', Date.now() - cacheStartTime, 'ms', {
           hasCachedData: !!cachedUserData,
           isCacheValid,
@@ -90,6 +93,8 @@ export const useUser = () => {
               currentPlan: parsedData.current_plan || parsedData.currentPlan || 'free',
               questionsMarked: parsedData.questions_marked || parsedData.questionsMarked || 0,
               credits: parsedData.credits || 3,
+              // Include academic level from separate cache if available
+              academicLevel: cachedAcademicLevel || parsedData.academic_level || parsedData.academicLevel || 'N/A',
             };
             
             setUserStats(mappedCachedData);
@@ -225,6 +230,7 @@ export const useUser = () => {
               currentPlan: finalStats.current_plan || finalStats.currentPlan || 'free',
               questionsMarked: finalStats.questions_marked || finalStats.questionsMarked || 0,
               credits: finalStats.credits || 3,
+              academicLevel: finalStats.academic_level || finalStats.academicLevel || cachedAcademicLevel || 'N/A',
               showWelcomeMessage: false
             };
             
@@ -873,11 +879,17 @@ export const useUser = () => {
       
       setUserStats(prev => ({
         ...prev,
-        profile: {
-          ...prev.profile,
-          academic_level: academicLevel,
-        },
+        academicLevel: academicLevel,
       }));
+      
+      // Update localStorage - both in userData and separate academicLevel key
+      const currentData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const updatedData = {
+        ...currentData,
+        academicLevel: academicLevel
+      };
+      localStorage.setItem('userData', JSON.stringify(updatedData));
+      localStorage.setItem('academicLevel', academicLevel);
       
       const updateTime = Date.now() - updateStartTime;
       console.log('✅ Academic level update completed in', updateTime, 'ms');
@@ -1050,25 +1062,20 @@ export const useUser = () => {
           if (prev) {
             return {
               ...prev,
-              profile: {
-                ...prev.profile,
-                academic_level: normalizedLevel
-              }
+              academicLevel: normalizedLevel
             };
           }
           return prev;
         });
         
-        // Update localStorage
+        // Update localStorage - both in userData and separate academicLevel key
         const currentData = JSON.parse(localStorage.getItem('userData') || '{}');
         const updatedData = {
           ...currentData,
-          profile: {
-            ...currentData.profile,
-            academic_level: normalizedLevel
-          }
+          academicLevel: normalizedLevel
         };
         localStorage.setItem('userData', JSON.stringify(updatedData));
+        localStorage.setItem('academicLevel', normalizedLevel);
         
         return normalizedLevel;
       } else {
@@ -1104,25 +1111,20 @@ export const useUser = () => {
         if (prev) {
           return {
             ...prev,
-            profile: {
-              ...prev.profile,
-              academic_level: level
-            }
+            academicLevel: level
           };
         }
         return prev;
       });
       
-      // Update localStorage
+      // Update localStorage - both in userData and separate academicLevel key
       const currentData = JSON.parse(localStorage.getItem('userData') || '{}');
       const updatedData = {
         ...currentData,
-        profile: {
-          ...currentData.profile,
-          academic_level: level
-        }
+        academicLevel: level
       };
       localStorage.setItem('userData', JSON.stringify(updatedData));
+      localStorage.setItem('academicLevel', level);
       
       console.log('✅ Academic level set successfully:', level);
       return true;

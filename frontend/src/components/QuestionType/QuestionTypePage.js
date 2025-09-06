@@ -339,18 +339,18 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
         </div>
               </div>
 
-      {/* Main Content - Split Layout with adjusted widths: question list 10% narrower, writing interface 10% wider */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 h-[calc(100vh-200px)]">
+      {/* Main Content - Responsive Split Layout */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-8 min-h-[calc(100vh-200px)]">
           
-          {/* Left Side - Question Types (10% narrower) */}
-          <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden" style={{ width: '80%' }}>
+          {/* Left Side - Question Types */}
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
             <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-4">
               <h2 className="text-lg font-bold text-white font-fredoka mb-1">Question Types</h2>
               <p className="text-pink-100 text-xs">{levelData.levelName}</p>
             </div>
             
-            <div className="p-4 overflow-y-auto h-[calc(100%-80px)]">
+            <div className="p-3 sm:p-4 overflow-y-auto h-[calc(100%-80px)] max-h-96 lg:max-h-none">
               <div className="space-y-3">
                 {levelData.questions.length > 0 ? (
                   levelData.questions.map((questionType, index) => (
@@ -402,12 +402,12 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
             </div>
                       </div>
 
-          {/* Right Side - Writing Interface (10% wider) */}
-          <div className="lg:col-span-3 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden" style={{ width: '120%' }}>
-              <div className="bg-gradient-to-r from-blue-500 to-green-600 p-6">
-                <div className="flex items-center justify-between">
+          {/* Right Side - Writing Interface */}
+          <div className="lg:col-span-3 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-500 to-green-600 p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-2xl font-bold text-white font-fredoka mb-2">Write Your Essay</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold text-white font-fredoka mb-2">Write Your Essay</h2>
                     <p className="text-blue-100 text-sm">
                       {selectedQuestionType ? selectedQuestionType.name : 'Select a question type to start writing'}
                     </p>
@@ -415,7 +415,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                   {selectedQuestionType && (
                     <button
                       onClick={() => setShowExample(true)}
-                      className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+                      className="bg-white/20 hover:bg-white/30 text-white px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-sm sm:text-base"
                     >
                       View Example
                     </button>
@@ -423,53 +423,53 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                 </div>
               </div>
 
-            <div className="p-6 h-[calc(100%-120px)] flex flex-col">
+            <div className="p-4 sm:p-6 h-[calc(100%-120px)] flex flex-col">
               {!selectedQuestionType ? (
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-center">
-                    <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <svg className="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-blue-100 to-green-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                      <svg className="w-8 h-8 sm:w-12 sm:h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 font-fredoka mb-2">Ready to Write?</h3>
-                    <p className="text-gray-600 font-fredoka">Select a question type from the left to start your essay</p>
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 font-fredoka mb-2">Ready to Write?</h3>
+                    <p className="text-gray-600 font-fredoka text-sm sm:text-base">Select a question type from the left to start your essay</p>
                   </div>
                 </div>
               ) : (
                 <>
                   {/* Writing Toolbar */}
-                  <div className="flex items-center space-x-2 mb-4 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex flex-wrap items-center gap-2 mb-4 p-3 bg-gray-50 rounded-lg">
                     <button
                       onClick={() => applyFormat('**', '**')}
-                      className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                      className="px-2 sm:px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
                       title="Bold"
                     >
                       <strong>B</strong>
                     </button>
                     <button
                       onClick={() => applyFormat('*', '*')}
-                      className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                      className="px-2 sm:px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
                       title="Italic"
                     >
                       <em>I</em>
                     </button>
                     <button
                       onClick={() => applyFormat('"', '"')}
-                      className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                      className="px-2 sm:px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
                       title="Quote"
                     >
                       "
                     </button>
                     <button
                       onClick={insertParagraphBreak}
-                      className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                      className="px-2 sm:px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
                       title="New Paragraph"
                     >
                       ¶
                     </button>
                     <div className="flex-1"></div>
-                    <div className="text-sm text-gray-500 font-fredoka">
+                    <div className="text-xs sm:text-sm text-gray-500 font-fredoka">
                       {wordCount} words
                     </div>
                   </div>
@@ -485,7 +485,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                         setTimeout(() => setIsTyping(false), 1000);
                       }}
                       placeholder="Start writing your essay here... Use the toolbar above for formatting."
-                      className="w-full h-full p-4 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-fredoka text-gray-900 placeholder-gray-400 transition-all duration-200"
+                      className="w-full h-full p-3 sm:p-4 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-fredoka text-gray-900 placeholder-gray-400 transition-all duration-200 text-sm sm:text-base"
                     />
                     
                     {/* Auto-save indicator */}
@@ -503,10 +503,10 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-6 pt-4 border-t border-gray-200">
                     <button
                       onClick={() => setSelectedQuestionType(null)}
-                      className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-200 font-fredoka"
+                      className="px-4 sm:px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-200 font-fredoka text-sm sm:text-base"
                     >
                       Change Question
                     </button>
@@ -520,7 +520,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                         handleProceed();
                       }}
                       disabled={!studentResponse.trim()}
-                      className={`px-8 py-3 rounded-lg font-medium font-fredoka transition-all duration-200 ${
+                      className={`px-6 sm:px-8 py-3 rounded-lg font-medium font-fredoka transition-all duration-200 text-sm sm:text-base ${
                         studentResponse.trim()
                           ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:scale-105'
                           : 'bg-gray-200 text-gray-400 cursor-not-allowed'
