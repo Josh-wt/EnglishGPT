@@ -364,6 +364,11 @@ B. Style and Accuracy (24 Marks): The "Language Execution"
 24-20 Marks (High Level): Sophisticated vocabulary, highly varied sentence structures, virtually error-free
 19-14 Marks (Middle Level): Good vocabulary, varied sentence structures, mostly accurate
 13-8 Marks (Low Level): Basic vocabulary, simple sentence structures, some errors
+
+SPECIFIC FOCUS AREAS - Deduct heavily for:
+Bad vocabulary, if the essay does not consistently display good vocabulary and flow, do not mark it higher than 27. But please think if it does or does not. And you do not always need to mark it 27
+
+
 7-1 Marks (Very Low Level): Very limited language, serious errors.""",
     "igcse_narrative": """Primary Focus: The candidate's ability to create an imaginative and effective piece of writing, judged on Content/Structure and Style/Accuracy.
 A. Content and Structure (16 Marks): The "What" and "How It's Built"

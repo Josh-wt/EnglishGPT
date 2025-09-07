@@ -15,7 +15,7 @@ const LoadingPage = ({ selectedQuestionType, loadingMessages, currentMessageInde
         
         {/* Small text with spacing */}
         <div className="text-gray-600 text-lg font-fredoka mb-8">
-          Our AI is doing the magic, please wait
+           Our AI is carefully analyzing your {selectedQuestionType?.name} submission.
         </div>
         
         {/* Pink box modal with changing text */}

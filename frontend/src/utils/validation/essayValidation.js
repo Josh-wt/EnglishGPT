@@ -39,7 +39,8 @@ export const validateEssayContent = (studentResponse, questionType) => {
       };
     }
 
-    if (wordCount < VALIDATION_RULES.MIN_WORD_COUNT) {
+    // Skip word count validation for summary writing
+    if (questionType !== 'igcse_summary' && wordCount < VALIDATION_RULES.MIN_WORD_COUNT) {
       return {
         isValid: false,
         error: 'word_count_too_low',
