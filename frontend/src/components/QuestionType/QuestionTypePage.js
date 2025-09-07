@@ -254,6 +254,15 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       ...q,
       icon: getIconForQuestionType(q.id)
     }));
+
+    const gpQuestions = questionTypes.filter(q => 
+      q.category === 'English General Paper (8021)' ||
+      q.category === 'gp' ||
+      q.category?.toLowerCase().includes('general paper')
+    ).map(q => ({
+      ...q,
+      icon: getIconForQuestionType(q.id)
+    }));
     
     console.log('🔍 DEBUG: IGCSE questions:', igcseQuestions);
     console.log('🔍 DEBUG: A-Level questions:', alevelQuestions);
@@ -273,6 +282,14 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
         fullName: 'Advanced Level English',
         color: 'purple',
         gradient: 'from-purple-500 to-red-500'
+      };
+    } else if (selectedLevel === 'gp') {
+      return {
+        questions: gpQuestions,
+        levelName: 'English General Paper (8021)',
+        fullName: 'Cambridge International AS & A Level English General Paper',
+        color: 'orange',
+        gradient: 'from-orange-500 to-red-500'
       };
     }
 
@@ -297,7 +314,9 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       'alevel_text_analysis': '🔍',
       'alevel_directed': '✏️',
       'alevel_comparative': '📊',
-      'alevel_language_change': '🔍'
+      'alevel_language_change': '🔍',
+      'gp_essay': '📝',
+      'gp_comprehension': '📖'
     };
     return iconMap[questionTypeId] || '📝';
   };

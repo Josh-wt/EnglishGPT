@@ -328,6 +328,20 @@ QUESTION_TYPES = [
         "category": "A-Level English (9093)",
         "requires_marking_scheme": True,
         "description": "Analyze historical prose extract demonstrating English language change using quantitative data"
+    },
+    {
+        "id": "gp_essay",
+        "name": "Essay (Paper 1)",
+        "category": "English General Paper (8021)",
+        "requires_marking_scheme": True,
+        "description": "Write a well-structured essay on a given topic with clear argumentation and evidence"
+    },
+    {
+        "id": "gp_comprehension",
+        "name": "Comprehension (Paper 2)",
+        "category": "English General Paper (8021)",
+        "requires_marking_scheme": True,
+        "description": "Answer comprehension questions based on given texts with analysis and evaluation"
     }
 ]
 
@@ -488,6 +502,12 @@ Deduct for:
 Increasing levels of unintelligibility and grammatical breakdown.
 
 0 Marks: No creditable response.
+
+WHERE YOU, THE AI, GOES WRONG IN MARKING:
+
+1. Deduction of too many marks for "less insight on the characters" if you're thinking: "The student should have added a brief paragraph to explain the characters/plot more". Stop thinking that, this isn't needed and please do not deduct many marks for this. 
+2. Deduction of too many marks for diction consistency, please focus on spellings, grammar, tenses and vocabulary more. Do not deduct for "Verify Diction"
+
 
 IV. FINAL MARK ALLOCATION
 Once both components are marked, add them together for a total out of 40.
@@ -853,6 +873,393 @@ Prioritize candidates' ability to synthesize data from all sources, deliver sust
 Mark deductions must align with common examiner comments, including penalizing superficial analysis, missing data integration, and imprecise terminology use.
 
 That being said, PLEASE give the student the highest marks possible if the user's vocabulary is good and they demonstrate strong linguistic understanding.
+""",
+    "gp_essay": """
+CAMBRIDGE INTERNATIONAL AS LEVEL ENGLISH GENERAL PAPER 8021 - PAPER 1 ESSAY MARKING CRITERIA
+
+Core Principle for AI Marking: Cambridge marking follows a "positive marking" approach - identify and reward what candidates demonstrate they can do. Marks are awarded for strengths, not deducted for weaknesses. The primary focus is on rewarding achievement within the established criteria across AO1, AO2, and AO3.
+
+GENERIC MARKING PRINCIPLES (Apply to ALL essays):
+1. Award marks positively - credit what candidates demonstrate they know and can do
+2. Do not deduct marks for errors or omissions unless they impede meaning
+3. Use "best-fit" approach when essays don't fall clearly into one level - err on the side of generosity
+4. First place essay in a level, then fine-tune within that level based on strength/weakness of demonstration
+5. Level criteria represent the MIDDLE of each level - adjust up/down within the range accordingly
+6. Examiners prioritize "disciplined management of discussion," "clear communication," and "supported judgement" over weight of facts
+
+OMMAND WORD SPECIFIC MARKING CRITERIA FOR CAMBRIDGE 8021 PAPER 1
+
+CORE PRINCIPLE: While all essays are assessed using the same generic level descriptors (AO1, AO2, AO3), different command words require specific demonstrations of skills and approaches. The AI should adjust expectations and weightings within the same marking framework.
+
+═══════════════════════════════════════════════════════════════════
+
+1. EVALUATE / EVALUATE THE EXTENT TO WHICH / EVALUATE WHETHER
+   Official Definition: "Judge or calculate the quality, importance, amount, or value of something"
+
+   SPECIFIC MARKING EXPECTATIONS:
+   
+   AO2 EMPHASIS (Critical for higher levels):
+   • Must demonstrate WEIGHING OF EVIDENCE from multiple perspectives
+   • Requires BALANCED CONSIDERATION before reaching judgment
+   • Expects analysis of STRENGTHS AND WEAKNESSES of different positions
+   • High marks demand SUPPORTED FINAL VERDICT with clear reasoning
+   • Should show EXTENT/DEGREE of agreement rather than absolute positions
+   
+   COMMAND WORD PENALTIES:
+   • ONE-SIDED ARGUMENTS: Limit to Level 3 maximum (18 marks)
+   • NO CLEAR EVALUATION/JUDGMENT: Significant AO2 penalty, max Level 2-3
+   • PURELY DESCRIPTIVE RESPONSES: Cannot exceed Level 2 (12 marks)
+   
+   REWARD PATTERNS:
+   • "However", "Nevertheless", "On the other hand" signaling balance
+   • Modal verbs: "may", "might", "could", "appears to" showing nuanced thinking
+   • Phrases like "To a large extent", "To some degree", "Partially true"
+   • Evidence-based conclusions that synthesize multiple viewpoints
+
+═══════════════════════════════════════════════════════════════════
+
+2. ASSESS / ASSESS THE VIEW THAT / ASSESS WHETHER
+   Official Definition: "Make an informed judgement"
+
+   SPECIFIC MARKING EXPECTATIONS:
+   
+   AO2 EMPHASIS (Slightly different from Evaluate):
+   • Requires CRITICAL EXAMINATION of validity/effectiveness
+   • Expects EVIDENCE-BASED JUDGMENT about worth/value
+   • Must show CRITERIA for assessment (what makes something good/bad/effective)
+   • Higher marks for COMPARATIVE ASSESSMENT (better/worse than alternatives)
+   • Should demonstrate INFORMED PERSPECTIVE with supporting reasoning
+   
+   COMMAND WORD PENALTIES:
+   • UNSUPPORTED ASSERTIONS: Major AO2 penalty
+   • NO ASSESSMENT CRITERIA SHOWN: Limits AO2 achievement
+   • PURELY OPINION-BASED without evidence: Max Level 2-3
+   
+   REWARD PATTERNS:
+   • Clear criteria for judgment ("This is effective because...")
+   • Comparative language ("More/less effective than...", "Superior to...")
+   • Evidence-based reasoning ("Studies show...", "Statistics indicate...")
+   • Acknowledgment of limitations while maintaining position
+
+═══════════════════════════════════════════════════════════════════
+
+3. DISCUSS / DISCUSS THIS STATEMENT
+   Official Definition: "Write about issue(s) or topic(s) in depth in a structured way"
+
+   SPECIFIC MARKING EXPECTATIONS:
+   
+   AO2 EMPHASIS (Different from Evaluate/Assess):
+   • Must PRESENT MULTIPLE VIEWPOINTS with equal consideration
+   • Requires THOROUGH EXPLORATION of different angles/perspectives
+   • Expects STRUCTURED EXAMINATION of various aspects
+   • Can reach conclusion but not essential for high marks
+   • Values DEPTH OF EXPLORATION over definitive judgment
+   
+   COMMAND WORD PENALTIES:
+   • ONE-SIDED DISCUSSION: Limit to Level 3 maximum
+   • SUPERFICIAL TREATMENT: Affects AO2 significantly
+   • NO ALTERNATIVE PERSPECTIVES: Cannot achieve Level 4-5
+   
+   REWARD PATTERNS:
+   • "Some argue that...", "Others contend that...", "Another perspective is..."
+   • Structured exploration: "Economically...", "Socially...", "Politically..."
+   • Recognition of complexity: "This issue is complex because..."
+   • Multiple stakeholder perspectives considered
+
+═══════════════════════════════════════════════════════════════════
+
+4. TO WHAT EXTENT / HOW FAR DO YOU AGREE
+   Official Definition: Create argument showing degree of agreement/disagreement
+
+   SPECIFIC MARKING EXPECTATIONS:
+   
+   AO2 EMPHASIS (Most demanding command word):
+   • Must demonstrate SPECTRUM THINKING rather than binary positions
+   • Requires EXPLICIT POSITIONING on extent scale ("largely", "partially", "minimally")
+   • Expects GRADUATED ANALYSIS showing different degrees of validity
+   • Higher marks for SOPHISTICATED POSITIONING ("In certain contexts", "Under specific conditions")
+   • Must show WHY extent varies (conditions, circumstances, limitations)
+   
+   COMMAND WORD PENALTIES:
+   • BINARY THINKING (completely true/false): Limit to Level 3
+   • NO EXPLICIT EXTENT STATEMENT: Significant AO2 penalty
+   • FAILURE TO SHOW VARYING DEGREES: Max Level 2-3
+   
+   REWARD PATTERNS:
+   • Explicit extent language: "To a considerable extent...", "To a limited degree..."
+   • Conditional statements: "This is true when...", "This applies primarily to..."
+   • Graduated analysis: "More true for X than Y", "Varies depending on..."
+   • Contextual qualification: "In developed countries... however in developing nations..."
+
+═══════════════════════════════════════════════════════════════════
+
+5. CONSIDER / WHAT IS YOUR VIEW
+   Official Definition: "Review and respond to given information"
+
+   SPECIFIC MARKING EXPECTATIONS:
+   
+   AO2 EMPHASIS (More personal but still analytical):
+   • Allows more PERSONAL PERSPECTIVE but must be JUSTIFIED
+   • Requires THOUGHTFUL CONSIDERATION of different aspects
+   • Expects REASONED PERSONAL POSITION with supporting evidence
+   • Values REFLECTIVE THINKING and INFORMED OPINION
+   • Must show AWARENESS of alternative views even if disagreeing
+   
+   COMMAND WORD PENALTIES:
+   • PURELY SUBJECTIVE OPINION: Limit to Level 2-3
+   • NO JUSTIFICATION OF VIEW: Major AO2 penalty
+   • IGNORANCE of other perspectives: Affects AO2
+   
+   REWARD PATTERNS:
+   • "I believe that... because...", "My view is that... due to..."
+   • "While others might argue..., I maintain that..."
+   • Personal examples used appropriately to support position
+   • Acknowledgment of complexity in forming view
+
+═══════════════════════════════════════════════════════════════════
+
+6. ANALYSE / EXAMINE
+   Official Definition: "Examine in detail to show meaning, identify elements and relationships"
+
+   SPECIFIC MARKING EXPECTATIONS:
+   
+   AO2 EMPHASIS (Focus on breakdown and understanding):
+   • Must BREAK DOWN complex issues into component parts
+   • Requires examination of RELATIONSHIPS and CONNECTIONS
+   • Expects DETAILED EXPLORATION of causes, effects, implications
+   • Values SYSTEMATIC EXAMINATION rather than broad coverage
+   • Should show HOW different elements interact or influence each other
+   
+   COMMAND WORD PENALTIES:
+   • PURELY DESCRIPTIVE without analysis: Max Level 2
+   • NO BREAKDOWN of complexity: Limits AO2 achievement
+   • SURFACE-LEVEL treatment: Affects level placement
+   
+   REWARD PATTERNS:
+   • "This is caused by...", "This leads to...", "The relationship between..."
+   • Systematic breakdown: "The main factors are...", "This comprises..."
+   • Cause-effect relationships explored
+   • Interconnections identified and explained
+
+═══════════════════════════════════════════════════════════════════
+
+IMPLEMENTATION GUIDANCE FOR AI MARKING:
+
+STEP 1: IDENTIFY COMMAND WORD
+• Extract main command word from question
+• Apply specific expectations alongside generic levels
+
+STEP 2: CHECK COMMAND WORD REQUIREMENTS
+• Has the essay addressed the specific demands of the command word?
+• Are the required thinking skills demonstrated?
+• Is the approach appropriate to the command word?
+
+STEP 3: APPLY COMMAND WORD PENALTIES
+• If command word requirements not met, apply maximum level limits
+• Ensure penalties are applied consistently
+
+STEP 4: REWARD COMMAND WORD STRENGTHS
+• Look for specific language patterns and approaches
+• Credit sophisticated handling of command word demands
+• Award higher marks for exceptional command word responses
+
+STEP 5: INTEGRATE WITH GENERIC LEVELS
+• Use command word criteria to fine-tune placement within generic levels
+• Ensure overall mark reflects both generic achievement and command word handling
+• Balance command word requirements with AO1 and AO3 achievement
+
+COMMON COMMAND WORD COMBINATIONS:
+• "Evaluate the extent to which" = Combine Evaluate + To What Extent requirements
+• "Assess whether" = Assess requirements with clear yes/no positioning
+• "Discuss and evaluate" = Full discussion followed by evaluative conclusion
+
+EXAMINER GUIDANCE QUOTES:
+"Examiners will be guided more by careful selection and application of information, effective analysis and evaluation, and supported judgement, than by weight of facts" [web:78][web:6]
+
+"The simple method of using connectives such as 'however', 'nevertheless', introduces balance and recognition of other points of view"  
+
+Mark essays by first checking generic level placement, then applying command word criteria to confirm or adjust the level and fine-tune the mark within that level.
+
+ASSESSMENT LEVELS (Total: 30 marks):
+
+LEVEL 5 (25-30 marks) - EXCEPTIONAL ACHIEVEMENT
+AO1 Selection and Application of Information:
+• Selects a RANGE of FULLY RELEVANT information that EFFECTIVELY exemplifies the MAIN ASPECTS of the response
+• Applies a RANGE of examples APPROPRIATELY to support main ideas and opinions
+• Information is precisely chosen and skillfully deployed
+
+AO2 Analysis and Evaluation:
+• ANALYSES POSSIBLE MEANINGS of the question and DEFINES THE SCOPE clearly
+• Develops, analyses and evaluates a RANGE OF ARGUMENTS to reach a SUPPORTED CONCLUSION
+• Develops a STRONG ARGUMENT with CLEAR USE of supportive evidence
+• Shows sophisticated understanding of complexity and nuance
+
+AO3 Communication using Written English:
+• Communicates clearly with CONSISTENTLY APPROPRIATE register throughout
+• Uses a WIDE RANGE of vocabulary and VARIETY of language features
+• Uses language with CONTROL AND ACCURACY - errors only relate to sophisticated words/structures
+• Constructs COHESIVE response linking ideas, arguments and paragraphs CONVINCINGLY
+• Text is WELL ORGANISED with excellent structure
+
+Award 25-30 based on strength within level:
+30: Exceptional in all areas, sophisticated analysis, outstanding communication
+29: Very strong across all AOs with minor areas for development  
+28: Strong achievement with some very good elements
+27: Good solid achievement meeting most criteria well
+26: Competent achievement meeting criteria adequately
+25: Just meets the level criteria
+
+LEVEL 4 (19-24 marks) - STRONG ACHIEVEMENT
+AO1 Selection and Application of Information:
+• Selects RELEVANT information that exemplifies the MAIN ASPECTS of response
+• Applies examples APPROPRIATELY to support main ideas and opinions
+• Generally well-chosen information with mostly effective deployment
+
+AO2 Analysis and Evaluation:
+• ANALYSES the meaning of the question to INFORM THE SCOPE of response
+• Develops, analyses and BEGINS TO EVALUATE different arguments to reach supported conclusion
+• Develops a WELL-REASONED argument with use of supportive evidence
+• Shows clear understanding with some analytical depth
+
+AO3 Communication using Written English:
+• Communicates clearly with APPROPRIATE use of register
+• Uses a RANGE of vocabulary and language features
+• Uses language with CONTROL and SOME ACCURACY - errors relate to less common words/structures
+• Constructs CLEAR response which links ideas, arguments and paragraphs
+• Text is GENERALLY WELL ORGANISED
+
+Award 19-24 based on strength within level:
+24: Very strong achievement approaching Level 5
+23: Strong achievement with most criteria met well
+22: Good achievement meeting criteria clearly
+21: Competent achievement with some stronger elements
+20: Adequate achievement meeting basic criteria
+19: Just meets the level requirements
+
+LEVEL 3 (13-18 marks) - SOUND ACHIEVEMENT  
+AO1 Selection and Application of Information:
+• Selects information that exemplifies SOME of the main aspects of response
+• Applies examples to support the main ideas and opinions
+• Information generally relevant but may lack full development
+
+AO2 Analysis and Evaluation:
+• DEMONSTRATES UNDERSTANDING of the meaning of the question in response
+• DEVELOPS and BRINGS TOGETHER some arguments to form a conclusion
+• Constructs an argument which is LOGICAL and USUALLY SUPPORTED by evidence
+• Shows basic understanding with some attempt at analysis
+
+AO3 Communication using Written English:
+• Communicates clearly OVERALL but with INCONSISTENT use of appropriate register
+• Uses EVERYDAY vocabulary and SOME VARIED language features
+• Uses language with SOME CONTROL - errors are noticeable but DO NOT IMPEDE communication
+• Constructs a MOSTLY COHERENT response which links ideas, arguments and paragraphs
+• Text has SOME ORGANISATION but may not be sustained throughout
+
+Award 13-18 based on strength within level:
+18: Upper end - approaching Level 4 in some areas
+17: Good solid achievement within level
+16: Competent achievement meeting criteria adequately  
+15: Basic achievement meeting criteria with some gaps
+14: Adequate achievement with noticeable weaknesses
+13: Just meets the level requirements
+
+LEVEL 2 (7-12 marks) - LIMITED ACHIEVEMENT
+AO1 Selection and Application of Information:
+• Selects LIMITED information that exemplifies aspects of response
+• Applies examples that are LINKED TO SOME of the ideas and opinions
+• Information may be partially relevant or underdeveloped
+
+AO2 Analysis and Evaluation:
+• Demonstrates PARTIAL UNDERSTANDING of the meaning of the question
+• REFERS TO arguments to form a conclusion
+• Constructs an argument PARTIALLY SUPPORTED by evidence
+• Shows basic understanding with limited analysis
+
+AO3 Communication using Written English:
+• Communicates clearly IN PLACES with INCONSISTENT use of register
+• Uses BASIC vocabulary with LIMITED language features
+• Uses language with LIMITED CONTROL - errors are FREQUENT and SOMETIMES IMPEDE communication
+• Constructs a FRAGMENTED response which links SOME ideas and/or arguments
+• Organization is weak or inconsistent
+
+Award 7-12 based on achievement:
+12: Shows some competence approaching Level 3
+11: Basic achievement with some clearer elements
+10: Limited achievement meeting some criteria
+9: Weak achievement with significant gaps
+8: Very limited achievement  
+7: Minimal achievement just meeting level
+
+LEVEL 1 (1-6 marks) - MINIMAL ACHIEVEMENT
+AO1 Selection and Application of Information:
+• Selects LIMITED information that is relevant to the question
+• Makes examples which MAY NOT LINK to ideas and opinions
+• Information largely irrelevant or misapplied
+
+AO2 Analysis and Evaluation:
+• Makes a LIMITED RESPONSE to the question
+• Makes some form of BASIC CONCLUSION
+• Constructs a WEAK ARGUMENT
+• Shows very limited understanding
+
+AO3 Communication using Written English:
+• Communicates with LACK OF CLARITY and/or register is INAPPROPRIATE
+• Uses BASIC vocabulary with very limited range
+• Uses language with control RARELY - errors are frequent and communication is OFTEN LOST
+• Constructs a response but it is NOT ORGANISED and ideas are NOT LINKED
+• Structure is unclear or absent
+
+Award 1-6 based on minimal achievement shown:
+6: Some attempt at meeting criteria
+5-4: Very limited achievement
+3-2: Minimal achievement
+1: Barely creditable content
+
+LEVEL 0 (0 marks) - NO CREDITABLE CONTENT
+• No response or response completely irrelevant to question
+• Illegible or incomprehensible response
+
+SPECIFIC GUIDANCE FOR AI IMPLEMENTATION:
+
+QUESTION-SPECIFIC CONSIDERATIONS:
+• Before marking, identify the command word and apply appropriate emphasis
+• Check essay addresses the specific question asked, not just the general topic
+• Look for evidence that candidate has understood the scope and parameters of the question
+
+EVIDENCE AND EXAMPLES:
+• Credit relevant examples from any appropriate source (current events, historical, personal, literary, etc.)
+• Higher levels require RANGE of examples, not just quantity
+• Examples must be APPLIED to support argument, not just listed
+• Contemporary examples are valuable but not essential for high marks
+
+ARGUMENT STRUCTURE:
+• Look for clear thesis/position statement
+• Check for logical development of ideas
+• Reward balanced consideration where appropriate to question type  
+• Strong conclusions should synthesize arguments rather than just summarize
+
+LANGUAGE ASSESSMENT:
+• Focus on communication effectiveness rather than perfection
+• Errors only significant if they impede meaning
+• Reward ambitious vocabulary attempts even if not perfectly executed
+• Register should be consistently appropriate for academic essay
+
+COMMON MARKING SCENARIOS:
+• Essay with strong argument but limited examples: Focus on AO2 strength, moderate AO1
+• Essay with many examples but weak analysis: Focus on AO1, lower AO2
+• Well-written but off-topic: Cannot exceed Level 2 regardless of language quality
+• One-sided argument for "discuss" question: Limit to Level 3 maximum
+• No clear conclusion: Impacts AO2 significantly
+
+FINAL MARK DETERMINATION:
+1. Read essay holistically first
+2. Identify strongest AO and weakest AO
+3. Place in level using "best-fit" approach
+4. Fine-tune within level based on overall strength
+5. Ensure mark reflects achievement across all three AOs
+6. When in doubt between levels, err toward generosity
+
+Mark this essay based on the above criteria, providing specific evidence from the candidate's work to justify the level and mark awarded.
 """
 }
 
@@ -871,6 +1278,9 @@ QUESTION_TOTALS = {
     "alevel_comparative": {"total": 15, "components": {"ao1": 5, "ao3": 10}},
     "alevel_text_analysis": {"total": 25, "components": {"ao1": 5, "ao3": 20}},
     "alevel_language_change": {"total": 25, "components": {"ao2": 5, "ao4": 5, "ao5": 15}},
+    # English General Paper (8021)
+    "gp_essay": {"total": 40, "components": {"content_argument": 25, "language_expression": 15}},
+    "gp_comprehension": {"total": 40, "components": {"understanding_analysis": 25, "language_expression": 15}},
 }
 
 def parse_marks_value(marks_text: Optional[str]) -> int:

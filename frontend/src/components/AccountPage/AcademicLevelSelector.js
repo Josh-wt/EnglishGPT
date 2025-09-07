@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 const AcademicLevelSelector = ({ academicLevel, onLevelChange, showLevelPrompt, error }) => {
   const levels = [
     { value: 'igcse', label: 'IGCSE', description: 'International General Certificate of Secondary Education' },
-    { value: 'alevel', label: 'A-Level', description: 'Advanced Level General Certificate of Education' }
+    { value: 'alevel', label: 'A-Level', description: 'Advanced Level General Certificate of Education' },
+    { value: 'gp', label: 'English General Paper (8021)', description: 'Cambridge International AS & A Level English General Paper' }
   ];
 
   return (

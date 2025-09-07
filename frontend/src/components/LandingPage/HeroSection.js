@@ -69,6 +69,20 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
         description: 'Analyze historical prose extract demonstrating English language change using quantitative data',
         icon: '🔍'
       }
+    ],
+    'English General Paper (8021)': [
+      {
+        id: 'gp_essay',
+        name: 'Essay (Paper 1)',
+        description: 'Write a well-structured essay on a given topic with clear argumentation and evidence',
+        icon: '📝'
+      },
+      {
+        id: 'gp_comprehension',
+        name: 'Comprehension (Paper 2)',
+        description: 'Answer comprehension questions based on given texts with analysis and evaluation',
+        icon: '📖'
+      }
     ]
   };
 
@@ -171,7 +185,7 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
                     setSelectedLevel('IGCSE');
                     setSelectedQuestionType(null);
                   }}
-                  className={`px-6 py-2 rounded-full transition-all duration-300 ${
+                  className={`px-4 sm:px-6 py-2 rounded-full transition-all duration-300 text-sm sm:text-base ${
                     selectedLevel === 'IGCSE'
                       ? 'bg-purple-600 text-white shadow-md'
                       : 'text-gray-600 hover:text-gray-800'
@@ -184,13 +198,26 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
                     setSelectedLevel('A Level');
                     setSelectedQuestionType(null);
                   }}
-                  className={`px-6 py-2 rounded-full transition-all duration-300 ${
+                  className={`px-4 sm:px-6 py-2 rounded-full transition-all duration-300 text-sm sm:text-base ${
                     selectedLevel === 'A Level'
                       ? 'bg-purple-600 text-white shadow-md'
                       : 'text-gray-600 hover:text-gray-800'
                   }`}
                 >
                   A Level
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedLevel('English General Paper (8021)');
+                    setSelectedQuestionType(null);
+                  }}
+                  className={`px-3 sm:px-4 py-2 rounded-full transition-all duration-300 text-xs sm:text-sm ${
+                    selectedLevel === 'English General Paper (8021)'
+                      ? 'bg-purple-600 text-white shadow-md'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  GP (8021)
                 </button>
               </div>
             </div>
@@ -201,7 +228,11 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
             <div className="p-4 sm:p-6 lg:p-8 bg-white border-b lg:border-b-0 lg:border-r border-purple-200/40">
               <div className="mb-6">
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Question Types</h3>
-                <div className={`bg-gradient-to-r ${selectedLevel === 'IGCSE' ? 'from-purple-500 to-pink-500' : 'from-blue-500 to-green-500'} text-white px-3 py-1 rounded-lg shadow-md inline-block`}>
+                <div className={`bg-gradient-to-r ${
+                  selectedLevel === 'IGCSE' ? 'from-purple-500 to-pink-500' : 
+                  selectedLevel === 'A Level' ? 'from-blue-500 to-green-500' : 
+                  'from-orange-500 to-red-500'
+                } text-white px-3 py-1 rounded-lg shadow-md inline-block`}>
                   <span className="font-bold text-sm">{selectedLevel}</span>
                 </div>
               </div>
@@ -249,7 +280,11 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
               <div className="mb-6">
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Write Your Essay</h3>
                 {selectedQuestionType ? (
-                  <div className={`bg-gradient-to-r ${selectedLevel === 'IGCSE' ? 'from-blue-500 to-green-500' : 'from-purple-500 to-pink-500'} text-white px-3 py-1 rounded-lg shadow-md inline-block`}>
+                  <div className={`bg-gradient-to-r ${
+                    selectedLevel === 'IGCSE' ? 'from-blue-500 to-green-500' : 
+                    selectedLevel === 'A Level' ? 'from-purple-500 to-pink-500' : 
+                    'from-orange-500 to-red-500'
+                  } text-white px-3 py-1 rounded-lg shadow-md inline-block`}>
                     <span className="font-bold text-sm">{selectedQuestionType.name}</span>
                   </div>
                 ) : (
