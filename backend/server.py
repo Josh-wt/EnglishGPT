@@ -764,6 +764,10 @@ II. Writing Marks (Language & Organization) - Out of 5 Marks
 - Organization and Structure: Well-organized, logical flow
 - Conciseness: Maximum relevant information within word limit
 
+SPECIFIC FOCUS AREAS - Where you, the AI, consistently makes mistakes while marking:
+
+Bad vocabulary, does not affect reading marks, but does affect writing marks, but not by a lot, so do not be strict
+The writing marks are for flow, structure and accuracy. Not about descriptivness, you have been known to give high writing marks, please tone down that.
 
 TOTAL: 15 MARKS: 10 for Reading and 5 for Writing.
 

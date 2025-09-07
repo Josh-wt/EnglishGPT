@@ -1,36 +1,26 @@
-# Use Python 3.11 slim image
-FROM python:3.11-slim
+# Use Node.js 18 Alpine as base image
+FROM node:18-alpine
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Copy package files
+COPY package*.json ./
 
-# Copy requirements first for better caching
-COPY requirements.txt .
+# Install dependencies
+RUN npm ci --only=production
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
+# Copy source code
 COPY . .
 
-# Create non-root user for security
-RUN useradd --create-home --shell /bin/bash app && \
-    chown -R app:app /app
-USER app
+# Build the React app
+RUN npm run build
 
-# Expose port
-EXPOSE 5000
+# Install serve to run the production build
+RUN npm install -g serve
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:5000/api/health || exit 1
+# Expose port 3000
+EXPOSE 3000
 
-# Run the application
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "5000"]
+# Start the application
+CMD ["serve", "-s", "build", "-l", "3000"]
