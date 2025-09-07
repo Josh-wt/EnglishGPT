@@ -237,12 +237,11 @@ export const exportUserData = async (userId) => {
 };
 
 export default {
+  createUser,
   getUserProfile,
   updateUserProfile,
   updateAcademicLevel,
   getUserStats,
-  getUserSubscription,
-  getUserTransactions,
   deleteUserAccount,
   exportUserData,
 };
