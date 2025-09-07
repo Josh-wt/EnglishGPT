@@ -43,7 +43,7 @@ const TransactionHistory = ({ transactions, transactionsLoading, formatTransacti
         <div className="text-center py-8">
           <div className="text-4xl mb-4">💳</div>
           <p className="text-gray-600">No transactions yet</p>
-          <p className="text-sm text-gray-500 mt-2">Your payment history will appear here</p>
+          <p className="text-sm text-gray-500 mt-2">Transaction history will be available with the new payment system</p>
         </div>
       )}
     </motion.div>

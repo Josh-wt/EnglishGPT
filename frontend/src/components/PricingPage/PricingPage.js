@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import subscriptionService from '../../services/subscriptionService';
 import { isLaunchPeriod, getLaunchPeriodMessage } from '../../utils/launchPeriod';
 import Footer from '../ui/Footer';
 
@@ -18,11 +17,8 @@ const PricingPage = ({ onBack, user }) => {
       return;
     }
 
-    try {
-      await subscriptionService.redirectToCheckout(user.id, planType);
-    } catch (error) {
-      console.error('Plan selection failed:', error);
-    }
+    // TODO: Implement new payment system
+    toast.success(`Selected ${planType} plan - Payment system to be implemented`);
   };
   
   const sharedFeatures = [

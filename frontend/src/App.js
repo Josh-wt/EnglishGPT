@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import PaymentSuccess from './PaymentSuccess';
-import subscriptionService from './services/subscriptionService';
 import { Toaster } from 'react-hot-toast';
-import SubscriptionDashboard from './SubscriptionDashboard';
 
 // Import extracted components
 import LandingPage from './components/LandingPage';
@@ -665,7 +662,6 @@ const App = () => {
             signInWithDiscord={signInWithDiscord}
           />
         } />
-        <Route path="/payment-success" element={<PaymentSuccess darkMode={darkMode} />} />
         
         {/* Protected routes */}
         <Route path="/dashboard" element={
@@ -775,14 +771,6 @@ const App = () => {
         <Route path="/pricing" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
             <PricingPage 
-              user={user}
-              onBack={handleBack}
-            />
-          </AuthRequired>
-        } />
-        <Route path="/subscription" element={
-          <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
-            <SubscriptionDashboard 
               user={user}
               onBack={handleBack}
             />

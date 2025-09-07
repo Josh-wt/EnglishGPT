@@ -205,60 +205,6 @@ export const getUserStats = async (userId) => {
   }
 };
 
-/**
- * Get user subscription status
- * @param {string} userId - The user ID
- * @returns {Promise} - API response
- */
-export const getUserSubscription = async (userId) => {
-  try {
-    // Use the existing /users/{user_id} endpoint since there's no dedicated /subscription endpoint
-    const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}`);
-    
-    // Extract subscription data from user data
-    const userData = response.data.user;
-    
-    const subscriptionData = {
-      currentPlan: userData.current_plan || 'free',
-      dodoCustomerId: userData.dodo_customer_id || null,
-      questionsMarked: userData.questions_marked || 0,
-      credits: userData.credits || 3,
-      evaluationsLimit: userData.evaluations_limit || 3,
-      evaluationsUsed: userData.evaluations_used || 0,
-      // Include the full user data for compatibility
-      ...userData
-    };
-    
-    return subscriptionData;
-  } catch (error) {
-    console.error('Error fetching user subscription:', error);
-    throw error;
-  }
-};
-
-/**
- * Get user transaction history
- * @param {string} userId - The user ID
- * @param {Object} filters - Optional filters
- * @param {string} filters.limit - Limit number of results
- * @param {string} filters.offset - Offset for pagination
- * @returns {Promise} - API response
- */
-export const getUserTransactions = async (userId, filters = {}) => {
-  try {
-    const params = new URLSearchParams();
-    
-    if (filters.limit) params.append('limit', filters.limit);
-    if (filters.offset) params.append('offset', filters.offset);
-    
-    const url = `${API_ENDPOINTS.TRANSACTIONS}/${userId}${params.toString() ? `?${params.toString()}` : ''}`;
-    const response = await apiHelpers.get(url);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching user transactions:', error);
-    throw error;
-  }
-};
 
 /**
  * Delete user account

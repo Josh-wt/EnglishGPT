@@ -64,9 +64,6 @@ def configure_logging(app_level: str = None) -> None:
         # Application modules (can be adjusted as needed)
         '__main__': app_level,
         'server': app_level,
-        'subscription_service': 'INFO',
-        'webhook_processor': 'INFO',
-        # 'dodo_payments_client': 'INFO',  # Removed
     }
     
     # Apply logging levels

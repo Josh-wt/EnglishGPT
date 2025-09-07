@@ -9,9 +9,6 @@ export const API_ENDPOINTS = {
   USERS: `/users`,
   EVALUATIONS: `/evaluations`,
   ANALYTICS: `/analytics`,
-  TRANSACTIONS: `/transactions`,
-  SUBSCRIPTIONS: `/subscriptions`,
-  WEBHOOKS: `/webhooks`,
   FEEDBACK: `/feedback`,
   QUESTION_TYPES: `/question-types`,
 };
