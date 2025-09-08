@@ -100,11 +100,12 @@ async def create_subscription(subscription_data: Dict):
         
         # Determine product ID based on plan
         if plan_type == 'yearly':
-            product_id = DODO_YEARLY_PRODUCT_ID
+            product_id = DODO_YEARLY_PRODUCT_ID.strip() if DODO_YEARLY_PRODUCT_ID else ""
         else:
-            product_id = DODO_MONTHLY_PRODUCT_ID
+            product_id = DODO_MONTHLY_PRODUCT_ID.strip() if DODO_MONTHLY_PRODUCT_ID else ""
             
         logger.debug(f"[SUBSCRIPTION_DEBUG] Using product_id: {product_id} for plan: {plan_type}")
+        logger.info(f"[SUBSCRIPTION_CREATE] 🆔 Product ID cleaned: '{product_id}' (length: {len(product_id)})")
         
         # Prepare subscription creation payload
         subscription_payload = {
