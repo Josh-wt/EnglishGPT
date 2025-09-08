@@ -19,6 +19,7 @@ import SubscriptionDashboard from './components/SubscriptionDashboard/Subscripti
 import PaymentSuccess from './components/PaymentSuccess/PaymentSuccess';
 import PaymentsDashboard from './components/AdminDashboard/PaymentsDashboard';
 import { TermsOfService, RefundPolicy, PrivacyPolicy } from './components/legal';
+import EmailLogin from './components/EmailLogin';
 
 // Import hooks
 import { useUser } from './hooks/useUser';
@@ -835,6 +836,7 @@ const App = () => {
                 />
               </AuthRequired>
             } />
+        <Route path="/login/email" element={<EmailLogin />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/refund" element={<RefundPolicy />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
