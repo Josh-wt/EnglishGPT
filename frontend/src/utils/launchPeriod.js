@@ -65,14 +65,39 @@ export const applyLaunchPeriodBenefits = (userStats) => {
     return userStats;
   }
 
-  // Always grant unlimited plan during launch period
-  console.log('🎉 Launch period: User granted unlimited plan!');
-  return {
-    ...userStats,
-    currentPlan: 'unlimited',
-    credits: 999999,
-    questionsMarked: userStats?.questions_marked || userStats?.questionsMarked || 0,
-    evaluationsLimit: '∞',
-    evaluationsUsed: userStats?.evaluations_used || userStats?.evaluationsUsed || 0,
-  };
+  // Check if user has specifically declined unlimited access
+  const userId = userStats?.id || userStats?.user_id;
+  const hasDeclinedUnlimited = userId && localStorage.getItem(`declinedUnlimited_${userId}`);
+  
+  if (hasDeclinedUnlimited) {
+    console.log('🔄 Launch period: User declined unlimited, keeping original plan');
+    return {
+      ...userStats,
+      questionsMarked: userStats?.questions_marked || userStats?.questionsMarked || 0,
+      evaluationsUsed: userStats?.evaluations_used || userStats?.evaluationsUsed || 0,
+    };
+  }
+
+  // Only grant unlimited if user hasn't declined and is a new user (0 questions marked)
+  const isNewUser = (userStats?.questions_marked || userStats?.questionsMarked || 0) === 0;
+  
+  if (isNewUser) {
+    console.log('🎉 Launch period: New user granted unlimited plan!');
+    return {
+      ...userStats,
+      currentPlan: 'unlimited',
+      credits: 999999,
+      questionsMarked: userStats?.questions_marked || userStats?.questionsMarked || 0,
+      evaluationsLimit: '∞',
+      evaluationsUsed: userStats?.evaluations_used || userStats?.evaluationsUsed || 0,
+    };
+  } else {
+    // Existing users keep their current plan
+    console.log('🔄 Launch period: Existing user keeps current plan');
+    return {
+      ...userStats,
+      questionsMarked: userStats?.questions_marked || userStats?.questionsMarked || 0,
+      evaluationsUsed: userStats?.evaluations_used || userStats?.evaluationsUsed || 0,
+    };
+  }
 };

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LOGO_URL } from '../../constants/uiConstants';
 
-const EarlyAccessModal = ({ isOpen, onClose, userName = '' }) => {
+const EarlyAccessModal = ({ isOpen, onClose, userName = '', onDeclineUnlimited }) => {
   const [currentStep, setCurrentStep] = useState(0);
 
   const steps = [
@@ -191,6 +191,26 @@ const EarlyAccessModal = ({ isOpen, onClose, userName = '' }) => {
                   {currentStepData.buttonText}
                 </motion.button>
               </div>
+
+              {/* I don't want unlimited button - small and unobtrusive */}
+              {onDeclineUnlimited && (
+                <motion.div
+                  className="mt-4 text-center"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.5 }}
+                >
+                  <button
+                    onClick={() => {
+                      onDeclineUnlimited();
+                      onClose();
+                    }}
+                    className="text-xs text-gray-400 hover:text-gray-600 underline transition-colors duration-200"
+                  >
+                    I don't want unlimited (for testing)
+                  </button>
+                </motion.div>
+              )}
 
               {/* Fun fact */}
               {currentStep === 1 && (

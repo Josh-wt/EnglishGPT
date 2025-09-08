@@ -152,10 +152,11 @@ const App = () => {
       const isUnlimitedUser = userStats.currentPlan === 'unlimited' || userStats.credits === 999999;
       const isNewUser = userStats.questionsMarked === 0;
       
-      // Check if we've already shown the modal to this user
+      // Check if we've already shown the modal to this user or if they declined
       const hasSeenEarlyAccessModal = localStorage.getItem(`earlyAccessModal_${user.id}`);
+      const hasDeclinedUnlimited = localStorage.getItem(`declinedUnlimited_${user.id}`);
       
-      if (isUnlimitedUser && isNewUser && !hasSeenEarlyAccessModal) {
+      if (isUnlimitedUser && isNewUser && !hasSeenEarlyAccessModal && !hasDeclinedUnlimited) {
         console.log('🎉 New unlimited user detected, showing early access modal');
         
         // Delay showing modal to ensure smooth user experience
@@ -588,6 +589,31 @@ const App = () => {
     navigate('/dashboard');
   };
 
+  const handleDeclineUnlimited = async () => {
+    console.log('🔄 User declined unlimited access, setting to free plan');
+    
+    if (!user?.id) return;
+    
+    try {
+      // Call backend to set user to free plan
+      const response = await api.patch(`/users/${user.id}`, {
+        current_plan: 'free',
+        credits: 3 // Default free plan credits
+      });
+      
+      console.log('✅ User plan updated to free:', response.data);
+      
+      // Refresh user data to reflect changes
+      await refreshUserData();
+      
+      // Mark that user declined unlimited for future reference
+      localStorage.setItem(`declinedUnlimited_${user.id}`, 'true');
+      
+    } catch (error) {
+      console.error('❌ Error setting user to free plan:', error);
+    }
+  };
+
 
 
   // Feedback handlers
@@ -893,6 +919,7 @@ const App = () => {
               isOpen={showEarlyAccessModal}
               onClose={() => setShowEarlyAccessModal(false)}
               userName={user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'there'}
+              onDeclineUnlimited={handleDeclineUnlimited}
             />
             <LaunchPeriodModal 
               darkMode={darkMode}
