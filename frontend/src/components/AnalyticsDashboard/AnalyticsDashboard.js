@@ -162,20 +162,8 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
   const [selectedTimeRange, setSelectedTimeRange] = useState('month');
   const [activeTab, setActiveTab] = useState('overview');
   
-  // Helper function for unlimited plan checking
-  const hasUnlimitedAccess = () => {
-    const plan = userStats.currentPlan?.toLowerCase();
-    return plan === 'unlimited';
-  };
-
-  // Allow access to analytics if user has evaluations or unlimited plan
-  const hasAnalyticsAccess = () => {
-    return hasUnlimitedAccess() || (evaluations && evaluations.length > 0);
-  };
-
-  if (!hasAnalyticsAccess()) {
-    return <LockedAnalyticsPage onBack={onBack} upgradeType="unlimited" page="analytics" />;
-  }
+  // Analytics is now available to all users regardless of plan
+  // (Removed plan restrictions - all users can view their analytics)
 
   // Prepare chart data
   const parsedEvaluations = (evaluations || []).map((e) => {

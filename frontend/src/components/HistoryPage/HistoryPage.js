@@ -74,20 +74,8 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
   const [selectedForCompare, setSelectedForCompare] = useState([]);
   const [showCompare, setShowCompare] = useState(false);
   
-  // Helper function for unlimited plan checking
-  const hasUnlimitedAccess = () => {
-    const plan = userPlan?.toLowerCase();
-    return plan === 'unlimited';
-  };
-
-  // Allow access to history if user has evaluations or unlimited plan
-  const hasHistoryAccess = () => {
-    return hasUnlimitedAccess() || (evaluations && evaluations.length > 0);
-  };
-
-  if (!hasHistoryAccess()) {
-    return <LockedAnalyticsPage onBack={onBack} upgradeType="unlimited" page="history" />;
-  }
+  // History is now available to all users regardless of plan
+  // (Removed plan restrictions - all users can view their evaluation history)
 
   return (
     <div className="min-h-screen bg-gray-50">
