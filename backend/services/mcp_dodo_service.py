@@ -151,6 +151,13 @@ class MCPDodoPaymentsService:
         """List subscriptions using MCP"""
         return await self._call_mcp_tool("mcp_dodopayments_api_list_subscriptions", params or {})
 
+    async def update_subscription(self, subscription_id: str, update_data: Dict) -> Dict:
+        """Update subscription using MCP"""
+        return await self._call_mcp_tool("mcp_dodopayments_api_update_subscriptions", {
+            "subscription_id": subscription_id,
+            **update_data
+        })
+
     # Customer Operations
     async def create_customer(self, customer_data: Dict) -> Dict:
         """Create customer using MCP"""

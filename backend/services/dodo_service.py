@@ -55,6 +55,12 @@ class DodoPaymentsService:
     async def list_subscriptions(self, params: Dict = None) -> Dict:
         return await self._request("GET", "/subscriptions")
 
+    async def get_subscription(self, subscription_id: str) -> Dict:
+        return await self._request("GET", f"/subscriptions/{subscription_id}")
+
+    async def update_subscription(self, subscription_id: str, update_data: Dict) -> Dict:
+        return await self._request("PATCH", f"/subscriptions/{subscription_id}", update_data)
+
     async def list_products(self, params: Dict = None) -> Dict:
         return await self._request("GET", "/products")
 

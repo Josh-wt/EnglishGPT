@@ -9,14 +9,17 @@ import json
 import traceback
 from datetime import datetime
 
-# Import MCP tools (simulated as they're not available in backend)
-# In production, these would be actual service calls
+# Import services for Dodo Payments integration
 from services.dodo_service import dodo_service
+from services.mcp_dodo_service import MCPDodoPaymentsService
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 router = APIRouter(prefix="/api/payments", tags=["payments"])
+
+# Initialize MCP Dodo Payments service
+mcp_dodo_service = MCPDodoPaymentsService()
 
 # Payment endpoints
 @router.post("/payments")
@@ -121,8 +124,8 @@ async def create_subscription(subscription_data: Dict):
         
         logger.debug(f"[SUBSCRIPTION_DEBUG] Final subscription payload: {json.dumps(subscription_payload, indent=2, default=str)}")
         
-        # Use real MCP tool to create subscription
-        result = await mcp_dodopayments_api_create_subscriptions(**subscription_payload)
+        # Use Dodo service to create subscription
+        result = await dodo_service.create_subscription(subscription_payload)
         
         logger.debug(f"[SUBSCRIPTION_DEBUG] Real subscription creation successful")
         logger.debug(f"[SUBSCRIPTION_DEBUG] Result: {json.dumps(result, indent=2, default=str)}")
@@ -165,7 +168,7 @@ async def get_subscription(subscription_id: str):
     logger.debug(f"[SUBSCRIPTION_DEBUG] Retrieving subscription: {subscription_id}")
     try:
         # Use real MCP tool to retrieve subscription
-        result = await mcp_dodopayments_api_retrieve_subscriptions(subscription_id=subscription_id)
+        result = await dodo_service.get_subscription(subscription_id)
         logger.debug(f"[SUBSCRIPTION_DEBUG] Subscription retrieval successful")
         return result
     except Exception as e:
@@ -181,10 +184,7 @@ async def update_subscription(subscription_id: str, update_data: Dict):
     
     try:
         # Use real MCP tool to update subscription
-        result = await mcp_dodopayments_api_update_subscriptions(
-            subscription_id=subscription_id,
-            **update_data
-        )
+        result = await dodo_service.update_subscription(subscription_id, update_data)
         
         logger.debug(f"[SUBSCRIPTION_DEBUG] Subscription update successful")
         logger.debug(f"[SUBSCRIPTION_DEBUG] Result: {json.dumps(result, indent=2, default=str)}")
@@ -339,10 +339,7 @@ async def validate_discount_code(validation_data: Dict):
         logger.debug(f"[DISCOUNT_DEBUG] Looking up discount code: {discount_code}")
         
         # Get all discounts and find the matching code
-        discounts_response = await mcp_dodopayments_api_list_discounts(
-            page_size=100,
-            jq_filter=".items[]"
-        )
+        discounts_response = await dodo_service.list_discounts({"page_size": 100})
         
         logger.debug(f"[DISCOUNT_DEBUG] Retrieved {len(discounts_response.get('items', []))} discounts")
         
