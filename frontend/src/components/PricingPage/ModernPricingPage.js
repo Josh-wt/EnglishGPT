@@ -19,23 +19,20 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
     {
       id: 'free',
       name: 'Free',
-      description: 'Perfect for getting started with AI-powered English learning',
+      description: 'Try out our AI-powered English learning platform',
       monthlyPrice: 0,
       yearlyPrice: 0,
       currency: 'USD',
       badge: null,
       features: [
-        '3 essay evaluations per month',
+        '3 essay evaluations to get started',
         'Basic AI feedback',
         'Grammar and spelling check',
-        'Access to question bank',
-        'Email support'
+        'Access to question bank'
       ],
       limitations: [
-        'Limited to 3 evaluations',
-        'Basic feedback only',
-        'No advanced analytics',
-        'No priority support'
+        'Limited to 3 evaluations total',
+        'Basic feedback only'
       ],
       ctaText: 'Current Plan',
       ctaVariant: 'outline',
@@ -43,60 +40,33 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
       dodoProductId: null
     },
     {
-      id: 'basic',
-      name: 'Basic',
-      description: 'Ideal for students and professionals who need regular feedback',
-      monthlyPrice: 19.99,
-      yearlyPrice: 199.99,
-      currency: 'USD',
-      badge: 'Most Popular',
-      features: [
-        '50 essay evaluations per month',
-        'Advanced AI feedback',
-        'Grammar, spelling & style analysis',
-        'Writing improvement suggestions',
-        'Progress tracking',
-        'Access to question bank',
-        'Priority email support',
-        '7-day free trial'
-      ],
-      limitations: [
-        'Limited to 50 evaluations per month'
-      ],
-      ctaText: 'Start Free Trial',
-      ctaVariant: 'default',
-      popular: true,
-      dodoProductId: {
-        monthly: 'pdt_LOhuvCIgbeo2qflVuaAty',
-        yearly: 'pdt_R9BBFdK801119u9r3r6jyL'
-      }
-    },
-    {
-      id: 'premium',
-      name: 'Premium',
-      description: 'For serious learners who want unlimited access and premium features',
-      monthlyPrice: 39.99,
-      yearlyPrice: 399.99,
+      id: 'unlimited',
+      name: 'Unlimited',
+      description: 'Everything you need for mastering English writing',
+      monthlyPrice: 4.99,
+      yearlyPrice: 49.99,
       currency: 'USD',
       badge: 'Best Value',
       features: [
         'Unlimited essay evaluations',
-        'Advanced AI feedback & analysis',
-        'Detailed writing analytics',
-        'Personalized learning insights',
+        'Advanced AI feedback with detailed analysis',
+        'Grammar, spelling, style & tone analysis',
+        'Personalized writing improvement suggestions',
+        'Advanced progress tracking & analytics',
+        'Access to complete question bank',
+        'Priority email support',
         'Custom writing templates',
-        'Progress reports & certificates',
-        'Priority customer support',
-        'Advanced grammar engine',
+        'Export reports & certificates',
+        'Writing style recommendations',
         'Plagiarism detection',
-        '7-day free trial'
+        'Academic level assessment'
       ],
       limitations: [],
-      ctaText: 'Upgrade to Premium',
+      ctaText: 'Get Unlimited Access',
       ctaVariant: 'default',
-      popular: false,
+      popular: true,
       dodoProductId: {
-        monthly: 'pdt_LOhuvCIgbeo2qflVuaAty', // Using same product IDs for now
+        monthly: 'pdt_LOhuvCIgbeo2qflVuaAty',
         yearly: 'pdt_R9BBFdK801119u9r3r6jyL'
       }
     }

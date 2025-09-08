@@ -88,8 +88,7 @@ const SubscriptionDashboard = ({ user, darkMode }) => {
 
       // Calculate usage data based on subscription and payments
       const evaluationsUsed = paymentsData.items?.length || 0;
-      const evaluationsLimit = activeSubscription ? 
-        (activeSubscription.product_id?.includes('premium') ? 100 : 10) : 3;
+      const evaluationsLimit = activeSubscription ? -1 : 3; // Unlimited for subscribers, 3 for free users
       
       setUsage({
         evaluationsUsed,
@@ -235,7 +234,7 @@ const SubscriptionDashboard = ({ user, darkMode }) => {
                   {subscription ? (
                     <>
                       <SparklesIcon className="w-6 h-6 text-blue-600" />
-                      {subscription.product_name || 'Premium Plan'}
+                      {subscription.product_name || 'Unlimited Plan'}
                     </>
                   ) : (
                     <>
@@ -245,7 +244,7 @@ const SubscriptionDashboard = ({ user, darkMode }) => {
                   )}
                 </CardTitle>
                 <CardDescription>
-                  {subscription ? 'Active subscription' : 'Upgrade to unlock premium features'}
+                  {subscription ? 'Active subscription' : 'Upgrade to unlock unlimited features'}
                 </CardDescription>
               </div>
               <div className="text-right">
@@ -388,7 +387,7 @@ const SubscriptionDashboard = ({ user, darkMode }) => {
                     </>
                   ) : (
                     <Button className="w-full">
-                      Upgrade to Premium
+                      Get Unlimited Access
                     </Button>
                   )}
                 </CardContent>
@@ -520,7 +519,7 @@ const SubscriptionDashboard = ({ user, darkMode }) => {
                           <CheckCircleIcon className="w-5 h-5 text-green-500" />
                           <span>Priority Support</span>
                         </div>
-                        {subscription.product_id?.includes('premium') && (
+                        {subscription && (
                           <>
                             <div className="flex items-center gap-2">
                               <CheckCircleIcon className="w-5 h-5 text-green-500" />
