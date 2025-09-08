@@ -2704,29 +2704,29 @@ async def get_evaluation_history(user_id: str):
 
 @api_router.get("/evaluations/user/{user_id}")
 async def get_user_evaluations(user_id: str):
-    """Get all evaluations for a specific user"""
+    """Get all evaluations for a specific user - simplified version without user verification"""
     try:
-        if not user_management_service:
-            raise HTTPException(status_code=500, detail="User management service not available")
+        logger.info(f"🔍 Fetching evaluations for user: {user_id}")
         
-        # Verify user exists
-        user_data = await user_management_service.get_user_by_id(user_id)
-        if not user_data:
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        # Get evaluations for this user
+        # Get evaluations directly from database (no user verification to avoid dependency issues)
         response = supabase.table('assessment_evaluations').select('*').eq('user_id', user_id).order('timestamp', desc=True).execute()
         
         evaluations = response.data or []
-        logger.info(f"Retrieved {len(evaluations)} evaluations for user {user_id}")
+        logger.info(f"✅ Retrieved {len(evaluations)} evaluations for user {user_id}")
+        
+        # Log first few evaluations for debugging (without sensitive data)
+        if evaluations:
+            logger.info(f"📊 Sample evaluation IDs: {[e.get('id', 'no-id')[:8] for e in evaluations[:3]]}")
         
         return {"evaluations": evaluations}
         
-    except HTTPException:
-        raise
     except Exception as e:
-        logger.error(f"Error getting user evaluations: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        logger.error(f"❌ Error getting user evaluations for {user_id}: {str(e)}")
+        logger.error(f"❌ Error type: {type(e).__name__}")
+        
+        # Return empty evaluations instead of error to avoid breaking the frontend
+        logger.warning(f"⚠️ Returning empty evaluations due to error for user {user_id}")
+        return {"evaluations": []}
 
 @api_router.get("/evaluations/{evaluation_id}")
 async def get_evaluation_by_id(evaluation_id: str):

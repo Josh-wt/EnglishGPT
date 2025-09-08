@@ -77,6 +77,10 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
   // History is now available to all users regardless of plan
   // (Removed plan restrictions - all users can view their evaluation history)
 
+  // Handle loading and empty states
+  const hasEvaluations = evaluations && evaluations.length > 0;
+  const isLoadingEvaluations = evaluations === undefined || evaluations === null;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -165,7 +169,13 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
         </div>
 
         {/* Evaluations List */}
-        {evaluations && evaluations.length > 0 ? (
+        {isLoadingEvaluations ? (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">⏳</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Your History...</h2>
+            <p className="text-gray-600">Fetching your evaluation history from the server.</p>
+          </div>
+        ) : hasEvaluations ? (
           <div className="space-y-4">
             {evaluations.map((evaluation, index) => (
               <motion.div

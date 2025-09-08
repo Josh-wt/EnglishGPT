@@ -165,6 +165,82 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
   // Analytics is now available to all users regardless of plan
   // (Removed plan restrictions - all users can view their analytics)
 
+  // Handle loading and empty states
+  const hasEvaluations = evaluations && evaluations.length > 0;
+  const isLoadingEvaluations = evaluations === undefined || evaluations === null;
+
+  // Show loading state
+  if (isLoadingEvaluations) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-white shadow-sm border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <button
+                onClick={onBack}
+                className="text-blue-600 hover:text-blue-800 flex items-center"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Dashboard
+              </button>
+              <h1 className="text-xl font-bold text-gray-900">Analytics</h1>
+              <div className="w-24"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">⏳</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Analytics...</h2>
+            <p className="text-gray-600">Fetching your performance data from the server.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state if no evaluations
+  if (!hasEvaluations) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-white shadow-sm border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <button
+                onClick={onBack}
+                className="text-blue-600 hover:text-blue-800 flex items-center"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Dashboard
+              </button>
+              <h1 className="text-xl font-bold text-gray-900">Analytics</h1>
+              <div className="w-24"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">📊</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">No Analytics Data Yet</h2>
+            <p className="text-gray-600 mb-6">Complete some essay evaluations to see your analytics here.</p>
+            <button
+              onClick={onBack}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Write Your First Essay
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Prepare chart data
   const parsedEvaluations = (evaluations || []).map((e) => {
     const scoreMatch = (e.grade || '').match(/(\d+)\s*\/\s*(\d+)/);

@@ -192,8 +192,20 @@ const App = () => {
           console.log('📊 Fetching evaluations for user:', user.id);
           const startTime = Date.now();
           
-          // Fetch evaluations using the evaluations service
-          const evalResponse = await api.get(`/evaluations/user/${user.id}`);
+          // Add timeout to evaluation fetching
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => {
+            controller.abort();
+            console.warn('⏰ Evaluations fetch timed out after 15 seconds');
+          }, 15000);
+          
+          // Fetch evaluations using the evaluations service with timeout
+          const evalResponse = await api.get(`/evaluations/user/${user.id}`, {
+            signal: controller.signal,
+            timeout: 15000
+          });
+          
+          clearTimeout(timeoutId);
           const duration = Date.now() - startTime;
           
           console.log('📊 Evaluations fetched in', duration, 'ms:', {
@@ -210,14 +222,21 @@ const App = () => {
             setEvaluations([]);
           }
         } catch (error) {
-          console.error('❌ Error fetching evaluations:', error);
-          console.error('❌ Error details:', {
-            status: error.response?.status,
-            statusText: error.response?.statusText,
-            data: error.response?.data,
-            config: error.config
-          });
-          setEvaluations([]);
+          if (error.name === 'AbortError') {
+            console.warn('⏰ Evaluations fetch was aborted due to timeout');
+            setEvaluations([]);
+          } else {
+            console.error('❌ Error fetching evaluations:', error);
+            console.error('❌ Error details:', {
+              status: error.response?.status,
+              statusText: error.response?.statusText,
+              data: error.response?.data,
+              config: error.config,
+              message: error.message,
+              code: error.code
+            });
+            setEvaluations([]);
+          }
         }
       }
     };
