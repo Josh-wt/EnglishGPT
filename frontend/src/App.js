@@ -192,20 +192,32 @@ const App = () => {
           console.log('📊 Fetching evaluations for user:', user.id);
           const startTime = Date.now();
           
-          // Fetch evaluations
+          // Fetch evaluations using the evaluations service
           const evalResponse = await api.get(`/evaluations/user/${user.id}`);
           const duration = Date.now() - startTime;
           
           console.log('📊 Evaluations fetched in', duration, 'ms:', {
             count: evalResponse.data?.evaluations?.length || 0,
-            hasData: !!evalResponse.data?.evaluations
+            hasData: !!evalResponse.data?.evaluations,
+            fullResponse: evalResponse.data
           });
           
           if (evalResponse.data?.evaluations) {
             setEvaluations(evalResponse.data.evaluations);
+            console.log('✅ Evaluations set in state:', evalResponse.data.evaluations.length, 'items');
+          } else {
+            console.log('⚠️ No evaluations found in response, setting empty array');
+            setEvaluations([]);
           }
         } catch (error) {
           console.error('❌ Error fetching evaluations:', error);
+          console.error('❌ Error details:', {
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            config: error.config
+          });
+          setEvaluations([]);
         }
       }
     };

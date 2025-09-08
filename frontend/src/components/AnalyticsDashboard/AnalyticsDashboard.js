@@ -168,7 +168,12 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
     return plan === 'unlimited';
   };
 
-  if (!hasUnlimitedAccess()) {
+  // Allow access to analytics if user has evaluations or unlimited plan
+  const hasAnalyticsAccess = () => {
+    return hasUnlimitedAccess() || (evaluations && evaluations.length > 0);
+  };
+
+  if (!hasAnalyticsAccess()) {
     return <LockedAnalyticsPage onBack={onBack} upgradeType="unlimited" page="analytics" />;
   }
 

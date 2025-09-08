@@ -56,8 +56,8 @@ export const getEvaluations = async (userId, filters = {}) => {
     if (filters.limit) params.append('limit', filters.limit);
     if (filters.offset) params.append('offset', filters.offset);
     
-    // Use the correct endpoint: /history/{user_id} instead of /evaluations/{user_id}
-    const url = `${API_ENDPOINTS.API}/history/${userId}${params.toString() ? `?${params.toString()}` : ''}`;
+    // Use the correct endpoint: /evaluations/user/{user_id}
+    const url = `${API_ENDPOINTS.API}/evaluations/user/${userId}${params.toString() ? `?${params.toString()}` : ''}`;
     const response = await apiHelpers.get(url);
     return response.data;
   } catch (error) {
@@ -122,8 +122,8 @@ export const updateEvaluation = async (evaluationId, updateData) => {
  */
 export const getEvaluationStats = async (userId) => {
   try {
-    // Use the existing /history/{user_id} endpoint since there's no dedicated /stats endpoint
-    const response = await apiHelpers.get(`${API_ENDPOINTS.API}/history/${userId}`);
+    // Use the existing /evaluations/user/{user_id} endpoint since there's no dedicated /stats endpoint
+    const response = await apiHelpers.get(`${API_ENDPOINTS.API}/evaluations/user/${userId}`);
     
     // Extract evaluations and construct stats
     const evaluations = response.data.evaluations || [];

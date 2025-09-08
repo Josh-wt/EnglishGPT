@@ -80,7 +80,12 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
     return plan === 'unlimited';
   };
 
-  if (!hasUnlimitedAccess()) {
+  // Allow access to history if user has evaluations or unlimited plan
+  const hasHistoryAccess = () => {
+    return hasUnlimitedAccess() || (evaluations && evaluations.length > 0);
+  };
+
+  if (!hasHistoryAccess()) {
     return <LockedAnalyticsPage onBack={onBack} upgradeType="unlimited" page="history" />;
   }
 
