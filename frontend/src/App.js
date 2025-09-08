@@ -13,6 +13,10 @@ import AnalyticsDashboard from './components/AnalyticsDashboard';
 import AccountPage from './components/AccountPage';
 import PricingPage from './components/PricingPage';
 import Dashboard from './components/Dashboard';
+import ModernPricingPage from './components/PricingPage/ModernPricingPage';
+import SubscriptionDashboard from './components/SubscriptionDashboard/SubscriptionDashboard';
+import PaymentSuccess from './components/PaymentSuccess/PaymentSuccess';
+import PaymentsDashboard from './components/AdminDashboard/PaymentsDashboard';
 import { TermsOfService, RefundPolicy, PrivacyPolicy } from './components/legal';
 
 // Import hooks
@@ -770,12 +774,35 @@ const App = () => {
         } />
         <Route path="/pricing" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
-            <PricingPage 
+            <ModernPricingPage 
               user={user}
               onBack={handleBack}
+              darkMode={darkMode}
             />
           </AuthRequired>
         } />
+        <Route path="/subscription" element={
+          <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
+            <SubscriptionDashboard 
+              user={user}
+              darkMode={darkMode}
+            />
+          </AuthRequired>
+        } />
+            <Route path="/payment-success" element={
+              <PaymentSuccess
+                user={user}
+                darkMode={darkMode}
+              />
+            } />
+            <Route path="/admin/payments" element={
+              <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
+                <PaymentsDashboard
+                  user={user}
+                  darkMode={darkMode}
+                />
+              </AuthRequired>
+            } />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/refund" element={<RefundPolicy />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />

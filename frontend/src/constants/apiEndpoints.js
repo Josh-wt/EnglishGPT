@@ -11,6 +11,13 @@ export const API_ENDPOINTS = {
   ANALYTICS: `/analytics`,
   FEEDBACK: `/feedback`,
   QUESTION_TYPES: `/question-types`,
+  PAYMENTS: `/payments`,
+  SUBSCRIPTIONS: `/payments/subscriptions`,
+  CUSTOMERS: `/payments/customers`,
+  PRODUCTS: `/payments/products`,
+  DISCOUNTS: `/payments/discounts`,
+  LICENSES: `/payments/licenses`,
+  WEBHOOKS: `/payments/webhooks`
 };
 
 export default API_ENDPOINTS;

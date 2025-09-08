@@ -31,6 +31,39 @@ QWEN_ENDPOINT = os.environ.get('QWEN_ENDPOINT', 'https://openrouter.ai/api/v1/ch
 RECOMMENDATIONS_API_KEY = os.environ.get('OPENROUTER_GPT_OSS_120B_KEY')
 RECOMMENDATIONS_MODEL = os.environ.get('RECOMMENDATIONS_MODEL', 'openai/gpt-oss-120b')
 
+# Dodo Payments Configuration
+DODO_PAYMENTS_API_KEY = os.environ.get('DODO_PAYMENTS_API_KEY')
+DODO_PAYMENTS_ENVIRONMENT = os.environ.get('DODO_PAYMENTS_ENVIRONMENT', 'test')
+DODO_PAYMENTS_BASE_URL = os.environ.get('DODO_PAYMENTS_BASE_URL', 'https://test.dodopayments.com')
+DODO_WEBHOOK_SECRET = os.environ.get('DODO_PAYMENTS_WEBHOOK_KEY')
+INTERNAL_API_KEY = os.environ.get('INTERNAL_API_KEY')
+
+# Application URLs
+NEXT_PUBLIC_APP_URL = os.environ.get('NEXT_PUBLIC_APP_URL', 'https://englishgpt.everythingenglish.xyz')
+WEBHOOK_ENDPOINT_URL = os.environ.get('WEBHOOK_ENDPOINT_URL', 'https://englishgpt.everythingenglish.xyz/api/webhooks/dodo')
+SUCCESS_REDIRECT_URL = os.environ.get('SUCCESS_REDIRECT_URL', 'https://englishgpt.everythingenglish.xyz/dashboard/payment-success')
+CANCEL_REDIRECT_URL = os.environ.get('CANCEL_REDIRECT_URL', 'https://englishgpt.everythingenglish.xyz/pricing')
+
+# Debug Dodo Payments Configuration
+print(f"[DODO_CONFIG_DEBUG] DODO_PAYMENTS_API_KEY: {'SET' if DODO_PAYMENTS_API_KEY else 'NOT SET'}")
+print(f"[DODO_CONFIG_DEBUG] DODO_PAYMENTS_ENVIRONMENT: {DODO_PAYMENTS_ENVIRONMENT}")
+print(f"[DODO_CONFIG_DEBUG] DODO_PAYMENTS_BASE_URL: {DODO_PAYMENTS_BASE_URL}")
+print(f"[DODO_CONFIG_DEBUG] DODO_WEBHOOK_SECRET: {'SET' if DODO_WEBHOOK_SECRET else 'NOT SET'}")
+print(f"[DODO_CONFIG_DEBUG] WEBHOOK_ENDPOINT_URL: {WEBHOOK_ENDPOINT_URL}")
+
+# Product Configuration
+DODO_MONTHLY_PRODUCT_ID = os.environ.get('DODO_MONTHLY_PRODUCT_ID', 'pdt_LOhuvCIgbeo2qflVuaAty')
+DODO_YEARLY_PRODUCT_ID = os.environ.get('DODO_YEARLY_PRODUCT_ID', 'pdt_R9BBFdK801119u9r3r6jyL')
+
+# Legacy product IDs for backward compatibility
+DODO_BASIC_MONTHLY_PRODUCT_ID = DODO_MONTHLY_PRODUCT_ID
+DODO_BASIC_YEARLY_PRODUCT_ID = DODO_YEARLY_PRODUCT_ID
+DODO_PREMIUM_MONTHLY_PRODUCT_ID = os.environ.get('DODO_PREMIUM_MONTHLY_PRODUCT_ID')
+DODO_PREMIUM_YEARLY_PRODUCT_ID = os.environ.get('DODO_PREMIUM_YEARLY_PRODUCT_ID')
+
+print(f"[DODO_CONFIG_DEBUG] DODO_MONTHLY_PRODUCT_ID: {DODO_MONTHLY_PRODUCT_ID}")
+print(f"[DODO_CONFIG_DEBUG] DODO_YEARLY_PRODUCT_ID: {DODO_YEARLY_PRODUCT_ID}")
+
 # CORS Origins
 CORS_ORIGINS = [
     "http://localhost:3000",
