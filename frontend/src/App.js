@@ -35,6 +35,7 @@ import { supabase } from './supabaseClient';
 import LevelSelectionModal from './components/modals/LevelSelectionModal';
 import SignInModal from './components/modals/SignInModal';
 import ErrorModal from './components/modals/ErrorModal';
+import EarlyAccessModal from './components/modals/EarlyAccessModal';
 import AuthRequired from './components/auth/AuthRequired';
 import PublicResultPageWrapper from './components/results/PublicResultPageWrapper';
 import KeyboardShortcutsHelp from './components/help/KeyboardShortcutsHelp';
@@ -144,6 +145,29 @@ const App = () => {
     });
   }, [user, userLoading]);
 
+  // Track when new users get unlimited access and show early access modal
+  useEffect(() => {
+    if (!userLoading && user && userStats) {
+      // Check if this is a new user with unlimited access
+      const isUnlimitedUser = userStats.currentPlan === 'unlimited' || userStats.credits === 999999;
+      const isNewUser = userStats.questionsMarked === 0;
+      
+      // Check if we've already shown the modal to this user
+      const hasSeenEarlyAccessModal = localStorage.getItem(`earlyAccessModal_${user.id}`);
+      
+      if (isUnlimitedUser && isNewUser && !hasSeenEarlyAccessModal) {
+        console.log('🎉 New unlimited user detected, showing early access modal');
+        
+        // Delay showing modal to ensure smooth user experience
+        setTimeout(() => {
+          setShowEarlyAccessModal(true);
+          // Mark that we've shown the modal to this user
+          localStorage.setItem(`earlyAccessModal_${user.id}`, 'true');
+        }, 1000);
+      }
+    }
+  }, [user, userStats, userLoading]);
+
   // Local state
   const [darkMode, setDarkMode] = useState(false);
   const [evaluation, setEvaluation] = useState(null);
@@ -153,6 +177,7 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const [showLevelSelectionModal, setShowLevelSelectionModal] = useState(false);
+  const [showEarlyAccessModal, setShowEarlyAccessModal] = useState(false);
   const [selectedQuestionType, setSelectedQuestionType] = useState(null);
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [feedbackModal, setFeedbackModal] = useState({ open: false, category: 'overall' });
@@ -863,6 +888,11 @@ const App = () => {
               onClose={() => setShowErrorModal(false)}
               message={errorMessage}
               darkMode={darkMode}
+            />
+            <EarlyAccessModal
+              isOpen={showEarlyAccessModal}
+              onClose={() => setShowEarlyAccessModal(false)}
+              userName={user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'there'}
             />
             <LaunchPeriodModal 
               darkMode={darkMode}
