@@ -55,14 +55,14 @@ class PaymentService {
   // Payment Operations
   async createPayment(paymentData) {
     console.debug('[PAYMENT_SERVICE_DEBUG] Creating payment with data:', paymentData);
-    return await this._request('/payments', {
+    return await this._request(API_ENDPOINTS.PAYMENTS, {
       method: 'POST',
       body: JSON.stringify(paymentData),
     });
   }
 
   async getPayment(paymentId) {
-    return await this._request(`/payments/${paymentId}`);
+    return await this._request(`${API_ENDPOINTS.PAYMENTS}/${paymentId}`);
   }
 
   async getPayments(filters = {}) {
@@ -73,21 +73,21 @@ class PaymentService {
     if (filters.status) params.append('status', filters.status);
     if (filters.customer_id) params.append('customer_id', filters.customer_id);
 
-    const endpoint = `/payments${params.toString() ? `?${params.toString()}` : ''}`;
+    const endpoint = `${API_ENDPOINTS.PAYMENTS}${params.toString() ? `?${params.toString()}` : ''}`;
     return await this._request(endpoint);
   }
 
   // Subscription Operations
   async createSubscription(subscriptionData) {
     console.debug('[PAYMENT_SERVICE_DEBUG] Creating subscription with data:', subscriptionData);
-    return await this._request('/subscriptions', {
+    return await this._request(API_ENDPOINTS.SUBSCRIPTIONS, {
       method: 'POST',
       body: JSON.stringify(subscriptionData),
     });
   }
 
   async getSubscription(subscriptionId) {
-    return await this._request(`/subscriptions/${subscriptionId}`);
+    return await this._request(`${API_ENDPOINTS.SUBSCRIPTIONS}/${subscriptionId}`);
   }
 
   async getSubscriptions(filters = {}) {
@@ -98,12 +98,12 @@ class PaymentService {
     if (filters.status) params.append('status', filters.status);
     if (filters.customer_id) params.append('customer_id', filters.customer_id);
 
-    const endpoint = `/subscriptions${params.toString() ? `?${params.toString()}` : ''}`;
+    const endpoint = `${API_ENDPOINTS.SUBSCRIPTIONS}${params.toString() ? `?${params.toString()}` : ''}`;
     return await this._request(endpoint);
   }
 
   async updateSubscription(subscriptionId, updateData) {
-    return await this._request(`/subscriptions/${subscriptionId}`, {
+    return await this._request(`${API_ENDPOINTS.SUBSCRIPTIONS}/${subscriptionId}`, {
       method: 'PATCH',
       body: JSON.stringify(updateData),
     });
@@ -117,14 +117,14 @@ class PaymentService {
 
   // Customer Operations
   async createCustomer(customerData) {
-    return await this._request('/customers', {
+    return await this._request(API_ENDPOINTS.CUSTOMERS, {
       method: 'POST',
       body: JSON.stringify(customerData),
     });
   }
 
   async getCustomer(customerId) {
-    return await this._request(`/customers/${customerId}`);
+    return await this._request(`${API_ENDPOINTS.CUSTOMERS}/${customerId}`);
   }
 
   async getCustomers(filters = {}) {
@@ -134,19 +134,19 @@ class PaymentService {
     if (filters.page_size !== undefined) params.append('page_size', filters.page_size);
     if (filters.email) params.append('email', filters.email);
 
-    const endpoint = `/customers${params.toString() ? `?${params.toString()}` : ''}`;
+    const endpoint = `${API_ENDPOINTS.CUSTOMERS}${params.toString() ? `?${params.toString()}` : ''}`;
     return await this._request(endpoint);
   }
 
   async updateCustomer(customerId, updateData) {
-    return await this._request(`/customers/${customerId}`, {
+    return await this._request(`${API_ENDPOINTS.CUSTOMERS}/${customerId}`, {
       method: 'PATCH',
       body: JSON.stringify(updateData),
     });
   }
 
   async createCustomerPortalSession(customerId, sendEmail = false) {
-    return await this._request(`/customers/${customerId}/customer-portal`, {
+    return await this._request(`${API_ENDPOINTS.CUSTOMERS}/${customerId}/customer-portal`, {
       method: 'POST',
       body: JSON.stringify({ customer_id: customerId, send_email: sendEmail }),
     });
@@ -161,24 +161,24 @@ class PaymentService {
     if (filters.recurring !== undefined) params.append('recurring', filters.recurring);
     if (filters.archived !== undefined) params.append('archived', filters.archived);
 
-    const endpoint = `/products${params.toString() ? `?${params.toString()}` : ''}`;
+    const endpoint = `${API_ENDPOINTS.PRODUCTS}${params.toString() ? `?${params.toString()}` : ''}`;
     return await this._request(endpoint);
   }
 
   async getProduct(productId) {
-    return await this._request(`/products/${productId}`);
+    return await this._request(`${API_ENDPOINTS.PRODUCTS}/${productId}`);
   }
 
   // Discount Operations
   async createDiscount(discountData) {
-    return await this._request('/discounts', {
+    return await this._request(API_ENDPOINTS.DISCOUNTS, {
       method: 'POST',
       body: JSON.stringify(discountData),
     });
   }
 
   async getDiscount(discountId) {
-    return await this._request(`/discounts/${discountId}`);
+    return await this._request(`${API_ENDPOINTS.DISCOUNTS}/${discountId}`);
   }
 
   async getDiscounts(filters = {}) {
@@ -187,33 +187,33 @@ class PaymentService {
     if (filters.page_number !== undefined) params.append('page_number', filters.page_number);
     if (filters.page_size !== undefined) params.append('page_size', filters.page_size);
 
-    const endpoint = `/discounts${params.toString() ? `?${params.toString()}` : ''}`;
+    const endpoint = `${API_ENDPOINTS.DISCOUNTS}${params.toString() ? `?${params.toString()}` : ''}`;
     return await this._request(endpoint);
   }
 
   async updateDiscount(discountId, updateData) {
-    return await this._request(`/discounts/${discountId}`, {
+    return await this._request(`${API_ENDPOINTS.DISCOUNTS}/${discountId}`, {
       method: 'PATCH',
       body: JSON.stringify(updateData),
     });
   }
 
   async deleteDiscount(discountId) {
-    return await this._request(`/discounts/${discountId}`, {
+    return await this._request(`${API_ENDPOINTS.DISCOUNTS}/${discountId}`, {
       method: 'DELETE',
     });
   }
 
   // Webhook Operations
   async createWebhook(webhookData) {
-    return await this._request('/webhooks', {
+    return await this._request(API_ENDPOINTS.WEBHOOKS, {
       method: 'POST',
       body: JSON.stringify(webhookData),
     });
   }
 
   async getWebhook(webhookId) {
-    return await this._request(`/webhooks/${webhookId}`);
+    return await this._request(`${API_ENDPOINTS.WEBHOOKS}/${webhookId}`);
   }
 
   async listWebhooks(filters = {}) {
@@ -222,33 +222,33 @@ class PaymentService {
     if (filters.limit) params.append('limit', filters.limit);
     if (filters.iterator) params.append('iterator', filters.iterator);
 
-    const endpoint = `/webhooks${params.toString() ? `?${params.toString()}` : ''}`;
+    const endpoint = `${API_ENDPOINTS.WEBHOOKS}${params.toString() ? `?${params.toString()}` : ''}`;
     return await this._request(endpoint);
   }
 
   async updateWebhook(webhookId, updateData) {
-    return await this._request(`/webhooks/${webhookId}`, {
+    return await this._request(`${API_ENDPOINTS.WEBHOOKS}/${webhookId}`, {
       method: 'PATCH',
       body: JSON.stringify(updateData),
     });
   }
 
   async deleteWebhook(webhookId) {
-    return await this._request(`/webhooks/${webhookId}`, {
+    return await this._request(`${API_ENDPOINTS.WEBHOOKS}/${webhookId}`, {
       method: 'DELETE',
     });
   }
 
   // License Operations
   async activateLicense(licenseKey, name) {
-    return await this._request('/licenses/activate', {
+    return await this._request(`${API_ENDPOINTS.LICENSES}/activate`, {
       method: 'POST',
       body: JSON.stringify({ license_key: licenseKey, name }),
     });
   }
 
   async deactivateLicense(licenseKey, instanceId) {
-    return await this._request('/licenses/deactivate', {
+    return await this._request(`${API_ENDPOINTS.LICENSES}/deactivate`, {
       method: 'POST',
       body: JSON.stringify({ 
         license_key: licenseKey, 
@@ -261,7 +261,7 @@ class PaymentService {
     const data = { license_key: licenseKey };
     if (instanceId) data.license_key_instance_id = instanceId;
     
-    return await this._request('/licenses/validate', {
+    return await this._request(`${API_ENDPOINTS.LICENSES}/validate`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -279,7 +279,7 @@ class PaymentService {
 
   // Utility Methods
   async checkHealth() {
-    return await this._request('/health');
+    return await this._request('/api/payments/health');
   }
 
   // Pricing Plans Helper
