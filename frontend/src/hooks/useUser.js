@@ -254,13 +254,8 @@ export const useUser = () => {
               console.error('❌ Failed to fetch academic level:', levelError);
             }
             
-            // Ensure user has unlimited access
-            try {
-              console.log('🚀 Ensuring unlimited access after user data load...');
-              await ensureUnlimitedAccess();
-            } catch (unlimitedError) {
-              console.error('❌ Failed to ensure unlimited access:', unlimitedError);
-            }
+            // Check if user needs launch period modal
+            checkLaunchPeriodEligibility();
             
             const totalInitTime = Date.now() - initStartTime.current;
             console.log('✅ User initialization completed in', totalInitTime, 'ms');
@@ -567,13 +562,8 @@ export const useUser = () => {
               console.error('❌ Failed to fetch academic level:', levelError);
             }
             
-            // Ensure user has unlimited access
-            try {
-              console.log('🚀 Ensuring unlimited access after user data load...');
-              await ensureUnlimitedAccess();
-            } catch (unlimitedError) {
-              console.error('❌ Failed to ensure unlimited access:', unlimitedError);
-            }
+            // Check if user needs launch period modal
+            checkLaunchPeriodEligibility();
             
             const totalAuthChangeTime = Date.now() - authChangeStartTime;
             console.log('✅ Auth change (SIGNED_IN) completed in', totalAuthChangeTime, 'ms');
@@ -938,57 +928,36 @@ export const useUser = () => {
     }
   };
 
-  // Ensure user has unlimited access
-  const ensureUnlimitedAccess = async () => {
+  // Check if user is eligible for launch period modal
+  const checkLaunchPeriodEligibility = () => {
     if (!user?.id) {
-      console.error('Cannot ensure unlimited access: user not ready');
-      return false;
+      console.log('Cannot check launch period eligibility: user not ready');
+      return;
     }
     
     try {
-      console.log('🚀 Ensuring user has unlimited access...');
+      // Check if user has already been shown the launch modal
+      const hasSeenLaunchModal = localStorage.getItem(`launch-modal-shown-${user.id}`);
+      const userCreatedAt = new Date(user.created_at || new Date());
+      const now = new Date();
+      const isNewUser = (now - userCreatedAt) < 24 * 60 * 60 * 1000; // Within 24 hours
       
-      // Check current plan in backend
-      const response = await axios.get(`${getApiUrl()}/users/${user.id}`);
-      const currentPlan = response.data.user?.current_plan;
-      
-      if (currentPlan !== 'unlimited') {
-        console.log('🔄 Setting user to unlimited plan...');
-        const unlimitedResponse = await axios.put(`${getApiUrl()}/users/${user.id}`, {
-          current_plan: 'unlimited',
-          updated_at: new Date().toISOString()
-        });
-        console.log('✅ User set to unlimited plan:', unlimitedResponse.data);
-      } else {
-        console.log('✅ User already has unlimited plan');
-      }
-      
-      // Update local state
-      setUserStats(prev => {
-        if (prev) {
-          return {
-            ...prev,
-            currentPlan: 'unlimited',
-            credits: 999999
-          };
-        }
-        return prev;
+      console.log('🔍 Launch period eligibility check:', {
+        hasSeenLaunchModal: !!hasSeenLaunchModal,
+        isNewUser,
+        userCreatedAt: userCreatedAt.toISOString()
       });
       
-      // Update localStorage
-      const currentData = JSON.parse(localStorage.getItem('userData') || '{}');
-      const updatedData = {
-        ...currentData,
-        currentPlan: 'unlimited',
-        credits: 999999
-      };
-      localStorage.setItem('userData', JSON.stringify(updatedData));
-      
-      console.log('✅ Unlimited access ensured');
-      return true;
+      // Show modal only for new users who haven't seen it
+      if (isNewUser && !hasSeenLaunchModal) {
+        console.log('🎯 User eligible for launch period modal');
+        // Trigger launch modal (we'll create this component)
+        window.dispatchEvent(new CustomEvent('show-launch-modal', {
+          detail: { userId: user.id }
+        }));
+      }
     } catch (error) {
-      console.error('❌ Failed to ensure unlimited access:', error);
-      return false;
+      console.error('❌ Failed to check launch period eligibility:', error);
     }
   };
 
@@ -1191,6 +1160,6 @@ export const useUser = () => {
     fetchAcademicLevel,
     setAcademicLevel,
     hasUnlimitedAccess,
-    ensureUnlimitedAccess,
+    checkLaunchPeriodEligibility,
   };
 };

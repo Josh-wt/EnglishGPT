@@ -13,6 +13,7 @@ import AnalyticsDashboard from './components/AnalyticsDashboard';
 import AccountPage from './components/AccountPage';
 import PricingPage from './components/PricingPage';
 import Dashboard from './components/Dashboard';
+import LaunchPeriodModal from './components/LaunchPeriodModal/LaunchPeriodModal';
 import ModernPricingPage from './components/PricingPage/ModernPricingPage';
 import SubscriptionDashboard from './components/SubscriptionDashboard/SubscriptionDashboard';
 import PaymentSuccess from './components/PaymentSuccess/PaymentSuccess';
@@ -829,6 +830,10 @@ const App = () => {
               onClose={() => setShowErrorModal(false)}
               message={errorMessage}
               darkMode={darkMode}
+            />
+            <LaunchPeriodModal 
+              darkMode={darkMode}
+              getApiUrl={getApiUrl}
             />
       <KeyboardShortcutsHelp 
         isVisible={showShortcutsHelp}
