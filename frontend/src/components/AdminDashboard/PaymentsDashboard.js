@@ -7,10 +7,10 @@ import {
   CreditCardIcon,
   UsersIcon,
   CurrencyDollarIcon,
-  TrendingUpIcon,
-  TrendingDownIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
   EyeIcon,
-  RefreshIcon,
+  ArrowPathIcon,
   FunnelIcon,
   CalendarIcon,
   DocumentArrowDownIcon
@@ -135,7 +135,7 @@ const PaymentsDashboard = ({ user, darkMode }) => {
             </select>
             
             <Button onClick={fetchDashboardData} variant="outline" size="sm">
-              <RefreshIcon className="w-4 h-4 mr-2" />
+              <ArrowPathIcon className="w-4 h-4 mr-2" />
               Refresh
             </Button>
           </div>
@@ -154,7 +154,7 @@ const PaymentsDashboard = ({ user, darkMode }) => {
                   <CurrencyDollarIcon className="w-8 h-8 text-green-600" />
                 </div>
                 <div className="flex items-center mt-2 text-sm">
-                  <TrendingUpIcon className="w-4 h-4 text-green-500 mr-1" />
+                  <ArrowTrendingUpIcon className="w-4 h-4 text-green-500 mr-1" />
                   <span className="text-green-600">+12.5% from last period</span>
                 </div>
               </CardContent>
@@ -206,7 +206,7 @@ const PaymentsDashboard = ({ user, darkMode }) => {
                   <ChartBarIcon className="w-8 h-8 text-purple-600" />
                 </div>
                 <div className="flex items-center mt-2 text-sm">
-                  <TrendingUpIcon className="w-4 h-4 text-green-500 mr-1" />
+                  <ArrowTrendingUpIcon className="w-4 h-4 text-green-500 mr-1" />
                   <span className="text-green-600">+8.2% from last period</span>
                 </div>
               </CardContent>

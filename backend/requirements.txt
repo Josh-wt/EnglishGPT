@@ -27,3 +27,4 @@ httpx>=0.25.0
 PyPDF2>=3.0.0
 Pillow>=10.0.0
 pydantic>=2.0.0  # For data validation in payment models
+python-dateutil>=2.8.2  # For date parsing in webhook processing

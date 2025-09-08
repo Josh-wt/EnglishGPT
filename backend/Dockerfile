@@ -1,26 +1,27 @@
-# Use Node.js 18 Alpine as base image
-FROM node:18-alpine
+# Use Python 3.12 Alpine as base image
+FROM python:3.12-alpine
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Install system dependencies
+RUN apk add --no-cache gcc musl-dev
 
-# Install dependencies
-RUN npm ci --only=production
+# Copy requirements file
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source code
 COPY . .
 
-# Build the React app
-RUN npm run build
+# Expose port 5000
+EXPOSE 5000
 
-# Install serve to run the production build
-RUN npm install -g serve
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
 
-# Expose port 3000
-EXPOSE 3000
-
-# Start the application
-CMD ["serve", "-s", "build", "-l", "3000"]
+# Start the FastAPI application
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "5000"]
