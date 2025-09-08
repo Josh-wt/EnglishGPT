@@ -12,11 +12,16 @@ logger = logging.getLogger(__name__)
 class DodoPaymentsService:
     def __init__(self):
         self.api_key = DODO_PAYMENTS_API_KEY
-        self.base_url = DODO_PAYMENTS_BASE_URL
+        # Keep the configured base URL but ensure it has the correct API path
+        if not DODO_PAYMENTS_BASE_URL.endswith('/api'):
+            self.base_url = f"{DODO_PAYMENTS_BASE_URL}/api"
+        else:
+            self.base_url = DODO_PAYMENTS_BASE_URL
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
+        logger.info(f"DodoPaymentsService initialized with base_url: {self.base_url}")
 
     async def _request(self, method: str, endpoint: str, data: Optional[Dict] = None) -> Dict:
         """Make API request to Dodo Payments"""
