@@ -79,8 +79,9 @@ async def get_payment(payment_id: str):
 @router.post("/subscriptions")
 async def create_subscription(subscription_data: Dict):
     """Create a new subscription with real Dodo Payments integration"""
-    logger.debug(f"[SUBSCRIPTION_DEBUG] Received subscription creation request")
-    logger.debug(f"[SUBSCRIPTION_DEBUG] Subscription data: {json.dumps(subscription_data, indent=2, default=str)}")
+    logger.info(f"[SUBSCRIPTION_CREATE] 🚀 Starting subscription creation")
+    logger.info(f"[SUBSCRIPTION_CREATE] Raw input data: {json.dumps(subscription_data, indent=2, default=str)}")
+    logger.info(f"[SUBSCRIPTION_CREATE] Request timestamp: {datetime.now().isoformat()}")
     
     try:
         from config.settings import (
@@ -122,20 +123,33 @@ async def create_subscription(subscription_data: Dict):
             logger.debug(f"[SUBSCRIPTION_DEBUG] Applying discount code: {discount_code}")
             subscription_payload["discount_code"] = discount_code
         
-        logger.debug(f"[SUBSCRIPTION_DEBUG] Final subscription payload: {json.dumps(subscription_payload, indent=2, default=str)}")
+        logger.info(f"[SUBSCRIPTION_CREATE] 📋 Final subscription payload prepared:")
+        logger.info(f"[SUBSCRIPTION_CREATE] Payload: {json.dumps(subscription_payload, indent=2, default=str)}")
         
         # Use Dodo service to create subscription
+        logger.info(f"[SUBSCRIPTION_CREATE] 🎯 Calling dodo_service.create_subscription...")
+        logger.info(f"[SUBSCRIPTION_CREATE] Service base URL: {dodo_service.base_url}")
+        
         result = await dodo_service.create_subscription(subscription_payload)
         
-        logger.debug(f"[SUBSCRIPTION_DEBUG] Real subscription creation successful")
-        logger.debug(f"[SUBSCRIPTION_DEBUG] Result: {json.dumps(result, indent=2, default=str)}")
+        logger.info(f"[SUBSCRIPTION_CREATE] ✅ Subscription creation successful!")
+        logger.info(f"[SUBSCRIPTION_CREATE] Result: {json.dumps(result, indent=2, default=str)}")
         
         return result
         
     except Exception as e:
-        logger.error(f"[SUBSCRIPTION_ERROR] Subscription creation failed: {e}")
-        logger.error(f"[SUBSCRIPTION_ERROR] Error type: {type(e)}")
-        logger.error(f"[SUBSCRIPTION_ERROR] Traceback: {traceback.format_exc()}")
+        logger.error(f"[SUBSCRIPTION_ERROR] ❌ Subscription creation failed!")
+        logger.error(f"[SUBSCRIPTION_ERROR] Error message: {str(e)}")
+        logger.error(f"[SUBSCRIPTION_ERROR] Error type: {type(e).__name__}")
+        logger.error(f"[SUBSCRIPTION_ERROR] Full traceback:")
+        logger.error(f"[SUBSCRIPTION_ERROR] {traceback.format_exc()}")
+        
+        # Additional debugging for specific error types
+        if hasattr(e, 'response'):
+            logger.error(f"[SUBSCRIPTION_ERROR] HTTP Response Status: {getattr(e.response, 'status_code', 'N/A')}")
+            logger.error(f"[SUBSCRIPTION_ERROR] HTTP Response Text: {getattr(e.response, 'text', 'N/A')}")
+            logger.error(f"[SUBSCRIPTION_ERROR] HTTP Response URL: {getattr(e.response, 'url', 'N/A')}")
+        
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/subscriptions")

@@ -23,12 +23,23 @@ class DodoPaymentsService:
     async def _request(self, method: str, endpoint: str, data: Optional[Dict] = None) -> Dict:
         """Make API request to Dodo Payments"""
         if not self.api_key:
+            logger.error("[DODO_SERVICE] API key not configured!")
             raise ValueError("Dodo Payments API key not configured")
             
         url = f"{self.base_url}{endpoint}"
         
+        # Extensive debugging
+        logger.info(f"[DODO_SERVICE] 🚀 Making API request:")
+        logger.info(f"[DODO_SERVICE] Method: {method}")
+        logger.info(f"[DODO_SERVICE] Endpoint: {endpoint}")
+        logger.info(f"[DODO_SERVICE] Full URL: {url}")
+        logger.info(f"[DODO_SERVICE] Base URL: {self.base_url}")
+        logger.info(f"[DODO_SERVICE] Headers: {self.headers}")
+        logger.info(f"[DODO_SERVICE] Data: {data}")
+        
         try:
             async with httpx.AsyncClient() as client:
+                logger.info(f"[DODO_SERVICE] 📡 Sending request to {url}")
                 response = await client.request(
                     method=method,
                     url=url,
@@ -36,10 +47,28 @@ class DodoPaymentsService:
                     json=data,
                     timeout=30.0
                 )
+                
+                logger.info(f"[DODO_SERVICE] 📥 Response received:")
+                logger.info(f"[DODO_SERVICE] Status Code: {response.status_code}")
+                logger.info(f"[DODO_SERVICE] Response Headers: {dict(response.headers)}")
+                logger.info(f"[DODO_SERVICE] Response Text: {response.text[:1000]}...")
+                
                 response.raise_for_status()
-                return response.json()
+                result = response.json()
+                logger.info(f"[DODO_SERVICE] ✅ Success! Response: {result}")
+                return result
+                
+        except httpx.HTTPStatusError as e:
+            logger.error(f"[DODO_SERVICE] ❌ HTTP Status Error:")
+            logger.error(f"[DODO_SERVICE] Status Code: {e.response.status_code}")
+            logger.error(f"[DODO_SERVICE] Response Text: {e.response.text}")
+            logger.error(f"[DODO_SERVICE] Request URL: {e.request.url}")
+            logger.error(f"[DODO_SERVICE] Request Method: {e.request.method}")
+            raise
         except Exception as e:
-            logger.error(f"Dodo API error: {e}")
+            logger.error(f"[DODO_SERVICE] ❌ General Error: {e}")
+            logger.error(f"[DODO_SERVICE] Error Type: {type(e)}")
+            logger.error(f"[DODO_SERVICE] URL that failed: {url}")
             raise
 
     async def create_payment(self, payment_data: Dict) -> Dict:
