@@ -2853,11 +2853,12 @@ async def submit_feedback(feedback: FeedbackSubmitModel):
         raise HTTPException(status_code=500, detail=f"Feedback save error: {str(e)}")
 
 # Import payment routes
-from routes.payments import router as payments_router
+from routes.payments import router as payments_router, webhook_router
 
 # Include the API router after all routes are defined
 app.include_router(api_router)
 app.include_router(payments_router)
+app.include_router(webhook_router)
 
 # Serve frontend build (SPA) with client-side routing fallback
 FRONTEND_BUILD_DIR = (ROOT_DIR.parent / 'frontend' / 'build')

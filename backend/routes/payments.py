@@ -18,6 +18,9 @@ logger.setLevel(logging.DEBUG)
 
 router = APIRouter(prefix="/api/payments", tags=["payments"])
 
+# Separate router for webhooks (no prefix conflict)
+webhook_router = APIRouter(prefix="/api", tags=["webhooks"])
+
 # Initialize MCP Dodo Payments service
 mcp_dodo_service = MCPDodoPaymentsService()
 
@@ -410,7 +413,7 @@ async def validate_discount_code(validation_data: Dict):
         raise HTTPException(status_code=500, detail="Failed to validate discount code")
 
 # Webhook endpoints
-@router.post("/webhooks")
+@webhook_router.post("/webhooks")
 async def create_webhook(webhook_data: Dict):
     """Create a webhook"""
     try:
@@ -449,7 +452,7 @@ async def delete_webhook(webhook_id: str):
         logger.error(f"Failed to delete webhook: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/webhooks/dodo")
+@webhook_router.post("/webhooks/dodo")
 async def handle_dodo_webhook(request: Request):
     """Handle incoming webhook events from Dodo Payments with real processing"""
     logger.debug(f"[WEBHOOK_DEBUG] Received Dodo Payments webhook event")
