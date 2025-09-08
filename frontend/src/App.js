@@ -592,22 +592,36 @@ const App = () => {
   const handleDeclineUnlimited = async () => {
     console.log('🔄 User declined unlimited access, setting to free plan');
     
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.error('❌ No user ID available');
+      return;
+    }
     
     try {
-      // Call backend to set user to free plan
-      const response = await api.patch(`/users/${user.id}`, {
-        current_plan: 'free',
-        credits: 3 // Default free plan credits
-      });
+      console.log('🔄 Updating user plan to free in Supabase database');
       
-      console.log('✅ User plan updated to free:', response.data);
+      // Update user plan directly in Supabase
+      const { data, error } = await supabase
+        .from('assessment_users')
+        .update({
+          current_plan: 'free',
+          credits: 3
+        })
+        .eq('uid', user.id)
+        .select();
       
-      // Refresh user data to reflect changes
-      await refreshUserData();
+      if (error) {
+        console.error('❌ Supabase update error:', error);
+        throw error;
+      }
+      
+      console.log('✅ User plan updated to free in database:', data);
       
       // Mark that user declined unlimited for future reference
       localStorage.setItem(`declinedUnlimited_${user.id}`, 'true');
+      
+      // Refresh user data to reflect changes
+      await refreshUserData();
       
     } catch (error) {
       console.error('❌ Error setting user to free plan:', error);

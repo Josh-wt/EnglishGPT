@@ -70,7 +70,7 @@ export const applyLaunchPeriodBenefits = (userStats) => {
   const hasDeclinedUnlimited = userId && localStorage.getItem(`declinedUnlimited_${userId}`);
   
   if (hasDeclinedUnlimited) {
-    console.log('🔄 Launch period: User declined unlimited, keeping original plan');
+    console.log('🔄 Launch period: User declined unlimited, keeping their current plan from database');
     return {
       ...userStats,
       questionsMarked: userStats?.questions_marked || userStats?.questionsMarked || 0,
