@@ -78,6 +78,47 @@ async def get_payment(payment_id: str):
         logger.error(f"Failed to retrieve payment: {e}")
         raise HTTPException(status_code=404, detail="Payment not found")
 
+# Transaction endpoints (alias for payments for frontend compatibility)
+@router.get("/transactions")
+async def list_transactions(
+    page_number: int = 0,
+    page_size: int = 10,
+    status: Optional[str] = None,
+    customer_id: Optional[str] = None
+):
+    """List transactions (alias for payments)"""
+    logger.debug(f"[TRANSACTION_DEBUG] Listing transactions with customer_id: {customer_id}")
+    try:
+        params = {
+            "page_number": page_number,
+            "page_size": page_size
+        }
+        if status:
+            params["status"] = status
+        if customer_id:
+            params["customer_id"] = customer_id
+            
+        result = await dodo_service.list_payments(params)
+        logger.debug(f"[TRANSACTION_DEBUG] Retrieved {len(result.get('items', []))} transactions")
+        return result
+    except Exception as e:
+        logger.error(f"Failed to list transactions: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/transactions/{transaction_id}")
+async def get_transaction(transaction_id: str):
+    """Retrieve specific transaction (alias for payment)"""
+    logger.debug(f"[TRANSACTION_DEBUG] Retrieving transaction: {transaction_id}")
+    try:
+        # Transaction ID is the same as payment ID in Dodo Payments
+        result = await dodo_service._request("GET", f"/payments/{transaction_id}")
+        logger.debug(f"[TRANSACTION_DEBUG] Transaction retrieval successful")
+        return result
+    except Exception as e:
+        logger.error(f"Failed to retrieve transaction: {e}")
+        logger.error(f"[TRANSACTION_ERROR] Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
 # Subscription endpoints
 @router.post("/subscriptions")
 async def create_subscription(subscription_data: Dict):

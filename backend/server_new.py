@@ -23,6 +23,7 @@ from routes.users import router as users_router
 from routes.evaluations import router as evaluations_router
 from routes.analytics import router as analytics_router
 from routes.files import router as files_router
+from routes.payments import router as payments_router, webhook_router as payments_webhook_router
 
 # Configure logging
 logger = configure_logging()
@@ -51,6 +52,8 @@ api_router.include_router(users_router)
 api_router.include_router(evaluations_router)
 api_router.include_router(analytics_router)
 api_router.include_router(files_router)
+api_router.include_router(payments_router)
+api_router.include_router(payments_webhook_router)
 
 # Include the API router
 app.include_router(api_router)
