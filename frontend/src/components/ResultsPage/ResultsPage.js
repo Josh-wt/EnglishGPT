@@ -388,20 +388,6 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
           </div>
                 </div>
 
-        {/* Overall feedback prompt (separate box) */}
-        <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-4 mb-6 border flex items-center justify-between`}>
-          <div className={`${darkMode ? 'text-gray-200' : 'text-gray-800'} font-medium`}>
-            Was this marking accurate?
-          </div>
-          <button
-            onClick={() => setFeedbackModal({ open: true, category: 'overall' })}
-            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-          >
-            Give feedback
-          </button>
-        </div>
-        
-
         
         {/* Detailed Feedback Card */}
         <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-6 mb-6 shadow-sm border`}>
@@ -465,35 +451,6 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         </div>
       </div>
 
-      {/* Strengths feedback prompt (separate box) */}
-      {activeTab === 'Strengths' && (
-        <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-4 mb-6 border flex items-center justify-between`}>
-          <div className={`${darkMode ? 'text-gray-200' : 'text-gray-800'} font-medium`}>
-            Was this strengths summary accurate?
-          </div>
-          <button
-            onClick={() => setFeedbackModal({ open: true, category: 'strengths' })}
-            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-          >
-            Give feedback
-          </button>
-        </div>
-      )}
-
-      {/* Improvements feedback prompt (separate box) */}
-      {activeTab === 'Improvements' && (
-        <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-4 mb-6 border flex items-center justify-between`}>
-          <div className={`${darkMode ? 'text-gray-200' : 'text-gray-800'} font-medium`}>
-            Was this improvements summary accurate?
-          </div>
-          <button
-            onClick={() => setFeedbackModal({ open: true, category: 'improvements' })}
-            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-          >
-            Give feedback
-          </button>
-        </div>
-      )}
 
       {/* Feedback Modal */}
       {feedbackModal.open && (

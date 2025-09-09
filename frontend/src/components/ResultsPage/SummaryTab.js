@@ -49,43 +49,6 @@ const SummaryTab = ({ evaluation, darkMode, onFeedback }) => {
         )}
       </div>
 
-      {/* Quick Stats */}
-      <div className={`${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} rounded-2xl p-6 border shadow-sm`}>
-        <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-          📊 Quick Stats
-        </h3>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center">
-            <div className={`text-2xl font-bold mb-1 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-              {evaluation.grade || 'N/A'}
-            </div>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Grade</p>
-          </div>
-          
-          <div className="text-center">
-            <div className={`text-2xl font-bold mb-1 ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
-              {evaluation.student_response ? evaluation.student_response.split(/\s+/).filter(word => word.length > 0).length : 0}
-            </div>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Words</p>
-          </div>
-          
-          <div className="text-center">
-            <div className={`text-2xl font-bold mb-1 ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>
-              {evaluation.question_type ? evaluation.question_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'N/A'}
-            </div>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Type</p>
-          </div>
-          
-          <div className="text-center">
-            <div className={`text-2xl font-bold mb-1 ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
-              {evaluation.timestamp ? new Date(evaluation.timestamp).toLocaleDateString() : 'N/A'}
-            </div>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Date</p>
-          </div>
-        </div>
-      </div>
-
       {/* Feedback Button */}
       <div className="text-center">
         <button
