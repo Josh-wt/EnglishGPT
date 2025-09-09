@@ -25,7 +25,7 @@ webhook_router = APIRouter(prefix="", tags=["webhooks"])
 mcp_dodo_service = MCPDodoPaymentsService()
 
 # Payment endpoints
-@router.post("/payments/payments")
+@router.post("/payments")
 async def create_payment(payment_data: Dict):
     """Create a new payment"""
     logger.debug(f"[PAYMENT_DEBUG] Received payment creation request")
@@ -43,7 +43,7 @@ async def create_payment(payment_data: Dict):
         logger.error(f"[PAYMENT_ERROR] Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/payments/payments")
+@router.get("/payments")
 async def list_payments(
     page_number: int = 0,
     page_size: int = 10,
@@ -67,7 +67,7 @@ async def list_payments(
         logger.error(f"Failed to list payments: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/payments/payments/{payment_id}")
+@router.get("/payments/{payment_id}")
 async def get_payment(payment_id: str):
     """Retrieve specific payment"""
     try:
@@ -132,6 +132,37 @@ async def get_user_transactions(user_id: str):
         }
     except Exception as e:
         logger.error(f"Failed to get user transactions: {e}")
+        logger.error(f"[TRANSACTION_ERROR] Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+# Add direct transaction route for frontend compatibility
+@router.get("/transactions/{user_id}")
+async def get_user_transactions_direct(user_id: str):
+    """Get all transactions for a specific user - direct route for frontend compatibility"""
+    logger.debug(f"[TRANSACTION_DEBUG] Getting transactions for user (direct route): {user_id}")
+    try:
+        # For now, we'll return user transactions as payments filtered by user
+        # Since Dodo Payments uses customer_id, we need to map user_id to customer_id
+        # First, try to get customer by user mapping, or use user_id as customer_id
+        
+        # Get payments filtered by customer_id (using user_id as customer identifier)
+        result = await dodo_service.list_payments({
+            "customer_id": user_id,
+            "page_size": 100  # Get more transactions for user history
+        })
+        
+        # Transform response to match frontend expectations
+        transactions = result.get("items", [])
+        
+        logger.debug(f"[TRANSACTION_DEBUG] Found {len(transactions)} transactions for user {user_id}")
+        
+        return {
+            "transactions": transactions,
+            "total": len(transactions),
+            "user_id": user_id
+        }
+    except Exception as e:
+        logger.error(f"Failed to get user transactions (direct route): {e}")
         logger.error(f"[TRANSACTION_ERROR] Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=400, detail=str(e))
 
