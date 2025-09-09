@@ -1,6 +1,5 @@
 import { apiHelpers } from './api';
 import { API_ENDPOINTS } from '../constants/apiEndpoints';
-import { applyLaunchPeriodBenefits, isLaunchPeriod } from '../utils/launchPeriod';
 
 /**
  * Create a new user record
@@ -26,26 +25,8 @@ export const createUser = async (userId, userData = {}) => {
     // Backend returns {user: {...}}, so extract the user data
     const userInfo = response.data.user || response.data;
     
-    // Apply launch period benefits immediately for new users
-    if (isLaunchPeriod()) {
-      console.log('🎉 Launch period: New user granted Unlimited plan!');
-      // Update the backend to reflect unlimited status
-      try {
-        const updateStartTime = Date.now();
-        await apiHelpers.put(`${API_ENDPOINTS.USERS}/${userId}`, {
-          current_plan: 'unlimited',
-          credits: '∞',
-          evaluations_limit: '∞'
-        });
-        const updateDuration = Date.now() - updateStartTime;
-        console.log('✅ User updated to unlimited in', updateDuration, 'ms');
-        userInfo.current_plan = 'unlimited';
-        userInfo.credits = '∞';
-        userInfo.evaluations_limit = '∞';
-      } catch (updateError) {
-        console.error('❌ Failed to update user to unlimited in backend:', updateError);
-      }
-    }
+    // Note: Launch period benefits are applied in applyLaunchPeriodBenefits function
+    // Don't modify data here to avoid conflicts
     
     return userInfo;
   } catch (error) {
@@ -73,13 +54,8 @@ export const getUserProfile = async (userId) => {
     // Handle both response structures: {user: {...}} and direct user data
     const userData = response.data.user || response.data;
     
-    // Apply launch period benefits to profile data
-    if (isLaunchPeriod()) {
-      console.log('🎉 Launch period: Applying unlimited benefits to profile...');
-      userData.current_plan = 'unlimited';
-      userData.credits = '∞';
-      userData.evaluations_limit = '∞';
-    }
+    // Note: Launch period benefits are applied in applyLaunchPeriodBenefits function
+    // Don't modify data here to avoid conflicts
     
     return userData;
   } catch (error) {
@@ -173,13 +149,8 @@ export const getUserStats = async (userId) => {
     // Handle both response structures: {user: {...}} and direct user data
     const userData = response.data.user || response.data;
     
-    // Apply launch period benefits to stats data
-    if (isLaunchPeriod()) {
-      console.log('🎉 Launch period: Applying unlimited benefits to stats...');
-      userData.current_plan = 'unlimited';
-      userData.credits = '∞';
-      userData.evaluations_limit = '∞';
-    }
+    // Note: Launch period benefits are applied in applyLaunchPeriodBenefits function
+    // Don't modify data here to avoid conflicts
     
     return userData;
   } catch (error) {

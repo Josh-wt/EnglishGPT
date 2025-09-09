@@ -78,11 +78,19 @@ export const applyLaunchPeriodBenefits = (userStats) => {
     };
   }
 
-  // Only grant unlimited if user hasn't declined and is a new user (0 questions marked)
+  // Check if user is already unlimited or is a new user (0 questions marked)
   const isNewUser = (userStats?.questions_marked || userStats?.questionsMarked || 0) === 0;
+  const isAlreadyUnlimited = userStats?.currentPlan === 'unlimited' || 
+                            userStats?.current_plan === 'unlimited' ||
+                            userStats?.credits === 999999;
   
-  if (isNewUser) {
-    console.log('🎉 Launch period: New user granted unlimited plan!');
+  if (isNewUser || isAlreadyUnlimited) {
+    console.log('🎉 Launch period: User granted/maintaining unlimited plan!', {
+      isNewUser,
+      isAlreadyUnlimited,
+      currentPlan: userStats?.currentPlan || userStats?.current_plan,
+      credits: userStats?.credits
+    });
     return {
       ...userStats,
       currentPlan: 'unlimited',

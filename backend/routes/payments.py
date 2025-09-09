@@ -16,10 +16,10 @@ from services.mcp_dodo_service import MCPDodoPaymentsService
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-router = APIRouter(prefix="/api/payments", tags=["payments"])
+router = APIRouter(prefix="/payments", tags=["payments"])
 
 # Separate router for webhooks (no prefix conflict)
-webhook_router = APIRouter(prefix="/api", tags=["webhooks"])
+webhook_router = APIRouter(prefix="", tags=["webhooks"])
 
 # Initialize MCP Dodo Payments service
 mcp_dodo_service = MCPDodoPaymentsService()
