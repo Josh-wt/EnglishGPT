@@ -3,6 +3,17 @@ import { motion } from 'framer-motion';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
 const TransactionHistory = ({ transactions, transactionsLoading, formatTransactionAmount }) => {
+  console.debug('[TRANSACTION_HISTORY_DEBUG] ===== TRANSACTION HISTORY RENDER =====');
+  console.debug('[TRANSACTION_HISTORY_DEBUG] Transactions prop:', transactions);
+  console.debug('[TRANSACTION_HISTORY_DEBUG] Transactions loading:', transactionsLoading);
+  console.debug('[TRANSACTION_HISTORY_DEBUG] Transactions length:', transactions?.length);
+  console.debug('[TRANSACTION_HISTORY_DEBUG] Format function:', formatTransactionAmount);
+  
+  if (transactions) {
+    console.debug('[TRANSACTION_HISTORY_DEBUG] First transaction sample:', transactions[0]);
+    console.debug('[TRANSACTION_HISTORY_DEBUG] All transaction IDs:', transactions.map(t => t.id || t.payment_id || t.transaction_id));
+  }
+  
   return (
     <motion.div 
       className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"

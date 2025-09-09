@@ -41,13 +41,33 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
       }
 
       // Fetch transaction history
+      console.debug('[ACCOUNT_PAGE_DEBUG] ===== FETCHING TRANSACTION HISTORY =====');
+      console.debug('[ACCOUNT_PAGE_DEBUG] User ID for transactions:', userId);
       setTransactionsLoading(true);
-              api.get(`/transactions/${userId}`).then(res => {
+      
+      api.get(`/transactions/${userId}`).then(res => {
+        console.debug('[ACCOUNT_PAGE_DEBUG] Transaction API response:', res);
+        console.debug('[ACCOUNT_PAGE_DEBUG] Transaction data:', res.data);
+        console.debug('[ACCOUNT_PAGE_DEBUG] Transactions array:', res.data.transactions);
+        
         if (!mounted) return;
-        setTransactions(res.data.transactions || []);
+        const transactionData = res.data.transactions || [];
+        console.debug('[ACCOUNT_PAGE_DEBUG] Setting transactions:', transactionData);
+        setTransactions(transactionData);
         setTransactionsLoading(false);
-      }).catch(() => {
-        if (mounted) setTransactionsLoading(false);
+        console.debug('[ACCOUNT_PAGE_DEBUG] Transaction fetch completed successfully');
+      }).catch((error) => {
+        console.error('[ACCOUNT_PAGE_ERROR] Transaction fetch failed:', error);
+        console.error('[ACCOUNT_PAGE_ERROR] Error details:', {
+          message: error.message,
+          response: error.response,
+          status: error.status,
+          statusText: error.statusText
+        });
+        if (mounted) {
+          setTransactions([]);
+          setTransactionsLoading(false);
+        }
       });
     }
     return () => { mounted = false; };

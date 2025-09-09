@@ -13,8 +13,12 @@ class PaymentService {
 
   async _request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
-    console.debug(`[PAYMENT_SERVICE_DEBUG] Making request to: ${url}`);
-    console.debug(`[PAYMENT_SERVICE_DEBUG] Options:`, options);
+    console.debug(`[PAYMENT_SERVICE_DEBUG] ===== MAKING PAYMENT API REQUEST =====`);
+    console.debug(`[PAYMENT_SERVICE_DEBUG] Full URL: ${url}`);
+    console.debug(`[PAYMENT_SERVICE_DEBUG] Endpoint: ${endpoint}`);
+    console.debug(`[PAYMENT_SERVICE_DEBUG] Base URL: ${this.baseURL}`);
+    console.debug(`[PAYMENT_SERVICE_DEBUG] Request options:`, options);
+    console.debug(`[PAYMENT_SERVICE_DEBUG] Method: ${options.method || 'GET'}`);
     
     const defaultOptions = {
       headers: {
@@ -24,30 +28,51 @@ class PaymentService {
       credentials: 'include',
     };
 
+    const finalOptions = { ...defaultOptions, ...options };
+    console.debug(`[PAYMENT_SERVICE_DEBUG] Final request options:`, finalOptions);
+
     try {
-      console.debug(`[PAYMENT_SERVICE_DEBUG] Sending fetch request`);
-      const response = await fetch(url, { ...defaultOptions, ...options });
+      console.debug(`[PAYMENT_SERVICE_DEBUG] Sending fetch request...`);
+      const response = await fetch(url, finalOptions);
+      console.debug(`[PAYMENT_SERVICE_DEBUG] Response received!`);
       console.debug(`[PAYMENT_SERVICE_DEBUG] Response status: ${response.status}`);
+      console.debug(`[PAYMENT_SERVICE_DEBUG] Response status text: ${response.statusText}`);
       console.debug(`[PAYMENT_SERVICE_DEBUG] Response headers:`, Object.fromEntries(response.headers.entries()));
+      console.debug(`[PAYMENT_SERVICE_DEBUG] Response URL: ${response.url}`);
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error(`[PAYMENT_SERVICE_ERROR] Request failed with status ${response.status}:`, errorData);
+        console.error(`[PAYMENT_SERVICE_ERROR] Request failed with status ${response.status}`);
+        let errorData = {};
+        try {
+          const responseText = await response.text();
+          console.debug(`[PAYMENT_SERVICE_DEBUG] Error response text:`, responseText);
+          errorData = JSON.parse(responseText);
+        } catch (parseError) {
+          console.debug(`[PAYMENT_SERVICE_DEBUG] Could not parse error response as JSON`);
+        }
+        console.error(`[PAYMENT_SERVICE_ERROR] Error data:`, errorData);
         throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const contentType = response.headers.get('content-type');
+      console.debug(`[PAYMENT_SERVICE_DEBUG] Response content type: ${contentType}`);
+      
       if (contentType && contentType.includes('application/json')) {
         const data = await response.json();
-        console.debug(`[PAYMENT_SERVICE_DEBUG] Response data:`, data);
+        console.debug(`[PAYMENT_SERVICE_DEBUG] Successfully parsed JSON response:`, data);
         return data;
       }
       
       console.debug(`[PAYMENT_SERVICE_DEBUG] Non-JSON response returned`);
       return response;
     } catch (error) {
-      console.error(`[PAYMENT_SERVICE_ERROR] API Error (${endpoint}):`, error);
+      console.error(`[PAYMENT_SERVICE_ERROR] ===== PAYMENT API REQUEST FAILED =====`);
+      console.error(`[PAYMENT_SERVICE_ERROR] Endpoint: ${endpoint}`);
+      console.error(`[PAYMENT_SERVICE_ERROR] URL: ${url}`);
+      console.error(`[PAYMENT_SERVICE_ERROR] Error message: ${error.message}`);
+      console.error(`[PAYMENT_SERVICE_ERROR] Error name: ${error.name}`);
       console.error(`[PAYMENT_SERVICE_ERROR] Error stack:`, error.stack);
+      console.error(`[PAYMENT_SERVICE_ERROR] Full error object:`, error);
       throw error;
     }
   }
@@ -66,6 +91,9 @@ class PaymentService {
   }
 
   async getPayments(filters = {}) {
+    console.debug('[PAYMENT_SERVICE_DEBUG] ===== GETTING PAYMENTS =====');
+    console.debug('[PAYMENT_SERVICE_DEBUG] Filters:', filters);
+    
     const params = new URLSearchParams();
     
     if (filters.page_number !== undefined) params.append('page_number', filters.page_number);
@@ -74,7 +102,17 @@ class PaymentService {
     if (filters.customer_id) params.append('customer_id', filters.customer_id);
 
     const endpoint = `${API_ENDPOINTS.PAYMENTS}${params.toString() ? `?${params.toString()}` : ''}`;
-    return await this._request(endpoint);
+    console.debug('[PAYMENT_SERVICE_DEBUG] Final endpoint:', endpoint);
+    console.debug('[PAYMENT_SERVICE_DEBUG] Full URL:', `${this.baseURL}${endpoint}`);
+    
+    try {
+      const result = await this._request(endpoint);
+      console.debug('[PAYMENT_SERVICE_DEBUG] Payments retrieved successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('[PAYMENT_SERVICE_ERROR] Failed to get payments:', error);
+      throw error;
+    }
   }
 
   // Subscription Operations
@@ -91,6 +129,9 @@ class PaymentService {
   }
 
   async getSubscriptions(filters = {}) {
+    console.debug('[PAYMENT_SERVICE_DEBUG] ===== GETTING SUBSCRIPTIONS =====');
+    console.debug('[PAYMENT_SERVICE_DEBUG] Filters:', filters);
+    
     const params = new URLSearchParams();
     
     if (filters.page_number !== undefined) params.append('page_number', filters.page_number);
@@ -99,7 +140,17 @@ class PaymentService {
     if (filters.customer_id) params.append('customer_id', filters.customer_id);
 
     const endpoint = `${API_ENDPOINTS.SUBSCRIPTIONS}${params.toString() ? `?${params.toString()}` : ''}`;
-    return await this._request(endpoint);
+    console.debug('[PAYMENT_SERVICE_DEBUG] Final endpoint:', endpoint);
+    console.debug('[PAYMENT_SERVICE_DEBUG] Full URL:', `${this.baseURL}${endpoint}`);
+    
+    try {
+      const result = await this._request(endpoint);
+      console.debug('[PAYMENT_SERVICE_DEBUG] Subscriptions retrieved successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('[PAYMENT_SERVICE_ERROR] Failed to get subscriptions:', error);
+      throw error;
+    }
   }
 
   async updateSubscription(subscriptionId, updateData) {
@@ -117,10 +168,22 @@ class PaymentService {
 
   // Customer Operations
   async createCustomer(customerData) {
-    return await this._request(API_ENDPOINTS.CUSTOMERS, {
-      method: 'POST',
-      body: JSON.stringify(customerData),
-    });
+    console.debug('[PAYMENT_SERVICE_DEBUG] ===== CREATING CUSTOMER =====');
+    console.debug('[PAYMENT_SERVICE_DEBUG] Customer data:', customerData);
+    console.debug('[PAYMENT_SERVICE_DEBUG] API endpoint:', API_ENDPOINTS.CUSTOMERS);
+    console.debug('[PAYMENT_SERVICE_DEBUG] Full endpoint path:', `${this.baseURL}${API_ENDPOINTS.CUSTOMERS}`);
+    
+    try {
+      const result = await this._request(API_ENDPOINTS.CUSTOMERS, {
+        method: 'POST',
+        body: JSON.stringify(customerData),
+      });
+      console.debug('[PAYMENT_SERVICE_DEBUG] Customer creation successful:', result);
+      return result;
+    } catch (error) {
+      console.error('[PAYMENT_SERVICE_ERROR] Customer creation failed:', error);
+      throw error;
+    }
   }
 
   async getCustomer(customerId) {

@@ -16,7 +16,7 @@ from services.mcp_dodo_service import MCPDodoPaymentsService
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-router = APIRouter(prefix="/payments", tags=["payments"])
+router = APIRouter(prefix="", tags=["payments"])
 
 # Separate router for webhooks (no prefix conflict)
 webhook_router = APIRouter(prefix="", tags=["webhooks"])
@@ -25,7 +25,7 @@ webhook_router = APIRouter(prefix="", tags=["webhooks"])
 mcp_dodo_service = MCPDodoPaymentsService()
 
 # Payment endpoints
-@router.post("/payments")
+@router.post("/payments/payments")
 async def create_payment(payment_data: Dict):
     """Create a new payment"""
     logger.debug(f"[PAYMENT_DEBUG] Received payment creation request")
@@ -43,7 +43,7 @@ async def create_payment(payment_data: Dict):
         logger.error(f"[PAYMENT_ERROR] Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/payments")
+@router.get("/payments/payments")
 async def list_payments(
     page_number: int = 0,
     page_size: int = 10,
@@ -67,7 +67,7 @@ async def list_payments(
         logger.error(f"Failed to list payments: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/payments/{payment_id}")
+@router.get("/payments/payments/{payment_id}")
 async def get_payment(payment_id: str):
     """Retrieve specific payment"""
     try:
@@ -79,7 +79,7 @@ async def get_payment(payment_id: str):
         raise HTTPException(status_code=404, detail="Payment not found")
 
 # Transaction endpoints (alias for payments for frontend compatibility)
-@router.get("/transactions")
+@router.get("/payments/transactions")
 async def list_transactions(
     page_number: int = 0,
     page_size: int = 10,
@@ -105,7 +105,37 @@ async def list_transactions(
         logger.error(f"Failed to list transactions: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/transactions/{transaction_id}")
+@router.get("/payments/transactions/{user_id}")
+async def get_user_transactions(user_id: str):
+    """Get all transactions for a specific user"""
+    logger.debug(f"[TRANSACTION_DEBUG] Getting transactions for user: {user_id}")
+    try:
+        # For now, we'll return user transactions as payments filtered by user
+        # Since Dodo Payments uses customer_id, we need to map user_id to customer_id
+        # First, try to get customer by user mapping, or use user_id as customer_id
+        
+        # Get payments filtered by customer_id (using user_id as customer identifier)
+        result = await dodo_service.list_payments({
+            "customer_id": user_id,
+            "page_size": 100  # Get more transactions for user history
+        })
+        
+        # Transform response to match frontend expectations
+        transactions = result.get("items", [])
+        
+        logger.debug(f"[TRANSACTION_DEBUG] Found {len(transactions)} transactions for user {user_id}")
+        
+        return {
+            "transactions": transactions,
+            "total": len(transactions),
+            "user_id": user_id
+        }
+    except Exception as e:
+        logger.error(f"Failed to get user transactions: {e}")
+        logger.error(f"[TRANSACTION_ERROR] Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/payments/transactions/detail/{transaction_id}")
 async def get_transaction(transaction_id: str):
     """Retrieve specific transaction (alias for payment)"""
     logger.debug(f"[TRANSACTION_DEBUG] Retrieving transaction: {transaction_id}")
@@ -120,7 +150,7 @@ async def get_transaction(transaction_id: str):
         raise HTTPException(status_code=404, detail="Transaction not found")
 
 # Subscription endpoints
-@router.post("/subscriptions")
+@router.post("/payments/subscriptions")
 async def create_subscription(subscription_data: Dict):
     """Create a new subscription with real Dodo Payments integration"""
     logger.info(f"[SUBSCRIPTION_CREATE] 🚀 Starting subscription creation")
@@ -197,7 +227,7 @@ async def create_subscription(subscription_data: Dict):
         
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/subscriptions")
+@router.get("/payments/subscriptions")
 async def list_subscriptions(
     page_number: int = 0,
     page_size: int = 10,
@@ -221,7 +251,7 @@ async def list_subscriptions(
         logger.error(f"Failed to list subscriptions: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/subscriptions/{subscription_id}")
+@router.get("/payments/subscriptions/{subscription_id}")
 async def get_subscription(subscription_id: str):
     """Retrieve specific subscription using real MCP"""
     logger.debug(f"[SUBSCRIPTION_DEBUG] Retrieving subscription: {subscription_id}")
@@ -235,7 +265,7 @@ async def get_subscription(subscription_id: str):
         logger.error(f"[SUBSCRIPTION_ERROR] Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=404, detail="Subscription not found")
 
-@router.patch("/subscriptions/{subscription_id}")
+@router.patch("/payments/subscriptions/{subscription_id}")
 async def update_subscription(subscription_id: str, update_data: Dict):
     """Update subscription (cancel, reactivate, etc.) using real MCP"""
     logger.debug(f"[SUBSCRIPTION_DEBUG] Updating subscription: {subscription_id}")
@@ -256,7 +286,7 @@ async def update_subscription(subscription_id: str, update_data: Dict):
         raise HTTPException(status_code=400, detail=str(e))
 
 # Customer endpoints
-@router.post("/customers")
+@router.post("/payments/customers")
 async def create_customer(customer_data: Dict):
     """Create a new customer"""
     logger.debug(f"[CUSTOMER_DEBUG] Received customer creation request")
@@ -274,7 +304,7 @@ async def create_customer(customer_data: Dict):
         logger.error(f"[CUSTOMER_ERROR] Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/customers/{customer_id}")
+@router.get("/payments/customers/{customer_id}")
 async def get_customer(customer_id: str):
     """Get customer details"""
     logger.debug(f"[CUSTOMER_DEBUG] Retrieving customer: {customer_id}")
@@ -287,7 +317,7 @@ async def get_customer(customer_id: str):
         logger.error(f"[CUSTOMER_ERROR] Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=404, detail="Customer not found")
 
-@router.patch("/customers/{customer_id}")
+@router.patch("/payments/customers/{customer_id}")
 async def update_customer(customer_id: str, customer_data: Dict):
     """Update customer details"""
     logger.debug(f"[CUSTOMER_DEBUG] Updating customer: {customer_id}")
@@ -301,7 +331,7 @@ async def update_customer(customer_id: str, customer_data: Dict):
         logger.error(f"[CUSTOMER_ERROR] Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/customers")
+@router.get("/payments/customers")
 async def list_customers(
     page_number: int = 0,
     page_size: int = 10,
@@ -323,7 +353,7 @@ async def list_customers(
         raise HTTPException(status_code=400, detail=str(e))
 
 # Product endpoints
-@router.get("/products")
+@router.get("/payments/products")
 async def list_products(
     page_number: int = 0,
     page_size: int = 10,
@@ -345,7 +375,7 @@ async def list_products(
         raise HTTPException(status_code=400, detail=str(e))
 
 # Discount endpoints
-@router.post("/discounts")
+@router.post("/payments/discounts")
 async def create_discount(discount_data: Dict):
     """Create a discount code"""
     try:
@@ -355,7 +385,7 @@ async def create_discount(discount_data: Dict):
         logger.error(f"Discount creation failed: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/discounts")
+@router.get("/payments/discounts")
 async def list_discounts(
     page_number: int = 0,
     page_size: int = 10
@@ -372,7 +402,7 @@ async def list_discounts(
         logger.error(f"Failed to list discounts: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.delete("/discounts/{discount_id}")
+@router.delete("/payments/discounts/{discount_id}")
 async def delete_discount(discount_id: str):
     """Delete a discount code"""
     try:
@@ -382,7 +412,7 @@ async def delete_discount(discount_id: str):
         logger.error(f"Failed to delete discount: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/discounts/validate")
+@router.post("/payments/discounts/validate")
 async def validate_discount_code(validation_data: Dict):
     """Validate a discount code for real-time application"""
     logger.debug(f"[DISCOUNT_DEBUG] Validating discount code")
@@ -464,7 +494,7 @@ async def create_webhook(webhook_data: Dict):
         logger.error(f"Webhook creation failed: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/webhooks")
+@router.get("/payments/webhooks")
 async def list_webhooks(
     limit: Optional[int] = 10,
     iterator: Optional[str] = None
@@ -483,7 +513,7 @@ async def list_webhooks(
         logger.error(f"Failed to list webhooks: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.delete("/webhooks/{webhook_id}")
+@router.delete("/payments/webhooks/{webhook_id}")
 async def delete_webhook(webhook_id: str):
     """Delete a webhook"""
     try:
@@ -673,7 +703,7 @@ async def process_license_key_created(license_data: Dict):
         raise
 
 # Analytics endpoint
-@router.get("/analytics")
+@router.get("/payments/analytics")
 async def get_payment_analytics(days: int = 30, currency: Optional[str] = "USD"):
     """Get payment analytics"""
     logger.debug(f"[ANALYTICS_DEBUG] Generating analytics for {days} days, currency: {currency}")
@@ -747,7 +777,7 @@ async def get_payment_analytics(days: int = 30, currency: Optional[str] = "USD")
         }
 
 # Health check
-@router.get("/health")
+@router.get("/payments/health")
 async def health_check():
     """Health check for payment service"""
     try:

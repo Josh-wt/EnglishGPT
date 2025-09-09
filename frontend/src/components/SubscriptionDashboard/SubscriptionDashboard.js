@@ -36,72 +36,144 @@ const SubscriptionDashboard = ({ user, darkMode }) => {
 
   const fetchSubscriptionData = async () => {
     setLoading(true);
-    console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Fetching subscription data for user:', user.id);
+    console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] ===== STARTING SUBSCRIPTION DATA FETCH =====');
+    console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] User object:', user);
+    console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] User ID:', user.id);
+    console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] User email:', user.email);
+    console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] User metadata:', user.user_metadata);
     
     try {
       // Get or create customer in Dodo Payments
       let customerId = user.dodo_customer_id;
+      console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Existing customer ID:', customerId);
+      
       if (!customerId) {
-        console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Creating new customer');
-        const customer = await paymentService.createCustomer({
+        console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] No existing customer ID, creating new customer');
+        console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Customer data to create:', {
           name: user.user_metadata?.full_name || user.email,
           email: user.email,
           phone_number: user.user_metadata?.phone || null
         });
-        customerId = customer.customer_id;
+        
+        try {
+          const customer = await paymentService.createCustomer({
+            name: user.user_metadata?.full_name || user.email,
+            email: user.email,
+            phone_number: user.user_metadata?.phone || null
+          });
+          console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Customer creation response:', customer);
+          customerId = customer.customer_id;
+          console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] New customer ID:', customerId);
+        } catch (customerError) {
+          console.error('[SUBSCRIPTION_DASHBOARD_ERROR] Customer creation failed:', customerError);
+          console.error('[SUBSCRIPTION_DASHBOARD_ERROR] Customer error details:', {
+            message: customerError.message,
+            stack: customerError.stack,
+            response: customerError.response
+          });
+          throw customerError;
+        }
+      } else {
+        console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Using existing customer ID:', customerId);
       }
 
       // Fetch subscription info using real API
       console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Fetching subscriptions for customer:', customerId);
-      const subscriptionsData = await paymentService.getSubscriptions({
-        customer_id: customerId,
-        page_size: 1
-      });
-      const activeSubscription = subscriptionsData.items?.[0] || null;
-      setSubscription(activeSubscription);
-      console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Active subscription:', activeSubscription);
+      try {
+        const subscriptionsData = await paymentService.getSubscriptions({
+          customer_id: customerId,
+          page_size: 1
+        });
+        console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Subscriptions API response:', subscriptionsData);
+        const activeSubscription = subscriptionsData.items?.[0] || null;
+        setSubscription(activeSubscription);
+        console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Active subscription set:', activeSubscription);
+      } catch (subscriptionError) {
+        console.error('[SUBSCRIPTION_DASHBOARD_ERROR] Subscription fetch failed:', subscriptionError);
+        console.error('[SUBSCRIPTION_DASHBOARD_ERROR] Subscription error details:', {
+          message: subscriptionError.message,
+          stack: subscriptionError.stack,
+          response: subscriptionError.response
+        });
+        setSubscription(null);
+      }
 
       // Fetch payment history using real API
-      console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Fetching payment history');
-      const paymentsData = await paymentService.getPayments({
-        customer_id: customerId,
-        page_size: 10
-      });
-      setPayments(paymentsData.items || []);
-      console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Payment history:', paymentsData.items);
+      console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Fetching payment history for customer:', customerId);
+      try {
+        const paymentsData = await paymentService.getPayments({
+          customer_id: customerId,
+          page_size: 10
+        });
+        console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Payments API response:', paymentsData);
+        setPayments(paymentsData.items || []);
+        console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Payment history set:', paymentsData.items);
+      } catch (paymentError) {
+        console.error('[SUBSCRIPTION_DASHBOARD_ERROR] Payment history fetch failed:', paymentError);
+        console.error('[SUBSCRIPTION_DASHBOARD_ERROR] Payment error details:', {
+          message: paymentError.message,
+          stack: paymentError.stack,
+          response: paymentError.response
+        });
+        setPayments([]);
+      }
 
       // Fetch license keys if available
       if (activeSubscription?.subscription_id) {
         try {
-          console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Fetching license keys');
+          console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Fetching license keys for subscription:', activeSubscription.subscription_id);
           const licensesData = await paymentService.getLicenseKeys({
             customer_id: customerId,
             page_size: 10
           });
+          console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] License keys API response:', licensesData);
           setLicenses(licensesData.items || []);
-          console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] License keys:', licensesData.items);
+          console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] License keys set:', licensesData.items);
         } catch (licenseError) {
-          console.warn('[SUBSCRIPTION_DASHBOARD_DEBUG] License fetch failed:', licenseError);
+          console.warn('[SUBSCRIPTION_DASHBOARD_ERROR] License fetch failed:', licenseError);
+          console.warn('[SUBSCRIPTION_DASHBOARD_ERROR] License error details:', {
+            message: licenseError.message,
+            stack: licenseError.stack,
+            response: licenseError.response
+          });
           setLicenses([]);
         }
+      } else {
+        console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] No active subscription, skipping license fetch');
+        setLicenses([]);
       }
 
       // Calculate usage data based on subscription and payments
-      const evaluationsUsed = paymentsData.items?.length || 0;
+      console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Calculating usage data');
+      const evaluationsUsed = payments.length || 0;
       const evaluationsLimit = activeSubscription ? -1 : 3; // Unlimited for subscribers, 3 for free users
       
-      setUsage({
+      const usageData = {
         evaluationsUsed,
         evaluationsLimit,
         resetDate: activeSubscription?.next_billing_date ? 
           new Date(activeSubscription.next_billing_date) : 
           new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-      });
+      };
+      
+      console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Usage data calculated:', usageData);
+      setUsage(usageData);
 
     } catch (error) {
-      console.error('[SUBSCRIPTION_DASHBOARD_ERROR] Error fetching subscription data:', error);
-      toast.error('Failed to load subscription data');
+      console.error('[SUBSCRIPTION_DASHBOARD_ERROR] ===== CRITICAL ERROR IN SUBSCRIPTION DATA FETCH =====');
+      console.error('[SUBSCRIPTION_DASHBOARD_ERROR] Error message:', error.message);
+      console.error('[SUBSCRIPTION_DASHBOARD_ERROR] Error stack:', error.stack);
+      console.error('[SUBSCRIPTION_DASHBOARD_ERROR] Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        response: error.response,
+        status: error.status,
+        statusText: error.statusText
+      });
+      toast.error('Failed to load subscription data: ' + error.message);
     } finally {
+      console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] ===== SUBSCRIPTION DATA FETCH COMPLETED =====');
       setLoading(false);
     }
   };
