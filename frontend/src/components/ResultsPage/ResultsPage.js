@@ -119,11 +119,27 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       sat_essay: ['READING', 'WRITING']
     };
 
+    // Define the maximum marks for each metric per question type
+    const maxMarksByType = {
+      igcse_writers_effect: { READING: 15 },
+      igcse_descriptive: { CONTENT_STRUCTURE: 16, STYLE_ACCURACY: 24 },
+      igcse_narrative: { CONTENT_STRUCTURE: 16, STYLE_ACCURACY: 24 },
+      igcse_summary: { READING: 15, WRITING: 25 },
+      igcse_directed: { READING: 15, WRITING: 25 },
+      alevel_directed: { AO1: 5, AO2: 5 },
+      alevel_comparative: { AO1: 5, AO2: 10 },
+      alevel_text_analysis: { AO1: 5, AO2: 20 },
+      alevel_language_change: { AO2: 5, AO1: 5, READING: 15 },
+      sat_essay: { READING: 8, WRITING: 16 }
+    };
+
     const questionType = evaluation.question_type;
     console.log('🔍 DEBUG: Question type:', questionType);
     
     const metrics = metricsByType[questionType] || [];
+    const maxMarks = maxMarksByType[questionType] || {};
     console.log('🔍 DEBUG: Metrics for this question type:', metrics);
+    console.log('🔍 DEBUG: Max marks for this question type:', maxMarks);
 
     const submarks = metrics.map(metric => {
       let value = 'N/A';
@@ -144,6 +160,16 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         const fieldName = `${metric.toLowerCase()}_marks`;
         value = evaluation[fieldName] || 'N/A';
         console.log('🔍 DEBUG: Field name:', fieldName, 'Value:', value);
+      }
+      
+      // Ensure value includes total marks if not already present
+      if (value !== 'N/A' && maxMarks[metric]) {
+        const cleanValue = value.replace(/\|/g, '').trim();
+        // If value doesn't already contain "/", add the total
+        if (!cleanValue.includes('/')) {
+          value = `${cleanValue}/${maxMarks[metric]}`;
+          console.log('🔍 DEBUG: Added total to value:', value);
+        }
       }
       
       return {

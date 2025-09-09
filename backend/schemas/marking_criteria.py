@@ -334,6 +334,12 @@ General Examiner Notes on Format Adherence
     Consistency throughout the piece in tone, register, and structural markers signals strong command of the chosen format.
 
 
+Where, you the AI, consistently make mistakes while marking:
+
+Please understand that it is crucial feedback if a student writes in a different format than what is expected in the question, it shouldn't be penalised too much, only a little, but should be explained in the improvement suggestions
+The word limit does not matter too much, it is not a factor in the marking, so don't penalise the student for writing a lot. Please penalise the student for writing too little, it is a factor in the marking if the the low amount of words directly affects the number of points/ideas in the essay
+
+
 Critical Success Indicators
 
 High-Level Reading Performance:

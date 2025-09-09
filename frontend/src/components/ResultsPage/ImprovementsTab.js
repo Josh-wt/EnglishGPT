@@ -17,26 +17,34 @@ const ImprovementsTab = ({ evaluation, darkMode, onFeedback }) => {
         
         {evaluation.improvement_suggestions && evaluation.improvement_suggestions.length > 0 ? (
           <div className="space-y-4">
-            {evaluation.improvement_suggestions.map((suggestion, index) => (
-              <motion.div 
-                key={index}
-                className={`p-4 rounded-xl border ${
-                  darkMode ? 'bg-yellow-900/20 border-yellow-700' : 'bg-yellow-50 border-yellow-200'
-                }`}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 + index * 0.1 }}
-              >
-                <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-yellow-500 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5 flex-shrink-0">
-                    {index + 1}
-                  </div>
-                  <p className={`${darkMode ? 'text-yellow-200' : 'text-yellow-800'} font-medium`}>
-                    {suggestion}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
+            {(() => {
+              // Flatten all suggestions and split by numbered points, then number them sequentially
+              let pointCounter = 1;
+              return evaluation.improvement_suggestions.flatMap((suggestion, suggestionIndex) => {
+                // Split by numbered points (e.g., 1. 2. 3.)
+                const split = suggestion.split(/\s*(?=\d+\.)/g).map(s => s.trim()).filter(Boolean);
+                return split.map((point, pointIndex) => (
+                  <motion.div 
+                    key={`${suggestionIndex}-${pointIndex}`}
+                    className={`p-4 rounded-xl border ${
+                      darkMode ? 'bg-yellow-900/20 border-yellow-700' : 'bg-yellow-50 border-yellow-200'
+                    }`}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 + (pointCounter - 1) * 0.1 }}
+                  >
+                    <div className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-yellow-500 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5 flex-shrink-0">
+                        {pointCounter++}
+                      </div>
+                      <p className={`${darkMode ? 'text-yellow-200' : 'text-yellow-800'} font-medium`}>
+                        {point.replace(/^(\d+\.)\s*/, '')}
+                      </p>
+                    </div>
+                  </motion.div>
+                ));
+              });
+            })()}
           </div>
         ) : (
           <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>

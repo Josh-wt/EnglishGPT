@@ -59,9 +59,9 @@ class EvaluationService:
     def get_sub_marks_requirements(self, question_type: str) -> str:
         """Get sub-marks requirements for a question type."""
         sub_marks_requirements = {
-            'igcse_summary': 'READING_MARKS: [Reading marks out of 15] | WRITING_MARKS: [Writing marks out of 25]',
+            'igcse_summary': 'READING_MARKS: [Reading marks out of 15 - must be in format like "10/15"] | WRITING_MARKS: [Writing marks out of 25 - must be in format like "17/25"]',
             'igcse_writers_effect': 'READING_MARKS: [Reading marks out of 15]',
-            'igcse_directed': 'READING_MARKS: [Reading marks out of 15] | WRITING_MARKS: [Writing marks out of 25]',
+            'igcse_directed': 'READING_MARKS: [Reading marks out of 15 - must be in format like "10/15"] | WRITING_MARKS: [Writing marks out of 25 - must be in format like "17/25"]',
             'alevel_directed': 'AO1_MARKS: [AO1 marks out of 5] | AO2_MARKS: [AO2 marks out of 5]',
             'igcse_narrative': 'READING_MARKS: [Content and Structure marks out of 16] | WRITING_MARKS: [Style and Accuracy marks out of 24]',
             'igcse_descriptive': 'READING_MARKS: [Content and Structure marks out of 16] | WRITING_MARKS: [Style and Accuracy marks out of 24]',
@@ -103,6 +103,8 @@ Please evaluate the following response and provide:
 3. {sub_marks_requirement}
 4. Improvement suggestions
 5. Key strengths - what the student did well (BE SPECIFIC TO THIS ESSAY)
+
+CRITICAL: When providing marks, ALWAYS include both the awarded marks and total marks in format like "10/15" or "17/25". Never provide just the awarded marks alone.
 
 IMPORTANT: For strengths, analyze the actual content and identify specific, unique strengths from THIS student's response. Don't use generic statements. Look for:
 - Specific vocabulary choices that work well
