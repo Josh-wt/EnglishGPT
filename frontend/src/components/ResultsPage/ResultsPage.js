@@ -4,6 +4,7 @@ import SignInModal from '../modals/SignInModal';
 import SummaryTab from './SummaryTab';
 import StrengthsTab from './StrengthsTab';
 import ImprovementsTab from './ImprovementsTab';
+import { getBackendUrl } from '../../utils/backendUrl';
 
 const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, signInWithGoogle, signInWithDiscord, navigate }) => {
   const [activeTab, setActiveTab] = useState('Summary');
@@ -42,7 +43,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
     console.log('🔄 FEEDBACK DEBUG: Setting feedbackSubmitting to true');
     setFeedbackSubmitting(true);
 
-    const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+    const backendUrl = getBackendUrl();
     const feedbackPayload = {
       evaluation_id: evaluation.id || evaluation?.evaluation_id || evaluation?.timestamp || 'unknown',
       user_id: evaluation.user_id,
@@ -429,9 +430,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
           <div className="min-h-[200px]">
             {activeTab === 'Summary' && (
               <SummaryTab 
-                evaluation={evaluation} 
-                gradeInfo={gradeInfo} 
-                letterGrade={letterGrade}
+                evaluation={evaluation}
                 darkMode={darkMode}
                 onFeedback={handleFeedback}
               />

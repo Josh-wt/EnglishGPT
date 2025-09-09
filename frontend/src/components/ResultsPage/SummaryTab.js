@@ -1,180 +1,104 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 
-const SummaryTab = ({ evaluation, gradeInfo, letterGrade, darkMode, onFeedback }) => {
+const SummaryTab = ({ evaluation, darkMode, onFeedback }) => {
+  // Function to parse and format the AI feedback content
+  const formatFeedback = (feedback) => {
+    if (!feedback) return [];
+    
+    // Split by bullet points or line breaks
+    const lines = feedback.split(/\n+/).filter(line => line.trim());
+    
+    // Process each line to format it properly
+    return lines.map((line, index) => {
+      // Clean up the line
+      let cleanLine = line.trim();
+      
+      // Remove common bullet point patterns
+      cleanLine = cleanLine.replace(/^[•\-\*\+]\s*/, '');
+      cleanLine = cleanLine.replace(/^\d+\.\s*/, '');
+      
+      return cleanLine;
+    }).filter(line => line.length > 0);
+  };
+
+  const feedbackPoints = formatFeedback(evaluation.feedback);
+
   return (
-    <div className="space-y-8">
-      {/* Grade Summary */}
-      <motion.div 
-        className={`${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} rounded-2xl p-6 border shadow-sm`}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-          📊 Overall Performance
+    <div className="space-y-6">
+      {/* AI Summary Content */}
+      <div className={`${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} rounded-2xl p-6 border shadow-sm`}>
+        <h2 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+          📝 Essay Evaluation Summary
         </h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center">
-            <div className={`text-4xl font-bold mb-2 ${
-              gradeInfo.percentage >= 80 ? 'text-green-600' :
-              gradeInfo.percentage >= 60 ? 'text-yellow-600' :
-              'text-red-600'
-            }`}>
-              {letterGrade}
-            </div>
-            <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Letter Grade</p>
+        {feedbackPoints.length > 0 ? (
+          <div className="space-y-4">
+            {feedbackPoints.map((point, index) => (
+              <div key={index} className="flex items-start">
+                <span className="mr-3 text-blue-500 font-bold">•</span>
+                <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'} leading-relaxed`}>
+                  {point}
+                </p>
+              </div>
+            ))}
           </div>
-          
-          <div className="text-center">
-            <div className="text-4xl font-bold mb-2 text-purple-600">
-              {gradeInfo.percentage}%
-            </div>
-            <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Percentage</p>
+        ) : (
+          <div className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} italic`}>
+            <p>No detailed feedback available for this evaluation.</p>
           </div>
-          
-          <div className="text-center">
-            <div className="text-4xl font-bold mb-2 text-blue-600">
-              {gradeInfo.score}/{gradeInfo.maxScore}
-            </div>
-            <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Raw Score</p>
-          </div>
-        </div>
-      </motion.div>
+        )}
+      </div>
 
-      {/* Question Details */}
-      <motion.div 
-        className={`${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} rounded-2xl p-6 border shadow-sm`}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-        <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-          📝 Question Details
-        </h2>
+      {/* Quick Stats */}
+      <div className={`${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} rounded-2xl p-6 border shadow-sm`}>
+        <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+          📊 Quick Stats
+        </h3>
         
-        <div className="space-y-3">
-          <ul className={`space-y-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            <li className="flex items-start">
-              <span className="mr-2 text-purple-500">•</span>
-              <span>
-                <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Question Type:</span>
-                <span className="ml-2">
-                  {evaluation.question_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                </span>
-              </span>
-            </li>
-            
-            <li className="flex items-start">
-              <span className="mr-2 text-purple-500">•</span>
-              <span>
-                <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Evaluation Date:</span>
-                <span className="ml-2">
-                  {new Date(evaluation.timestamp).toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </span>
-              </span>
-            </li>
-            
-            <li className="flex items-start">
-              <span className="mr-2 text-purple-500">•</span>
-              <span>
-                <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Word Count:</span>
-                <span className="ml-2">
-                  {evaluation.student_response.split(/\s+/).filter(word => word.length > 0).length} words
-                </span>
-              </span>
-            </li>
-            
-            {evaluation.reading_marks && evaluation.reading_marks !== "N/A" && (
-              <li className="flex items-start">
-                <span className="mr-2 text-purple-500">•</span>
-                <span>
-                  <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Reading Marks:</span>
-                  <span className="ml-2">{evaluation.reading_marks.replace(/\|/g, '').trim()}</span>
-                </span>
-              </li>
-            )}
-            
-            {evaluation.writing_marks && evaluation.writing_marks !== "N/A" && (
-              <li className="flex items-start">
-                <span className="mr-2 text-purple-500">•</span>
-                <span>
-                  <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Writing Marks:</span>
-                  <span className="ml-2">{evaluation.writing_marks.replace(/\|/g, '').trim()}</span>
-                </span>
-              </li>
-            )}
-            
-            {evaluation.content_structure_marks && evaluation.content_structure_marks !== "N/A" && (
-              <li className="flex items-start">
-                <span className="mr-2 text-purple-500">•</span>
-                <span>
-                  <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Content & Structure:</span>
-                  <span className="ml-2">{evaluation.content_structure_marks.replace(/\|/g, '').trim()}</span>
-                </span>
-              </li>
-            )}
-            
-            {evaluation.style_accuracy_marks && evaluation.style_accuracy_marks !== "N/A" && (
-              <li className="flex items-start">
-                <span className="mr-2 text-purple-500">•</span>
-                <span>
-                  <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Style & Accuracy:</span>
-                  <span className="ml-2">{evaluation.style_accuracy_marks.replace(/\|/g, '').trim()}</span>
-                </span>
-              </li>
-            )}
-            
-            {evaluation.ao1_marks && evaluation.ao1_marks !== "N/A" && (
-              <li className="flex items-start">
-                <span className="mr-2 text-purple-500">•</span>
-                <span>
-                  <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>AO1 Marks:</span>
-                  <span className="ml-2">{evaluation.ao1_marks.replace(/\|/g, '').trim()}</span>
-                </span>
-              </li>
-            )}
-            
-            {evaluation.ao2_marks && evaluation.ao2_marks !== "N/A" && (
-              <li className="flex items-start">
-                <span className="mr-2 text-purple-500">•</span>
-                <span>
-                  <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>AO2 Marks:</span>
-                  <span className="ml-2">{evaluation.ao2_marks.replace(/\|/g, '').trim()}</span>
-                </span>
-              </li>
-            )}
-          </ul>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="text-center">
+            <div className={`text-2xl font-bold mb-1 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+              {evaluation.grade || 'N/A'}
+            </div>
+            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Grade</p>
+          </div>
+          
+          <div className="text-center">
+            <div className={`text-2xl font-bold mb-1 ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
+              {evaluation.student_response ? evaluation.student_response.split(/\s+/).filter(word => word.length > 0).length : 0}
+            </div>
+            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Words</p>
+          </div>
+          
+          <div className="text-center">
+            <div className={`text-2xl font-bold mb-1 ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>
+              {evaluation.question_type ? evaluation.question_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'N/A'}
+            </div>
+            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Type</p>
+          </div>
+          
+          <div className="text-center">
+            <div className={`text-2xl font-bold mb-1 ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
+              {evaluation.timestamp ? new Date(evaluation.timestamp).toLocaleDateString() : 'N/A'}
+            </div>
+            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Date</p>
+          </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Feedback Button */}
-      <motion.div 
-        className="text-center"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <motion.button
+      <div className="text-center">
+        <button
           onClick={() => onFeedback('overall')}
-          className={`px-8 py-4 rounded-xl font-semibold transition-colors ${
+          className={`px-8 py-4 rounded-xl font-semibold transition-all duration-200 ${
             darkMode 
-              ? 'bg-purple-600 text-white hover:bg-purple-700' 
-              : 'bg-purple-600 text-white hover:bg-purple-700'
+              ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg' 
+              : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg'
           }`}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
         >
           💬 Provide Feedback on This Evaluation
-        </motion.button>
-      </motion.div>
+        </button>
+      </div>
     </div>
   );
 };
