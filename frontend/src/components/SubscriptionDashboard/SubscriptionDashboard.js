@@ -79,13 +79,14 @@ const SubscriptionDashboard = ({ user, darkMode }) => {
 
       // Fetch subscription info using real API
       console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Fetching subscriptions for customer:', customerId);
+      let activeSubscription = null;
       try {
         const subscriptionsData = await paymentService.getSubscriptions({
           customer_id: customerId,
           page_size: 1
         });
         console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Subscriptions API response:', subscriptionsData);
-        const activeSubscription = subscriptionsData.items?.[0] || null;
+        activeSubscription = subscriptionsData.items?.[0] || null;
         setSubscription(activeSubscription);
         console.debug('[SUBSCRIPTION_DASHBOARD_DEBUG] Active subscription set:', activeSubscription);
       } catch (subscriptionError) {
@@ -96,6 +97,7 @@ const SubscriptionDashboard = ({ user, darkMode }) => {
           response: subscriptionError.response
         });
         setSubscription(null);
+        activeSubscription = null;
       }
 
       // Fetch payment history using real API
