@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import SignInModal from '../modals/SignInModal';
+import SummaryTab from './SummaryTab';
+import StrengthsTab from './StrengthsTab';
+import ImprovementsTab from './ImprovementsTab';
 
 const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, signInWithGoogle, signInWithDiscord, navigate }) => {
   const [activeTab, setActiveTab] = useState('Summary');
@@ -13,32 +16,98 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
   const firstModalButtonRef = useRef(null);
 
   const submitFeedback = useCallback(async () => {
-    if (!evaluation) return;
-    if (feedbackAccurate === null) return;
+    console.log('🔄 FEEDBACK DEBUG: submitFeedback called');
+    console.log('📊 FEEDBACK DEBUG: Current state:', {
+      evaluation: evaluation ? {
+        id: evaluation.id,
+        evaluation_id: evaluation.evaluation_id,
+        timestamp: evaluation.timestamp,
+        user_id: evaluation.user_id
+      } : null,
+      feedbackAccurate,
+      feedbackComments,
+      feedbackModal,
+      feedbackSubmitting
+    });
+
+    if (!evaluation) {
+      console.error('❌ FEEDBACK DEBUG: No evaluation provided');
+      return;
+    }
+    if (feedbackAccurate === null) {
+      console.error('❌ FEEDBACK DEBUG: feedbackAccurate is null');
+      return;
+    }
+
+    console.log('🔄 FEEDBACK DEBUG: Setting feedbackSubmitting to true');
     setFeedbackSubmitting(true);
+
+    const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+    const feedbackPayload = {
+      evaluation_id: evaluation.id || evaluation?.evaluation_id || evaluation?.timestamp || 'unknown',
+      user_id: evaluation.user_id,
+      category: feedbackModal.category,
+      accurate: !!feedbackAccurate,
+      comments: feedbackComments || null,
+    };
+
+    console.log('📡 FEEDBACK DEBUG: Making request to:', `${backendUrl}/api/feedback`);
+    console.log('📦 FEEDBACK DEBUG: Payload:', feedbackPayload);
+
     try {
-      await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api/feedback`, {
+      const response = await fetch(`${backendUrl}/api/feedback`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-        evaluation_id: evaluation.id || evaluation?.evaluation_id || evaluation?.timestamp || 'unknown',
-        user_id: evaluation.user_id,
-        category: feedbackModal.category,
-        accurate: !!feedbackAccurate,
-        comments: feedbackComments || null,
-        }),
+        body: JSON.stringify(feedbackPayload),
       });
+
+      console.log('📈 FEEDBACK DEBUG: Response status:', response.status);
+      console.log('📈 FEEDBACK DEBUG: Response headers:', Object.fromEntries(response.headers.entries()));
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ FEEDBACK DEBUG: Response not ok:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorText
+        });
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const responseData = await response.text();
+      console.log('✅ FEEDBACK DEBUG: Success response:', responseData);
+
+      console.log('🔄 FEEDBACK DEBUG: Resetting modal state');
       setFeedbackModal({ open: false, category: 'overall' });
       setFeedbackAccurate(null);
       setFeedbackComments('');
+      console.log('✅ FEEDBACK DEBUG: Feedback submitted successfully');
+
     } catch (e) {
-      console.error('Feedback submit failed', e);
+      console.error('❌ FEEDBACK DEBUG: Submit failed with error:', e);
+      console.error('❌ FEEDBACK DEBUG: Error details:', {
+        name: e.name,
+        message: e.message,
+        stack: e.stack
+      });
+      
+      // Show user-friendly error message
+      alert(`Feedback submission failed: ${e.message}. Please try again.`);
     } finally {
+      console.log('🔄 FEEDBACK DEBUG: Setting feedbackSubmitting to false');
       setFeedbackSubmitting(false);
     }
   }, [evaluation, feedbackAccurate, feedbackComments, feedbackModal.category]);
+
+  // Function to handle feedback requests from tab components
+  const handleFeedback = useCallback((category) => {
+    console.log('🔄 FEEDBACK DEBUG: handleFeedback called with category:', category);
+    console.log('📊 FEEDBACK DEBUG: Current modal state before update:', feedbackModal);
+    setFeedbackModal({ open: true, category });
+    console.log('✅ FEEDBACK DEBUG: Modal state updated to open with category:', category);
+  }, [feedbackModal]);
 
   useEffect(() => {
     // Keyboard shortcuts: 1/2/3 switch tabs; Esc closes modal; Enter submits when modal open
@@ -264,30 +333,6 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
     );
   }
 
-  // Parse feedback text into bullet points - simple copy-paste approach
-  const parseFeedbackToBullets = (feedback) => {
-    if (!feedback) return [];
-    
-    // Simple approach: split by bullet points and clean up
-    // Look for common bullet point patterns: •, -, *, or numbered lists
-    const bulletPoints = feedback
-      .split(/(?:^|\n)\s*[•\-*]\s+/) // Split by bullet points at start of line
-      .map(point => point.trim())
-      .filter(point => point.length > 0) // Remove empty points
-      .slice(0, 10); // Limit to 10 points
-    
-    // If no bullet points found, try splitting by line breaks
-    if (bulletPoints.length <= 1) {
-      const lines = feedback
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line.length > 10) // Only meaningful lines
-        .slice(0, 10);
-      return lines;
-    }
-    
-    return bulletPoints;
-  };
 
   // Note: handleNewEvaluation is now passed as a prop from App.js
 
@@ -383,113 +428,29 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
           {/* Tab Content */}
           <div className="min-h-[200px]">
             {activeTab === 'Summary' && (
-              <div className="space-y-4">
-                <h4 className="font-semibold text-gray-800 mb-4">Detailed Feedback</h4>
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <ul className="list-disc pl-5 text-gray-700 leading-relaxed space-y-2">
-                    {parseFeedbackToBullets(evaluation.feedback).map((sentence, index) => (
-                      <li key={index} className="mb-2">
-                        {sentence}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
+              <SummaryTab 
+                evaluation={evaluation} 
+                gradeInfo={gradeInfo} 
+                letterGrade={letterGrade}
+                darkMode={darkMode}
+                onFeedback={handleFeedback}
+              />
             )}
             
             {activeTab === 'Strengths' && (
-              <div className="space-y-4">
-                <h4 className="font-semibold text-green-800 mb-4">What You Did Well</h4>
-                <div className="space-y-3">
-                  {(() => {
-                    // Completely new strengths processing
-                    let strengthsArray = [];
-                    
-                    if (evaluation.strengths && Array.isArray(evaluation.strengths)) {
-                      strengthsArray = evaluation.strengths.filter(s => s && s.trim() && s.trim().length > 0);
-                    } else if (evaluation.strengths && typeof evaluation.strengths === 'string') {
-                      const strengthsText = evaluation.strengths.trim();
-                      
-                      // Try multiple parsing methods
-                      if (strengthsText.includes('|')) {
-                        // Split by pipe
-                        strengthsArray = strengthsText.split('|').map(s => s.trim()).filter(s => s && s.length > 0);
-                      } else if (strengthsText.includes('\n')) {
-                        // Split by newlines
-                        strengthsArray = strengthsText.split('\n').map(s => s.trim()).filter(s => s && s.length > 0);
-                      } else {
-                        // Use as single strength only if not empty
-                        if (strengthsText && strengthsText.length > 0) {
-                          strengthsArray = [strengthsText];
-                        }
-                      }
-                    }
-                    
-                    // Additional filter to remove any remaining empty strings
-                    strengthsArray = strengthsArray.filter(s => s && s.trim() && s.trim().length > 0);
-                    
-                    return strengthsArray.length > 0 ? (
-                      strengthsArray.map((strength, index) => (
-                        <div key={index} className="bg-green-50 border border-green-200 rounded-lg p-4 hover:bg-green-100 transition-colors">
-                          <div className="flex items-start">
-                            <div className="flex-shrink-0 w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">
-                              {index + 1}
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-green-800 font-medium leading-relaxed">
-                                {strength}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                        <p className="text-green-700 text-center">
-                          No specific strengths identified in this evaluation.
-                          {evaluation.strengths && (
-                            <span className="block text-xs text-gray-500 mt-2">
-
-                            </span>
-                          )}
-                        </p>
-                  </div>
-                    );
-                  })()}
-                </div>
-              </div>
+              <StrengthsTab 
+                evaluation={evaluation} 
+                darkMode={darkMode}
+                onFeedback={handleFeedback}
+              />
             )}
             
             {activeTab === 'Improvements' && (
-              <div className="space-y-4">
-                <h4 className="font-semibold text-yellow-800 mb-4">Areas for Improvement</h4>
-                <div className="space-y-3">
-                {evaluation.improvement_suggestions && evaluation.improvement_suggestions.length > 0 ? (
-                    evaluation.improvement_suggestions.flatMap((suggestion, idx) => {
-                      // Split by numbered points (e.g., 1. 2. 3.)
-                      const split = suggestion.split(/\s*(?=\d+\.)/g).map(s => s.trim()).filter(Boolean);
-                      return split.map((point, i) => (
-                        <div key={idx + '-' + i} className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 hover:bg-yellow-100 transition-colors">
-                          <div className="flex items-start">
-                            <div className="flex-shrink-0 w-6 h-6 bg-yellow-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">
-                              {i + 1}
-                    </div>
-                            <div className="flex-1">
-                              <p className="text-yellow-800 font-medium leading-relaxed">
-                                {point.replace(/^(\d+\.)\s*/, '')}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ));
-                    })
-                  ) : (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <p className="text-yellow-700 text-center">No specific improvements suggested. Great work!</p>
-                  </div>
-                )}
-                </div>
-              </div>
+              <ImprovementsTab 
+                evaluation={evaluation} 
+                darkMode={darkMode}
+                onFeedback={handleFeedback}
+              />
             )}
           </div>
         </div>
@@ -545,8 +506,27 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
               {feedbackModal.category === 'improvements' && 'Was this improvements summary accurate?'}
             </h3>
             <div className="flex gap-3 mt-3">
-              <button ref={firstModalButtonRef} onClick={() => setFeedbackAccurate(true)} className={`px-4 py-2 rounded-lg border ${feedbackAccurate === true ? 'bg-green-600 text-white' : 'bg-transparent'}`} aria-pressed={feedbackAccurate === true}>Yes</button>
-              <button onClick={() => setFeedbackAccurate(false)} className={`px-4 py-2 rounded-lg border ${feedbackAccurate === false ? 'bg-red-600 text-white' : 'bg-transparent'}`} aria-pressed={feedbackAccurate === false}>No</button>
+              <button 
+                ref={firstModalButtonRef} 
+                onClick={() => {
+                  console.log('✅ FEEDBACK DEBUG: "Yes" button clicked');
+                  setFeedbackAccurate(true);
+                }} 
+                className={`px-4 py-2 rounded-lg border ${feedbackAccurate === true ? 'bg-green-600 text-white' : 'bg-transparent'}`} 
+                aria-pressed={feedbackAccurate === true}
+              >
+                Yes
+              </button>
+              <button 
+                onClick={() => {
+                  console.log('❌ FEEDBACK DEBUG: "No" button clicked');
+                  setFeedbackAccurate(false);
+                }} 
+                className={`px-4 py-2 rounded-lg border ${feedbackAccurate === false ? 'bg-red-600 text-white' : 'bg-transparent'}`} 
+                aria-pressed={feedbackAccurate === false}
+              >
+                No
+              </button>
             </div>
             <textarea
               value={feedbackComments}
@@ -557,8 +537,27 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
               aria-label="Additional comments"
             />
             <div className="flex justify-end gap-3 mt-4">
-              <button onClick={() => { setFeedbackModal({ open: false, category: 'overall' }); setFeedbackAccurate(null); setFeedbackComments(''); }} className="px-4 py-2 rounded-lg border" aria-label="Cancel feedback">Cancel</button>
-              <button onClick={submitFeedback} disabled={feedbackSubmitting || feedbackAccurate === null} className={`px-4 py-2 rounded-lg ${feedbackSubmitting || feedbackAccurate === null ? 'bg-gray-300' : 'bg-blue-600 text-white'}`} aria-disabled={feedbackSubmitting || feedbackAccurate === null}>
+              <button 
+                onClick={() => { 
+                  console.log('FEEDBACK DEBUG: Cancel button clicked');
+                  setFeedbackModal({ open: false, category: 'overall' }); 
+                  setFeedbackAccurate(null); 
+                  setFeedbackComments(''); 
+                }} 
+                className="px-4 py-2 rounded-lg border" 
+                aria-label="Cancel feedback"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  console.log('📤 FEEDBACK DEBUG: Submit button clicked, feedbackAccurate:', feedbackAccurate);
+                  submitFeedback();
+                }} 
+                disabled={feedbackSubmitting || feedbackAccurate === null} 
+                className={`px-4 py-2 rounded-lg ${feedbackSubmitting || feedbackAccurate === null ? 'bg-gray-300' : 'bg-blue-600 text-white'}`} 
+                aria-disabled={feedbackSubmitting || feedbackAccurate === null}
+              >
                 {feedbackSubmitting ? 'Submitting...' : 'Submit'}
               </button>
             </div>
