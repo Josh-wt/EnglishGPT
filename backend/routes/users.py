@@ -11,8 +11,8 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 # Get services
-user_management_service = get_user_management_service(None)  # Will be injected
 supabase = get_supabase_client()
+user_management_service = get_user_management_service(supabase)
 
 @router.get("/users")
 async def get_all_users():
@@ -207,16 +207,25 @@ async def get_user(user_id: str, request: Request):
 async def update_user(user_id: str, updates: dict):
     """Update user information using the user management service"""
     try:
+        print(f"[UPDATE_USER_DEBUG] user_management_service: {user_management_service}")
+        print(f"[UPDATE_USER_DEBUG] user_management_service type: {type(user_management_service)}")
+        print(f"[UPDATE_USER_DEBUG] user_id: {user_id}")
+        print(f"[UPDATE_USER_DEBUG] updates: {updates}")
+        
         if not user_management_service:
+            print("[UPDATE_USER_DEBUG] user_management_service is None!")
             raise HTTPException(status_code=500, detail="User management service not available")
         
         if not user_id or user_id == "undefined":
             raise HTTPException(status_code=400, detail="Invalid user ID provided")
         
         logger.info(f"Updating user: {user_id}")
+        print(f"[UPDATE_USER_DEBUG] Calling user_management_service.update_user...")
         
         # Use the user management service to update user
         updated_user = await user_management_service.update_user(user_id, updates)
+        
+        print(f"[UPDATE_USER_DEBUG] update_user result: {updated_user}")
         
         if updated_user:
             logger.info(f"Successfully updated user: {user_id}")
@@ -228,6 +237,7 @@ async def update_user(user_id: str, updates: dict):
     except HTTPException:
         raise
     except Exception as e:
+        print(f"[UPDATE_USER_DEBUG] Exception in update_user: {e}")
         logger.error(f"User update error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"User update error: {str(e)}")
 
