@@ -546,10 +546,27 @@ async def get_user_evaluations(user_id: str):
 
 @router.get("/evaluations/{evaluation_id}")
 async def get_evaluation_by_id(evaluation_id: str):
-    """Get a specific evaluation by ID"""
+    """Get a specific evaluation by ID (supports both UUID and short_id)"""
     try:
-        evaluation_response = supabase.table('assessment_evaluations').select('*').eq('id', evaluation_id).execute()
+        print(f"[EVAL_DEBUG] Looking for evaluation_id: {evaluation_id}")
+        print(f"[EVAL_DEBUG] evaluation_id length: {len(evaluation_id)}")
+        
+        # Check if it's a UUID format (36 chars with hyphens) or short ID (5 chars)
+        is_uuid = len(evaluation_id) == 36 and evaluation_id.count('-') == 4
+        print(f"[EVAL_DEBUG] is_uuid: {is_uuid}")
+        
+        if is_uuid:
+            # Search by UUID
+            print(f"[EVAL_DEBUG] Searching by UUID: {evaluation_id}")
+            evaluation_response = supabase.table('assessment_evaluations').select('*').eq('id', evaluation_id).execute()
+        else:
+            # Search by short_id
+            print(f"[EVAL_DEBUG] Searching by short_id: {evaluation_id}")
+            evaluation_response = supabase.table('assessment_evaluations').select('*').eq('short_id', evaluation_id).execute()
+        
+        print(f"[EVAL_DEBUG] Query result: {evaluation_response}")
         evaluation = evaluation_response.data[0] if evaluation_response.data else None
+        print(f"[EVAL_DEBUG] Found evaluation: {evaluation is not None}")
         
         if not evaluation:
             raise HTTPException(status_code=404, detail="Evaluation not found")
@@ -558,6 +575,7 @@ async def get_evaluation_by_id(evaluation_id: str):
     except HTTPException:
         raise
     except Exception as e:
+        print(f"[EVAL_DEBUG] Exception: {e}")
         raise HTTPException(status_code=500, detail=f"Evaluation retrieval error: {str(e)}")
 
 @router.post("/feedback")
