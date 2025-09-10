@@ -9,6 +9,8 @@ services:
     container_name: englishgpt-api
     ports:
       - "5000:5000"
+    env_file:
+      - ./backend/.env
     environment:
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}

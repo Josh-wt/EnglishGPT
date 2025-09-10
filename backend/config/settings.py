@@ -89,33 +89,51 @@ CORS_ORIGINS = [
 # Initialize Supabase client
 def get_supabase_client() -> Client:
     """Initialize and return Supabase client."""
+    print(f"[SUPABASE_DEBUG] SUPABASE_KEY check: {'SET' if SUPABASE_KEY else 'NOT SET'}")
+    print(f"[SUPABASE_DEBUG] SUPABASE_URL: {SUPABASE_URL}")
+    
     if not SUPABASE_KEY:
         logging.warning(
             "SUPABASE_SERVICE_ROLE_KEY is not set. Ensure backend/.env exists and python-dotenv loads it."
         )
+        print("[SUPABASE_DEBUG] Returning None due to missing SUPABASE_KEY")
         return None
     
     try:
+        print("[SUPABASE_DEBUG] Attempting to create Supabase client...")
         supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        print("[SUPABASE_DEBUG] Supabase client created successfully")
         logging.info("Supabase client initialized successfully")
         return supabase
     except Exception as e:
+        print(f"[SUPABASE_DEBUG] Error creating Supabase client: {e}")
         logging.error(f"Error initializing Supabase: {e}")
+        import traceback
+        print(f"[SUPABASE_DEBUG] Traceback: {traceback.format_exc()}")
         return None
 
 # Initialize user management service
 def get_user_management_service(supabase_client: Client) -> UserManagementService:
     """Initialize and return user management service."""
+    print(f"[USER_SERVICE_DEBUG] supabase_client: {supabase_client}")
+    print(f"[USER_SERVICE_DEBUG] supabase_client type: {type(supabase_client)}")
+    
     if not supabase_client:
+        print("[USER_SERVICE_DEBUG] Supabase client is None, cannot initialize user management service")
         logging.warning("Cannot initialize user management service - Supabase client not available")
         return None
     
     try:
+        print("[USER_SERVICE_DEBUG] Attempting to create UserManagementService...")
         user_management_service = UserManagementService(supabase_client)
+        print("[USER_SERVICE_DEBUG] UserManagementService created successfully")
         logging.info("User management service initialized successfully")
         return user_management_service
     except Exception as e:
+        print(f"[USER_SERVICE_DEBUG] Error creating UserManagementService: {e}")
         logging.error(f"Error initializing user management service: {e}")
+        import traceback
+        print(f"[USER_SERVICE_DEBUG] Traceback: {traceback.format_exc()}")
         return None
 
 # Initialize auth recovery middleware
