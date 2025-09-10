@@ -177,7 +177,7 @@ GRADE: [overall grade]
 {sub_marks_requirement}
 IMPROVEMENTS: [improvement 1] | [improvement 2] | [improvement 3]
 STRENGTHS: [strength 1 - specific to this essay] | [strength 2 - specific to this essay] | [strength 3 - specific to this essay]
-NEXT_STEPS: [specific actionable step 1] | [specific actionable step 2] | [specific actionable step 3] | [specific actionable step 4] - Please provide at least 4 next steps and base it on the improvements suggestions, a development on what the student could do to fix their improvement suggestions.
+: [specific actionable step 1] | [specific actionable step 2] | [specific actionable step 3] | [specific actionable step 4] - Please provide at least 4 next steps and base it on the improvements suggestions, a development on what the student could do to fix their improvement suggestions. DO NOT suggest short term actions, like "look at marking criteria and gain more marks" "look at the marking criteria next time" these are non sense. Only long term actions.
 
 CRITICAL: For the FEEDBACK section, format it as bullet points where each bullet point is a complete, standalone sentence. Do NOT split sentences across bullet points. Each bullet point should be a full, meaningful sentence that can be read independently.
 

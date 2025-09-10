@@ -431,6 +431,7 @@ SPECIFIC FOCUS AREAS - Where you, the AI, consistently makes mistakes while mark
 
 Bad vocabulary, does not affect reading marks, but does affect writing marks, but not by a lot, so do not be strict
 The writing marks are for flow, structure and accuracy. Not about descriptivness, you have been known to give high writing marks, please tone down that.
+Cutting marks for student combining two points into one, please do not do this. This is a good thing, asking the user to provide two distinct sentences for each point is terrible advice FOR THIS question type. Award marks if the user is able to properly flow and combine points.
 
 TOTAL: 15 MARKS: 10 for Reading and 5 for Writing.
 
