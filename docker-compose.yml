@@ -8,7 +8,7 @@ services:
       dockerfile: Dockerfile
     container_name: englishgpt-api
     ports:
-      - "8000:8000"
+      - "5000:5000"
     environment:
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
@@ -30,7 +30,7 @@ services:
     networks:
       - englishgpt-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -46,7 +46,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_API_URL=http://localhost:5000
       - REACT_APP_ENVIRONMENT=${NODE_ENV}
     volumes:
       - ./frontend:/app

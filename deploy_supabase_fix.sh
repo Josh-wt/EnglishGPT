@@ -29,7 +29,7 @@ docker logs englishgpt-api --tail 20
 
 # Test the health endpoint
 echo "🏥 Testing health endpoint..."
-curl -f http://localhost:8000/api/health || echo "❌ Health check failed"
+curl -f http://localhost:5000/api/health || echo "❌ Health check failed"
 
 echo "✅ Deployment complete!"
 echo "🔍 Check the logs above for any Supabase configuration issues"
