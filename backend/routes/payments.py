@@ -61,7 +61,7 @@ async def list_payments(
         if customer_id:
             params["customer_id"] = customer_id
             
-        result = await mcp_dodo_service.list_payments(params)
+        result = await dodo_service.list_payments(params)
         return result
     except Exception as e:
         logger.error(f"Failed to list payments: {e}")
@@ -98,7 +98,7 @@ async def list_transactions(
         if customer_id:
             params["customer_id"] = customer_id
             
-        result = await mcp_dodo_service.list_payments(params)
+        result = await dodo_service.list_payments(params)
         logger.debug(f"[TRANSACTION_DEBUG] Retrieved {len(result.get('items', []))} transactions")
         return result
     except Exception as e:
@@ -115,7 +115,7 @@ async def get_user_transactions(user_id: str):
         # First, try to get customer by user mapping, or use user_id as customer_id
         
         # Get payments filtered by customer_id (using user_id as customer identifier)
-        result = await mcp_dodo_service.list_payments({
+        result = await dodo_service.list_payments({
             "customer_id": user_id,
             "page_size": 100  # Get more transactions for user history
         })
@@ -146,7 +146,7 @@ async def get_user_transactions_direct(user_id: str):
         # First, try to get customer by user mapping, or use user_id as customer_id
         
         # Get payments filtered by customer_id (using user_id as customer identifier)
-        result = await mcp_dodo_service.list_payments({
+        result = await dodo_service.list_payments({
             "customer_id": user_id,
             "page_size": 100  # Get more transactions for user history
         })
@@ -276,7 +276,7 @@ async def list_subscriptions(
         if customer_id:
             params["customer_id"] = customer_id
             
-        result = await mcp_dodo_service.list_subscriptions(params)
+        result = await dodo_service.list_subscriptions(params)
         return result
     except Exception as e:
         logger.error(f"Failed to list subscriptions: {e}")
@@ -324,8 +324,8 @@ async def create_customer(customer_data: Dict):
     logger.debug(f"[CUSTOMER_DEBUG] Customer data: {json.dumps(customer_data, indent=2, default=str)}")
     
     try:
-        logger.debug(f"[CUSTOMER_DEBUG] Calling mcp_dodo_service.create_customer")
-        result = await mcp_dodo_service.create_customer(customer_data)
+        logger.debug(f"[CUSTOMER_DEBUG] Calling dodo_service.create_customer")
+        result = await dodo_service.create_customer(customer_data)
         logger.debug(f"[CUSTOMER_DEBUG] Customer creation successful")
         logger.debug(f"[CUSTOMER_DEBUG] Result: {json.dumps(result, indent=2, default=str)}")
         return result
@@ -749,7 +749,7 @@ async def get_payment_analytics(days: int = 30, currency: Optional[str] = "USD")
         logger.debug(f"[ANALYTICS_DEBUG] Date range: {start_date} to {end_date}")
         
         # Get payments in date range
-        payments_data = await mcp_dodo_service.list_payments({
+        payments_data = await dodo_service.list_payments({
             "page_size": 1000,  # Get more data for analytics
             "created_at_gte": start_date.isoformat(),
             "created_at_lte": end_date.isoformat()

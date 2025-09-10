@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 class DodoPaymentsService:
     def __init__(self):
         self.api_key = DODO_PAYMENTS_API_KEY
-        # Use the base URL directly - testing without /api path
-        self.base_url = DODO_PAYMENTS_BASE_URL
+        # Use the correct API base URL
+        self.base_url = DODO_PAYMENTS_BASE_URL.replace('test.dodopayments.com', 'api.dodopayments.com')
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"

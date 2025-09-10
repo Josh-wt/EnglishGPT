@@ -4,6 +4,7 @@ User management routes.
 from fastapi import APIRouter, HTTPException, Request
 import logging
 import jwt
+from datetime import datetime
 from config.settings import get_user_management_service, get_supabase_client
 
 router = APIRouter()
@@ -107,47 +108,87 @@ async def get_user(user_id: str, request: Request):
                     
                     logger.info(f"Attempting recovery with email: {email}")
                     
-                    # Attempt to create/restore user with extracted info
-                    recovery_result = await user_management_service.create_or_restore_user(
-                        user_id=user_id,
+                    # Use the more robust handle_auth_database_mismatch method first
+                    mismatch_result = await user_management_service.handle_auth_database_mismatch(
+                        auth_user_id=user_id,
                         email=email,
-                        display_name=name,
-                        academic_level='igcse',
-                        current_plan='free',
-                        credits=3,
-                        is_launch_user=False
+                        metadata={'name': name}
                     )
                     
-                    if recovery_result['success']:
-                        logger.info(f"Successfully recovered user: {user_id}")
-                        return {"user": recovery_result['user']}
+                    if mismatch_result['success']:
+                        logger.info(f"Successfully recovered user via mismatch handler: {user_id}")
+                        return {"user": mismatch_result['user']}
                     else:
-                        logger.error(f"Failed to recover user: {user_id} - {recovery_result.get('error')}")
-                        raise HTTPException(
-                            status_code=400, 
-                            detail=f"Cannot recover user - {recovery_result.get('error')}"
+                        logger.warning(f"Mismatch handler failed, trying direct creation: {mismatch_result.get('error')}")
+                        
+                        # Fallback to direct creation/restoration
+                        recovery_result = await user_management_service.create_or_restore_user(
+                            user_id=user_id,
+                            email=email,
+                            display_name=name,
+                            academic_level='igcse',
+                            current_plan='free',
+                            credits=3,
+                            is_launch_user=False
                         )
+                        
+                        if recovery_result['success']:
+                            logger.info(f"Successfully recovered user via direct creation: {user_id}")
+                            return {"user": recovery_result['user']}
+                        else:
+                            logger.error(f"Direct creation also failed: {recovery_result.get('error')}")
+                            raise HTTPException(
+                                status_code=400, 
+                                detail=f"Cannot recover user - {recovery_result.get('error')}"
+                            )
                         
                 except Exception as jwt_error:
                     logger.error(f"JWT decode failed for user {user_id}: {str(jwt_error)}")
-                    # Fallback to basic recovery
-                    recovery_result = await user_management_service.create_or_restore_user(
-                        user_id=user_id,
-                        email=f"{user_id}@recovered.user",
-                        display_name="Recovered User",
-                        academic_level='igcse',
-                        current_plan='free',
-                        credits=3,
-                        is_launch_user=False
-                    )
-                    
-                    if recovery_result['success']:
-                        logger.info(f"Successfully recovered user with fallback: {user_id}")
-                        return {"user": recovery_result['user']}
-                    else:
+                    # Fallback to basic recovery with better error handling
+                    try:
+                        recovery_result = await user_management_service.create_or_restore_user(
+                            user_id=user_id,
+                            email=f"{user_id}@recovered.user",
+                            display_name="Recovered User",
+                            academic_level='igcse',
+                            current_plan='free',
+                            credits=3,
+                            is_launch_user=False
+                        )
+                        
+                        if recovery_result['success']:
+                            logger.info(f"Successfully recovered user with fallback: {user_id}")
+                            return {"user": recovery_result['user']}
+                        else:
+                            logger.error(f"Fallback recovery failed for user {user_id}: {recovery_result.get('error')}")
+                            # Try one more time with a different approach
+                            try:
+                                # Use the handle_auth_database_mismatch method which has more robust recovery logic
+                                mismatch_result = await user_management_service.handle_auth_database_mismatch(
+                                    auth_user_id=user_id,
+                                    email=f"{user_id}@recovered.user",
+                                    metadata={'name': 'Recovered User'}
+                                )
+                                
+                                if mismatch_result['success']:
+                                    logger.info(f"Successfully recovered user via mismatch handler: {user_id}")
+                                    return {"user": mismatch_result['user']}
+                                else:
+                                    raise HTTPException(
+                                        status_code=400, 
+                                        detail=f"Cannot recover user - all recovery methods failed: {mismatch_result.get('error')}"
+                                    )
+                            except Exception as mismatch_error:
+                                logger.error(f"Mismatch recovery also failed for user {user_id}: {str(mismatch_error)}")
+                                raise HTTPException(
+                                    status_code=400, 
+                                    detail=f"Cannot recover user - recovery failed: {str(mismatch_error)}"
+                                )
+                    except Exception as fallback_error:
+                        logger.error(f"Fallback recovery attempt failed for user {user_id}: {str(fallback_error)}")
                         raise HTTPException(
                             status_code=400, 
-                            detail=f"Cannot recover user - missing email information"
+                            detail=f"Cannot recover user - fallback failed: {str(fallback_error)}"
                         )
             else:
                 # No auth header - return error
@@ -287,6 +328,44 @@ async def debug_env_check():
         "environment": None,
         "base_url": None
     }
+
+@router.post("/debug/test-user-recovery")
+async def test_user_recovery(user_data: dict):
+    """Test endpoint for user recovery functionality"""
+    try:
+        if not user_management_service:
+            raise HTTPException(status_code=500, detail="User management service not available")
+        
+        user_id = user_data.get('user_id')
+        email = user_data.get('email', f"{user_id}@test.recovery")
+        name = user_data.get('name', 'Test Recovery User')
+        
+        if not user_id:
+            raise HTTPException(status_code=400, detail="user_id is required")
+        
+        logger.info(f"Testing user recovery for: {user_id} ({email})")
+        
+        # Test direct creation/restoration
+        result = await user_management_service.create_or_restore_user(
+            user_id=user_id,
+            email=email,
+            display_name=name,
+            academic_level='igcse',
+            current_plan='free',
+            credits=3,
+            is_launch_user=False
+        )
+        
+        return {
+            "test_result": result,
+            "user_id": user_id,
+            "email": email,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Test user recovery failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Test failed: {str(e)}")
 
 @router.put("/users/{user_id}/preferences")
 async def update_user_preferences(user_id: str, preferences: dict):

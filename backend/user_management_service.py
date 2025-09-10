@@ -47,6 +47,7 @@ class UserManagementService:
         """
         try:
             logger.info(f"Creating or restoring user: {user_id} ({email})")
+            logger.info(f"Parameters: display_name={display_name}, academic_level={academic_level}, current_plan={current_plan}, credits={credits}, is_launch_user={is_launch_user}, photo_url={photo_url}, dark_mode={dark_mode}")
             
             # Call the SQL function to create or restore user
             result = self.supabase.rpc(
@@ -64,6 +65,10 @@ class UserManagementService:
                 }
             ).execute()
             
+            logger.info(f"SQL function result: {result}")
+            logger.info(f"Result data: {result.data}")
+            logger.info(f"Result error: {getattr(result, 'error', None)}")
+            
             if result.data:
                 user_uid = result.data
                 logger.info(f"Successfully created/restored user: {user_uid}")
@@ -78,26 +83,107 @@ class UserManagementService:
                         'message': f"User {'created' if user_data.get('created_at') == user_data.get('updated_at') else 'restored'} successfully"
                     }
                 else:
+                    logger.error(f"User created but failed to retrieve data for: {user_uid}")
                     return {
                         'success': False,
                         'error': 'User created but failed to retrieve data',
                         'user_id': user_uid
                     }
             else:
-                logger.error(f"Failed to create/restore user: {user_id}")
+                logger.error(f"Failed to create/restore user: {user_id} - No data returned from SQL function")
+                logger.error(f"Full result object: {result}")
                 return {
                     'success': False,
-                    'error': 'Failed to create or restore user',
+                    'error': 'Failed to create or restore user - no data returned from SQL function',
                     'user_id': user_id
                 }
                 
         except Exception as e:
             logger.error(f"Error creating/restoring user {user_id}: {str(e)}")
-            return {
-                'success': False,
-                'error': f"User creation/restoration error: {str(e)}",
-                'user_id': user_id
-            }
+            logger.error(f"Exception type: {type(e)}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            
+            # Try direct table insertion as fallback
+            try:
+                logger.info(f"Attempting direct table insertion as fallback for user: {user_id}")
+                
+                # Check if user already exists (including soft-deleted)
+                existing_user = self.supabase.table('assessment_users').select('*').eq('uid', user_id).execute()
+                
+                if existing_user.data:
+                    # User exists, update them
+                    logger.info(f"User exists, updating: {user_id}")
+                    update_data = {
+                        'email': email,
+                        'display_name': display_name,
+                        'academic_level': academic_level,
+                        'current_plan': current_plan,
+                        'credits': credits,
+                        'is_launch_user': is_launch_user,
+                        'photo_url': photo_url,
+                        'dark_mode': dark_mode,
+                        'deleted_at': None,  # Restore if soft-deleted
+                        'deleted_by': None,
+                        'updated_at': datetime.utcnow().isoformat()
+                    }
+                    
+                    result = self.supabase.table('assessment_users').update(update_data).eq('uid', user_id).execute()
+                    
+                    if result.data:
+                        logger.info(f"Successfully updated existing user: {user_id}")
+                        user_data = await self.get_user_by_id(user_id)
+                        if user_data:
+                            return {
+                                'success': True,
+                                'user': user_data,
+                                'operation': 'updated',
+                                'message': 'User updated successfully'
+                            }
+                else:
+                    # User doesn't exist, create new one
+                    logger.info(f"User doesn't exist, creating new: {user_id}")
+                    insert_data = {
+                        'uid': user_id,
+                        'email': email,
+                        'display_name': display_name,
+                        'academic_level': academic_level,
+                        'questions_marked': 0,
+                        'credits': credits,
+                        'current_plan': current_plan,
+                        'dark_mode': dark_mode,
+                        'is_launch_user': is_launch_user,
+                        'photo_url': photo_url,
+                        'created_at': datetime.utcnow().isoformat(),
+                        'updated_at': datetime.utcnow().isoformat()
+                    }
+                    
+                    result = self.supabase.table('assessment_users').insert(insert_data).execute()
+                    
+                    if result.data:
+                        logger.info(f"Successfully created new user: {user_id}")
+                        user_data = await self.get_user_by_id(user_id)
+                        if user_data:
+                            return {
+                                'success': True,
+                                'user': user_data,
+                                'operation': 'created',
+                                'message': 'User created successfully'
+                            }
+                
+                return {
+                    'success': False,
+                    'error': 'Direct table insertion also failed',
+                    'user_id': user_id
+                }
+                
+            except Exception as fallback_error:
+                logger.error(f"Fallback direct insertion also failed: {str(fallback_error)}")
+                return {
+                    'success': False,
+                    'error': f"User creation/restoration error: {str(e)}. Fallback also failed: {str(fallback_error)}",
+                    'user_id': user_id
+                }
     
     async def get_user_by_id(self, user_id: str) -> Optional[Dict[str, Any]]:
         """
