@@ -28,6 +28,7 @@ class FeedbackResponse(BaseModel):
     style_accuracy_marks: Optional[str] = None
     improvement_suggestions: List[str]
     strengths: List[str] = Field(default_factory=list)
+    next_steps: List[str] = Field(default_factory=list)
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     short_id: Optional[str] = None
 

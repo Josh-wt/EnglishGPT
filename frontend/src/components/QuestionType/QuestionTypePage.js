@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import ExampleModal from './ExampleModal';
 import LoadingSpinner from '../ui/LoadingSpinner';
+import MarkingSchemeModal from '../modals/MarkingSchemeModal';
 
 const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvaluate, selectedLevel, darkMode, user, evaluationLoading, loadingMessage }) => {
   console.log('🔍 DEBUG: QuestionTypePage rendered with props:', {
@@ -19,6 +20,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   const [restoredDraft, setRestoredDraft] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [showExample, setShowExample] = useState(false);
+  const [showMarkingSchemeModal, setShowMarkingSchemeModal] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [formattedText, setFormattedText] = useState('');
   const essayRef = useRef(null);
@@ -197,18 +199,9 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     const isWritersEffect = selectedQuestionType.id === 'igcse_writers_effect';
     
     if (requiresMarkingScheme || isWritersEffect) {
-      // Pass student response and go to assessment page for marking scheme
-      const questionTypeWithResponse = {
-        ...selectedQuestionType,
-        studentResponse: studentResponse,
-        requiresScheme: requiresMarkingScheme
-      };
-      
-      console.log('🔍 DEBUG: Question requires marking scheme, navigating to assessment page');
-      console.log('🔍 DEBUG: Question type with response:', questionTypeWithResponse);
-      
-      // Navigate to assessment page
-      onSelectQuestionType(questionTypeWithResponse);
+      // Show marking scheme modal
+      console.log('🔍 DEBUG: Question requires marking scheme, showing modal');
+      setShowMarkingSchemeModal(true);
       return;
     }
 
@@ -226,6 +219,33 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     onEvaluate(evaluationData);
     
     console.log('🔍 DEBUG: onEvaluate called successfully');
+  };
+
+  const handleMarkingSchemeProceed = async (markingScheme) => {
+    console.log('🔍 DEBUG: handleMarkingSchemeProceed called with:', markingScheme);
+    
+    if (!selectedQuestionType || !studentResponse.trim()) {
+      console.log('🔍 DEBUG: Early return - missing questionType or response');
+      return;
+    }
+
+    // Create evaluation data with marking scheme
+    const evaluationData = {
+      question_type: selectedQuestionType.id,
+      student_response: studentResponse,
+      marking_scheme: markingScheme,
+      user_id: user?.id,
+    };
+    
+    console.log('🔍 DEBUG: Created evaluationData with marking scheme:', evaluationData);
+    
+    // Close the modal
+    setShowMarkingSchemeModal(false);
+    
+    // Call onEvaluate with the marking scheme
+    onEvaluate(evaluationData);
+    
+    console.log('🔍 DEBUG: onEvaluate called with marking scheme successfully');
   };
 
   // Filter questions based on selected level
@@ -558,6 +578,14 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       <ExampleModal
         isOpen={showExample}
         onClose={() => setShowExample(false)}
+        questionType={selectedQuestionType}
+        darkMode={darkMode}
+      />
+
+      <MarkingSchemeModal
+        isOpen={showMarkingSchemeModal}
+        onClose={() => setShowMarkingSchemeModal(false)}
+        onProceed={handleMarkingSchemeProceed}
         questionType={selectedQuestionType}
         darkMode={darkMode}
       />

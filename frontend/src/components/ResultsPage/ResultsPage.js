@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import SignInModal from '../modals/SignInModal';
+import FeedbackModal from './FeedbackModal';
 import SummaryTab from './SummaryTab';
 import StrengthsTab from './StrengthsTab';
 import ImprovementsTab from './ImprovementsTab';
@@ -452,76 +453,27 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       </div>
 
 
-      {/* Feedback Modal */}
-      {feedbackModal.open && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-label="Feedback on marking accuracy">
-          <div ref={modalRef} className={`${darkMode ? 'bg-black text-white border-gray-700' : 'bg-white text-gray-900'} border rounded-2xl p-6 max-w-md mx-4 shadow-xl w-full`}>
-            <h3 className="text-lg font-semibold mb-2">
-              {feedbackModal.category === 'overall' && 'Was this marking accurate?'}
-              {feedbackModal.category === 'strengths' && 'Was this strengths summary accurate?'}
-              {feedbackModal.category === 'improvements' && 'Was this improvements summary accurate?'}
-            </h3>
-            <div className="flex gap-3 mt-3">
-              <button 
-                ref={firstModalButtonRef} 
-                onClick={() => {
-                  console.log('✅ FEEDBACK DEBUG: "Yes" button clicked');
-                  setFeedbackAccurate(true);
-                }} 
-                className={`px-4 py-2 rounded-lg border ${feedbackAccurate === true ? 'bg-green-600 text-white' : 'bg-transparent'}`} 
-                aria-pressed={feedbackAccurate === true}
-              >
-                Yes
-              </button>
-              <button 
-                onClick={() => {
-                  console.log('❌ FEEDBACK DEBUG: "No" button clicked');
-                  setFeedbackAccurate(false);
-                }} 
-                className={`px-4 py-2 rounded-lg border ${feedbackAccurate === false ? 'bg-red-600 text-white' : 'bg-transparent'}`} 
-                aria-pressed={feedbackAccurate === false}
-              >
-                No
-              </button>
-            </div>
-            <textarea
-              value={feedbackComments}
-              onChange={(e) => setFeedbackComments(e.target.value)}
-              placeholder="Optional comments"
-              className={`${darkMode ? 'bg-black border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} mt-4 w-full border rounded-lg p-3`}
-              rows={3}
-              aria-label="Additional comments"
-            />
-            <div className="flex justify-end gap-3 mt-4">
-              <button 
-                onClick={() => { 
-                  console.log('FEEDBACK DEBUG: Cancel button clicked');
-                  setFeedbackModal({ open: false, category: 'overall' }); 
-                  setFeedbackAccurate(null); 
-                  setFeedbackComments(''); 
-                }} 
-                className="px-4 py-2 rounded-lg border" 
-                aria-label="Cancel feedback"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={() => {
-                  console.log('📤 FEEDBACK DEBUG: Submit button clicked, feedbackAccurate:', feedbackAccurate);
-                  submitFeedback();
-                }} 
-                disabled={feedbackSubmitting || feedbackAccurate === null} 
-                className={`px-4 py-2 rounded-lg ${feedbackSubmitting || feedbackAccurate === null ? 'bg-gray-300' : 'bg-blue-600 text-white'}`} 
-                aria-disabled={feedbackSubmitting || feedbackAccurate === null}
-              >
-                {feedbackSubmitting ? 'Submitting...' : 'Submit'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Feedback Modal - Above detailed feedback modal */}
+      <FeedbackModal
+        isOpen={feedbackModal.open}
+        category={feedbackModal.category}
+        onClose={() => {
+          setFeedbackModal({ open: false, category: 'overall' });
+          setFeedbackAccurate(null);
+          setFeedbackComments('');
+        }}
+        onSubmit={submitFeedback}
+        feedbackAccurate={feedbackAccurate}
+        setFeedbackAccurate={setFeedbackAccurate}
+        feedbackComments={feedbackComments}
+        setFeedbackComments={setFeedbackComments}
+        feedbackSubmitting={feedbackSubmitting}
+        modalRef={modalRef}
+        firstModalButtonRef={firstModalButtonRef}
+        darkMode={darkMode}
+      />
 
-      {/* Sign In Modal */}
+      {/* Sign In Modal - Below feedback modal */}
       <SignInModal 
         isOpen={showSignInModal} 
         onClose={() => setShowSignInModal(false)} 

@@ -14,7 +14,7 @@ QUESTION_TYPES = [
         "name": "Summary",
         "category": "IGCSE",
         "description": "Summarize the key points from a given text",
-        "requires_marking_scheme": False
+        "requires_marking_scheme": True
     },
     {
         "id": "igcse_narrative",
@@ -42,35 +42,35 @@ QUESTION_TYPES = [
         "name": "Directed Writing",
         "category": "IGCSE",
         "description": "Transform text into specific formats for different audiences",
-        "requires_marking_scheme": False
+        "requires_marking_scheme": True
     },
     {
         "id": "alevel_comparative",
         "name": "Comparative Analysis 1(b)",
         "category": "A-Level English (9093)",
         "description": "Compare and analyze different texts",
-        "requires_marking_scheme": False
+        "requires_marking_scheme": True
     },
     {
         "id": "alevel_directed",
         "name": "Directed Writing 1(a)",
         "category": "A-Level English (9093)",
         "description": "Transform text into a specific format for audience",
-        "requires_marking_scheme": False
+        "requires_marking_scheme": True
     },
     {
         "id": "alevel_text_analysis",
         "name": "Text Analysis Q2",
         "category": "A-Level English (9093)",
         "description": "Analyze form, structure, and language in texts",
-        "requires_marking_scheme": False
+        "requires_marking_scheme": True
     },
     {
         "id": "alevel_language_change",
         "name": "Language Change Analysis (P3, Section A)",
         "category": "A-Level English (9093)",
         "description": "Analyze historical prose extract demonstrating English language change using quantitative data",
-        "requires_marking_scheme": False
+        "requires_marking_scheme": True
     }
 ]
 

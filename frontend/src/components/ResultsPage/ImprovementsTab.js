@@ -63,12 +63,34 @@ const ImprovementsTab = ({ evaluation, darkMode, onFeedback }) => {
         <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
           🎯 Next Steps
         </h3>
-        <div className={`${darkMode ? 'text-gray-300' : 'text-gray-700'} space-y-2`}>
-          <p>• Review the improvement suggestions above</p>
-          <p>• Practice similar question types to strengthen weak areas</p>
-          <p>• Focus on one improvement area at a time</p>
-          <p>• Consider seeking additional feedback from teachers or tutors</p>
-        </div>
+        {evaluation.next_steps && evaluation.next_steps.length > 0 ? (
+          <div className="space-y-3">
+            {evaluation.next_steps.map((step, index) => (
+              <motion.div 
+                key={index}
+                className={`p-4 rounded-xl border ${
+                  darkMode ? 'bg-blue-900/20 border-blue-700' : 'bg-blue-50 border-blue-200'
+                }`}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 + index * 0.1 }}
+              >
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5 flex-shrink-0">
+                    {index + 1}
+                  </div>
+                  <p className={`${darkMode ? 'text-blue-200' : 'text-blue-800'} font-medium`}>
+                    {step}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <p>No specific next steps provided for this evaluation.</p>
+          </div>
+        )}
       </motion.div>
 
       {/* Feedback Button */}

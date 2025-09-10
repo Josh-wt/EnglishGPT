@@ -177,6 +177,7 @@ GRADE: [overall grade]
 {sub_marks_requirement}
 IMPROVEMENTS: [improvement 1] | [improvement 2] | [improvement 3]
 STRENGTHS: [strength 1 - specific to this essay] | [strength 2 - specific to this essay] | [strength 3 - specific to this essay]
+NEXT_STEPS: [specific actionable step 1] | [specific actionable step 2] | [specific actionable step 3] | [specific actionable step 4] - Please provide at least 4 next steps and base it on the improvements suggestions, a development on what the student could do to fix their improvement suggestions.
 
 CRITICAL: For the FEEDBACK section, format it as bullet points where each bullet point is a complete, standalone sentence. Do NOT split sentences across bullet points. Each bullet point should be a full, meaningful sentence that can be read independently.
 
@@ -432,6 +433,27 @@ Student Response: {sanitized_response}
                 logger.debug(f"DEBUG: Parsed strengths: {strengths}")
             else:
                 strengths = []
+            
+            # Extract next steps
+            next_steps = []
+            if "NEXT_STEPS:" in ai_response:
+                next_steps_part = ai_response.split("NEXT_STEPS:")[1].strip()
+                logger.debug(f"DEBUG: Raw next steps part: {next_steps_part}")
+                
+                # Try multiple parsing methods
+                if "|" in next_steps_part:
+                    # Split by pipe
+                    next_steps = [s.strip() for s in next_steps_part.split("|") if s.strip()]
+                elif "\n" in next_steps_part:
+                    # Split by newlines
+                    next_steps = [s.strip() for s in next_steps_part.split("\n") if s.strip() and not s.strip().startswith("Student Response:")]
+                else:
+                    # Use as single next step
+                    next_steps = [next_steps_part] if next_steps_part else []
+                
+                logger.debug(f"DEBUG: Parsed next steps: {next_steps}")
+            else:
+                next_steps = []
         else:
             feedback = ai_response
             grade = "Not provided"
@@ -441,6 +463,7 @@ Student Response: {sanitized_response}
             ao2_marks = "N/A"
             improvements = []
             strengths = []
+            next_steps = []
         
         # Compute dynamic overall grade, overriding AI grade when possible
         dynamic_grade = compute_overall_grade(
@@ -469,7 +492,8 @@ Student Response: {sanitized_response}
             content_structure_marks=content_structure_marks if submission.question_type in ['igcse_narrative', 'igcse_descriptive'] else None,
             style_accuracy_marks=style_accuracy_marks if submission.question_type in ['igcse_narrative', 'igcse_descriptive'] else None,
             improvement_suggestions=improvements,
-            strengths=strengths
+            strengths=strengths,
+            next_steps=next_steps
         )
         
         logger.debug("DEBUG: Created feedback response, updating user stats...")
