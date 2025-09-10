@@ -21,6 +21,12 @@ SUPABASE_KEY = (
     os.environ.get('SUPABASE_SERVICE_ROLE_KEY') or os.environ.get('SUPABASE_KEY')
 )
 
+# Debug Supabase Configuration
+print(f"[SUPABASE_CONFIG_DEBUG] SUPABASE_URL: {SUPABASE_URL}")
+print(f"[SUPABASE_CONFIG_DEBUG] SUPABASE_KEY: {'SET' if SUPABASE_KEY else 'NOT SET'}")
+if SUPABASE_KEY:
+    print(f"[SUPABASE_CONFIG_DEBUG] SUPABASE_KEY first 20 chars: {SUPABASE_KEY[:20]}...")
+
 # AI Configuration (env only; no hardcoded defaults)
 DEEPSEEK_API_KEY = os.environ.get('DEEPSEEK_API_KEY')
 QWEN_API_KEY = os.environ.get('QWEN_API_KEY')

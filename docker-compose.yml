@@ -12,6 +12,17 @@ services:
     environment:
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - DODO_PAYMENTS_API_KEY=${DODO_PAYMENTS_API_KEY}
+      - DODO_PAYMENTS_ENVIRONMENT=${DODO_PAYMENTS_ENVIRONMENT}
+      - DODO_PAYMENTS_BASE_URL=${DODO_PAYMENTS_BASE_URL}
+      - DODO_PAYMENTS_WEBHOOK_KEY=${DODO_PAYMENTS_WEBHOOK_KEY}
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+      - WEBHOOK_ENDPOINT_URL=${WEBHOOK_ENDPOINT_URL}
+      - DODO_MONTHLY_PRODUCT_ID=${DODO_MONTHLY_PRODUCT_ID}
+      - DODO_YEARLY_PRODUCT_ID=${DODO_YEARLY_PRODUCT_ID}
+      - SUCCESS_REDIRECT_URL=${SUCCESS_REDIRECT_URL}
+      - CANCEL_REDIRECT_URL=${CANCEL_REDIRECT_URL}
       - NODE_ENV=production
     volumes:
       - ./backend:/app
@@ -19,7 +30,7 @@ services:
     networks:
       - englishgpt-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
