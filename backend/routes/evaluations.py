@@ -16,8 +16,8 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 # Get services
-user_management_service = get_user_management_service(None)  # Will be injected
 supabase = get_supabase_client()
+user_management_service = get_user_management_service(supabase)
 
 @router.post("/evaluate", response_model=FeedbackResponse)
 async def evaluate_submission(submission: SubmissionRequest):
