@@ -224,6 +224,7 @@ Student Response: {sanitized_response}
         ai_response, _ = await call_deepseek_api(full_prompt)
         
         logger.debug(f"DEBUG: AI Response received: {ai_response[:500]}...")
+        logger.debug(f"DEBUG: Full AI Response: {ai_response}")
         
         # Remove any bolding from the response
         ai_response = ai_response.replace('**', '')
@@ -419,6 +420,11 @@ Student Response: {sanitized_response}
             strengths = []
             if "STRENGTHS:" in ai_response:
                 strengths_part = ai_response.split("STRENGTHS:")[1].strip()
+                
+                # Stop at NEXT_STEPS: if it exists
+                if "NEXT_STEPS:" in strengths_part:
+                    strengths_part = strengths_part.split("NEXT_STEPS:")[0].strip()
+                
                 logger.debug(f"DEBUG: Raw strengths part: {strengths_part}")
                 
                 # Try multiple parsing methods
