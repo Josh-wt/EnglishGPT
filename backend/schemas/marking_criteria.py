@@ -171,7 +171,7 @@ WHERE YOU, THE AI, GOES WRONG IN MARKING:
 
 1. Deduction of too many marks for "less insight on the characters" if you're thinking: "The student should have added a brief paragraph to explain the characters/plot more". Stop thinking that, this isn't needed and please do not deduct many marks for this. 
 2. Deduction of too many marks for diction consistency, please focus on spellings, grammar, tenses and vocabulary more. Do not deduct for "Verify Diction"
-
+3. Way too many marks for essays that are not even narratives, you gave an essay that was an IGCSE writers effect that had words like "In Paragraph 3, the writer effectively uses imagery, metaphor and personification to convey meaning and to create effects" this is clearly not a narrative, narratives have plot, characters etc. Essays that explain effects of narratives are not narratives and are worth 0 marks
 
 IV. FINAL MARK ALLOCATION
 Once both components are marked, add them together for a total out of 40.
