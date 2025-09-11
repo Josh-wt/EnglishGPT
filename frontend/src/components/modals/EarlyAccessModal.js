@@ -4,6 +4,7 @@ import { LOGO_URL } from '../../constants/uiConstants';
 
 const EarlyAccessModal = ({ isOpen, onClose, userName = '', onDeclineUnlimited }) => {
   const [currentStep, setCurrentStep] = useState(0);
+  const [isDeclining, setIsDeclining] = useState(false);
 
   const steps = [
     {
@@ -201,13 +202,25 @@ const EarlyAccessModal = ({ isOpen, onClose, userName = '', onDeclineUnlimited }
                   transition={{ delay: 1.5 }}
                 >
                   <button
-                    onClick={() => {
-                      onDeclineUnlimited();
-                      onClose();
+                    onClick={async () => {
+                      setIsDeclining(true);
+                      try {
+                        await onDeclineUnlimited();
+                        onClose();
+                      } catch (error) {
+                        console.error('Error declining unlimited:', error);
+                      } finally {
+                        setIsDeclining(false);
+                      }
                     }}
-                    className="text-xs text-gray-400 hover:text-gray-600 underline transition-colors duration-200"
+                    disabled={isDeclining}
+                    className={`text-xs underline transition-colors duration-200 ${
+                      isDeclining 
+                        ? 'text-gray-300 cursor-not-allowed' 
+                        : 'text-gray-400 hover:text-gray-600'
+                    }`}
                   >
-                    I don't want unlimited (for testing)
+                    {isDeclining ? 'Switching...' : 'Switch to free plan instead'}
                   </button>
                 </motion.div>
               )}

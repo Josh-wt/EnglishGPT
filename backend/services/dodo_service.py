@@ -12,63 +12,16 @@ logger = logging.getLogger(__name__)
 class DodoPaymentsService:
     def __init__(self):
         self.api_key = DODO_PAYMENTS_API_KEY
-        # Use the correct API base URL
-        self.base_url = DODO_PAYMENTS_BASE_URL.replace('test.dodopayments.com', 'api.dodopayments.com')
+        # Use the correct API base URL - test.dodopayments.com is the correct domain
+        self.base_url = DODO_PAYMENTS_BASE_URL
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
         logger.info(f"DodoPaymentsService initialized with base_url: {self.base_url}")
 
-    def _get_mock_response(self, method: str, endpoint: str, data: Optional[Dict] = None) -> Dict:
-        """Return mock response when API is not available"""
-        import time
-        
-        # Generate mock responses based on endpoint
-        if endpoint == "/payments" and method == "GET":
-            return {
-                "items": [],
-                "has_more": False,
-                "total_count": 0,
-                "mock": True,
-                "message": "Mock response - API not available"
-            }
-        elif endpoint.startswith("/payments") and method == "GET":
-            return {
-                "items": [],
-                "has_more": False,
-                "total_count": 0,
-                "mock": True,
-                "message": "Mock response - API not available"
-            }
-        elif endpoint == "/subscriptions" and method == "GET":
-            return {
-                "items": [],
-                "has_more": False,
-                "total_count": 0,
-                "mock": True,
-                "message": "Mock response - API not available"
-            }
-        elif endpoint == "/customers" and method == "GET":
-            return {
-                "items": [],
-                "has_more": False,
-                "total_count": 0,
-                "mock": True,
-                "message": "Mock response - API not available"
-            }
-        else:
-            # Generic mock response for other endpoints
-            return {
-                "id": f"mock_{int(time.time())}",
-                "mock": True,
-                "message": "Mock response - API not available",
-                "endpoint": endpoint,
-                "method": method
-            }
-
     async def _request(self, method: str, endpoint: str, data: Optional[Dict] = None) -> Dict:
-        """Make API request to Dodo Payments with fallback for DNS issues"""
+        """Make API request to Dodo Payments"""
         if not self.api_key:
             logger.error("[DODO_SERVICE] API key not configured!")
             raise ValueError("Dodo Payments API key not configured")
@@ -113,16 +66,14 @@ class DodoPaymentsService:
             logger.error(f"[DODO_SERVICE] Request Method: {e.request.method}")
             raise
         except (httpx.ConnectError, httpx.TimeoutException) as e:
-            logger.warning(f"[DODO_SERVICE] ⚠️ Connection/Timeout Error (DNS/Network issue): {e}")
-            logger.warning(f"[DODO_SERVICE] Returning mock response to prevent API failures")
-            return self._get_mock_response(method, endpoint, data)
+            logger.error(f"[DODO_SERVICE] ❌ Connection/Timeout Error: {e}")
+            logger.error(f"[DODO_SERVICE] URL that failed: {url}")
+            raise
         except Exception as e:
             logger.error(f"[DODO_SERVICE] ❌ General Error: {e}")
             logger.error(f"[DODO_SERVICE] Error Type: {type(e)}")
             logger.error(f"[DODO_SERVICE] URL that failed: {url}")
-            # For other errors, also return mock response to prevent API failures
-            logger.warning(f"[DODO_SERVICE] Returning mock response to prevent API failures")
-            return self._get_mock_response(method, endpoint, data)
+            raise
 
     async def create_payment(self, payment_data: Dict) -> Dict:
         return await self._request("POST", "/payments", payment_data)

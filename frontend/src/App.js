@@ -598,24 +598,29 @@ const App = () => {
     }
     
     try {
-      console.log('🔄 Updating user plan to free in Supabase database');
+      console.log('🔄 Updating user plan to free via backend API');
       
-      // Update user plan directly in Supabase
-      const { data, error } = await supabase
-        .from('assessment_users')
-        .update({
+      // Update user plan via backend API
+      const response = await fetch(`${getApiUrl()}/users/${user.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({
           current_plan: 'free',
           credits: 3
         })
-        .eq('uid', user.id)
-        .select();
+      });
       
-      if (error) {
-        console.error('❌ Supabase update error:', error);
-        throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('❌ Backend API update error:', errorData);
+        throw new Error(`API Error: ${errorData.detail || response.statusText}`);
       }
       
-      console.log('✅ User plan updated to free in database:', data);
+      const result = await response.json();
+      console.log('✅ User plan updated to free via backend API:', result);
       
       // Mark that user declined unlimited for future reference
       localStorage.setItem(`declinedUnlimited_${user.id}`, 'true');
@@ -623,8 +628,15 @@ const App = () => {
       // Refresh user data to reflect changes
       await refreshUserData();
       
+      // Show success message
+      setErrorMessage('Plan updated to free successfully!');
+      setShowErrorModal(true);
+      
     } catch (error) {
       console.error('❌ Error setting user to free plan:', error);
+      // Show error to user
+      setErrorMessage('Failed to update plan. Please try again.');
+      setShowErrorModal(true);
     }
   };
 
