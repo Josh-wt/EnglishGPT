@@ -171,7 +171,7 @@ WHERE YOU, THE AI, GOES WRONG IN MARKING:
 
 1. Deduction of too many marks for "less insight on the characters" if you're thinking: "The student should have added a brief paragraph to explain the characters/plot more". Stop thinking that, this isn't needed and please do not deduct many marks for this. 
 2. Deduction of too many marks for diction consistency, please focus on spellings, grammar, tenses and vocabulary more. Do not deduct for "Verify Diction"
-3. Way too many marks for essays that are not even narratives, you gave an essay that was an IGCSE writers effect that had words like "In Paragraph 3, the writer effectively uses imagery, metaphor and personification to convey meaning and to create effects" this is clearly not a narrative, narratives have plot, characters etc. Essays that explain effects of narratives are not narratives and are worth 0 marks
+3. Way too many marks for essays that are not even narratives, you gave an essay that was an IGCSE writers effect that had words like "In Paragraph 3, the writer effectively uses imagery, metaphor and personification to convey meaning and to create effects" this is clearly not a narrative, narratives have plot, characters etc. Essays that explain effects of narratives are not narratives and are worth 0
 
 IV. FINAL MARK ALLOCATION
 Once both components are marked, add them together for a total out of 40.
@@ -409,6 +409,13 @@ Ignoring Parts of Images: Failing to address all components of an image or phras
 Empty General Comments: Concluding with generic statements about building atmosphere or conveying emotion without specifically linking back to the analyzed examples.
 Insufficient Depth/Range:
 
+Where you, the AI, consistently make mistakes while marking:
+
+1. Penalising marks for "not extracting the text correctly" when the text is extracted almost perfectly. Please do not do this. Focus on the marking the quality of understanding the passage. So I do not want to see these "improvements" : 1
+"Quote the complete image every time before analysing"
+"Verify that the chosen phrase actually exists in the passage"
+
+2.
 
 Based on the above criteria mark the essay below. The user should give two paragraphs separately, mark them as one not, two separate as Writer's Effect answers. In total give them a mark out of 15.  Do not over-scrutinize, only look for similes, metaphors, effect on the reader and effects in general. Do not look for other literary techniques. Marks can be awarded positively and negatively. Try to limit marks when mistakes are made. The structure is so that you don't need to over explain, so don't deduct marks for short explanations. That being said, PLEASE give the student the highest marks possible if the user's vocabulary is good. Students need honest feedback to improve.
 If you think the Sensory Details are good, the narrative must get over 30/40.
@@ -562,7 +569,7 @@ Total Marks: 30
 
 Core Principle for AI Marking: Cambridge marking follows a "positive marking" approach - identify and reward what candidates demonstrate they can do. Marks are awarded for strengths, not deducted for weaknesses. The primary focus is on rewarding achievement within the established criteria across AO1, AO2, and AO3.
 
-GENERIC MARKING PRINCIPLES (Apply to ALL essays):
+    RKING PRINCIPLES (Apply to ALL essays):
 1. Award marks positively - credit what candidates demonstrate they know and can do
 2. Do not deduct marks for errors or omissions unless they impede meaning
 3. Use "best-fit" approach when essays don't fall clearly into one level - err on the side of generosity

@@ -384,8 +384,8 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
               </div>
 
       {/* Main Content - Responsive Split Layout */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-8 min-h-[calc(100vh-200px)]">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4 lg:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-8 min-h-[calc(100vh-180px)] sm:min-h-[calc(100vh-200px)]">
           
           {/* Left Side - Question Types */}
           <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
@@ -467,7 +467,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                 </div>
               </div>
 
-            <div className="p-4 sm:p-6 h-[calc(100%-120px)] flex flex-col">
+            <div className="p-3 sm:p-4 md:p-6 h-[calc(100%-120px)] flex flex-col">
               {!selectedQuestionType ? (
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-center">
@@ -483,31 +483,31 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
               ) : (
                 <>
                   {/* Writing Toolbar */}
-                  <div className="flex flex-wrap items-center gap-2 mb-4 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-3 sm:mb-4 p-2 sm:p-3 bg-gray-50 rounded-lg">
                     <button
                       onClick={() => applyFormat('**', '**')}
-                      className="px-2 sm:px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                      className="px-2 sm:px-3 py-1.5 bg-white border border-gray-200 rounded-md text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
                       title="Bold"
                     >
                       <strong>B</strong>
                     </button>
                     <button
                       onClick={() => applyFormat('*', '*')}
-                      className="px-2 sm:px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                      className="px-2 sm:px-3 py-1.5 bg-white border border-gray-200 rounded-md text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
                       title="Italic"
                     >
                       <em>I</em>
                     </button>
                     <button
                       onClick={() => applyFormat('"', '"')}
-                      className="px-2 sm:px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                      className="px-2 sm:px-3 py-1.5 bg-white border border-gray-200 rounded-md text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
                       title="Quote"
                     >
                       "
                     </button>
                     <button
                       onClick={insertParagraphBreak}
-                      className="px-2 sm:px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                      className="px-2 sm:px-3 py-1.5 bg-white border border-gray-200 rounded-md text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
                       title="New Paragraph"
                     >
                       ¶
@@ -529,7 +529,8 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                         setTimeout(() => setIsTyping(false), 1000);
                       }}
                       placeholder="Start writing your essay here... Use the toolbar above for formatting."
-                      className="w-full h-full p-3 sm:p-4 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-fredoka text-gray-900 placeholder-gray-400 transition-all duration-200 text-sm sm:text-base"
+                      className="w-full h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] p-3 sm:p-4 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-fredoka text-gray-900 placeholder-gray-400 transition-all duration-200 text-sm sm:text-base"
+                      style={{ minHeight: '300px' }}
                     />
                     
                     {/* Auto-save indicator */}
@@ -547,7 +548,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-6 pt-4 border-t border-gray-200">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-200">
                     <button
                       onClick={() => setSelectedQuestionType(null)}
                       className="px-4 sm:px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-200 font-fredoka text-sm sm:text-base"
@@ -570,7 +571,10 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                           : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       }`}
                     >
-                      Get AI Feedback Now
+                      {selectedQuestionType?.requires_marking_scheme || selectedQuestionType?.id === 'igcse_writers_effect' 
+                        ? 'Add marking scheme' 
+                        : 'Get AI Feedback Now'
+                      }
                     </button>
                   </div>
                 </>

@@ -17,13 +17,13 @@ const WritingInterface = ({
   restoredDraft
 }) => {
   return (
-    <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-6 shadow-sm border`}>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>✍️ Write Your Response</h2>
-        <div className="flex items-center gap-2">
+    <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-4 sm:p-6 shadow-sm border`}>
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <h2 className={`text-lg sm:text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>✍️ Write Your Response</h2>
+        <div className="flex items-center gap-1 sm:gap-2">
           <button
             onClick={() => applyFormat('**')}
-            className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
               darkMode
                 ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -34,7 +34,7 @@ const WritingInterface = ({
           </button>
           <button
             onClick={() => applyFormat('*')}
-            className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
               darkMode
                 ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -45,14 +45,15 @@ const WritingInterface = ({
           </button>
           <button
             onClick={insertParagraphBreak}
-            className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
               darkMode
                 ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
             title="Paragraph Break"
           >
-            ¶ Paragraph
+            <span className="hidden sm:inline">¶ Paragraph</span>
+            <span className="sm:hidden">¶</span>
           </button>
         </div>
       </div>
@@ -78,11 +79,12 @@ const WritingInterface = ({
         value={studentResponse}
         onChange={(e) => setStudentResponse(e.target.value)}
         placeholder="Start writing your response here..."
-        className={`w-full h-96 p-4 rounded-lg border resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+        className={`w-full min-h-[300px] sm:min-h-[400px] md:h-96 p-3 sm:p-4 rounded-lg border resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base ${
           darkMode
             ? 'bg-gray-900 text-white border-gray-700 placeholder-gray-400'
             : 'bg-gray-50 text-gray-900 border-gray-300 placeholder-gray-500'
         }`}
+        style={{ minHeight: '300px' }}
       />
 
       {/* Action Buttons */}
@@ -110,7 +112,12 @@ const WritingInterface = ({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <span>Get AI Feedback Now</span>
+            <span>
+              {selectedQuestionType?.requires_marking_scheme || selectedQuestionType?.id === 'igcse_writers_effect' 
+                ? 'Add marking scheme' 
+                : 'Get AI Feedback Now'
+              }
+            </span>
           </motion.button>
         )}
       </div>
