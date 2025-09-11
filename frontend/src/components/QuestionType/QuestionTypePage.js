@@ -221,31 +221,36 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     console.log('🔍 DEBUG: onEvaluate called successfully');
   };
 
-  const handleMarkingSchemeProceed = async (markingScheme) => {
-    console.log('🔍 DEBUG: handleMarkingSchemeProceed called with:', markingScheme);
+  const handleMarkingSchemeProceed = async (data) => {
+    console.log('🔍 DEBUG: handleMarkingSchemeProceed called with:', data);
     
     if (!selectedQuestionType || !studentResponse.trim()) {
       console.log('🔍 DEBUG: Early return - missing questionType or response');
       return;
     }
 
-    // Create evaluation data with marking scheme
+    // Handle both old format (string) and new format (object)
+    const markingScheme = typeof data === 'string' ? data : data.markingScheme;
+    const commandWord = typeof data === 'object' ? data.commandWord : null;
+
+    // Create evaluation data with marking scheme and command word
     const evaluationData = {
       question_type: selectedQuestionType.id,
       student_response: studentResponse,
       marking_scheme: markingScheme,
+      command_word: commandWord,
       user_id: user?.id,
     };
     
-    console.log('🔍 DEBUG: Created evaluationData with marking scheme:', evaluationData);
+    console.log('🔍 DEBUG: Created evaluationData with marking scheme and command word:', evaluationData);
     
     // Close the modal
     setShowMarkingSchemeModal(false);
     
-    // Call onEvaluate with the marking scheme
+    // Call onEvaluate with the marking scheme and command word
     onEvaluate(evaluationData);
     
-    console.log('🔍 DEBUG: onEvaluate called with marking scheme successfully');
+    console.log('🔍 DEBUG: onEvaluate called with marking scheme and command word successfully');
   };
 
   // Filter questions based on selected level

@@ -98,6 +98,6 @@ QUESTION_TOTALS = {
     "alevel_text_analysis": {"total": 25, "components": {"ao1": 5, "ao3": 20}},
     "alevel_language_change": {"total": 25, "components": {"ao2": 5, "ao4": 5, "ao5": 15}},
     # English General Paper (8021)
-    "gp_essay": {"total": 40, "components": {"content_argument": 25, "language_expression": 15}},
+    "gp_essay": {"total": 30, "components": {"AO1": 6, "AO2": 12, "AO3": 12}},
     "gp_comprehension": {"total": 40, "components": {"understanding_analysis": 25, "language_expression": 15}},
 }

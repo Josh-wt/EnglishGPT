@@ -389,6 +389,27 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
           </div>
                 </div>
 
+        {/* Feedback Modal - Positioned between scores and detailed feedback */}
+        <div className="my-6">
+          <FeedbackModal
+            isOpen={feedbackModal.open}
+            category={feedbackModal.category}
+            onClose={() => {
+              setFeedbackModal({ open: false, category: 'overall' });
+              setFeedbackAccurate(null);
+              setFeedbackComments('');
+            }}
+            onSubmit={submitFeedback}
+            feedbackAccurate={feedbackAccurate}
+            setFeedbackAccurate={setFeedbackAccurate}
+            feedbackComments={feedbackComments}
+            setFeedbackComments={setFeedbackComments}
+            feedbackSubmitting={feedbackSubmitting}
+            modalRef={modalRef}
+            firstModalButtonRef={firstModalButtonRef}
+            darkMode={darkMode}
+          />
+        </div>
         
         {/* Detailed Feedback Card */}
         <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-6 mb-6 shadow-sm border`}>
@@ -452,28 +473,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         </div>
       </div>
 
-
-      {/* Feedback Modal - Above detailed feedback modal */}
-      <FeedbackModal
-        isOpen={feedbackModal.open}
-        category={feedbackModal.category}
-        onClose={() => {
-          setFeedbackModal({ open: false, category: 'overall' });
-          setFeedbackAccurate(null);
-          setFeedbackComments('');
-        }}
-        onSubmit={submitFeedback}
-        feedbackAccurate={feedbackAccurate}
-        setFeedbackAccurate={setFeedbackAccurate}
-        feedbackComments={feedbackComments}
-        setFeedbackComments={setFeedbackComments}
-        feedbackSubmitting={feedbackSubmitting}
-        modalRef={modalRef}
-        firstModalButtonRef={firstModalButtonRef}
-        darkMode={darkMode}
-      />
-
-      {/* Sign In Modal - Below feedback modal */}
+      {/* Sign In Modal */}
       <SignInModal 
         isOpen={showSignInModal} 
         onClose={() => setShowSignInModal(false)} 

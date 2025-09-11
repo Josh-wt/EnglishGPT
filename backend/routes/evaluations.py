@@ -92,6 +92,10 @@ async def evaluate_submission(submission: SubmissionRequest):
         if submission.marking_scheme:
             marking_criteria = f"{marking_criteria}\n\nMarking Scheme:\n{submission.marking_scheme}"
         
+        # Add command word for gp_essay questions
+        if submission.question_type == 'gp_essay' and submission.command_word:
+            marking_criteria = f"{marking_criteria}\n\nCommand Word: {submission.command_word}\n\nIMPORTANT: This essay question uses the command word '{submission.command_word}'. Please ensure your evaluation specifically addresses the requirements of this command word and applies the appropriate marking criteria for this type of question."
+        
         # Define sub marks requirements based on question type
         sub_marks_requirements = {
             'igcse_summary': 'READING_MARKS: [Reading marks out of 15] | WRITING_MARKS: [Writing marks out of 25]',
@@ -103,7 +107,8 @@ async def evaluate_submission(submission: SubmissionRequest):
             'alevel_comparative': 'AO1_MARKS: [AO1 marks out of 5] | AO2_MARKS: [AO2 marks out of 10]',
             'alevel_directed_writing': 'AO1_MARKS: [AO1 marks out of 5] | AO2_MARKS: [AO2 marks out of 5]',
             'alevel_text_analysis': 'AO1_MARKS: [AO1 marks out of 5] | AO3_MARKS: [AO3 marks out of 20]',
-            'alevel_language_change': 'AO2_MARKS: [AO2 marks out of 5] | AO4_MARKS: [AO4 marks out of 5] | AO5_MARKS: [AO5 marks out of 15]'
+            'alevel_language_change': 'AO2_MARKS: [AO2 marks out of 5] | AO4_MARKS: [AO4 marks out of 5] | AO5_MARKS: [AO5 marks out of 15]',
+            'gp_essay': 'AO1_MARKS: [AO1 marks out of 6] | AO2_MARKS: [AO2 marks out of 12] | AO3_MARKS: [AO3 marks out of 12]'
         }
         
         sub_marks_requirement = sub_marks_requirements.get(submission.question_type, '')
@@ -242,6 +247,7 @@ Student Response: {sanitized_response}
             writing_marks = "N/A"
             ao1_marks = "N/A"
             ao2_marks = "N/A"
+            ao3_marks = "N/A"
             content_structure_marks = "N/A"
             style_accuracy_marks = "N/A"
             
@@ -341,6 +347,34 @@ Student Response: {sanitized_response}
                     for section in next_sections:
                         if section in ao3_part:
                             ao2_marks = ao3_part.split(section)[0].strip()
+                            break
+            elif submission.question_type in ['gp_essay']:
+                # GP essay needs AO1, AO2, and AO3 marks
+                if "AO1_MARKS:" in ai_response:
+                    ao1_part = ai_response.split("AO1_MARKS:")[1]
+                    next_sections = ["AO2_MARKS:", "AO3_MARKS:", "IMPROVEMENTS:", "STRENGTHS:"]
+                    ao1_marks = ao1_part.strip()
+                    for section in next_sections:
+                        if section in ao1_part:
+                            ao1_marks = ao1_part.split(section)[0].strip()
+                            break
+                
+                if "AO2_MARKS:" in ai_response:
+                    ao2_part = ai_response.split("AO2_MARKS:")[1]
+                    next_sections = ["AO3_MARKS:", "IMPROVEMENTS:", "STRENGTHS:"]
+                    ao2_marks = ao2_part.strip()
+                    for section in next_sections:
+                        if section in ao2_part:
+                            ao2_marks = ao2_part.split(section)[0].strip()
+                            break
+                
+                if "AO3_MARKS:" in ai_response:
+                    ao3_part = ai_response.split("AO3_MARKS:")[1]
+                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:"]
+                    ao3_marks = ao3_part.strip()
+                    for section in next_sections:
+                        if section in ao3_part:
+                            ao3_marks = ao3_part.split(section)[0].strip()
                             break
             elif submission.question_type in ['alevel_language_change']:
                 # A-Level language change needs AO2, AO4, and AO5 marks
@@ -469,6 +503,7 @@ Student Response: {sanitized_response}
             writing_marks = "N/A"
             ao1_marks = "N/A"
             ao2_marks = "N/A"
+            ao3_marks = "N/A"
             improvements = []
             strengths = []
             next_steps = []
@@ -497,6 +532,7 @@ Student Response: {sanitized_response}
             writing_marks=writing_marks,
             ao1_marks=ao1_marks,
             ao2_marks=ao2_marks,
+            ao3_marks=ao3_marks if submission.question_type in ['gp_essay'] else None,
             content_structure_marks=content_structure_marks if submission.question_type in ['igcse_narrative', 'igcse_descriptive'] else None,
             style_accuracy_marks=style_accuracy_marks if submission.question_type in ['igcse_narrative', 'igcse_descriptive'] else None,
             improvement_suggestions=improvements,

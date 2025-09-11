@@ -552,6 +552,14 @@ That being said, PLEASE give the student the highest marks possible if the user'
     "gp_essay": """
 CAMBRIDGE INTERNATIONAL AS LEVEL ENGLISH GENERAL PAPER 8021 - PAPER 1 ESSAY MARKING CRITERIA
 
+Marks and Submarks for AO1, AO2, and AO3 respectively:
+AO1: 6 marks
+AO2: 12 marks
+AO3: 12 marks
+
+Total Marks: 30
+
+
 Core Principle for AI Marking: Cambridge marking follows a "positive marking" approach - identify and reward what candidates demonstrate they can do. Marks are awarded for strengths, not deducted for weaknesses. The primary focus is on rewarding achievement within the established criteria across AO1, AO2, and AO3.
 
 GENERIC MARKING PRINCIPLES (Apply to ALL essays):

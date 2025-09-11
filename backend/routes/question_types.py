@@ -71,6 +71,13 @@ QUESTION_TYPES = [
         "category": "A-Level English (9093)",
         "description": "Analyze historical prose extract demonstrating English language change using quantitative data",
         "requires_marking_scheme": True
+    },
+    {
+        "id": "gp_essay",
+        "name": "Paper 1, Essay Question",
+        "category": "English General Paper (8021)",
+        "description": "Essay question requiring evaluation, assessment, or analysis with command words like 'evaluate', 'assess', etc.",
+        "requires_marking_scheme": True
     }
 ]
 
@@ -103,6 +110,8 @@ async def get_question_types_by_level(level: str):
             if level.lower() == "igcse" and question_type["category"] == "IGCSE":
                 filtered_types.append(question_type)
             elif level.lower() == "alevel" and "A-Level" in question_type["category"]:
+                filtered_types.append(question_type)
+            elif level.lower() == "gp" and question_type["category"] == "English General Paper (8021)":
                 filtered_types.append(question_type)
         
         return {

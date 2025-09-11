@@ -1,8 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode }) => {
   const [markingScheme, setMarkingScheme] = useState('');
+  const [commandWord, setCommandWord] = useState('');
+  const [customCommandWord, setCustomCommandWord] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Restore marking scheme and command word from localStorage when modal opens
+  useEffect(() => {
+    if (isOpen && questionType?.id) {
+      const markingSchemeKey = `draft_marking_scheme_${questionType.id}`;
+      const savedMarkingScheme = localStorage.getItem(markingSchemeKey);
+      if (savedMarkingScheme) {
+        setMarkingScheme(savedMarkingScheme);
+        console.log('💾 Restored marking scheme from localStorage:', savedMarkingScheme);
+      }
+
+      // For gp_essay, also restore command word
+      if (questionType.id === 'gp_essay') {
+        const commandWordKey = `draft_command_word_${questionType.id}`;
+        const savedCommandWord = localStorage.getItem(commandWordKey);
+        if (savedCommandWord) {
+          setCommandWord(savedCommandWord);
+          console.log('💾 Restored command word from localStorage:', savedCommandWord);
+        }
+      }
+    }
+  }, [isOpen, questionType?.id]);
+
+  // Save marking scheme to localStorage whenever it changes
+  useEffect(() => {
+    if (markingScheme && questionType?.id) {
+      const key = `draft_marking_scheme_${questionType.id}`;
+      localStorage.setItem(key, markingScheme);
+      console.log('💾 Saved marking scheme to localStorage:', markingScheme);
+    }
+  }, [markingScheme, questionType?.id]);
+
+  // Save command word to localStorage whenever it changes (for gp_essay)
+  useEffect(() => {
+    if (commandWord && questionType?.id === 'gp_essay') {
+      const key = `draft_command_word_${questionType.id}`;
+      localStorage.setItem(key, commandWord);
+      console.log('💾 Saved command word to localStorage:', commandWord);
+    }
+  }, [commandWord, questionType?.id]);
 
   if (!isOpen) return null;
 
@@ -12,9 +54,35 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
       return;
     }
 
+    // For gp_essay, also require command word
+    if (questionType?.id === 'gp_essay') {
+      const finalCommandWord = commandWord === 'custom' ? customCommandWord.trim() : commandWord;
+      if (!finalCommandWord) {
+        alert('Please select or enter a command word before proceeding.');
+        return;
+      }
+    }
+
     setIsLoading(true);
     try {
-      await onProceed(markingScheme.trim());
+      const data = {
+        markingScheme: markingScheme.trim(),
+        commandWord: questionType?.id === 'gp_essay' ? (commandWord === 'custom' ? customCommandWord.trim() : commandWord) : null
+      };
+      await onProceed(data);
+      
+      // Clear localStorage after successful submission
+      if (questionType?.id) {
+        const markingSchemeKey = `draft_marking_scheme_${questionType.id}`;
+        localStorage.removeItem(markingSchemeKey);
+        console.log('🗑️ Cleared marking scheme from localStorage');
+        
+        if (questionType.id === 'gp_essay') {
+          const commandWordKey = `draft_command_word_${questionType.id}`;
+          localStorage.removeItem(commandWordKey);
+          console.log('🗑️ Cleared command word from localStorage');
+        }
+      }
     } catch (error) {
       console.error('Error proceeding with marking scheme:', error);
     } finally {
@@ -30,10 +98,21 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
       'alevel_comparative': 'Example:\n• Analysis of similarities (10 marks)\n• Analysis of differences (10 marks)\n• Use of evidence (10 marks)\n• Total: 30 marks',
       'alevel_directed': 'Example:\n• Content and ideas (15 marks)\n• Language and style (10 marks)\n• Structure and organization (5 marks)\n• Total: 30 marks',
       'alevel_text_analysis': 'Example:\n• Form and structure analysis (10 marks)\n• Language analysis (10 marks)\n• Context and purpose (10 marks)\n• Total: 30 marks',
-      'alevel_language_change': 'Example:\n• Historical context (10 marks)\n• Language change analysis (10 marks)\n• Quantitative data interpretation (10 marks)\n• Total: 30 marks'
+      'alevel_language_change': 'Example:\n• Historical context (10 marks)\n• Language change analysis (10 marks)\n• Quantitative data interpretation (10 marks)\n• Total: 30 marks',
+      'gp_essay': 'Example:\n• AO1: Knowledge and understanding (6 marks)\n• AO2: Analysis and evaluation (12 marks)\n• AO3: Communication and structure (12 marks)\n• Total: 30 marks'
     };
     return placeholders[questionTypeId] || 'Please provide the marking scheme for this question type.';
   };
+
+  const commandWordOptions = [
+    'EVALUATE',
+    'ASSESS', 
+    'DISCUSS',
+    'TO WHAT EXTENT',
+    'CONSIDER / WHAT IS YOUR VIEW',
+    'ANALYSE/EXAMINE',
+    'custom'
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -67,6 +146,47 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
           </p>
         </div>
 
+        {questionType?.id === 'gp_essay' && (
+          <div className="mb-6">
+            <label htmlFor="command-word" className="block text-sm font-medium text-gray-700 mb-2">
+              Command Word
+            </label>
+            <select
+              id="command-word"
+              value={commandWord}
+              onChange={(e) => setCommandWord(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select a command word...</option>
+              {commandWordOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option === 'custom' ? 'Write manually...' : option}
+                </option>
+              ))}
+            </select>
+            
+            {commandWord === 'custom' && (
+              <div className="mt-3">
+                <label htmlFor="custom-command-word" className="block text-sm font-medium text-gray-700 mb-2">
+                  Custom Command Word
+                </label>
+                <input
+                  id="custom-command-word"
+                  type="text"
+                  value={customCommandWord}
+                  onChange={(e) => setCustomCommandWord(e.target.value)}
+                  placeholder="Enter the command word from the question..."
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            )}
+            
+            <p className="text-sm text-gray-500 mt-2">
+              Select the command word from the question (e.g., "Evaluate", "Assess", "Discuss"). This helps the AI understand the specific requirements.
+            </p>
+          </div>
+        )}
+
         <div className="flex space-x-4">
           <button
             onClick={onClose}
@@ -77,7 +197,7 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
           </button>
           <button
             onClick={handleProceed}
-            disabled={isLoading || !markingScheme.trim()}
+            disabled={isLoading || !markingScheme.trim() || (questionType?.id === 'gp_essay' && !commandWord)}
             className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
             {isLoading ? (

@@ -11,6 +11,7 @@ class SubmissionRequest(BaseModel):
     student_response: str
     user_id: str
     marking_scheme: Optional[str] = None
+    command_word: Optional[str] = None
     insert_document: Optional[str] = None
 
 class FeedbackResponse(BaseModel):
@@ -24,6 +25,7 @@ class FeedbackResponse(BaseModel):
     writing_marks: Optional[str] = None
     ao1_marks: Optional[str] = None
     ao2_marks: Optional[str] = None
+    ao3_marks: Optional[str] = None
     content_structure_marks: Optional[str] = None
     style_accuracy_marks: Optional[str] = None
     improvement_suggestions: List[str]
