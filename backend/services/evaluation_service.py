@@ -128,7 +128,9 @@ GRADE: [overall grade]
 IMPROVEMENTS: [improvement 1] | [improvement 2] | [improvement 3]
 STRENGTHS: [strength 1 - specific to this essay] | [strength 2 - specific to this essay] | [strength 3 - specific to this essay]
 
-CRITICAL: For the FEEDBACK section, format it as bullet points where each bullet point is a complete, standalone sentence. Do NOT split sentences across bullet points. Each bullet point should be a full, meaningful sentence that can be read independently.
+CRITICAL: For the FEEDBACK section, format it as bullet points where each bu
+
+PLEASE READ AND UNDERSTAND THE EXAMPLES MARKING IN THE PROMPT. UNDERSTAND HOW THE ESSAY IS GRADED. 
 
 Student Response: {sanitized_response}
 
