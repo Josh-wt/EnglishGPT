@@ -224,8 +224,8 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">
                     {filteredAndSortedEvaluations.length > 0 
-                      ? Math.round(filteredAndSortedEvaluations.reduce((sum, eval) => {
-                          const grade = parseInt(eval.grade?.match(/\d+/)?.[0] || '0');
+                      ? Math.round(filteredAndSortedEvaluations.reduce((sum, evaluation) => {
+                          const grade = parseInt(evaluation.grade?.match(/\d+/)?.[0] || '0');
                           return sum + grade;
                         }, 0) / filteredAndSortedEvaluations.length)
                       : 0
