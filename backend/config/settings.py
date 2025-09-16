@@ -33,10 +33,6 @@ QWEN_API_KEY = os.environ.get('QWEN_API_KEY')
 DEEPSEEK_ENDPOINT = os.environ.get('DEEPSEEK_ENDPOINT', 'https://openrouter.ai/api/v1/chat/completions')
 QWEN_ENDPOINT = os.environ.get('QWEN_ENDPOINT', 'https://openrouter.ai/api/v1/chat/completions')
 
-# Chutes AI Configuration
-CHUTES_API_KEY = os.environ.get('CHUTES_API_KEY')
-CHUTES_ENDPOINT = os.environ.get('CHUTES_END    POINT', 'https://llm.chutes.ai/v1/chat/completions')
-
 # Recommendations AI (separate API key and model)
 RECOMMENDATIONS_API_KEY = os.environ.get('OPENROUTER_GPT_OSS_120B_KEY')
 RECOMMENDATIONS_MODEL = os.environ.get('RECOMMENDATIONS_MODEL', 'openai/gpt-oss-120b')

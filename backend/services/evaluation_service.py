@@ -394,7 +394,7 @@ Student Response: {sanitized_response}
             logger.debug(f"DEBUG: First 500 chars of prompt: {full_prompt[:500]}")
             
             # Call AI API
-            logger.debug("DEBUG: Calling Chutes GLM 4.5 Air API...")
+            logger.debug("DEBUG: Calling DeepSeek API...")
             ai_response, _ = await call_deepseek_api(full_prompt)
             
             logger.debug(f"DEBUG: AI Response received: {ai_response[:500]}...")
