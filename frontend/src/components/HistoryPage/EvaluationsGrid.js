@@ -55,7 +55,7 @@ const EvaluationsGrid = ({ evaluations, viewMode, onSelectEvaluation, onSelectFo
             </div>
             
             <div className="text-sm text-gray-600 line-clamp-2">
-              {evaluation.studentResponse?.substring(0, 200)}...
+              {evaluation.student_response?.substring(0, 200)}...
             </div>
           </motion.div>
         ))}
@@ -102,7 +102,7 @@ const EvaluationsGrid = ({ evaluations, viewMode, onSelectEvaluation, onSelectFo
           </div>
           
           <div className="text-sm text-gray-600 line-clamp-3 mb-4">
-            {evaluation.studentResponse?.substring(0, 150)}...
+            {evaluation.student_response?.substring(0, 150)}...
           </div>
 
           {/* Submarks */}

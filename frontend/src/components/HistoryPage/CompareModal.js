@@ -63,7 +63,7 @@ const CompareModal = ({ evaluations, isOpen, onClose, parseFeedbackToBullets, ge
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-4 max-h-40 overflow-y-auto">
-                  <p className="text-sm text-gray-800">{a.studentResponse?.substring(0, 300)}...</p>
+                  <p className="text-sm text-gray-800">{a.student_response?.substring(0, 300)}...</p>
                 </div>
 
                 {a.strengths && (
@@ -99,7 +99,7 @@ const CompareModal = ({ evaluations, isOpen, onClose, parseFeedbackToBullets, ge
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-4 max-h-40 overflow-y-auto">
-                  <p className="text-sm text-gray-800">{b.studentResponse?.substring(0, 300)}...</p>
+                  <p className="text-sm text-gray-800">{b.student_response?.substring(0, 300)}...</p>
                 </div>
 
                 {b.strengths && (
@@ -137,6 +137,45 @@ const CompareModal = ({ evaluations, isOpen, onClose, parseFeedbackToBullets, ge
                     <StrengthsDiffChip a={a} b={b} />
                   </div>
                   <div className="text-sm text-gray-600">Difference</div>
+                </div>
+              </div>
+              
+              {/* Detailed Comparison */}
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3">Essay A Improvements</h4>
+                  <div className="bg-blue-50 rounded-lg p-3">
+                    {a.improvements ? (
+                      <ul className="space-y-1">
+                        {parseFeedbackToBullets(a.improvements).slice(0, 3).map((improvement, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm">
+                            <span className="text-blue-600 mt-0.5">→</span>
+                            <span className="text-gray-800">{improvement}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-gray-600">No improvements listed</p>
+                    )}
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3">Essay B Improvements</h4>
+                  <div className="bg-purple-50 rounded-lg p-3">
+                    {b.improvements ? (
+                      <ul className="space-y-1">
+                        {parseFeedbackToBullets(b.improvements).slice(0, 3).map((improvement, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm">
+                            <span className="text-purple-600 mt-0.5">→</span>
+                            <span className="text-gray-800">{improvement}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-gray-600">No improvements listed</p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

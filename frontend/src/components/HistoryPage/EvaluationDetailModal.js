@@ -60,7 +60,7 @@ const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBul
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Your Essay</h3>
               <div className="bg-gray-50 rounded-lg p-4 max-h-60 overflow-y-auto">
-                <p className="text-gray-800 whitespace-pre-wrap">{evaluation.studentResponse}</p>
+                <p className="text-gray-800 whitespace-pre-wrap">{evaluation.student_response}</p>
               </div>
             </div>
 
@@ -114,17 +114,89 @@ const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBul
                 </div>
               </div>
             )}
+
+            {/* Next Steps */}
+            {evaluation.next_steps && evaluation.next_steps.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">🎯 Next Steps</h3>
+                <div className="bg-indigo-50 rounded-lg p-4">
+                  <ul className="space-y-2">
+                    {evaluation.next_steps.map((step, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-indigo-600 mt-1 font-bold">{idx + 1}.</span>
+                        <span className="text-gray-800">{step}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Footer */}
           <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 rounded-b-2xl">
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-between items-center">
               <button
-                onClick={onClose}
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                onClick={() => {
+                  const content = `
+Essay Evaluation Report
+======================
+
+Date: ${new Date(evaluation.timestamp || evaluation.created_at).toLocaleDateString()}
+Question Type: ${evaluation.questionType || 'Essay'}
+Grade: ${evaluation.grade || 'N/A'}
+
+Your Essay:
+-----------
+${evaluation.student_response}
+
+Feedback:
+---------
+${evaluation.feedback || 'No feedback available'}
+
+Strengths:
+----------
+${evaluation.strengths ? parseFeedbackToBullets(evaluation.strengths).map(s => `• ${s}`).join('\n') : 'No strengths listed'}
+
+Areas for Improvement:
+---------------------
+${evaluation.improvements ? parseFeedbackToBullets(evaluation.improvements).map(i => `• ${i}`).join('\n') : 'No improvements listed'}
+
+Next Steps:
+-----------
+${evaluation.next_steps ? evaluation.next_steps.map((step, idx) => `${idx + 1}. ${step}`).join('\n') : 'No next steps provided'}
+
+Submarks:
+---------
+${getSubmarks(evaluation).join('\n')}
+                  `.trim();
+                  
+                  const blob = new Blob([content], { type: 'text/plain' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `essay-evaluation-${new Date(evaluation.timestamp || evaluation.created_at).toISOString().split('T')[0]}.txt`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                }}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
               >
-                Close
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export
               </button>
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={onClose}
+                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </motion.div>

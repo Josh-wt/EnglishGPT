@@ -120,7 +120,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
           
           {/* Small text with spacing */}
           <div className="text-gray-600 text-lg font-fredoka mb-8">
-            Our AI is doing the magic, please wait
+            Unleashing AI 
           </div>
           
           {/* Pink box modal with changing text */}

@@ -334,12 +334,32 @@ Student Response: {sanitized_response}
                         break
             
             # Extract improvements
-            improvements_part = ai_response.split("IMPROVEMENTS:")[1] if "IMPROVEMENTS:" in ai_response else ""
-            if "STRENGTHS:" in improvements_part:
-                improvements_part = improvements_part.split("STRENGTHS:")[0]
-            elif "NEXT STEPS:" in improvements_part:
-                improvements_part = improvements_part.split("NEXT STEPS:")[0]
-            improvements = [imp.strip() for imp in improvements_part.split("|")] if improvements_part else []
+            improvements = []
+            if "IMPROVEMENTS:" in ai_response:
+                improvements_part = ai_response.split("IMPROVEMENTS:")[1].strip()
+                # Remove NEXT STEPS if present
+                if "NEXT STEPS:" in improvements_part:
+                    improvements_part = improvements_part.split("NEXT STEPS:")[0].strip()
+                # Remove STRENGTHS if present
+                if "STRENGTHS:" in improvements_part:
+                    improvements_part = improvements_part.split("STRENGTHS:")[0].strip()
+                
+                logger.debug(f"DEBUG: Raw improvements part: {improvements_part}")
+                
+                # Try multiple parsing methods
+                if "|" in improvements_part:
+                    # Split by pipe
+                    improvements = [s.strip() for s in improvements_part.split("|") if s.strip()]
+                elif "\n" in improvements_part:
+                    # Split by newlines
+                    improvements = [s.strip() for s in improvements_part.split("\n") if s.strip() and not s.strip().startswith("Student Response:")]
+                else:
+                    # Use as single improvement
+                    improvements = [improvements_part] if improvements_part else []
+                
+                logger.debug(f"DEBUG: Parsed improvements: {improvements}")
+            else:
+                improvements = []
             
             # Extract strengths
             strengths = []
@@ -468,7 +488,8 @@ Student Response: {sanitized_response}
                 content_structure_marks=parsed_data["content_structure_marks"] if submission.question_type in ['igcse_narrative', 'igcse_descriptive'] else None,
                 style_accuracy_marks=parsed_data["style_accuracy_marks"] if submission.question_type in ['igcse_narrative', 'igcse_descriptive'] else None,
                 improvement_suggestions=parsed_data["improvements"],
-                strengths=parsed_data["strengths"]
+                strengths=parsed_data["strengths"],
+                next_steps=parsed_data["next_steps"]
             )
             
             # Generate short ID for shareable URLs

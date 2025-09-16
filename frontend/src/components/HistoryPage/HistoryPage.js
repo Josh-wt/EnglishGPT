@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Footer from '../ui/Footer';
+import SearchFilters from './SearchFilters';
+import EvaluationsGrid from './EvaluationsGrid';
+import EvaluationDetailModal from './EvaluationDetailModal';
+import CompareModal from './CompareModal';
 
 // Enhanced Locked Analytics Page
 const LockedAnalyticsPage = ({ onBack, upgradeType, page = 'analytics' }) => {
@@ -71,8 +75,11 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+  const [viewMode, setViewMode] = useState('grid');
   const [selectedForCompare, setSelectedForCompare] = useState([]);
   const [showCompare, setShowCompare] = useState(false);
+  const [selectedEvaluation, setSelectedEvaluation] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   
   // History is now available to all users regardless of plan
   // (Removed plan restrictions - all users can view their evaluation history)
@@ -80,6 +87,83 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
   // Handle loading and empty states
   const hasEvaluations = evaluations && evaluations.length > 0;
   const isLoadingEvaluations = evaluations === undefined || evaluations === null;
+
+  // Filter and sort evaluations
+  const filteredAndSortedEvaluations = useMemo(() => {
+    if (!evaluations) return [];
+
+    let filtered = evaluations.filter(evaluation => {
+      // Search filter
+      const matchesSearch = !searchTerm || 
+        evaluation.student_response?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        evaluation.question_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        evaluation.grade?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        evaluation.feedback?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Type filter
+      const matchesType = filterType === 'all' || 
+        evaluation.question_type?.toLowerCase().includes(filterType.toLowerCase());
+
+      return matchesSearch && matchesType;
+    });
+
+    // Sort evaluations
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return new Date(b.created_at || b.timestamp) - new Date(a.created_at || a.timestamp);
+        case 'oldest':
+          return new Date(a.created_at || a.timestamp) - new Date(b.created_at || b.timestamp);
+        case 'grade_high':
+          const aGrade = parseInt(a.grade?.match(/\d+/)?.[0] || '0');
+          const bGrade = parseInt(b.grade?.match(/\d+/)?.[0] || '0');
+          return bGrade - aGrade;
+        case 'grade_low':
+          const aGradeLow = parseInt(a.grade?.match(/\d+/)?.[0] || '0');
+          const bGradeLow = parseInt(b.grade?.match(/\d+/)?.[0] || '0');
+          return aGradeLow - bGradeLow;
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [evaluations, searchTerm, filterType, sortBy]);
+
+  // Utility functions for modals
+  const parseFeedbackToBullets = (feedback) => {
+    if (!feedback) return [];
+    return feedback.split('\n').filter(line => line.trim()).map(line => line.replace(/^[-•*]\s*/, '').trim());
+  };
+
+  const getSubmarks = (evaluation) => {
+    const submarks = [];
+    if (evaluation.reading_marks) submarks.push(`Reading: ${evaluation.reading_marks}`);
+    if (evaluation.writing_marks) submarks.push(`Writing: ${evaluation.writing_marks}`);
+    if (evaluation.ao1_marks) submarks.push(`AO1: ${evaluation.ao1_marks}`);
+    if (evaluation.ao2_marks) submarks.push(`AO2: ${evaluation.ao2_marks}`);
+    if (evaluation.ao3_marks) submarks.push(`AO3: ${evaluation.ao3_marks}`);
+    if (evaluation.ao4_marks) submarks.push(`AO4: ${evaluation.ao4_marks}`);
+    if (evaluation.ao5_marks) submarks.push(`AO5: ${evaluation.ao5_marks}`);
+    if (evaluation.content_structure_marks) submarks.push(`Content: ${evaluation.content_structure_marks}`);
+    if (evaluation.style_accuracy_marks) submarks.push(`Style: ${evaluation.style_accuracy_marks}`);
+    return submarks;
+  };
+
+  const handleSelectEvaluation = (evaluation) => {
+    setSelectedEvaluation(evaluation);
+    setShowDetailModal(true);
+  };
+
+  const handleSelectForCompare = (selectedEvaluations) => {
+    setSelectedForCompare(selectedEvaluations);
+  };
+
+  const handleCompare = () => {
+    if (selectedForCompare.length === 2) {
+      setShowCompare(true);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -110,65 +194,70 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Search and Filter Controls */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Search Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search essays, feedback, or grades..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
+        <SearchFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          filterType={filterType}
+          setFilterType={setFilterType}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+        />
+
+        {/* Stats Bar */}
+        {hasEvaluations && (
+          <motion.div 
+            className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">{filteredAndSortedEvaluations.length}</div>
+                  <div className="text-sm text-gray-600">Total Essays</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    {filteredAndSortedEvaluations.length > 0 
+                      ? Math.round(filteredAndSortedEvaluations.reduce((sum, eval) => {
+                          const grade = parseInt(eval.grade?.match(/\d+/)?.[0] || '0');
+                          return sum + grade;
+                        }, 0) / filteredAndSortedEvaluations.length)
+                      : 0
+                    }
+                  </div>
+                  <div className="text-sm text-gray-600">Average Score</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {selectedForCompare.length}/2
+                  </div>
+                  <div className="text-sm text-gray-600">Selected for Compare</div>
                 </div>
               </div>
+              
+              {selectedForCompare.length === 2 && (
+                <motion.button
+                  onClick={handleCompare}
+                  className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold"
+                  initial={{ scale: 0.9 }}
+                  animate={{ scale: 1 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  🔍 Compare Essays
+                </motion.button>
+              )}
             </div>
-            
-            {/* Filter by Type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Type</label>
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="all">All Types</option>
-                <option value="igcse">IGCSE</option>
-                <option value="alevel">A-Level</option>
-                <option value="summary">Summary</option>
-                <option value="narrative">Narrative</option>
-                <option value="descriptive">Descriptive</option>
-                <option value="directed">Directed Writing</option>
-              </select>
-            </div>
-            
-            {/* Sort Options */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Sort by</label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="grade_high">Highest Grade</option>
-                <option value="grade_low">Lowest Grade</option>
-              </select>
-            </div>
-          </div>
-        </div>
+          </motion.div>
+        )}
 
-        {/* Evaluations List */}
+        {/* Evaluations Content */}
         {isLoadingEvaluations ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">⏳</div>
@@ -176,66 +265,15 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
             <p className="text-gray-600">Fetching your evaluation history from the server.</p>
           </div>
         ) : hasEvaluations ? (
-          <div className="space-y-4">
-            {evaluations.map((evaluation, index) => (
-              <motion.div
-                key={evaluation.id || index}
-                className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {evaluation.question_type?.replace(/_/g, ' ').toUpperCase() || 'Essay Evaluation'}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {new Date(evaluation.created_at || evaluation.timestamp).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                      {evaluation.grade || 'N/A'}
-                    </span>
-                    <input
-                      type="checkbox"
-                      checked={selectedForCompare.includes(evaluation.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          if (selectedForCompare.length < 2) {
-                            setSelectedForCompare([...selectedForCompare, evaluation.id]);
-                          }
-                        } else {
-                          setSelectedForCompare(selectedForCompare.filter(id => id !== evaluation.id));
-                        }
-                      }}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-                
-                <div className="mb-4">
-                  <p className="text-gray-700 line-clamp-3">
-                    {evaluation.student_response?.substring(0, 200)}...
-                  </p>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <span>📊 Score: {evaluation.grade || 'N/A'}</span>
-                    <span>📝 Type: {evaluation.question_type?.replace(/_/g, ' ') || 'Unknown'}</span>
-                  </div>
-                  <button
-                    onClick={() => window.open(`/results/${evaluation.short_id || evaluation.id}`, '_blank')}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    View Details
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          <EvaluationsGrid
+            evaluations={filteredAndSortedEvaluations}
+            viewMode={viewMode}
+            onSelectEvaluation={handleSelectEvaluation}
+            onSelectForCompare={handleSelectForCompare}
+            selectedForCompare={selectedForCompare}
+            parseFeedbackToBullets={parseFeedbackToBullets}
+            getSubmarks={getSubmarks}
+          />
         ) : (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📝</div>
@@ -250,6 +288,23 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
           </div>
         )}
       </div>
+
+      {/* Modals */}
+      <EvaluationDetailModal
+        evaluation={selectedEvaluation}
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        parseFeedbackToBullets={parseFeedbackToBullets}
+        getSubmarks={getSubmarks}
+      />
+
+      <CompareModal
+        evaluations={selectedForCompare}
+        isOpen={showCompare}
+        onClose={() => setShowCompare(false)}
+        parseFeedbackToBullets={parseFeedbackToBullets}
+        getSubmarks={getSubmarks}
+      />
       <Footer />
     </div>
   );
