@@ -38,19 +38,20 @@ async def call_deepseek_api(prompt: str) -> tuple[str, str]:
         "temperature": 0.3,
         "stream": False
     }
-        
+    
     try:
-        response = await client.post(CHUTES_ENDPOINT, headers=headers, json=payload, timeout=60.0)
-        response.raise_for_status()
-        result = response.json()
-        
-        if 'choices' not in result or not result['choices']:
-            error_msg = "Invalid response from Chutes API: No choices in response"
-            logger.error(error_msg)
-            raise HTTPException(status_code=500, detail=error_msg)
-        
-        full_response = result['choices'][0]['message']['content']
-        return full_response, "zai-org/GLM-4.5-Air"
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(CHUTES_ENDPOINT, headers=headers, json=payload)
+            response.raise_for_status()
+            result = response.json()
+            
+            if 'choices' not in result or not result['choices']:
+                error_msg = "Invalid response from Chutes API: No choices in response"
+                logger.error(error_msg)
+                raise HTTPException(status_code=500, detail=error_msg)
+            
+            full_response = result['choices'][0]['message']['content']
+            return full_response, "zai-org/GLM-4.5-Air"
             
     except httpx.TimeoutException:
         error_msg = "Chutes API request timed out. Please try again."
