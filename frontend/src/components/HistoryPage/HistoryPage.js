@@ -133,7 +133,19 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
   // Utility functions for modals
   const parseFeedbackToBullets = (feedback) => {
     if (!feedback) return [];
-    return feedback.split('\n').filter(line => line.trim()).map(line => line.replace(/^[-•*]\s*/, '').trim());
+    
+    // If feedback is already an array, return it as is
+    if (Array.isArray(feedback)) {
+      return feedback.filter(item => item && item.trim());
+    }
+    
+    // If feedback is a string, split it by newlines
+    if (typeof feedback === 'string') {
+      return feedback.split('\n').filter(line => line.trim()).map(line => line.replace(/^[-•*]\s*/, '').trim());
+    }
+    
+    // Fallback for other types
+    return [];
   };
 
   const getSubmarks = (evaluation) => {
