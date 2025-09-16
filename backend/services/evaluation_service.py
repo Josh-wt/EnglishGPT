@@ -121,12 +121,20 @@ IMPORTANT: For strengths, analyze the actual content and identify specific, uniq
 - Particular writing techniques demonstrated
 - Specific aspects of organization or structure that work
 
+CRITICAL: For NEXT STEPS, provide 3 specific, actionable steps the student should take to improve their writing. These should be concrete actions like:
+- "Practice writing topic sentences that clearly state your main argument"
+- "Read 3 sample essays and identify how they use evidence to support claims"
+- "Write 5 practice sentences using advanced vocabulary from your word bank"
+- "Create an outline template and use it for your next 3 essays"
+- "Study how professional writers use transitions between paragraphs"
+
 Format your response as:
 FEEDBACK: [detailed feedback in bullet points - each point should be a complete, standalone sentence that makes sense on its own]
 GRADE: [overall grade]
 {sub_marks_requirement}
 IMPROVEMENTS: [improvement 1] | [improvement 2] | [improvement 3]
 STRENGTHS: [strength 1 - specific to this essay] | [strength 2 - specific to this essay] | [strength 3 - specific to this essay]
+NEXT STEPS: [specific action 1] | [specific action 2] | [specific action 3]
 
 CRITICAL: For the FEEDBACK section, format it as bullet points where each bu
 
@@ -165,7 +173,7 @@ Student Response: {sanitized_response}
                 # Writers effect only needs reading marks
                 if "READING_MARKS:" in ai_response:
                     reading_part = ai_response.split("READING_MARKS:")[1]
-                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:"]
+                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
                     reading_marks = reading_part.strip()
                     for section in next_sections:
                         if section in reading_part:
@@ -176,7 +184,7 @@ Student Response: {sanitized_response}
                 # Extract Content and Structure marks (stored in content_structure_marks)
                 if "READING_MARKS:" in ai_response:
                     reading_part = ai_response.split("READING_MARKS:")[1]
-                    next_sections = ["WRITING_MARKS:", "IMPROVEMENTS:", "STRENGTHS:"]
+                    next_sections = ["WRITING_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
                     content_structure_marks = reading_part.strip()
                     for section in next_sections:
                         if section in reading_part:
@@ -188,7 +196,7 @@ Student Response: {sanitized_response}
                 # Extract Style and Accuracy marks (stored in style_accuracy_marks)
                 if "WRITING_MARKS:" in ai_response:
                     writing_part = ai_response.split("WRITING_MARKS:")[1]
-                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:"]
+                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
                     style_accuracy_marks = writing_part.strip()
                     for section in next_sections:
                         if section in writing_part:
@@ -204,7 +212,7 @@ Student Response: {sanitized_response}
                 # A-Level directed writing needs AO1 and AO2 marks
                 if "AO1_MARKS:" in ai_response:
                     ao1_part = ai_response.split("AO1_MARKS:")[1]
-                    next_sections = ["AO2_MARKS:", "IMPROVEMENTS:", "STRENGTHS:"]
+                    next_sections = ["AO2_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
                     ao1_marks = ao1_part.strip()
                     for section in next_sections:
                         if section in ao1_part:
@@ -213,7 +221,7 @@ Student Response: {sanitized_response}
                 
                 if "AO2_MARKS:" in ai_response:
                     ao2_part = ai_response.split("AO2_MARKS:")[1]
-                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:"]
+                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
                     ao2_marks = ao2_part.strip()
                     for section in next_sections:
                         if section in ao2_part:
@@ -223,7 +231,7 @@ Student Response: {sanitized_response}
                 # A-Level comparative needs AO1 and AO3 marks
                 if "AO1_MARKS:" in ai_response:
                     ao1_part = ai_response.split("AO1_MARKS:")[1]
-                    next_sections = ["AO3_MARKS:", "IMPROVEMENTS:", "STRENGTHS:"]
+                    next_sections = ["AO3_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
                     ao1_marks = ao1_part.strip()
                     for section in next_sections:
                         if section in ao1_part:
@@ -232,7 +240,7 @@ Student Response: {sanitized_response}
                 
                 if "AO3_MARKS:" in ai_response:
                     ao3_part = ai_response.split("AO3_MARKS:")[1]
-                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:"]
+                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
                     ao1_marks = ao3_part.strip()  # Store AO3 in ao1_marks field for now
                     for section in next_sections:
                         if section in ao3_part:
@@ -242,7 +250,7 @@ Student Response: {sanitized_response}
                 # A-Level text analysis needs AO1 and AO3 marks
                 if "AO1_MARKS:" in ai_response:
                     ao1_part = ai_response.split("AO1_MARKS:")[1]
-                    next_sections = ["AO3_MARKS:", "IMPROVEMENTS:", "STRENGTHS:"]
+                    next_sections = ["AO3_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
                     ao1_marks = ao1_part.strip()
                     for section in next_sections:
                         if section in ao1_part:
@@ -251,7 +259,7 @@ Student Response: {sanitized_response}
                 
                 if "AO3_MARKS:" in ai_response:
                     ao3_part = ai_response.split("AO3_MARKS:")[1]
-                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:"]
+                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
                     ao2_marks = ao3_part.strip()  # Temporarily store AO3 in ao2_marks (we will compute grade dynamically)
                     for section in next_sections:
                         if section in ao3_part:
@@ -261,7 +269,7 @@ Student Response: {sanitized_response}
                 # A-Level language change needs AO2, AO4, and AO5 marks
                 if "AO2_MARKS:" in ai_response:
                     ao2_part = ai_response.split("AO2_MARKS:")[1]
-                    next_sections = ["AO4_MARKS:", "AO5_MARKS:", "IMPROVEMENTS:", "STRENGTHS:"]
+                    next_sections = ["AO4_MARKS:", "AO5_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
                     ao2_marks = ao2_part.strip()
                     for section in next_sections:
                         if section in ao2_part:
@@ -271,7 +279,7 @@ Student Response: {sanitized_response}
                 # Store AO4 marks in ao1_marks field (reusing existing field)
                 if "AO4_MARKS:" in ai_response:
                     ao4_part = ai_response.split("AO4_MARKS:")[1]
-                    next_sections = ["AO5_MARKS:", "IMPROVEMENTS:", "STRENGTHS:"]
+                    next_sections = ["AO5_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
                     ao1_marks = ao4_part.strip()  # Store AO4 in ao1_marks field
                     for section in next_sections:
                         if section in ao4_part:
@@ -281,7 +289,7 @@ Student Response: {sanitized_response}
                 # Extract AO5 marks and store in reading_marks field (reusing existing field)
                 if "AO5_MARKS:" in ai_response:
                     ao5_part = ai_response.split("AO5_MARKS:")[1]
-                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:"]
+                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
                     reading_marks = ao5_part.strip()  # Store AO5 in reading_marks field
                     for section in next_sections:
                         if section in ao5_part:
@@ -291,7 +299,7 @@ Student Response: {sanitized_response}
                 # Fallback: try to extract all marks
                 if "READING_MARKS:" in ai_response:
                     reading_part = ai_response.split("READING_MARKS:")[1]
-                    next_sections = ["WRITING_MARKS:", "AO1_MARKS:", "AO2_MARKS:", "IMPROVEMENTS:", "STRENGTHS:"]
+                    next_sections = ["WRITING_MARKS:", "AO1_MARKS:", "AO2_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
                     reading_marks = reading_part.strip()
                     for section in next_sections:
                         if section in reading_part:
@@ -300,7 +308,7 @@ Student Response: {sanitized_response}
             
             if "WRITING_MARKS:" in ai_response:
                 writing_part = ai_response.split("WRITING_MARKS:")[1]
-                next_sections = ["AO1_MARKS:", "AO2_MARKS:", "IMPROVEMENTS:", "STRENGTHS:"]
+                next_sections = ["AO1_MARKS:", "AO2_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
                 writing_marks = writing_part.strip()
                 for section in next_sections:
                     if section in writing_part:
@@ -329,12 +337,17 @@ Student Response: {sanitized_response}
             improvements_part = ai_response.split("IMPROVEMENTS:")[1] if "IMPROVEMENTS:" in ai_response else ""
             if "STRENGTHS:" in improvements_part:
                 improvements_part = improvements_part.split("STRENGTHS:")[0]
+            elif "NEXT STEPS:" in improvements_part:
+                improvements_part = improvements_part.split("NEXT STEPS:")[0]
             improvements = [imp.strip() for imp in improvements_part.split("|")] if improvements_part else []
             
             # Extract strengths
             strengths = []
             if "STRENGTHS:" in ai_response:
                 strengths_part = ai_response.split("STRENGTHS:")[1].strip()
+                # Remove NEXT STEPS if present
+                if "NEXT STEPS:" in strengths_part:
+                    strengths_part = strengths_part.split("NEXT STEPS:")[0].strip()
                 logger.debug(f"DEBUG: Raw strengths part: {strengths_part}")
                 
                 # Try multiple parsing methods
@@ -351,6 +364,27 @@ Student Response: {sanitized_response}
                 logger.debug(f"DEBUG: Parsed strengths: {strengths}")
             else:
                 strengths = []
+            
+            # Extract next steps
+            next_steps = []
+            if "NEXT STEPS:" in ai_response:
+                next_steps_part = ai_response.split("NEXT STEPS:")[1].strip()
+                logger.debug(f"DEBUG: Raw next steps part: {next_steps_part}")
+                
+                # Try multiple parsing methods
+                if "|" in next_steps_part:
+                    # Split by pipe
+                    next_steps = [s.strip() for s in next_steps_part.split("|") if s.strip()]
+                elif "\n" in next_steps_part:
+                    # Split by newlines
+                    next_steps = [s.strip() for s in next_steps_part.split("\n") if s.strip() and not s.strip().startswith("Student Response:")]
+                else:
+                    # Use as single next step
+                    next_steps = [next_steps_part] if next_steps_part else []
+                
+                logger.debug(f"DEBUG: Parsed next steps: {next_steps}")
+            else:
+                next_steps = []
         else:
             feedback = ai_response
             grade = "Not provided"
@@ -360,6 +394,7 @@ Student Response: {sanitized_response}
             ao2_marks = "N/A"
             improvements = []
             strengths = []
+            next_steps = []
         
         return {
             "feedback": feedback,
@@ -371,7 +406,8 @@ Student Response: {sanitized_response}
             "content_structure_marks": content_structure_marks,
             "style_accuracy_marks": style_accuracy_marks,
             "improvements": improvements,
-            "strengths": strengths
+            "strengths": strengths,
+            "next_steps": next_steps
         }
     
     async def evaluate_submission(self, submission: SubmissionRequest) -> FeedbackResponse:
