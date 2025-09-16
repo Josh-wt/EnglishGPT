@@ -55,35 +55,61 @@ async def call_deepseek_api(prompt: str) -> tuple[str, str]:
             logger.error(error_msg)
             raise HTTPException(status_code=500, detail=error_msg)
         except httpx.HTTPStatusError as e:
-            logger.error("DeepSeek API HTTP error", extra={
+            # Enhanced debugging for HTTP errors
+            response_text = ""
+            try:
+                response_text = e.response.text
+            except:
+                response_text = "Unable to read response text"
+            
+            logger.error("DeepSeek API HTTP error - DETAILED DEBUG", extra={
                 "component": "deepseek",
-                "status": e.response.status_code,
-                "response": getattr(e.response, 'text', None)
+                "status_code": e.response.status_code,
+                "status_text": getattr(e.response, 'reason_phrase', 'Unknown'),
+                "response_headers": dict(e.response.headers),
+                "response_text": response_text,
+                "request_url": str(e.response.request.url),
+                "request_method": e.response.request.method,
+                "request_headers": dict(e.response.request.headers),
+                "model_used": payload.get("model", "unknown"),
+                "endpoint_used": DEEPSEEK_ENDPOINT,
+                "api_key_prefix": DEEPSEEK_API_KEY[:20] + "..." if DEEPSEEK_API_KEY else "None"
             })
+            
             if e.response.status_code == 401:
-                error_msg = "DeepSeek API authentication failed. Please check your API key."
+                error_msg = f"DeepSeek API authentication failed. Status: {e.response.status_code}, Response: {response_text}"
                 logger.error(error_msg)
                 raise HTTPException(status_code=500, detail=error_msg)
             elif e.response.status_code == 429:
-                error_msg = "DeepSeek API rate limit exceeded. Please try again later."
+                error_msg = f"DeepSeek API rate limit exceeded. Status: {e.response.status_code}, Response: {response_text}"
+                logger.error(error_msg)
+                raise HTTPException(status_code=500, detail=error_msg)
+            elif e.response.status_code == 400:
+                error_msg = f"DeepSeek API bad request. Status: {e.response.status_code}, Response: {response_text}, Model: {payload.get('model', 'unknown')}"
                 logger.error(error_msg)
                 raise HTTPException(status_code=500, detail=error_msg)
             else:
-                error_msg = f"DeepSeek API error: {e.response.status_code} - {e.response.text}"
+                error_msg = f"DeepSeek API error: Status {e.response.status_code}, Response: {response_text}, Model: {payload.get('model', 'unknown')}"
                 logger.error(error_msg)
                 raise HTTPException(status_code=500, detail=error_msg)
         except Exception as e:
             error_msg = str(e)
-            logger.error("DeepSeek API exception", extra={
+            logger.error("DeepSeek API exception - DETAILED DEBUG", extra={
                 "component": "deepseek",
-                "error": error_msg
+                "error": error_msg,
+                "error_type": type(e).__name__,
+                "model_used": payload.get("model", "unknown"),
+                "endpoint_used": DEEPSEEK_ENDPOINT,
+                "api_key_prefix": DEEPSEEK_API_KEY[:20] + "..." if DEEPSEEK_API_KEY else "None",
+                "payload_keys": list(payload.keys()) if payload else "None",
+                "prompt_length": len(prompt) if prompt else 0
             })
             if "401" in error_msg or "unauthorized" in error_msg.lower():
-                error_msg = "DeepSeek API authentication failed. Please check your API key configuration."
+                error_msg = f"DeepSeek API authentication failed. Error: {error_msg}"
                 logger.error(error_msg)
                 raise HTTPException(status_code=500, detail=error_msg)
             elif "404" in error_msg or "not found" in error_msg.lower():
-                error_msg = "DeepSeek API endpoint not found. Please check your API endpoint configuration."
+                error_msg = f"DeepSeek API endpoint not found. Error: {error_msg}"
                 logger.error(error_msg)
                 raise HTTPException(status_code=500, detail=error_msg)
             else:
