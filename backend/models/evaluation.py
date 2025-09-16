@@ -12,6 +12,7 @@ class SubmissionRequest(BaseModel):
     user_id: str
     marking_scheme: Optional[str] = None
     command_word: Optional[str] = None
+    text_type: Optional[str] = None
     insert_document: Optional[str] = None
 
 class FeedbackResponse(BaseModel):

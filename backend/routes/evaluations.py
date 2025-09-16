@@ -8,8 +8,8 @@ import re
 from datetime import datetime, timedelta
 from models.evaluation import SubmissionRequest, FeedbackResponse
 from services.ai_service import call_deepseek_api
+from services.evaluation_service import EvaluationService
 from utils.grading import compute_overall_grade
-from schemas.marking_criteria import MARKING_CRITERIA
 from config.settings import get_user_management_service, get_supabase_client
 
 router = APIRouter()
@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 # Get services
 supabase = get_supabase_client()
 user_management_service = get_user_management_service(supabase)
+evaluation_service = EvaluationService()
 
 @router.post("/evaluate", response_model=FeedbackResponse)
 async def evaluate_submission(submission: SubmissionRequest):
@@ -46,72 +47,45 @@ async def evaluate_submission(submission: SubmissionRequest):
         if requires_marking_scheme and not submission.marking_scheme:
             raise HTTPException(status_code=400, detail="This question type requires a marking scheme")
         
-        # Get the marking criteria for the question type
-        marking_criteria = MARKING_CRITERIA.get(submission.question_type, "")
-        if not marking_criteria:
-            raise HTTPException(status_code=400, detail="Invalid question type")
+        # Build evaluation prompt using the evaluation service
+        try:
+            full_prompt = evaluation_service.build_evaluation_prompt(submission)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
         
-        logger.debug(f"DEBUG: Marking criteria found for {submission.question_type}")
-        logger.debug(f"DEBUG: Available marking criteria keys: {list(MARKING_CRITERIA.keys())}")
-        logger.debug(f"DEBUG: Question type received: '{submission.question_type}'")
-        logger.debug(f"DEBUG: Marking criteria length: {len(marking_criteria)}")
-        logger.debug(f"DEBUG: First 200 chars of marking criteria: {marking_criteria[:200]}")
+        logger.debug(f"DEBUG: Full prompt length: {len(full_prompt)}")
+        logger.debug(f"DEBUG: First 500 chars of prompt: {full_prompt[:500]}")
         
         # Additional debugging to check if the right criteria is being used
         if submission.question_type == "igcse_descriptive":
-            logger.debug(f"DEBUG: This should be descriptive criteria. First 500 chars: {marking_criteria[:500]}")
+            logger.debug(f"DEBUG: This should be descriptive criteria. First 500 chars: {full_prompt[:500]}")
             # Check for specific markers that indicate descriptive criteria
-            if "Core Principle for Descriptive Marking" in marking_criteria:
+            if "Core Principle for Descriptive Marking" in full_prompt:
                 logger.debug("DEBUG: Correct descriptive criteria confirmed")
                 pass
-            elif "Primary Focus:" in marking_criteria and "narrative" in marking_criteria.lower():
+            elif "Primary Focus:" in full_prompt and "narrative" in full_prompt.lower():
                 logger.error("Narrative criteria found in descriptive request")
             else:
                 logger.debug("DEBUG: Criteria type unclear")
                 pass
         elif submission.question_type == "igcse_narrative":
-            logger.debug(f"DEBUG: This should be narrative criteria. First 500 chars: {marking_criteria[:500]}")
+            logger.debug(f"DEBUG: This should be narrative criteria. First 500 chars: {full_prompt[:500]}")
             # Check for specific markers that indicate narrative criteria
-            if "Primary Focus:" in marking_criteria and "Content/Structure (16 marks)" in marking_criteria:
+            if "Primary Focus:" in full_prompt and "Content/Structure (16 marks)" in full_prompt:
                 logger.debug("DEBUG: Correct narrative criteria confirmed")
                 pass
-            elif "Core Principle for Descriptive Marking" in marking_criteria:
+            elif "Core Principle for Descriptive Marking" in full_prompt:
                 logger.error("Descriptive criteria found in narrative request")
             else:
                 logger.debug("DEBUG: Criteria type unclear")
                 pass
         elif submission.question_type == "igcse_directed":
-            if "Core Principle for Directed Writing Marking" in marking_criteria:
+            if "Core Principle for Directed Writing Marking" in full_prompt:
                 logger.debug("DEBUG: Correct directed writing criteria found in prompt")
                 pass
             else:
                 logger.debug("DEBUG: Directed writing criteria not found in prompt")
                 pass
-        
-        # Add marking scheme to criteria if provided
-        if submission.marking_scheme:
-            marking_criteria = f"{marking_criteria}\n\nMarking Scheme:\n{submission.marking_scheme}"
-        
-        # Add command word for gp_essay questions
-        if submission.question_type == 'gp_essay' and submission.command_word:
-            marking_criteria = f"{marking_criteria}\n\nCommand Word: {submission.command_word}\n\nIMPORTANT: This essay question uses the command word '{submission.command_word}'. Please ensure your evaluation specifically addresses the requirements of this command word and applies the appropriate marking criteria for this type of question."
-        
-        # Define sub marks requirements based on question type
-        sub_marks_requirements = {
-            'igcse_summary': 'READING_MARKS: [Reading marks out of 15] | WRITING_MARKS: [Writing marks out of 25]',
-            'igcse_writers_effect': 'READING_MARKS: [Reading marks out of 15]',
-            'igcse_directed': 'READING_MARKS: [Reading marks out of 15] | WRITING_MARKS: [Writing marks out of 25]',
-            'alevel_directed': 'AO1_MARKS: [AO1 marks out of 5] | AO2_MARKS: [AO2 marks out of 5]',
-            'igcse_narrative': 'READING_MARKS: [Content and Structure marks out of 16] | WRITING_MARKS: [Style and Accuracy marks out of 24]',
-            'igcse_descriptive': 'READING_MARKS: [Content and Structure marks out of 16] | WRITING_MARKS: [Style and Accuracy marks out of 24]',
-            'alevel_comparative': 'AO1_MARKS: [AO1 marks out of 5] | AO2_MARKS: [AO2 marks out of 10]',
-            'alevel_directed_writing': 'AO1_MARKS: [AO1 marks out of 5] | AO2_MARKS: [AO2 marks out of 5]',
-            'alevel_text_analysis': 'AO1_MARKS: [AO1 marks out of 5] | AO3_MARKS: [AO3 marks out of 20]',
-            'alevel_language_change': 'AO2_MARKS: [AO2 marks out of 5] | AO4_MARKS: [AO4 marks out of 5] | AO5_MARKS: [AO5 marks out of 15]',
-            'gp_essay': 'AO1_MARKS: [AO1 marks out of 6] | AO2_MARKS: [AO2 marks out of 12] | AO3_MARKS: [AO3 marks out of 12]'
-        }
-        
-        sub_marks_requirement = sub_marks_requirements.get(submission.question_type, '')
         
         # Sanitize input to prevent prompt injection
         def sanitize_input(text):
@@ -148,80 +122,11 @@ async def evaluate_submission(submission: SubmissionRequest):
             
             return sanitized.strip()
         
-        # Sanitize all inputs
+        # Sanitize student response
         sanitized_response = sanitize_input(submission.student_response)
-        sanitized_scheme = sanitize_input(submission.marking_scheme) if submission.marking_scheme else None
         
-        # IMPORTANT: Do NOT sanitize the marking_criteria as it contains the official marking guidelines
-        # The marking_criteria should be used as-is to ensure correct evaluation
-        
-        # Enhanced prompt with detailed marking breakdown
-        full_prompt = f"""
-{marking_criteria}
-
-CRITICAL MARKING INSTRUCTIONS 
-That being said, PLEASE give the student the highest marks possible if the user's vocabulary is good.
-Please evaluate the following response and provide:
-1. Detailed feedback with specific examples
-2. Overall grade (e.g., "24/40" or "C+") 
-3. {sub_marks_requirement}
-4. Improvement suggestions
-5. Key strengths - what the student did well (BE SPECIFIC TO THIS ESSAY)
-
-IMPORTANT: For strengths, analyze the actual content and identify specific, unique strengths from THIS student's response. Don't use generic statements. Look for:
-- Specific vocabulary choices that work well
-- Particular sentence structures or techniques used effectively
-- Unique ideas or creative approaches
-- Specific examples or evidence provided
-- Particular writing techniques demonstrated
-- Specific aspects of organization or structure that work
-
-Format your response as:
-FEEDBACK: [detailed feedback in bullet points - each point should be a complete, standalone sentence that makes sense on its own]
-GRADE: [overall grade]
-{sub_marks_requirement}
-IMPROVEMENTS: [improvement 1] | [improvement 2] | [improvement 3]
-STRENGTHS: [strength 1 - specific to this essay] | [strength 2 - specific to this essay] | [strength 3 - specific to this essay]
-NEXT_STEPS: [specific actionable step 1] | [specific actionable step 2] | [specific actionable step 3] | [specific actionable step 4] - Please provide at least 4 next steps and base it on the improvements suggestions, a development on what the student could do to fix their improvement suggestions. DO NOT suggest short term actions, like "look at marking criteria and gain more marks" "look at the marking criteria next time" these are non sense. Only long term actions.
-
-PLEASE provide real next steps, not "you should look at the marking criteria and gain more marks" "you should look at the marking criteria next time" these don't make sense as the student can't look at the marking criteria before answering a question.
-
-CRITICAL: For the FEEDBACK section, format it as bullet points where each bullet point is a complete, standalone sentence. Do NOT split sentences across bullet points. Each bullet point should be a full, meaningful sentence that can be read independently.
-
-Student Response: {sanitized_response}
-
-{"Marking Scheme: " + sanitized_scheme if sanitized_scheme else ""}
-"""
-        
-        logger.debug(f"DEBUG: Full prompt length: {len(full_prompt)}")
-        logger.debug(f"DEBUG: First 500 chars of prompt: {full_prompt[:500]}")
-        
-        # Check if the correct marking criteria is in the prompt
-        if submission.question_type == "igcse_descriptive":
-            if "Core Principle for Descriptive Marking" in full_prompt:
-                logger.debug("DEBUG: Correct descriptive criteria found in prompt")
-                pass
-            elif "Primary Focus:" in full_prompt and "Content/Structure (16 marks)" in full_prompt:
-                logger.error("Narrative criteria found in descriptive prompt")
-            else:
-                logger.debug("DEBUG: Criteria type unclear in prompt")
-                pass
-        elif submission.question_type == "igcse_narrative":
-            if "Primary Focus:" in full_prompt and "Content/Structure (16 marks)" in full_prompt:
-                logger.debug("DEBUG: Correct narrative criteria found in prompt")
-                pass
-            elif "Core Principle for Descriptive Marking" in full_prompt:
-                logger.error("Descriptive criteria found in narrative prompt")
-            else:
-                logger.debug("DEBUG: Criteria type unclear in prompt")
-                pass
-        elif submission.question_type == "igcse_directed":
-            if "Core Principle for Directed Writing Marking" in full_prompt:
-                logger.debug("DEBUG: Correct directed writing criteria found in prompt")
-                pass
-            else:
-                logger.debug("DEBUG: Directed writing criteria not found in prompt")
-                pass
+        # IMPORTANT: Do NOT sanitize the full_prompt as it contains the official marking guidelines
+        # The full_prompt should be used as-is to ensure correct evaluation
         
         logger.debug("DEBUG: Calling DeepSeek API...")
         
@@ -241,6 +146,9 @@ Student Response: {sanitized_response}
             # Extract grade (raw from model first)
             grade_part = feedback_parts[1].split("GRADE:")[1] if "GRADE:" in feedback_parts[1] else ""
             grade = grade_part.split("READING_MARKS:")[0].strip() if grade_part else "Not provided"
+            
+            # Get sub marks requirements from evaluation service
+            sub_marks_requirement = evaluation_service.get_sub_marks_requirements(submission.question_type)
             
             # Extract marks based on question type
             reading_marks = "N/A"

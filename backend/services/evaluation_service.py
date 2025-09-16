@@ -80,6 +80,13 @@ class EvaluationService:
         if not marking_criteria:
             raise ValueError("Invalid question type")
         
+        # For IGCSE directed writing, combine general criteria with text-type-specific criteria
+        if submission.question_type == 'igcse_directed' and submission.text_type:
+            text_type_key = f"igcse_directed_{submission.text_type}"
+            text_type_criteria = self.marking_criteria.get(text_type_key, "")
+            if text_type_criteria:
+                marking_criteria = f"{marking_criteria}\n\n{text_type_criteria}"
+        
         # Add marking scheme to criteria if provided
         if submission.marking_scheme:
             marking_criteria = f"{marking_criteria}\n\nMarking Scheme:\n{submission.marking_scheme}"

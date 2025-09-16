@@ -4,6 +4,7 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
   const [markingScheme, setMarkingScheme] = useState('');
   const [commandWord, setCommandWord] = useState('');
   const [customCommandWord, setCustomCommandWord] = useState('');
+  const [textType, setTextType] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   // Restore marking scheme and command word from localStorage when modal opens
@@ -23,6 +24,16 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
         if (savedCommandWord) {
           setCommandWord(savedCommandWord);
           console.log('💾 Restored command word from localStorage:', savedCommandWord);
+        }
+      }
+
+      // For igcse_directed, also restore text type
+      if (questionType.id === 'igcse_directed') {
+        const textTypeKey = `draft_text_type_${questionType.id}`;
+        const savedTextType = localStorage.getItem(textTypeKey);
+        if (savedTextType) {
+          setTextType(savedTextType);
+          console.log('💾 Restored text type from localStorage:', savedTextType);
         }
       }
     }
@@ -46,6 +57,15 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
     }
   }, [commandWord, questionType?.id]);
 
+  // Save text type to localStorage whenever it changes (for igcse_directed)
+  useEffect(() => {
+    if (textType && questionType?.id === 'igcse_directed') {
+      const key = `draft_text_type_${questionType.id}`;
+      localStorage.setItem(key, textType);
+      console.log('💾 Saved text type to localStorage:', textType);
+    }
+  }, [textType, questionType?.id]);
+
   if (!isOpen) return null;
 
   const handleProceed = async () => {
@@ -63,11 +83,20 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
       }
     }
 
+    // For igcse_directed, also require text type
+    if (questionType?.id === 'igcse_directed') {
+      if (!textType) {
+        alert('Please select a text type before proceeding.');
+        return;
+      }
+    }
+
     setIsLoading(true);
     try {
       const data = {
         markingScheme: markingScheme.trim(),
-        commandWord: questionType?.id === 'gp_essay' ? (commandWord === 'custom' ? customCommandWord.trim() : commandWord) : null
+        commandWord: questionType?.id === 'gp_essay' ? (commandWord === 'custom' ? customCommandWord.trim() : commandWord) : null,
+        textType: questionType?.id === 'igcse_directed' ? textType : null
       };
       await onProceed(data);
       
@@ -81,6 +110,12 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
           const commandWordKey = `draft_command_word_${questionType.id}`;
           localStorage.removeItem(commandWordKey);
           console.log('🗑️ Cleared command word from localStorage');
+        }
+        
+        if (questionType.id === 'igcse_directed') {
+          const textTypeKey = `draft_text_type_${questionType.id}`;
+          localStorage.removeItem(textTypeKey);
+          console.log('🗑️ Cleared text type from localStorage');
         }
       }
     } catch (error) {
@@ -114,6 +149,12 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
     'custom'
   ];
 
+  const textTypeOptions = [
+    { value: 'speech', label: 'Speech' },
+    { value: 'letter', label: 'Letter' },
+    { value: 'article', label: 'Article' }
+  ];
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="bg-white rounded-2xl p-8 max-w-2xl mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -145,6 +186,30 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
             Provide the marking criteria, point allocation, and any specific requirements for this question type.
           </p>
         </div>
+
+        {questionType?.id === 'igcse_directed' && (
+          <div className="mb-6">
+            <label htmlFor="text-type" className="block text-sm font-medium text-gray-700 mb-2">
+              Text Type
+            </label>
+            <select
+              id="text-type"
+              value={textType}
+              onChange={(e) => setTextType(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select text type...</option>
+              {textTypeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-sm text-gray-500 mt-2">
+              Choose the specific text type for your IGCSE directed writing response.
+            </p>
+          </div>
+        )}
 
         {questionType?.id === 'gp_essay' && (
           <div className="mb-6">
@@ -197,7 +262,7 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
           </button>
           <button
             onClick={handleProceed}
-            disabled={isLoading || !markingScheme.trim() || (questionType?.id === 'gp_essay' && !commandWord)}
+            disabled={isLoading || !markingScheme.trim() || (questionType?.id === 'gp_essay' && !commandWord) || (questionType?.id === 'igcse_directed' && !textType)}
             className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
             {isLoading ? (
