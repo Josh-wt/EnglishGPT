@@ -35,15 +35,26 @@ async def call_deepseek_api(prompt: str) -> tuple[str, str]:
             {"role": "user", "content": prompt}
         ],
         "max_tokens": 4000,
-        "temperature": 0.3,
+        "temperature": 0.7,
         "stream": False
     }
     
+    logger.debug("DEBUG: Chutes API Request - DETAILED DEBUG", extra={
+        "component": "chutes",
+        "model": payload.get("model"),
+        "endpoint": CHUTES_ENDPOINT,
+        "api_key_prefix": CHUTES_API_KEY[:20] if CHUTES_API_KEY else "N/A",
+        "payload_keys": list(payload.keys()),
+        "prompt_length": len(prompt)
+    })
+
     try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        async with httpx.AsyncClient(timeout=120.0) as client:
             response = await client.post(CHUTES_ENDPOINT, headers=headers, json=payload)
+            logger.debug(f"DEBUG: Chutes API Response Status: {response.status_code}")
             response.raise_for_status()
             result = response.json()
+            logger.debug(f"DEBUG: Chutes API Response Keys: {list(result.keys()) if result else 'None'}")
             
             if 'choices' not in result or not result['choices']:
                 error_msg = "Invalid response from Chutes API: No choices in response"
