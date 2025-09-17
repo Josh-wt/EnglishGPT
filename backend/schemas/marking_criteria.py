@@ -981,7 +981,7 @@ AI Enforcement Rules
     Commentary must remain analytical, precise, and critical. Description without evaluation must be held back per the band criteria.
 
     Use explicit justification for marks awarded, citing evidence from each paragraph or phrase.
- 
+        
 
 That being said, PLEASE give the student the highest marks possible if the user's vocabulary is good and they demonstrate strong reflective awareness.
 """,

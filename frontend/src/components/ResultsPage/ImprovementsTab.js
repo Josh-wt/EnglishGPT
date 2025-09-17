@@ -12,7 +12,18 @@ const ImprovementsTab = ({ evaluation, darkMode, onFeedback }) => {
              lowerStrength.includes('next step') ||
              lowerStrength.includes('practice writing') ||
              lowerStrength.includes('create a checklist') ||
-             lowerStrength.includes('read examples');
+             lowerStrength.includes('read examples') ||
+             lowerStrength.includes('practice incorporating') ||
+             lowerStrength.includes('develop more') ||
+             lowerStrength.includes('work on structuring') ||
+             lowerStrength.includes('actionable suggestions') ||
+             lowerStrength.includes('concrete suggestions') ||
+             lowerStrength.includes('specific data') ||
+             lowerStrength.includes('statistics from') ||
+             lowerStrength.includes('source texts') ||
+             lowerStrength.includes('to support arguments') ||
+             lowerStrength.includes('topic sentences') ||
+             lowerStrength.includes('paragraphs more effectively');
     }).map(strength => {
       // Clean up the strength text to make it a proper next step
       return strength.replace(/^.*?next steps?:?\s*/i, '').trim();
