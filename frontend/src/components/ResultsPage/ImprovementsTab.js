@@ -2,6 +2,28 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const ImprovementsTab = ({ evaluation, darkMode, onFeedback }) => {
+  // Extract NEXT STEPS content from strengths if it's not in next_steps
+  const extractNextStepsFromStrengths = (strengths) => {
+    if (!strengths || !Array.isArray(strengths)) return [];
+    
+    return strengths.filter(strength => {
+      const lowerStrength = strength.toLowerCase();
+      return lowerStrength.includes('next steps') || 
+             lowerStrength.includes('next step') ||
+             lowerStrength.includes('practice writing') ||
+             lowerStrength.includes('create a checklist') ||
+             lowerStrength.includes('read examples');
+    }).map(strength => {
+      // Clean up the strength text to make it a proper next step
+      return strength.replace(/^.*?next steps?:?\s*/i, '').trim();
+    });
+  };
+
+  // Get next steps from both the dedicated field and from strengths
+  const nextStepsFromField = evaluation.next_steps || [];
+  const nextStepsFromStrengths = extractNextStepsFromStrengths(evaluation.strengths);
+  const allNextSteps = [...nextStepsFromField, ...nextStepsFromStrengths];
+
   return (
     <div className="space-y-8">
       {/* Improvements List */}
@@ -63,9 +85,9 @@ const ImprovementsTab = ({ evaluation, darkMode, onFeedback }) => {
         <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
           🎯 Next Steps
         </h3>
-        {evaluation.next_steps && evaluation.next_steps.length > 0 ? (
+        {allNextSteps && allNextSteps.length > 0 ? (
           <div className="space-y-3">
-            {evaluation.next_steps.map((step, index) => (
+            {allNextSteps.map((step, index) => (
               <motion.div 
                 key={index}
                 className={`p-4 rounded-xl border ${

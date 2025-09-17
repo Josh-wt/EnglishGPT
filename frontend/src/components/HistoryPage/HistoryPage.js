@@ -273,8 +273,8 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
         {isLoadingEvaluations ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">⏳</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Your History...</h2>
-            <p className="text-gray-600">Fetching your evaluation history from the server.</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Load. Loading. Loading... Loading...</h2>
+            <p className="text-gray-600">Getting your evaluation history ready</p>
           </div>
         ) : hasEvaluations ? (
           <EvaluationsGrid

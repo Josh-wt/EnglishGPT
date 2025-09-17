@@ -130,10 +130,11 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
       'igcse_summary': 'Example:\n• Content points (15 marks): Identify and extract key points from the text\n• Language (5 marks): Use your own words, maintain original meaning\n• Total: 20 marks',
       'igcse_writers_effect': 'Example:\n• Language analysis (10 marks): Identify and explain literary devices\n• Effect analysis (10 marks): Explain how language creates specific effects\n• Total: 20 marks',
       'igcse_directed': 'Example:\n• Content and ideas (15 marks): Address all parts of the task\n• Language and style (5 marks): Appropriate register and format\n• Total: 20 marks',
-      'alevel_comparative': 'Example:\n• Analysis of similarities (10 marks)\n• Analysis of differences (10 marks)\n• Use of evidence (10 marks)\n• Total: 30 marks',
-      'alevel_directed': 'Example:\n• Content and ideas (15 marks)\n• Language and style (10 marks)\n• Structure and organization (5 marks)\n• Total: 30 marks',
-      'alevel_text_analysis': 'Example:\n• Form and structure analysis (10 marks)\n• Language analysis (10 marks)\n• Context and purpose (10 marks)\n• Total: 30 marks',
-      'alevel_language_change': 'Example:\n• Historical context (10 marks)\n• Language change analysis (10 marks)\n• Quantitative data interpretation (10 marks)\n• Total: 30 marks',
+      'alevel_comparative': 'Please provide the source texts for comparison:\n\nText 1: [Insert first text here]\n\nText 2: [Insert second text here]\n\nMarking criteria:\n• Analysis of similarities (10 marks)\n• Analysis of differences (10 marks)\n• Use of evidence (10 marks)\n• Total: 30 marks',
+      'alevel_directed': 'Please provide the source text for transformation:\n\n[Insert source text here]\n\nMarking criteria:\n• Content and ideas (15 marks)\n• Language and style (10 marks)\n• Structure and organization (5 marks)\n• Total: 30 marks',
+      'alevel_text_analysis': 'Please provide the source text for analysis:\n\n[Insert source text here]\n\nMarking criteria:\n• AO1: Understanding and context (5 marks)\n• AO3: Analysis of form, structure, and language (20 marks)\n• Total: 25 marks',
+      'alevel_reflective_commentary': 'Please provide the source text for reflective commentary:\n\n[Insert source text here]\n\nMarking criteria:\n• AO3: Reflective analysis of writing choices (10 marks)\n• Total: 10 marks',
+      'alevel_language_change': 'Please provide the source texts for language change analysis:\n\nText A (Historical prose): [Insert historical text here]\n\nText B (N-gram data): [Insert quantitative data here]\n\nText C (Word frequency): [Insert frequency table here]\n\nMarking criteria:\n• AO2: Effective writing (5 marks)\n• AO4: Linguistic understanding (5 marks)\n• AO5: Data analysis and synthesis (15 marks)\n• Total: 25 marks',
       'gp_essay': 'Example:\n• AO1: Knowledge and understanding (6 marks)\n• AO2: Analysis and evaluation (12 marks)\n• AO3: Communication and structure (12 marks)\n• Total: 30 marks'
     };
     return placeholders[questionTypeId] || 'Please provide the marking scheme for this question type.';
@@ -164,15 +165,20 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Marking Scheme Required</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">
+            {questionType?.id?.includes('alevel_') ? 'Source Text Required' : 'Marking Scheme Required'}
+          </h3>
           <p className="text-gray-600">
-            {questionType?.name} requires a marking scheme for accurate evaluation.
+            {questionType?.id?.includes('alevel_') 
+              ? `${questionType?.name} requires source text(s) for students to read and base their essay on.`
+              : `${questionType?.name} requires a marking scheme for accurate evaluation.`
+            }
           </p>
         </div>
 
         <div className="mb-6">
           <label htmlFor="marking-scheme" className="block text-sm font-medium text-gray-700 mb-2">
-            Marking Scheme
+            {questionType?.id?.includes('alevel_') ? 'Source Text & Marking Scheme' : 'Marking Scheme'}
           </label>
           <textarea
             id="marking-scheme"
@@ -183,7 +189,10 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
             style={{ minHeight: '200px' }}
           />
           <p className="text-sm text-gray-500 mt-2">
-            Provide the marking criteria, point allocation, and any specific requirements for this question type.
+            {questionType?.id?.includes('alevel_') 
+              ? 'Provide the source text(s) for students to read and base their essay on, along with marking criteria and point allocation.'
+              : 'Provide the marking criteria, point allocation, and any specific requirements for this question type.'
+            }
           </p>
         </div>
 

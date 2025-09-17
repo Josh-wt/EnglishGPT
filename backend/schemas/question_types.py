@@ -49,16 +49,23 @@ QUESTION_TYPES = [
         "id": "alevel_directed",
         "name": "Directed Writing 1(a)",
         "category": "A-Level English (9093)",
-        "requires_marking_scheme": False,
+        "requires_marking_scheme": True,
         "description": "Transform text into a specific format for audience"
     },
-    {
-        "id": "alevel_text_analysis",
-        "name": "Text Analysis Q2",
-        "category": "A-Level English (9093)",
-        "requires_marking_scheme": True,
-        "description": "Analyze form, structure, and language in texts"
-    },
+        {
+            "id": "alevel_text_analysis",
+            "name": "Text Analysis Q2",
+            "category": "A-Level English (9093)",
+            "requires_marking_scheme": True,
+            "description": "Analyze form, structure, and language in texts"
+        },
+        {
+            "id": "alevel_reflective_commentary",
+            "name": "Reflective Commentary P2, Q1(b)",
+            "category": "A-Level English (9093)",
+            "requires_marking_scheme": True,
+            "description": "Reflective commentary on writing process and choices"
+        },
     {
         "id": "alevel_language_change",
         "name": "Language Change Analysis (P3, Section A)",

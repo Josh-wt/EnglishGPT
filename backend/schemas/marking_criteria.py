@@ -754,18 +754,12 @@ Based on the above criteria mark the essay below. The user should give two parag
 If you think the Sensory Details are good, the narrative must get over 30/40.
 """,
     "igcse_summary": """
+
 Comprehensive Guide: Understanding Marks in Summary Tasks.
 
-I. Reading Marks (Content & Understanding) - Based on Mark Scheme provided - Out of 10 marks
-- Marks are awarded for each distinct and accurate point extracted from the source text
-- All content points should be taken from the mark scheme provided for the question
-- Clear understanding and coverage of all required parts
+I. Reading Marks (Content & Understanding) - Out of X Marks (e.g., 10) This component assesses how accurately and thoroughly you have understood the source text and extracted information relevant to the specific question posed. Where Marks are Gained: Accurate Identification of Key Points (from Mark Scheme the mark scheme will be provided, use only that, nothing else): Marks are awarded for each distinct and accurate point extracted from the source text that directly addresses the specific aspects of the question (e.g., a specific advantage, a particular cause). All content points should be taken from the mark scheme provided for the question. Clear Understanding: Demonstrating a clear and precise grasp of the meaning of the points. This is shown by presenting the information accurately and without ambiguity. Coverage and Breadth: Providing a good range of relevant ideas from all required parts of the question (e.g., covering both advantages and disadvantages, or multiple causes and effects). A balanced summary will typically score higher. Implied and Inferred Understanding: Credit can be given for points that are conveyed through reasonable inference or abstract interpretation of the text, even if not explicitly stated in the summary using the exact words of the source. The ability to grasp underlying concepts from the text is valued. Contextual Relevance: Summarizing information that is broadly relevant to the prompt's context, even if not explicitly framed in a highly specific way (e.g., as a "personal experience"), can still gain marks. The focus is on extracting information pertinent to the overarching subject of the summary. Where Marks are Lost: Misreadings / Factual Inaccuracies: Stating information that directly contradicts the source text is a major area for mark loss. It demonstrates a lack of accurate understanding. However, for an otherwise strong response, a single "slight misreading" at a specific point might not prevent a very high score, indicating some tolerance for minor factual nuances. Irrelevant Information / Lack of Focus: Including details that do not directly address the specific question will lead to mark deductions. The summary must stick strictly to the prompt's requirements. Indiscriminate Selection: Copying excessive amounts of text or including extraneous details that are not essential to the core summary will reduce marks, indicating poor selection and concision. Vagueness and Lack of Precision: Presenting points in an unclear or imprecise manner, or making general statements that lack specific detail from the text, will limit marks. Speculation: Introducing information, opinions, or examples that are not present in the source text will result in lost marks, as the task requires summarizing the provided text only. Over-reliance on Direct Lifting / Repetition: While some close paraphrasing may occur, extensive direct lifting of phrases or repeating the same idea multiple times without adding new relevant information will negatively impact your score. It shows a lack of true summarization in your own words.
 
-II. Writing Marks (Language & Organization) - Out of 5 Marks
-- Use of Own Words: Rephrasing information using your own vocabulary and sentence structures
-- Clarity of Expression: Easy to understand, clear, unambiguous language
-- Organization and Structure: Well-organized, logical flow
-- Conciseness: Maximum relevant information within word limit
+II. Writing Marks (Language & Organization) - Out of Y Marks (e.g., 5) This component assesses the quality of your summary's written expression, including your use of own words, clarity, organization, and concision. Where Marks are Gained: Use of Own Words: Marks are primarily awarded for rephrasing the information from the source text using your own vocabulary and sentence structures. "Largely communicated in own words" is generally sufficient for achieving top marks, indicating that minor instances of close phrasing or structural similarities to the source text are acceptable, provided overall originality is evident. Clarity of Expression: Writing that is easy to understand, with clear, unambiguous, and precise language, will score highly. Organization and Structure: A well-organized summary that flows logically, with ideas presented in a coherent order, will be rewarded. Use of appropriate linking words and phrases contributes to a smooth progression of ideas. Conciseness: Effectively conveying the maximum amount of relevant information within the stipulated word limit demonstrates strong concision. Where Marks are Lost: Exceeding Word Limit: While the impact can vary, exceeding the word limit is generally a sign of a lack of concision. Examiners typically stop marking after the word count. However, "Real Marking" feedback suggests that significantly exceeding the limit (e.g., by 25%) does not necessarily preclude a perfect writing score if other writing qualities (clarity, organization, own words) are exceptionally strong. Lack of Concision (Internal): Even if the word count is adhered to, if the writing is verbose, uses unnecessary words or phrases, or repeats ideas unnecessarily, marks for concision will be lost. Grammar, Punctuation, and Spelling Errors: Frequent or significant errors will impede clear communication and reduce your score. Over-reliance on Source Text Language: If your summary heavily relies on direct lifting of sentences or phrases from the source text, it shows a limited ability to rephrase and use your own words effectively. Poor Flow and Organization: A summary that jumps between ideas abruptly, lacks logical transitions, or is difficult to follow will lose marks.
 
 SPECIFIC FOCUS AREAS - Where you, the AI, consistently makes mistakes while marking:
 
@@ -888,6 +882,108 @@ Prioritize candidates' ability to synthesize data from all sources, deliver sust
 Mark deductions must align with common examiner comments, including penalizing superficial analysis, missing data integration, and imprecise terminology use.
 
 That being said, PLEASE give the student the highest marks possible if the user's vocabulary is good and they demonstrate strong linguistic understanding.
+""",
+    "alevel_reflective_commentary": """
+Mark this response to Question 1(b) of Paper 2 (Reflective Commentary) from Cambridge International A Level English Language 9093, using the official AO3 mark scheme (out of 10). Provide holistic assessment guided by explicit marking bands and examiner judgment, with transparent explanations and sub-mark logic. Attend to every detail as in Cambridge examiner reports and marking grids.
+Mark Breakdown and Method
+
+    Award up to 10 marks for AO3: analysis and evaluation of linguistic choices in Question 1(a), referencing form, structure, and language, linked to task, audience, and purpose.
+
+    Refer only to the official Cambridge 9093 mark scheme and examiner commentary for mark bands, sub-marks, and descriptors.
+
+HOW TO MARK THE RESPONSE
+Step 1: Holistic Analysis with Band Descriptors
+
+Use the official AO3 grid. Assign marks ONLY on evidence of the following, seperated by band:
+Level	Descriptor	Marks
+5	Sophisticated analysis of form, structure, and language. Sophisticated analysis of how stylistic choices relate to audience and shape meaning. Language is precise, commentary is insightful and consistently analytical.	9–10
+4	Detailed analysis of form, structure, and language. Detailed awareness of how choices relate to audience and shape meaning, supported by well-chosen examples.	7–8
+3	Clear analysis of form, structure, and language. Commentary has clarity, refers to features with relevance, and links several points to audience and meaning, with occasional insight.	5–6
+2	Limited analysis of form, structure, and/or language. Limited reference to effect on audience or meaning, comments mostly descriptive rather than analytical.	3–4
+1	Minimal analysis; generic or vague commentary, little technical reference. Weak or unfocused reflection on choices made.	1–2
+0	No creditable response.	0
+Examiner’s Sub-Mark Logic
+
+    For level 5 (9–10 marks):
+
+        Candidate shows insightful, critical evaluation of form, structure, and language.
+
+        Technical choices are detailed and explained (e.g., why a particular register/tone/structure suits the audience and purpose).
+
+        Every claim is supported by close textual reference through small quotes, precise terminology, or explicit explanation.
+
+        Critical or evaluative sentences ("This choice was made because...", "This may have shaped the reader’s response by...").
+
+        Consistency and depth: candidate shows ongoing awareness by balancing multiple features (form, structure, language), not just one.
+
+    Level 4 (7–8 marks):
+
+        Most features accurately analysed or referenced.
+
+        Mainly analytical, some points may be more descriptive.
+
+        Frequent close reference, less consistent critical insight.
+
+    Level 3 (5–6 marks):
+
+        Analysis may be clear but not always supported or developed.
+
+        Some clear references to audience/purpose/feature.
+
+        Limited in depth, may miss opportunities for evaluation.
+
+    Level 2 (3–4 marks):
+
+        Mostly descriptive, occasional technical reference.
+
+        Limited awareness of effect or audience.
+
+    Level 1 (1–2 marks):
+
+        Vague, generic, or barely relevant.
+
+        Lacks technical detail or analysis.
+
+    Level 0 (0):
+
+        Irrelevant or omitted response.
+
+Features to Seek in a High-Scoring Commentary
+
+    Consistency of analysis: Commentary is sustained, every paragraph refers effectively to features and matches to audience/purpose.
+
+    Technical terminology: Use of precise linguistic/genre terms: register, tone, syntax, lexis; not just "I made it formal."
+
+    Quoting and referencing: Frequent small quotes/close references (not restating large passages).
+
+    Critical justification: Reasons for choices ("I used short sentences to make my advice direct to teenagers"), with critical awareness of effect.
+
+    Evaluation: Strengths, weaknesses, and suggested improvements are acknowledged without generic praise.
+
+    Structure: Logical, coherent, well-paragraphed commentary (not a list or bullet points).
+
+Holistic Reward Logic
+
+    Give the candidate the highest possible marks if vocabulary and analysis are strong, even if commentary structure is unconventional.
+
+    Do NOT penalise for absence of formal conclusion unless final analysis is omitted.
+
+    Errors in spelling/grammar only penalised if they impair clarity or accuracy.
+
+    Superficial description, summary only, or restating text without critical analysis must be capped at the lowest relevant band.
+
+    Commentary that fails to link feature to audience/purpose gets no higher than Level 2.
+
+AI Enforcement Rules
+
+    Do NOT allow marks higher than 4/10 if the commentary is inconsistent in tone OR contains more than 2 grammatical errors AND is generic/weak.
+
+    Commentary must remain analytical, precise, and critical. Description without evaluation must be held back per the band criteria.
+
+    Use explicit justification for marks awarded, citing evidence from each paragraph or phrase.
+ 
+
+That being said, PLEASE give the student the highest marks possible if the user's vocabulary is good and they demonstrate strong reflective awareness.
 """,
     "gp_essay": """
 CAMBRIDGE INTERNATIONAL AS LEVEL ENGLISH GENERAL PAPER 8021 - PAPER 1 ESSAY MARKING CRITERIA

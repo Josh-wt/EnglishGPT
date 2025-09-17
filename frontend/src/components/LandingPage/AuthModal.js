@@ -1,16 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LOGO_URL } from '../../constants/uiConstants';
 
-const AuthModal = ({ isOpen, onClose, onDiscord, onGoogle }) => {
-  const handleAuthSuccess = () => {
+const AuthModal = ({ isOpen, onClose, onDiscord, onGoogle, onAuthSuccess }) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const handleAuthSuccess = async () => {
     // Check if there's a saved essay from landing page
     const savedEssay = localStorage.getItem('landingPageEssay');
     
     if (savedEssay) {
-      console.log('📝 Found saved essay, redirecting to /write page');
-      // Redirect to write page where the essay will be restored
-      window.location.href = '/write';
+      console.log('📝 Found saved essay, processing immediately');
+      setIsProcessing(true);
+      
+      try {
+        // Call the custom auth success handler if provided
+        if (onAuthSuccess) {
+          await onAuthSuccess();
+        } else {
+          // Fallback to old behavior
+          window.location.href = '/write';
+        }
+      } catch (error) {
+        console.error('❌ Error processing essay after auth:', error);
+        // Fallback to write page on error
+        window.location.href = '/write';
+      } finally {
+        setIsProcessing(false);
+      }
     } else {
       console.log('📝 No saved essay, redirecting to dashboard');
       // No saved essay, go to dashboard
@@ -58,7 +75,18 @@ const AuthModal = ({ isOpen, onClose, onDiscord, onGoogle }) => {
               </div>
             </div>
             {/* Body */}
-            <div className="px-6 py-5 grid md:grid-cols-2 gap-6">
+            <div className="px-6 py-5 grid md:grid-cols-2 gap-6 relative">
+              {/* Processing Overlay */}
+              {isProcessing && (
+                <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl">
+                  <div className="text-center">
+                    <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                    <p className="text-gray-700 font-medium">Processing your essay...</p>
+                    <p className="text-gray-500 text-sm mt-1">This may take a few seconds</p>
+                  </div>
+                </div>
+              )}
+              
               <div className="order-2 md:order-1">
                 <div className="text-sm text-gray-700 mb-3 font-medium">Why sign in?</div>
                 <ul className="text-sm text-gray-700 space-y-2">
@@ -70,7 +98,11 @@ const AuthModal = ({ isOpen, onClose, onDiscord, onGoogle }) => {
               </div>
               <div className="order-1 md:order-2 space-y-3">
                 {/* Discord button */}
-                <button className="discord-btn" onClick={() => { onDiscord(); handleAuthSuccess(); }}>
+                <button 
+                  className="discord-btn" 
+                  disabled={isProcessing}
+                  onClick={() => { onDiscord(); handleAuthSuccess(); }}
+                >
                   Continue with Discord
                   <span aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
@@ -79,7 +111,11 @@ const AuthModal = ({ isOpen, onClose, onDiscord, onGoogle }) => {
                   </span>
                 </button>
                 {/* Google button */}
-                <button className="google-btn" onClick={() => { onGoogle(); handleAuthSuccess(); }}>
+                <button 
+                  className="google-btn" 
+                  disabled={isProcessing}
+                  onClick={() => { onGoogle(); handleAuthSuccess(); }}
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid" viewBox="0 0 256 262" className="svg">
                     <path fill="#4285F4" d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.69H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622 38.755 30.023 2.685.268c24.659-22.774 38.875-56.282 38.875-96.027" className="blue"></path>
                     <path fill="#34A853" d="M130.55 261.1c35.248 0 64.839-11.605 86.453-31.622l-41.196-31.913c-11.024 7.688-25.82 13.055-45.257 13.055-34.523 0-63.824-22.773-74.269-54.25l-1.531.13-40.298 31.187-.527 1.465C35.393 231.798 79.49 261.1 130.55 261.1" className="green"></path>
@@ -115,11 +151,16 @@ const AuthModal = ({ isOpen, onClose, onDiscord, onGoogle }) => {
                 transition: all .6s ease;
                 width: 100%;
               }
+              .auth-modal .discord-btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+              }
               .auth-modal .discord-btn span{background-color: rgb(82,93,218);display:grid;position:absolute;right:0;place-items:center;width:3rem;height:100%;}
               .auth-modal .discord-btn span svg{width:1.5rem;height:1.5rem;color:#fff}
               .auth-modal .discord-btn:hover{box-shadow:0 4px 30px rgba(4,175,255,.1),0 2px 30px rgba(11,158,255,.06)}
 
               .auth-modal .google-btn{padding:10px;font-weight:bold;display:flex;position:relative;overflow:hidden;border-radius:35px;align-items:center;border:2px solid black;outline:none;width:100%;max-width:320px;background:#fff}
+              .auth-modal .google-btn:disabled{opacity:0.6;cursor:not-allowed}
               .auth-modal .google-btn .svg{height:25px;margin-right:10px}
               .auth-modal .google-btn .text{z-index:10;font-size:14px}
               .auth-modal .google-btn:hover .text{animation:text 0.3s forwards}

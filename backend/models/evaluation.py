@@ -38,6 +38,6 @@ class FeedbackResponse(BaseModel):
 class FeedbackSubmitModel(BaseModel):
     user_id: str
     evaluation_id: str
-    feedback_type: str
-    feedback_text: str
-    rating: Optional[int] = None
+    category: str
+    accurate: bool
+    comments: Optional[str] = None

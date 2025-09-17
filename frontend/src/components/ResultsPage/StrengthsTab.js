@@ -2,6 +2,23 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const StrengthsTab = ({ evaluation, darkMode, onFeedback }) => {
+  // Filter out NEXT STEPS content from strengths
+  const filterStrengths = (strengths) => {
+    if (!strengths || !Array.isArray(strengths)) return [];
+    
+    return strengths.filter(strength => {
+      // Remove any content that contains "NEXT STEPS" or similar patterns
+      const lowerStrength = strength.toLowerCase();
+      return !lowerStrength.includes('next steps') && 
+             !lowerStrength.includes('next step') &&
+             !lowerStrength.includes('practice writing') &&
+             !lowerStrength.includes('create a checklist') &&
+             !lowerStrength.includes('read examples');
+    });
+  };
+
+  const filteredStrengths = filterStrengths(evaluation.strengths);
+
   return (
     <div className="space-y-8">
       {/* Strengths List */}
@@ -15,9 +32,9 @@ const StrengthsTab = ({ evaluation, darkMode, onFeedback }) => {
           ✅ Key Strengths
         </h2>
         
-        {evaluation.strengths && evaluation.strengths.length > 0 ? (
+        {filteredStrengths && filteredStrengths.length > 0 ? (
           <div className="space-y-4">
-            {evaluation.strengths.map((strength, index) => (
+            {filteredStrengths.map((strength, index) => (
               <motion.div 
                 key={index}
                 className={`p-4 rounded-xl border ${

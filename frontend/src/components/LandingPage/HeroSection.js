@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSpring, animated } from '@react-spring/web';
 import { supabase } from '../../supabaseClient';
+import { submitEvaluation } from '../../services/evaluations';
+import { getApiUrl } from '../../utils/backendUrl';
 import AuthModal from './AuthModal';
 
 const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
@@ -9,6 +11,7 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
   const [selectedQuestionType, setSelectedQuestionType] = useState(null);
   const [studentResponse, setStudentResponse] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Question types data (removing marking scheme required tags)
   const questionTypes = {
@@ -86,6 +89,46 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
     ]
   };
 
+  const processEssayAndRedirect = async (essayData, user) => {
+    setIsProcessing(true);
+    
+    try {
+      console.log('🔄 Processing essay for authenticated user:', user.id);
+      
+      // Prepare evaluation data
+      const evaluationData = {
+        question_type: essayData.questionType.id,
+        student_response: essayData.content,
+        marking_scheme: null,
+        user_id: user.id
+      };
+      
+      console.log('📤 Submitting evaluation:', evaluationData);
+      
+      // Submit evaluation using the existing service
+      const result = await submitEvaluation(evaluationData);
+      console.log('✅ Evaluation completed:', result);
+      
+      // Navigate to results page with the evaluation ID
+      const resultId = result?.short_id || result?.id;
+      if (resultId) {
+        console.log('🔗 Redirecting to results page:', resultId);
+        window.location.href = `/results/${resultId}`;
+      } else {
+        console.error('❌ No result ID received from evaluation');
+        // Fallback to dashboard
+        window.location.href = '/dashboard';
+      }
+      
+    } catch (error) {
+      console.error('❌ Error processing essay:', error);
+      // On error, redirect to write page as fallback
+      window.location.href = '/write';
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleGetAIFeedback = async () => {
     // Validate that a question type is selected and essay has content
     if (!selectedQuestionType) {
@@ -112,9 +155,9 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
     const { data: { session } } = await supabase.auth.getSession();
     
     if (session?.user) {
-      // User is authenticated - redirect to write page
-      console.log('✅ User authenticated, redirecting to /write page');
-      window.location.href = '/write';
+      // User is authenticated - process essay immediately and redirect to results
+      console.log('✅ User authenticated, processing essay immediately');
+      await processEssayAndRedirect(essayData, session.user);
     } else {
       // User is not authenticated - show auth modal
       console.log('❌ User not authenticated, showing sign-in modal');
@@ -333,16 +376,23 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
                     
                     <motion.button
                       onClick={handleGetAIFeedback}
-                      disabled={!selectedQuestionType || !studentResponse.trim()}
+                      disabled={!selectedQuestionType || !studentResponse.trim() || isProcessing}
                       className={`px-4 sm:px-6 py-3 rounded-xl font-semibold shadow-lg transform transition-all duration-300 text-sm sm:text-base ${
-                        selectedQuestionType && studentResponse.trim()
+                        selectedQuestionType && studentResponse.trim() && !isProcessing
                           ? 'bg-gradient-to-r from-blue-600 to-green-600 text-white hover:shadow-xl hover:scale-105'
                           : 'bg-gray-400 text-gray-200 cursor-not-allowed'
                       }`}
-                      whileHover={selectedQuestionType && studentResponse.trim() ? { y: -2 } : {}}
-                      whileTap={selectedQuestionType && studentResponse.trim() ? { scale: 0.95 } : {}}
+                      whileHover={selectedQuestionType && studentResponse.trim() && !isProcessing ? { y: -2 } : {}}
+                      whileTap={selectedQuestionType && studentResponse.trim() && !isProcessing ? { scale: 0.95 } : {}}
                     >
-                      Get AI Feedback Now!
+                      {isProcessing ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Processing...
+                        </div>
+                      ) : (
+                        'Get AI Feedback Now!'
+                      )}
                     </motion.button>
                   </div>
                 </>
@@ -397,6 +447,17 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
           onClose={() => setShowAuthModal(false)}
           onDiscord={onDiscord}
           onGoogle={onGoogle}
+          onAuthSuccess={async () => {
+            // Get the saved essay and process it after authentication
+            const savedEssay = localStorage.getItem('landingPageEssay');
+            if (savedEssay) {
+              const essayData = JSON.parse(savedEssay);
+              const { data: { session } } = await supabase.auth.getSession();
+              if (session?.user) {
+                await processEssayAndRedirect(essayData, session.user);
+              }
+            }
+          }}
         />
       )}
     </section>

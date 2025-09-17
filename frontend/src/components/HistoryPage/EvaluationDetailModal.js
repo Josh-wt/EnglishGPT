@@ -87,12 +87,22 @@ const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBul
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Strengths</h3>
                 <div className="bg-green-50 rounded-lg p-4">
                   <ul className="space-y-2">
-                    {parseFeedbackToBullets(evaluation.strengths).map((strength, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <span className="text-green-600 mt-1">✓</span>
-                        <span className="text-gray-800">{strength}</span>
-                      </li>
-                    ))}
+                    {parseFeedbackToBullets(evaluation.strengths)
+                      .filter(strength => {
+                        // Filter out NEXT STEPS content from strengths
+                        const lowerStrength = strength.toLowerCase();
+                        return !lowerStrength.includes('next steps') && 
+                               !lowerStrength.includes('next step') &&
+                               !lowerStrength.includes('practice writing') &&
+                               !lowerStrength.includes('create a checklist') &&
+                               !lowerStrength.includes('read examples');
+                      })
+                      .map((strength, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span className="text-green-600 mt-1">✓</span>
+                          <span className="text-gray-800">{strength}</span>
+                        </li>
+                      ))}
                   </ul>
                 </div>
               </div>
@@ -116,21 +126,45 @@ const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBul
             )}
 
             {/* Next Steps */}
-            {evaluation.next_steps && evaluation.next_steps.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">🎯 Next Steps</h3>
-                <div className="bg-indigo-50 rounded-lg p-4">
-                  <ul className="space-y-2">
-                    {evaluation.next_steps.map((step, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <span className="text-indigo-600 mt-1 font-bold">{idx + 1}.</span>
-                        <span className="text-gray-800">{step}</span>
-                      </li>
-                    ))}
-                  </ul>
+            {(() => {
+              // Extract NEXT STEPS content from strengths if it's not in next_steps
+              const extractNextStepsFromStrengths = (strengths) => {
+                if (!strengths || !Array.isArray(strengths)) return [];
+                
+                return strengths.filter(strength => {
+                  const lowerStrength = strength.toLowerCase();
+                  return lowerStrength.includes('next steps') || 
+                         lowerStrength.includes('next step') ||
+                         lowerStrength.includes('practice writing') ||
+                         lowerStrength.includes('create a checklist') ||
+                         lowerStrength.includes('read examples');
+                }).map(strength => {
+                  // Clean up the strength text to make it a proper next step
+                  return strength.replace(/^.*?next steps?:?\s*/i, '').trim();
+                });
+              };
+
+              // Get next steps from both the dedicated field and from strengths
+              const nextStepsFromField = evaluation.next_steps || [];
+              const nextStepsFromStrengths = extractNextStepsFromStrengths(evaluation.strengths);
+              const allNextSteps = [...nextStepsFromField, ...nextStepsFromStrengths];
+
+              return allNextSteps.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">🎯 Next Steps</h3>
+                  <div className="bg-indigo-50 rounded-lg p-4">
+                    <ul className="space-y-2">
+                      {allNextSteps.map((step, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span className="text-indigo-600 mt-1 font-bold">{idx + 1}.</span>
+                          <span className="text-gray-800">{step}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
           </div>
 
           {/* Footer */}

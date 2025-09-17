@@ -561,10 +561,9 @@ async def submit_feedback(feedback: dict):
         feedback_data = {
             "user_id": feedback.get("user_id"),
             "evaluation_id": feedback.get("evaluation_id"),
-            "feedback_type": feedback.get("feedback_type"),
-            "feedback_text": feedback.get("feedback_text"),
-            "rating": feedback.get("rating"),
-            "timestamp": datetime.utcnow().isoformat()
+            "category": feedback.get("category"),
+            "accurate": feedback.get("accurate"),
+            "comments": feedback.get("comments")
         }
         
         supabase.table('assessment_feedback').insert(feedback_data).execute()

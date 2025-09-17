@@ -58,13 +58,20 @@ QUESTION_TYPES = [
         "description": "Transform text into a specific format for audience",
         "requires_marking_scheme": True
     },
-    {
-        "id": "alevel_text_analysis",
-        "name": "Text Analysis Q2",
-        "category": "A-Level English (9093)",
-        "description": "Analyze form, structure, and language in texts",
-        "requires_marking_scheme": True
-    },
+        {
+            "id": "alevel_text_analysis",
+            "name": "Text Analysis Q2",
+            "category": "A-Level English (9093)",
+            "description": "Analyze form, structure, and language in texts",
+            "requires_marking_scheme": True
+        },
+        {
+            "id": "alevel_reflective_commentary",
+            "name": "Reflective Commentary P2, Q1(b)",
+            "category": "A-Level English (9093)",
+            "description": "Reflective commentary on writing process and choices",
+            "requires_marking_scheme": True
+        },
     {
         "id": "alevel_language_change",
         "name": "Language Change Analysis (P3, Section A)",
