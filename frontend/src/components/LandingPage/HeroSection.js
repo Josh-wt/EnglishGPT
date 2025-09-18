@@ -563,15 +563,37 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
               const essayData = JSON.parse(savedEssay);
               console.log('🔐 AUTH DEBUG: Parsed essayData:', essayData);
               
-              const { data: { session } } = await supabase.auth.getSession();
-              console.log('🔐 AUTH DEBUG: Session after auth:', session);
+              // Wait a bit for the session to be established
+              console.log('🔐 AUTH DEBUG: Waiting for session to be established...');
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              
+              // Try to get session with retry mechanism
+              let session = null;
+              let attempts = 0;
+              const maxAttempts = 5;
+              
+              while (!session && attempts < maxAttempts) {
+                attempts++;
+                console.log(`🔐 AUTH DEBUG: Attempt ${attempts} to get session...`);
+                const { data: { session: currentSession } } = await supabase.auth.getSession();
+                session = currentSession;
+                
+                if (!session) {
+                  console.log(`🔐 AUTH DEBUG: No session on attempt ${attempts}, waiting 500ms...`);
+                  await new Promise(resolve => setTimeout(resolve, 500));
+                }
+              }
+              
+              console.log('🔐 AUTH DEBUG: Final session after retries:', session);
               console.log('🔐 AUTH DEBUG: User from session:', session?.user);
               
               if (session?.user) {
                 console.log('🔐 AUTH DEBUG: User authenticated, calling processEssayAndRedirect');
                 await processEssayAndRedirect(essayData, session.user);
               } else {
-                console.error('❌ AUTH DEBUG: No user in session after authentication');
+                console.error('❌ AUTH DEBUG: No user in session after authentication and retries');
+                // Fallback: redirect to write page
+                window.location.href = '/write';
               }
             } else {
               console.error('❌ AUTH DEBUG: No saved essay found in localStorage');
