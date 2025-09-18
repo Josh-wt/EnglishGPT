@@ -80,9 +80,16 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
         // Clear the landing page essay from localStorage
         localStorage.removeItem('landingPageEssay');
         
-        // Show restored message
-        setRestoredDraft(true);
-        setTimeout(() => setRestoredDraft(false), 5000);
+        // Show instruction modal if this came from landing page demo
+        if (essayData.fromLandingPage) {
+          setTimeout(() => {
+            setShowInstructionModal(true);
+          }, 1000); // Small delay to let the page load
+        } else {
+          // Show restored message for regular draft restoration
+          setRestoredDraft(true);
+          setTimeout(() => setRestoredDraft(false), 5000);
+        }
         
       } catch (error) {
         console.error('❌ Error restoring landing page essay:', error);
@@ -91,50 +98,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     }
   }, [questionTypes, studentResponse, convertMarkdownToHtml]);
 
-  // Check for write page data from landing page demo
-  useEffect(() => {
-    const writePageData = localStorage.getItem('writePageData');
-    if (writePageData && !studentResponse) {
-      try {
-        const data = JSON.parse(writePageData);
-        console.log('📝 Restoring write page data from landing page:', data);
-        
-        // Set the essay content
-        setStudentResponse(data.studentResponse);
-        setFormattedText(convertMarkdownToHtml(data.studentResponse));
-        
-        // Set the question type if it matches available types
-        if (data.questionType && data.level) {
-          // Find the matching question type
-          const matchingQuestion = questionTypes?.find(qt => 
-            qt.id === data.questionType.id && 
-            (qt.category === data.level || 
-             qt.category === 'IGCSE' && data.level === 'IGCSE' ||
-             qt.category === 'A-Level' && data.level === 'A Level')
-          );
-          
-          if (matchingQuestion) {
-            setSelectedQuestionType(matchingQuestion);
-            console.log('✅ Restored question type:', matchingQuestion.name);
-          }
-        }
-        
-        // Clear the write page data from localStorage
-        localStorage.removeItem('writePageData');
-        
-        // Show instruction modal if this came from landing page
-        if (data.fromLandingPage) {
-          setTimeout(() => {
-            setShowInstructionModal(true);
-          }, 1000); // Small delay to let the page load
-        }
-        
-      } catch (error) {
-        console.error('❌ Error restoring write page data:', error);
-        localStorage.removeItem('writePageData');
-      }
-    }
-  }, [questionTypes, studentResponse, convertMarkdownToHtml]);
 
   // Autosave on change (debounced)
   useEffect(() => {

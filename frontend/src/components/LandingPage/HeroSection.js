@@ -141,23 +141,6 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
     ]
   };
 
-  const processEssayAndRedirect = async (essayData, user) => {
-    console.log('🔄 Processing essay for authenticated user:', user.id);
-    
-    // Save essay data to localStorage for the write page
-    const writePageData = {
-      questionType: essayData.questionType,
-      studentResponse: essayData.content,
-      level: essayData.level,
-      fromLandingPage: true // Flag to show instruction modal
-    };
-    
-    localStorage.setItem('writePageData', JSON.stringify(writePageData));
-    console.log('💾 Essay data saved for write page:', writePageData);
-    
-    // Redirect to write page
-    window.location.href = '/write';
-  };
 
   const handleGetAIFeedback = async () => {
     // Validate that a question type is selected and essay has content
@@ -170,6 +153,16 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
       console.log('❌ No essay content to evaluate');
       return;
     }
+    
+    // Save the current essay to localStorage first
+    const essayData = {
+      content: studentResponse,
+      questionType: selectedQuestionType,
+      level: selectedLevel,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('landingPageEssay', JSON.stringify(essayData));
+    console.log('💾 Essay saved to localStorage:', essayData);
     
     // Check if user is authenticated
     if (user) {
@@ -502,14 +495,17 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
           onDiscord={onDiscord}
           onGoogle={onGoogle}
           onAuthSuccess={async () => {
-            // Get the saved essay and process it after authentication
+            // Get the saved essay and redirect to write page after authentication
             const savedEssay = localStorage.getItem('landingPageEssay');
             if (savedEssay) {
               const essayData = JSON.parse(savedEssay);
-              const { data: { session } } = await supabase.auth.getSession();
-              if (session?.user) {
-                await processEssayAndRedirect(essayData, session.user);
-              }
+              // Add the fromLandingPage flag
+              essayData.fromLandingPage = true;
+              // Save back to localStorage with the flag
+              localStorage.setItem('landingPageEssay', JSON.stringify(essayData));
+              console.log('💾 Essay saved with fromLandingPage flag:', essayData);
+              // Redirect to write page
+              window.location.href = '/write';
             }
           }}
         />
@@ -540,20 +536,16 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
                 <button
                   onClick={() => {
                     setShowStartMarkingModal(false);
-                    // Save essay data and redirect to write page
+                    // Save essay data using the same key that QuestionTypePage expects
                     const essayData = {
                       content: studentResponse,
                       questionType: selectedQuestionType,
                       level: selectedLevel,
-                      timestamp: Date.now()
-                    };
-                    const writePageData = {
-                      questionType: essayData.questionType,
-                      studentResponse: essayData.content,
-                      level: essayData.level,
+                      timestamp: Date.now(),
                       fromLandingPage: true
                     };
-                    localStorage.setItem('writePageData', JSON.stringify(writePageData));
+                    localStorage.setItem('landingPageEssay', JSON.stringify(essayData));
+                    console.log('💾 Essay saved to localStorage:', essayData);
                     window.location.href = '/write';
                   }}
                   className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
