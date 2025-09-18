@@ -402,11 +402,12 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
                         document.execCommand('insertHTML', false, '<br><br>');
                       }
                     }}
-                    className="w-full h-64 sm:h-80 p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                    style={{ minHeight: '256px' }}
+                    className="w-full h-80 sm:h-96 p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    style={{ minHeight: '320px' }}
                     data-placeholder="Start writing your essay here... Use the toolbar above for formatting."
-                    dangerouslySetInnerHTML={{ __html: formattedText || '' }}
-                  />
+                  >
+                    {studentResponse}
+                  </div>
                   
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-6">

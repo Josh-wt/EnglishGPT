@@ -103,6 +103,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     setFormattedText(convertMarkdownToHtml(studentResponse));
   }, [studentResponse, convertMarkdownToHtml]);
 
+
   // Autosave on change (debounced)
   useEffect(() => {
     const key = 'draft_student_response';
@@ -553,11 +554,12 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                           document.execCommand('insertHTML', false, '<br><br>');
                         }
                       }}
-                      className="w-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] p-3 sm:p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-fredoka text-gray-900 transition-all duration-200 text-sm sm:text-base outline-none"
-                      style={{ minHeight: '300px' }}
+                      className="w-full min-h-[400px] sm:min-h-[500px] md:min-h-[600px] p-4 sm:p-6 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-fredoka text-gray-900 transition-all duration-200 text-sm sm:text-base outline-none"
+                      style={{ minHeight: '400px' }}
                       data-placeholder="Start writing your essay here... Use the toolbar above for formatting."
-                      dangerouslySetInnerHTML={{ __html: formattedText || '' }}
-                    />
+                    >
+                      {studentResponse}
+                    </div>
                     
                     {/* Auto-save indicator */}
                     {isTyping && (
