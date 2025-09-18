@@ -4,6 +4,11 @@ import { submitEvaluation } from '../../services/evaluations';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
 const LandingPageLoadingPage = ({ essayData, user, onComplete, onError }) => {
+  console.log('🎯 LOADING PAGE DEBUG: LandingPageLoadingPage rendered');
+  console.log('🎯 LOADING PAGE DEBUG: essayData:', essayData);
+  console.log('🎯 LOADING PAGE DEBUG: user:', user);
+  console.log('🎯 LOADING PAGE DEBUG: user.id:', user?.id);
+  
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [progress, setProgress] = useState(0);
 
@@ -55,7 +60,27 @@ const LandingPageLoadingPage = ({ essayData, user, onComplete, onError }) => {
   useEffect(() => {
     const submitEvaluationAsync = async () => {
       try {
-        console.log('🔄 LandingPageLoadingPage: Starting evaluation submission');
+        console.log('🔄 LOADING PAGE DEBUG: Starting evaluation submission');
+        console.log('🔄 LOADING PAGE DEBUG: essayData:', essayData);
+        console.log('🔄 LOADING PAGE DEBUG: user:', user);
+        
+        if (!essayData) {
+          console.error('❌ LOADING PAGE DEBUG: No essayData provided');
+          onError('No essay data provided');
+          return;
+        }
+        
+        if (!user) {
+          console.error('❌ LOADING PAGE DEBUG: No user provided');
+          onError('No user provided');
+          return;
+        }
+        
+        if (!essayData.questionType) {
+          console.error('❌ LOADING PAGE DEBUG: No questionType in essayData');
+          onError('No question type provided');
+          return;
+        }
         
         // Prepare evaluation data
         const evaluationData = {
@@ -65,11 +90,19 @@ const LandingPageLoadingPage = ({ essayData, user, onComplete, onError }) => {
           user_id: user.id
         };
         
-        console.log('📤 LandingPageLoadingPage: Submitting evaluation:', evaluationData);
+        console.log('📤 LOADING PAGE DEBUG: Submitting evaluation:', evaluationData);
+        console.log('📤 LOADING PAGE DEBUG: question_type:', evaluationData.question_type);
+        console.log('📤 LOADING PAGE DEBUG: student_response length:', evaluationData.student_response?.length);
+        console.log('📤 LOADING PAGE DEBUG: user_id:', evaluationData.user_id);
         
         // Submit evaluation
+        console.log('📤 LOADING PAGE DEBUG: Calling submitEvaluation...');
         const result = await submitEvaluation(evaluationData);
-        console.log('✅ LandingPageLoadingPage: Evaluation completed:', result);
+        console.log('✅ LOADING PAGE DEBUG: Evaluation completed:', result);
+        console.log('✅ LOADING PAGE DEBUG: Result type:', typeof result);
+        console.log('✅ LOADING PAGE DEBUG: Result keys:', Object.keys(result || {}));
+        console.log('✅ LOADING PAGE DEBUG: Result short_id:', result?.short_id);
+        console.log('✅ LOADING PAGE DEBUG: Result id:', result?.id);
         
         // Set progress to 100%
         setProgress(100);
@@ -78,21 +111,27 @@ const LandingPageLoadingPage = ({ essayData, user, onComplete, onError }) => {
         setTimeout(() => {
           // Navigate to results page
           const resultId = result?.short_id || result?.id;
+          console.log('🔗 LOADING PAGE DEBUG: Final resultId for redirect:', resultId);
           if (resultId) {
-            console.log('🔗 LandingPageLoadingPage: Redirecting to results page:', resultId);
+            console.log('🔗 LOADING PAGE DEBUG: Redirecting to results page:', resultId);
             window.location.href = `/results/${resultId}`;
           } else {
-            console.error('❌ LandingPageLoadingPage: No result ID received');
+            console.error('❌ LOADING PAGE DEBUG: No result ID received');
+            console.error('❌ LOADING PAGE DEBUG: Full result object:', result);
             onError('No result ID received from evaluation');
           }
         }, 1000);
         
       } catch (error) {
-        console.error('❌ LandingPageLoadingPage: Error submitting evaluation:', error);
+        console.error('❌ LOADING PAGE DEBUG: Error submitting evaluation:', error);
+        console.error('❌ LOADING PAGE DEBUG: Error name:', error.name);
+        console.error('❌ LOADING PAGE DEBUG: Error message:', error.message);
+        console.error('❌ LOADING PAGE DEBUG: Error stack:', error.stack);
         onError(error.message || 'Failed to submit evaluation');
       }
     };
 
+    console.log('🎯 LOADING PAGE DEBUG: useEffect triggered, starting evaluation submission');
     submitEvaluationAsync();
   }, [essayData, user, onComplete, onError]);
 

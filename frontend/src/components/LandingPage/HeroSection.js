@@ -145,23 +145,34 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
   };
 
   const processEssayAndRedirect = async (essayData, user) => {
-    console.log('🔄 Processing essay for authenticated user:', user.id);
+    console.log('🔄 LANDING PAGE DEBUG: processEssayAndRedirect called');
+    console.log('🔄 LANDING PAGE DEBUG: essayData:', essayData);
+    console.log('🔄 LANDING PAGE DEBUG: user:', user);
+    console.log('🔄 LANDING PAGE DEBUG: user.id:', user?.id);
     
     // Set loading page data and show loading page
+    console.log('🔄 LANDING PAGE DEBUG: Setting loading page data...');
     setLoadingEssayData(essayData);
     setLoadingUser(user);
+    console.log('🔄 LANDING PAGE DEBUG: Showing loading page...');
     setShowLoadingPage(true);
+    console.log('🔄 LANDING PAGE DEBUG: Loading page should now be visible');
   };
 
   const handleGetAIFeedback = async () => {
+    console.log('🚀 LANDING PAGE DEBUG: handleGetAIFeedback called');
+    console.log('🚀 LANDING PAGE DEBUG: selectedQuestionType:', selectedQuestionType);
+    console.log('🚀 LANDING PAGE DEBUG: studentResponse length:', studentResponse?.length);
+    console.log('🚀 LANDING PAGE DEBUG: studentResponse content:', studentResponse);
+    
     // Validate that a question type is selected and essay has content
     if (!selectedQuestionType) {
-      console.log('❌ No question type selected');
+      console.log('❌ LANDING PAGE DEBUG: No question type selected');
       return;
     }
     
     if (!studentResponse.trim()) {
-      console.log('❌ No essay content to evaluate');
+      console.log('❌ LANDING PAGE DEBUG: No essay content to evaluate');
       return;
     }
     
@@ -173,18 +184,23 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
       timestamp: Date.now()
     };
     localStorage.setItem('landingPageEssay', JSON.stringify(essayData));
-    console.log('💾 Essay saved to localStorage:', essayData);
+    console.log('💾 LANDING PAGE DEBUG: Essay saved to localStorage:', essayData);
     
     // Check if user is authenticated
+    console.log('🔍 LANDING PAGE DEBUG: Checking authentication...');
     const { data: { session } } = await supabase.auth.getSession();
+    console.log('🔍 LANDING PAGE DEBUG: Session data:', session);
+    console.log('🔍 LANDING PAGE DEBUG: User from session:', session?.user);
     
     if (session?.user) {
       // User is authenticated - process essay immediately and redirect to results
-      console.log('✅ User authenticated, processing essay immediately');
+      console.log('✅ LANDING PAGE DEBUG: User authenticated, processing essay immediately');
+      console.log('✅ LANDING PAGE DEBUG: User ID:', session.user.id);
+      console.log('✅ LANDING PAGE DEBUG: User email:', session.user.email);
       await processEssayAndRedirect(essayData, session.user);
     } else {
       // User is not authenticated - show auth modal
-      console.log('❌ User not authenticated, showing sign-in modal');
+      console.log('❌ LANDING PAGE DEBUG: User not authenticated, showing sign-in modal');
       setShowAuthModal(true);
     }
   };
@@ -207,18 +223,25 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
   });
 
   // Show loading page if evaluation is in progress
+  console.log('🎯 HERO DEBUG: Checking loading page conditions');
+  console.log('🎯 HERO DEBUG: showLoadingPage:', showLoadingPage);
+  console.log('🎯 HERO DEBUG: loadingEssayData:', loadingEssayData);
+  console.log('🎯 HERO DEBUG: loadingUser:', loadingUser);
+  
   if (showLoadingPage && loadingEssayData && loadingUser) {
+    console.log('🎯 HERO DEBUG: Showing loading page');
     return (
       <LandingPageLoadingPage
         essayData={loadingEssayData}
         user={loadingUser}
         onComplete={() => {
+          console.log('🎯 HERO DEBUG: Loading page completed');
           setShowLoadingPage(false);
           setLoadingEssayData(null);
           setLoadingUser(null);
         }}
         onError={(error) => {
-          console.error('❌ Loading page error:', error);
+          console.error('❌ HERO DEBUG: Loading page error:', error);
           setShowLoadingPage(false);
           setLoadingEssayData(null);
           setLoadingUser(null);
@@ -531,14 +554,27 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
           onDiscord={onDiscord}
           onGoogle={onGoogle}
           onAuthSuccess={async () => {
+            console.log('🔐 AUTH DEBUG: onAuthSuccess callback triggered');
             // Get the saved essay and process it after authentication
             const savedEssay = localStorage.getItem('landingPageEssay');
+            console.log('🔐 AUTH DEBUG: Saved essay from localStorage:', savedEssay);
+            
             if (savedEssay) {
               const essayData = JSON.parse(savedEssay);
+              console.log('🔐 AUTH DEBUG: Parsed essayData:', essayData);
+              
               const { data: { session } } = await supabase.auth.getSession();
+              console.log('🔐 AUTH DEBUG: Session after auth:', session);
+              console.log('🔐 AUTH DEBUG: User from session:', session?.user);
+              
               if (session?.user) {
+                console.log('🔐 AUTH DEBUG: User authenticated, calling processEssayAndRedirect');
                 await processEssayAndRedirect(essayData, session.user);
+              } else {
+                console.error('❌ AUTH DEBUG: No user in session after authentication');
               }
+            } else {
+              console.error('❌ AUTH DEBUG: No saved essay found in localStorage');
             }
           }}
         />
