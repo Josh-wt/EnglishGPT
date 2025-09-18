@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSpring, animated } from '@react-spring/web';
 import { supabase } from '../../supabaseClient';
-import { submitEvaluation } from '../../services/evaluations';
-import { getApiUrl } from '../../utils/backendUrl';
 import AuthModal from './AuthModal';
+import LandingPageLoadingPage from './LandingPageLoadingPage';
 
 const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
   const [selectedLevel, setSelectedLevel] = useState('IGCSE');
@@ -12,6 +11,62 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
   const [studentResponse, setStudentResponse] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showLoadingPage, setShowLoadingPage] = useState(false);
+  const [loadingEssayData, setLoadingEssayData] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(null);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [formattedText, setFormattedText] = useState('');
+  const essayRef = React.useRef(null);
+
+  // Function to convert markdown to HTML
+  const convertMarkdownToHtml = (text) => {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/"(.*?)"/g, '<span class="text-blue-600 italic">"$1"</span>')
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+  };
+
+  // Apply formatting to selected text
+  const applyFormat = (prefix, suffix = prefix) => {
+    const textarea = essayRef.current;
+    if (!textarea) return;
+    const { selectionStart, selectionEnd, value } = textarea;
+    const before = value.substring(0, selectionStart);
+    const selected = value.substring(selectionStart, selectionEnd) || 'text';
+    const after = value.substring(selectionEnd);
+    const newValue = `${before}${prefix}${selected}${suffix}${after}`;
+    setStudentResponse(newValue);
+    setFormattedText(convertMarkdownToHtml(newValue));
+    setTimeout(() => {
+      const pos = selectionStart + prefix.length + selected.length + suffix.length;
+      textarea.focus();
+      textarea.setSelectionRange(pos, pos);
+    }, 0);
+  };
+
+  // Insert paragraph break
+  const insertParagraphBreak = () => {
+    const textarea = essayRef.current;
+    if (!textarea) return;
+    const { selectionStart, selectionEnd, value } = textarea;
+    const before = value.substring(0, selectionStart);
+    const after = value.substring(selectionEnd);
+    const newValue = `${before}\n\n${after}`;
+    setStudentResponse(newValue);
+    setFormattedText(convertMarkdownToHtml(newValue));
+    setTimeout(() => {
+      const pos = selectionStart + 2;
+      textarea.focus();
+      textarea.setSelectionRange(pos, pos);
+    }, 0);
+  };
+
+  // Update formatted text when student response changes
+  useEffect(() => {
+    setFormattedText(convertMarkdownToHtml(studentResponse));
+  }, [studentResponse]);
 
   // Question types data (removing marking scheme required tags)
   const questionTypes = {
@@ -90,43 +145,12 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
   };
 
   const processEssayAndRedirect = async (essayData, user) => {
-    setIsProcessing(true);
+    console.log('🔄 Processing essay for authenticated user:', user.id);
     
-    try {
-      console.log('🔄 Processing essay for authenticated user:', user.id);
-      
-      // Prepare evaluation data
-      const evaluationData = {
-        question_type: essayData.questionType.id,
-        student_response: essayData.content,
-        marking_scheme: null,
-        user_id: user.id
-      };
-      
-      console.log('📤 Submitting evaluation:', evaluationData);
-      
-      // Submit evaluation using the existing service
-      const result = await submitEvaluation(evaluationData);
-      console.log('✅ Evaluation completed:', result);
-      
-      // Navigate to results page with the evaluation ID
-      const resultId = result?.short_id || result?.id;
-      if (resultId) {
-        console.log('🔗 Redirecting to results page:', resultId);
-        window.location.href = `/results/${resultId}`;
-      } else {
-        console.error('❌ No result ID received from evaluation');
-        // Fallback to dashboard
-        window.location.href = '/dashboard';
-      }
-      
-    } catch (error) {
-      console.error('❌ Error processing essay:', error);
-      // On error, redirect to write page as fallback
-      window.location.href = '/write';
-    } finally {
-      setIsProcessing(false);
-    }
+    // Set loading page data and show loading page
+    setLoadingEssayData(essayData);
+    setLoadingUser(user);
+    setShowLoadingPage(true);
   };
 
   const handleGetAIFeedback = async () => {
@@ -181,6 +205,29 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
     },
     config: { duration: 3000, tension: 120, friction: 15 }
   });
+
+  // Show loading page if evaluation is in progress
+  if (showLoadingPage && loadingEssayData && loadingUser) {
+    return (
+      <LandingPageLoadingPage
+        essayData={loadingEssayData}
+        user={loadingUser}
+        onComplete={() => {
+          setShowLoadingPage(false);
+          setLoadingEssayData(null);
+          setLoadingUser(null);
+        }}
+        onError={(error) => {
+          console.error('❌ Loading page error:', error);
+          setShowLoadingPage(false);
+          setLoadingEssayData(null);
+          setLoadingUser(null);
+          // Redirect to write page on error
+          window.location.href = '/write';
+        }}
+      />
+    );
+  }
 
   return (
     <section className="relative">
@@ -339,17 +386,44 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
                 <>
                   {/* Formatting Toolbar */}
                   <div className="flex items-center gap-2 mb-4">
-                    <button className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
-                      B
+                    <button 
+                      onClick={() => applyFormat('**', '**')}
+                      className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+                      title="Bold"
+                    >
+                      <strong>B</strong>
                     </button>
-                    <button className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
-                      /
+                    <button 
+                      onClick={() => applyFormat('*', '*')}
+                      className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+                      title="Italic"
+                    >
+                      <em>I</em>
                     </button>
-                    <button className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
+                    <button 
+                      onClick={() => applyFormat('"', '"')}
+                      className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+                      title="Quote"
+                    >
                       "
                     </button>
-                    <button className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
+                    <button 
+                      onClick={insertParagraphBreak}
+                      className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+                      title="New Paragraph"
+                    >
                       ¶
+                    </button>
+                    <button
+                      onClick={() => setIsPreviewMode(!isPreviewMode)}
+                      className={`px-3 py-1.5 border rounded-lg text-sm font-medium transition-colors ${
+                        isPreviewMode 
+                          ? 'bg-blue-100 text-blue-700 border-blue-300' 
+                          : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'
+                      }`}
+                      title="Toggle Preview"
+                    >
+                      👁️
                     </button>
                     <div className="ml-auto text-sm text-gray-500">
                       {studentResponse.split(/\s+/).filter(word => word.length > 0).length} words
@@ -357,13 +431,22 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
                   </div>
 
                   {/* Text Editor */}
-                  <textarea
-                    value={studentResponse}
-                    onChange={(e) => setStudentResponse(e.target.value)}
-                    placeholder="Start writing your essay here... Use the toolbar above for formatting."
-                    className="w-full h-64 sm:h-80 p-4 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    style={{ minHeight: '256px' }} // Responsive min height
-                  />
+                  {isPreviewMode ? (
+                    <div 
+                      className="w-full h-64 sm:h-80 p-4 border border-gray-300 rounded-xl bg-white overflow-y-auto"
+                      style={{ minHeight: '256px' }}
+                      dangerouslySetInnerHTML={{ __html: formattedText }}
+                    />
+                  ) : (
+                    <textarea
+                      ref={essayRef}
+                      value={studentResponse}
+                      onChange={(e) => setStudentResponse(e.target.value)}
+                      placeholder="Start writing your essay here... Use the toolbar above for formatting."
+                      className="w-full h-64 sm:h-80 p-4 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      style={{ minHeight: '256px' }} // Responsive min height
+                    />
+                  )}
                   
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-6">

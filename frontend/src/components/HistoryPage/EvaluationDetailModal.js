@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getSubmarks } from '../../utils/submarks';
 
-const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBullets, getSubmarks }) => {
+const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBullets }) => {
   if (!isOpen || !evaluation) return null;
 
   return (
@@ -23,10 +24,23 @@ const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBul
           <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">{evaluation.questionType || 'Essay Evaluation'}</h2>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {evaluation.questionType || evaluation.question_type || 'Essay Evaluation'}
+                </h2>
                 <p className="text-gray-600">
                   {new Date(evaluation.timestamp || evaluation.created_at).toLocaleDateString()}
                 </p>
+                {evaluation.short_id && (
+                  <a 
+                    href={`/results/${evaluation.short_id}`}
+                    className="inline-flex items-center mt-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    View Full Results
+                  </a>
+                )}
               </div>
               <button
                 onClick={onClose}
@@ -50,7 +64,7 @@ const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBul
               <div className="mt-4 flex flex-wrap gap-3 justify-center">
                 {getSubmarks(evaluation).map((submark, idx) => (
                   <span key={idx} className="px-3 py-2 bg-white text-purple-700 font-semibold rounded-lg shadow-sm">
-                    {submark}
+                    {submark.label}: {submark.value}
                   </span>
                 ))}
               </div>
@@ -91,23 +105,34 @@ const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBul
                       .filter(strength => {
                         // Filter out NEXT STEPS content from strengths
                         const lowerStrength = strength.toLowerCase();
-                        return !lowerStrength.includes('next steps') && 
-                               !lowerStrength.includes('next step') &&
-                               !lowerStrength.includes('practice writing') &&
-                               !lowerStrength.includes('create a checklist') &&
-                               !lowerStrength.includes('read examples') &&
-                               !lowerStrength.includes('practice incorporating') &&
-                               !lowerStrength.includes('develop more') &&
-                               !lowerStrength.includes('work on structuring') &&
-                               !lowerStrength.includes('actionable suggestions') &&
-                               !lowerStrength.includes('concrete suggestions') &&
-                               !lowerStrength.includes('specific data') &&
-                               !lowerStrength.includes('statistics from') &&
-                               !lowerStrength.includes('source texts') &&
-                               !lowerStrength.includes('to support arguments') &&
-                               !lowerStrength.includes('topic sentences') &&
-                               !lowerStrength.includes('paragraphs more effectively');
+                        const isNextStep = lowerStrength.includes('next steps') || 
+                                          lowerStrength.includes('next step') ||
+                                          lowerStrength.includes('practice writing') ||
+                                          lowerStrength.includes('create a checklist') ||
+                                          lowerStrength.includes('read examples') ||
+                                          lowerStrength.includes('practice incorporating') ||
+                                          lowerStrength.includes('develop more') ||
+                                          lowerStrength.includes('work on structuring') ||
+                                          lowerStrength.includes('actionable suggestions') ||
+                                          lowerStrength.includes('concrete suggestions') ||
+                                          lowerStrength.includes('specific data') ||
+                                          lowerStrength.includes('statistics from') ||
+                                          lowerStrength.includes('source texts') ||
+                                          lowerStrength.includes('to support arguments') ||
+                                          lowerStrength.includes('topic sentences') ||
+                                          lowerStrength.includes('paragraphs more effectively') ||
+                                          lowerStrength.includes('develop a personal') ||
+                                          lowerStrength.includes('word bank') ||
+                                          lowerStrength.includes('descriptive vocabulary') ||
+                                          lowerStrength.includes('exemplary descriptive') ||
+                                          lowerStrength.includes('analyze how successful') ||
+                                          lowerStrength.includes('maintain consistency') ||
+                                          lowerStrength.includes('varying their sentence') ||
+                                          lowerStrength.includes('avoid repetition') ||
+                                          lowerStrength.includes('moods and atmospheres');
+                        return !isNextStep;
                       })
+                      .slice(0, 3) // Limit to only 3 strengths
                       .map((strength, idx) => (
                         <li key={idx} className="flex items-start gap-2">
                           <span className="text-green-600 mt-1">✓</span>
@@ -120,18 +145,33 @@ const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBul
             )}
 
             {/* Areas for Improvement */}
-            {evaluation.improvements && (
+            {evaluation.improvement_suggestions && evaluation.improvement_suggestions.length > 0 && (
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Areas for Improvement</h3>
-                <div className="bg-yellow-50 rounded-lg p-4">
-                  <ul className="space-y-2">
-                    {parseFeedbackToBullets(evaluation.improvements).map((improvement, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <span className="text-yellow-600 mt-1">→</span>
-                        <span className="text-gray-800">{improvement}</span>
-                      </li>
-                    ))}
-                  </ul>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">💡 Areas for Improvement</h3>
+                <div className="space-y-4">
+                  {(() => {
+                    // Flatten all suggestions and split by numbered points, then number them sequentially
+                    let pointCounter = 1;
+                    return evaluation.improvement_suggestions.flatMap((suggestion, suggestionIndex) => {
+                      // Split by numbered points (e.g., 1. 2. 3.)
+                      const split = suggestion.split(/\s*(?=\d+\.)/g).map(s => s.trim()).filter(Boolean);
+                      return split.map((point, pointIndex) => (
+                        <div 
+                          key={`${suggestionIndex}-${pointIndex}`}
+                          className="bg-yellow-50 rounded-xl border border-yellow-200 p-4"
+                        >
+                          <div className="flex items-start space-x-3">
+                            <div className="w-6 h-6 bg-yellow-500 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5 flex-shrink-0">
+                              {pointCounter++}
+                            </div>
+                            <p className="text-yellow-800 font-medium">
+                              {point.replace(/^(\d+\.)\s*/, '')}
+                            </p>
+                          </div>
+                        </div>
+                      ));
+                    });
+                  })()}
                 </div>
               </div>
             )}
@@ -159,7 +199,16 @@ const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBul
                          lowerStrength.includes('source texts') ||
                          lowerStrength.includes('to support arguments') ||
                          lowerStrength.includes('topic sentences') ||
-                         lowerStrength.includes('paragraphs more effectively');
+                         lowerStrength.includes('paragraphs more effectively') ||
+                         lowerStrength.includes('develop a personal') ||
+                         lowerStrength.includes('word bank') ||
+                         lowerStrength.includes('descriptive vocabulary') ||
+                         lowerStrength.includes('exemplary descriptive') ||
+                         lowerStrength.includes('analyze how successful') ||
+                         lowerStrength.includes('maintain consistency') ||
+                         lowerStrength.includes('varying their sentence') ||
+                         lowerStrength.includes('avoid repetition') ||
+                         lowerStrength.includes('moods and atmospheres');
                 }).map(strength => {
                   // Clean up the strength text to make it a proper next step
                   return strength.replace(/^.*?next steps?:?\s*/i, '').trim();

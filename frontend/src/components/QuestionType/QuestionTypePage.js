@@ -23,6 +23,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   const [showMarkingSchemeModal, setShowMarkingSchemeModal] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [formattedText, setFormattedText] = useState('');
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const essayRef = useRef(null);
 
   // Function to convert markdown to HTML
@@ -512,6 +513,17 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                     >
                       ¶
                     </button>
+                    <button
+                      onClick={() => setIsPreviewMode(!isPreviewMode)}
+                      className={`px-2 sm:px-3 py-1.5 border rounded-md text-xs sm:text-sm font-medium transition-colors duration-200 ${
+                        isPreviewMode 
+                          ? 'bg-blue-100 border-blue-300 text-blue-700' 
+                          : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                      }`}
+                      title={isPreviewMode ? "Edit Mode" : "Preview Mode"}
+                    >
+                      {isPreviewMode ? '✏️' : '👁️'}
+                    </button>
                     <div className="flex-1"></div>
                     <div className="text-xs sm:text-sm text-gray-500 font-fredoka">
                       {wordCount} words
@@ -520,21 +532,29 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
 
                   {/* Text Editor - Full Space */}
                   <div className="flex-1 relative">
-                    <textarea
-                      ref={essayRef}
-                      value={studentResponse}
-                      onChange={(e) => {
-                        setStudentResponse(e.target.value);
-                        setIsTyping(true);
-                        setTimeout(() => setIsTyping(false), 1000);
-                      }}
-                      placeholder="Start writing your essay here... Use the toolbar above for formatting."
-                      className="w-full h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] p-3 sm:p-4 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-fredoka text-gray-900 placeholder-gray-400 transition-all duration-200 text-sm sm:text-base"
-                      style={{ minHeight: '300px' }}
-                    />
+                    {isPreviewMode ? (
+                      <div
+                        className="w-full h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] p-3 sm:p-4 border border-gray-200 rounded-lg font-fredoka text-gray-900 text-sm sm:text-base overflow-y-auto"
+                        style={{ minHeight: '300px' }}
+                        dangerouslySetInnerHTML={{ __html: formattedText || '<p class="text-gray-400">Start writing to see preview...</p>' }}
+                      />
+                    ) : (
+                      <textarea
+                        ref={essayRef}
+                        value={studentResponse}
+                        onChange={(e) => {
+                          setStudentResponse(e.target.value);
+                          setIsTyping(true);
+                          setTimeout(() => setIsTyping(false), 1000);
+                        }}
+                        placeholder="Start writing your essay here... Use the toolbar above for formatting."
+                        className="w-full h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] p-3 sm:p-4 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-fredoka text-gray-900 placeholder-gray-400 transition-all duration-200 text-sm sm:text-base"
+                        style={{ minHeight: '300px' }}
+                      />
+                    )}
                     
                     {/* Auto-save indicator */}
-                    {isTyping && (
+                    {isTyping && !isPreviewMode && (
                       <div className="absolute top-2 right-2 text-xs text-gray-400">
                         Saving...
                       </div>

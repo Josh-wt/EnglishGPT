@@ -9,6 +9,7 @@ import QuestionTypePage from './components/QuestionType';
 import AssessmentPage from './components/AssessmentPage';
 import ResultsPage from './components/ResultsPage';
 import HistoryPage from './components/HistoryPage';
+import HistoryDetailPage from './components/HistoryPage/HistoryDetailPage';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import AccountPage from './components/AccountPage';
 import PricingPage from './components/PricingPage';
@@ -704,6 +705,14 @@ const App = () => {
             navigate('/dashboard');
           }
         }
+        if (e.altKey && e.key === '5') {
+          e.preventDefault();
+          navigate('/subscription');
+        }
+        if (e.altKey && e.key === '6') {
+          e.preventDefault();
+          navigate('/account/preferences');
+        }
         if (e.key === '?' || (e.shiftKey && e.key === '/')) {
           e.preventDefault();
           setShowShortcutsHelp(true);
@@ -858,6 +867,15 @@ const App = () => {
             />
           </AuthRequired>
         } />
+        <Route path="/history/:shortId" element={
+          <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
+            <HistoryDetailPage 
+              evaluations={evaluations}
+              onBack={handleBack}
+              userPlan={userStats?.currentPlan || 'free'}
+            />
+          </AuthRequired>
+        } />
         <Route path="/analytics" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
             <AnalyticsDashboard 
@@ -879,6 +897,20 @@ const App = () => {
               toggleDarkMode={toggleDarkMode}
               onPricing={() => navigate('/pricing')}
               onBack={handleBack}
+            />
+          </AuthRequired>
+        } />
+        <Route path="/account/preferences" element={
+          <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
+            <AccountPage 
+              user={user}
+              userStats={userStats || {}}
+              onLevelChange={updateLevel}
+              darkMode={darkMode}
+              toggleDarkMode={toggleDarkMode}
+              onPricing={() => navigate('/pricing')}
+              onBack={handleBack}
+              defaultTab="preferences"
             />
           </AuthRequired>
         } />

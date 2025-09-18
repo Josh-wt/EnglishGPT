@@ -8,13 +8,13 @@ import TransactionHistory from './TransactionHistory';
 import AcademicLevelSelector from './AcademicLevelSelector';
 import Footer from '../ui/Footer';
 
-const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt = false, darkMode, toggleDarkMode, onPricing }) => {
+const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt = false, darkMode, toggleDarkMode, onPricing, defaultTab = 'profile' }) => {
   const [academicLevel, setAcademicLevel] = useState(userStats?.academicLevel || '');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [transactions, setTransactions] = useState([]);
   const [transactionsLoading, setTransactionsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [preferences, setPreferences] = useState({
     emailNotifications: true,
     marketingEmails: false,

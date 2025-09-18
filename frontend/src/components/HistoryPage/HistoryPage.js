@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import Footer from '../ui/Footer';
 import SearchFilters from './SearchFilters';
 import EvaluationsGrid from './EvaluationsGrid';
@@ -72,6 +73,7 @@ const LockedAnalyticsPage = ({ onBack, upgradeType, page = 'analytics' }) => {
 
 // History Page
 const HistoryPage = ({ onBack, evaluations, userPlan }) => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
@@ -163,8 +165,13 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
   };
 
   const handleSelectEvaluation = (evaluation) => {
-    setSelectedEvaluation(evaluation);
-    setShowDetailModal(true);
+    if (evaluation.short_id) {
+      navigate(`/history/${evaluation.short_id}`);
+    } else {
+      // Fallback to modal if no short_id
+      setSelectedEvaluation(evaluation);
+      setShowDetailModal(true);
+    }
   };
 
   const handleSelectForCompare = (selectedEvaluations) => {
@@ -307,7 +314,6 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
         parseFeedbackToBullets={parseFeedbackToBullets}
-        getSubmarks={getSubmarks}
       />
 
       <CompareModal

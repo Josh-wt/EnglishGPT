@@ -23,7 +23,16 @@ const ImprovementsTab = ({ evaluation, darkMode, onFeedback }) => {
              lowerStrength.includes('source texts') ||
              lowerStrength.includes('to support arguments') ||
              lowerStrength.includes('topic sentences') ||
-             lowerStrength.includes('paragraphs more effectively');
+             lowerStrength.includes('paragraphs more effectively') ||
+             lowerStrength.includes('develop a personal') ||
+             lowerStrength.includes('word bank') ||
+             lowerStrength.includes('descriptive vocabulary') ||
+             lowerStrength.includes('exemplary descriptive') ||
+             lowerStrength.includes('analyze how successful') ||
+             lowerStrength.includes('maintain consistency') ||
+             lowerStrength.includes('varying their sentence') ||
+             lowerStrength.includes('avoid repetition') ||
+             lowerStrength.includes('moods and atmospheres');
     }).map(strength => {
       // Clean up the strength text to make it a proper next step
       return strength.replace(/^.*?next steps?:?\s*/i, '').trim();

@@ -7,6 +7,8 @@ const KeyboardShortcutsHelp = ({ isVisible, onClose }) => {
     { key: 'Alt + 2', description: 'Go to Analytics' },
     { key: 'Alt + 3', description: 'Go to History' },
     { key: 'Alt + 4', description: 'Go to Account' },
+    { key: 'Alt + 5', description: 'Go to Subscription' },
+    { key: 'Alt + 6', description: 'Go to Account Preferences' },
     { key: 'Ctrl + Z', description: 'Undo (in text areas)' },
     { key: 'Ctrl + Y', description: 'Redo (in text areas)' },
     { key: 'Ctrl + Enter', description: 'Submit form (in text areas)' },
