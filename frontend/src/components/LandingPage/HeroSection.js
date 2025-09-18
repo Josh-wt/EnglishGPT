@@ -11,7 +11,6 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showStartMarkingModal, setShowStartMarkingModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [formattedText, setFormattedText] = useState('');
   const essayRef = React.useRef(null);
 
@@ -35,7 +34,6 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
     const after = value.substring(selectionEnd);
     const newValue = `${before}${prefix}${selected}${suffix}${after}`;
     setStudentResponse(newValue);
-    setFormattedText(convertMarkdownToHtml(newValue));
     setTimeout(() => {
       const pos = selectionStart + prefix.length + selected.length + suffix.length;
       textarea.focus();
@@ -52,7 +50,6 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
     const after = value.substring(selectionEnd);
     const newValue = `${before}\n\n${after}`;
     setStudentResponse(newValue);
-    setFormattedText(convertMarkdownToHtml(newValue));
     setTimeout(() => {
       const pos = selectionStart + 2;
       textarea.focus();
@@ -60,7 +57,7 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
     }, 0);
   };
 
-  // Update formatted text when student response changes
+  // Update formatted text immediately for live preview
   useEffect(() => {
     setFormattedText(convertMarkdownToHtml(studentResponse));
   }, [studentResponse]);
@@ -378,39 +375,36 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
                     >
                       ¶
                     </button>
-                    <button
-                      onClick={() => setIsPreviewMode(!isPreviewMode)}
-                      className={`px-3 py-1.5 border rounded-lg text-sm font-medium transition-colors ${
-                        isPreviewMode 
-                          ? 'bg-blue-100 text-blue-700 border-blue-300' 
-                          : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'
-                      }`}
-                      title="Toggle Preview"
-                    >
-                      👁️
-                    </button>
                     <div className="ml-auto text-sm text-gray-500">
                       {studentResponse.split(/\s+/).filter(word => word.length > 0).length} words
                     </div>
                   </div>
 
-                  {/* Text Editor */}
-                  {isPreviewMode ? (
-                    <div 
-                      className="w-full h-64 sm:h-80 p-4 border border-gray-300 rounded-xl bg-white overflow-y-auto"
-                      style={{ minHeight: '256px' }}
-                      dangerouslySetInnerHTML={{ __html: formattedText }}
-                    />
-                  ) : (
-                    <textarea
-                      ref={essayRef}
-                      value={studentResponse}
-                      onChange={(e) => setStudentResponse(e.target.value)}
-                      placeholder="Start writing your essay here... Use the toolbar above for formatting."
-                      className="w-full h-64 sm:h-80 p-4 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      style={{ minHeight: '256px' }} // Responsive min height
-                    />
-                  )}
+                  {/* Text Editor - Split View with Live Preview */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-64 sm:h-80" style={{ minHeight: '256px' }}>
+                    {/* Editor Side */}
+                    <div className="relative">
+                      <div className="text-xs text-gray-500 mb-2 font-medium">Editor</div>
+                      <textarea
+                        ref={essayRef}
+                        value={studentResponse}
+                        onChange={(e) => setStudentResponse(e.target.value)}
+                        placeholder="Start writing your essay here... Use the toolbar above for formatting."
+                        className="w-full h-full p-4 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        style={{ minHeight: '200px' }}
+                      />
+                    </div>
+                    
+                    {/* Preview Side */}
+                    <div className="relative">
+                      <div className="text-xs text-gray-500 mb-2 font-medium">Preview</div>
+                      <div 
+                        className="w-full h-full p-4 border border-gray-300 rounded-xl bg-gray-50 overflow-y-auto"
+                        style={{ minHeight: '200px' }}
+                        dangerouslySetInnerHTML={{ __html: formattedText || '<p class="text-gray-400">Start writing to see preview...</p>' }}
+                      />
+                    </div>
+                  </div>
                   
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-6">

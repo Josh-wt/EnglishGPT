@@ -24,7 +24,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   const [showInstructionModal, setShowInstructionModal] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [formattedText, setFormattedText] = useState('');
-  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const essayRef = useRef(null);
 
   // Function to convert markdown to HTML
@@ -99,21 +98,24 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   }, [questionTypes, studentResponse, convertMarkdownToHtml]);
 
 
+  // Update formatted text immediately for preview mode
+  useEffect(() => {
+    setFormattedText(convertMarkdownToHtml(studentResponse));
+  }, [studentResponse, convertMarkdownToHtml]);
+
   // Autosave on change (debounced)
   useEffect(() => {
     const key = 'draft_student_response';
     const handle = setTimeout(() => {
       if (studentResponse && studentResponse.trim().length > 0) {
         localStorage.setItem(key, studentResponse);
-        setFormattedText(convertMarkdownToHtml(studentResponse));
         setLastSavedAt(Date.now());
       } else {
         localStorage.removeItem(key);
-        setFormattedText('');
       }
     }, 400);
     return () => clearTimeout(handle);
-  }, [studentResponse, convertMarkdownToHtml]);
+  }, [studentResponse]);
 
   // Show loading screen when evaluation is in progress
   if (evaluationLoading) {
@@ -159,7 +161,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     const after = value.substring(selectionEnd);
     const newValue = `${before}${prefix}${selected}${suffix}${after}`;
     setStudentResponse(newValue);
-    setFormattedText(convertMarkdownToHtml(newValue));
     setTimeout(() => {
       const pos = selectionStart + prefix.length + selected.length + suffix.length;
       textarea.focus();
@@ -175,7 +176,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     const after = value.substring(selectionEnd);
     const newValue = `${before}\n\n${after}`;
     setStudentResponse(newValue);
-    setFormattedText(convertMarkdownToHtml(newValue));
     setTimeout(() => {
       const pos = selectionStart + 2;
       textarea.focus();
@@ -522,48 +522,45 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                     >
                       ¶
                     </button>
-                    <button
-                      onClick={() => setIsPreviewMode(!isPreviewMode)}
-                      className={`px-2 sm:px-3 py-1.5 border rounded-md text-xs sm:text-sm font-medium transition-colors duration-200 ${
-                        isPreviewMode 
-                          ? 'bg-blue-100 border-blue-300 text-blue-700' 
-                          : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
-                      }`}
-                      title={isPreviewMode ? "Edit Mode" : "Preview Mode"}
-                    >
-                      {isPreviewMode ? '✏️' : '👁️'}
-                    </button>
                     <div className="flex-1"></div>
                     <div className="text-xs sm:text-sm text-gray-500 font-fredoka">
                       {wordCount} words
                     </div>
                   </div>
 
-                  {/* Text Editor - Full Space */}
+                  {/* Text Editor - Split View with Live Preview */}
                   <div className="flex-1 relative">
-                    {isPreviewMode ? (
-                      <div
-                        className="w-full h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] p-3 sm:p-4 border border-gray-200 rounded-lg font-fredoka text-gray-900 text-sm sm:text-base overflow-y-auto"
-                        style={{ minHeight: '300px' }}
-                        dangerouslySetInnerHTML={{ __html: formattedText || '<p class="text-gray-400">Start writing to see preview...</p>' }}
-                      />
-                    ) : (
-                      <textarea
-                        ref={essayRef}
-                        value={studentResponse}
-                        onChange={(e) => {
-                          setStudentResponse(e.target.value);
-                          setIsTyping(true);
-                          setTimeout(() => setIsTyping(false), 1000);
-                        }}
-                        placeholder="Start writing your essay here... Use the toolbar above for formatting."
-                        className="w-full h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] p-3 sm:p-4 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-fredoka text-gray-900 placeholder-gray-400 transition-all duration-200 text-sm sm:text-base"
-                        style={{ minHeight: '300px' }}
-                      />
-                    )}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px]">
+                      {/* Editor Side */}
+                      <div className="relative">
+                        <div className="text-xs text-gray-500 mb-2 font-medium">Editor</div>
+                        <textarea
+                          ref={essayRef}
+                          value={studentResponse}
+                          onChange={(e) => {
+                            setStudentResponse(e.target.value);
+                            setIsTyping(true);
+                            setTimeout(() => setIsTyping(false), 1000);
+                          }}
+                          placeholder="Start writing your essay here... Use the toolbar above for formatting."
+                          className="w-full h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] p-3 sm:p-4 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-fredoka text-gray-900 placeholder-gray-400 transition-all duration-200 text-sm sm:text-base"
+                          style={{ minHeight: '300px' }}
+                        />
+                      </div>
+                      
+                      {/* Preview Side */}
+                      <div className="relative">
+                        <div className="text-xs text-gray-500 mb-2 font-medium">Preview</div>
+                        <div
+                          className="w-full h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] p-3 sm:p-4 border border-gray-200 rounded-lg font-fredoka text-gray-900 text-sm sm:text-base overflow-y-auto bg-gray-50"
+                          style={{ minHeight: '300px' }}
+                          dangerouslySetInnerHTML={{ __html: formattedText || '<p class="text-gray-400">Start writing to see preview...</p>' }}
+                        />
+                      </div>
+                    </div>
                     
                     {/* Auto-save indicator */}
-                    {isTyping && !isPreviewMode && (
+                    {isTyping && (
                       <div className="absolute top-2 right-2 text-xs text-gray-400">
                         Saving...
                       </div>

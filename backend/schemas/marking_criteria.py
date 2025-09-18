@@ -1010,157 +1010,157 @@ OMMAND WORD SPECIFIC MARKING CRITERIA FOR CAMBRIDGE 8021 PAPER 1
 
 CORE PRINCIPLE: While all essays are assessed using the same generic level descriptors (AO1, AO2, AO3), different command words require specific demonstrations of skills and approaches. The AI should adjust expectations and weightings within the same marking framework.
 
-═══════════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════════════
 
-1. EVALUATE / EVALUATE THE EXTENT TO WHICH / EVALUATE WHETHER
-   Official Definition: "Judge or calculate the quality, importance, amount, or value of something"
+    1. EVALUATE / EVALUATE THE EXTENT TO WHICH / EVALUATE WHETHER
+    Official Definition: "Judge or calculate the quality, importance, amount, or value of something"
 
-   SPECIFIC MARKING EXPECTATIONS:
-   
-   AO2 EMPHASIS (Critical for higher levels):
-   • Must demonstrate WEIGHING OF EVIDENCE from multiple perspectives
-   • Requires BALANCED CONSIDERATION before reaching judgment
-   • Expects analysis of STRENGTHS AND WEAKNESSES of different positions
-   • High marks demand SUPPORTED FINAL VERDICT with clear reasoning
-   • Should show EXTENT/DEGREE of agreement rather than absolute positions
-   
-   COMMAND WORD PENALTIES:
-   • ONE-SIDED ARGUMENTS: Limit to Level 3 maximum (18 marks)
-   • NO CLEAR EVALUATION/JUDGMENT: Significant AO2 penalty, max Level 2-3
-   • PURELY DESCRIPTIVE RESPONSES: Cannot exceed Level 2 (12 marks)
-   
-   REWARD PATTERNS:
-   • "However", "Nevertheless", "On the other hand" signaling balance
-   • Modal verbs: "may", "might", "could", "appears to" showing nuanced thinking
-   • Phrases like "To a large extent", "To some degree", "Partially true"
-   • Evidence-based conclusions that synthesize multiple viewpoints
+    SPECIFIC MARKING EXPECTATIONS:
+    
+    AO2 EMPHASIS (Critical for higher levels):
+    • Must demonstrate WEIGHING OF EVIDENCE from multiple perspectives
+    • Requires BALANCED CONSIDERATION before reaching judgment
+    • Expects analysis of STRENGTHS AND WEAKNESSES of different positions
+    • High marks demand SUPPORTED FINAL VERDICT with clear reasoning
+    • Should show EXTENT/DEGREE of agreement rather than absolute positions
+    
+    COMMAND WORD PENALTIES:
+    • ONE-SIDED ARGUMENTS: Limit to Level 3 maximum (18 marks)
+    • NO CLEAR EVALUATION/JUDGMENT: Significant AO2 penalty, max Level 2-3
+    • PURELY DESCRIPTIVE RESPONSES: Cannot exceed Level 2 (12 marks)
+    
+    REWARD PATTERNS:
+    • "However", "Nevertheless", "On the other hand" signaling balance
+    • Modal verbs: "may", "might", "could", "appears to" showing nuanced thinking
+    • Phrases like "To a large extent", "To some degree", "Partially true"
+    • Evidence-based conclusions that synthesize multiple viewpoints
 
-═══════════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════════════
 
-2. ASSESS / ASSESS THE VIEW THAT / ASSESS WHETHER
-   Official Definition: "Make an informed judgement"
+    2. ASSESS / ASSESS THE VIEW THAT / ASSESS WHETHER
+    Official Definition: "Make an informed judgement"
 
-   SPECIFIC MARKING EXPECTATIONS:
-   
-   AO2 EMPHASIS (Slightly different from Evaluate):
-   • Requires CRITICAL EXAMINATION of validity/effectiveness
-   • Expects EVIDENCE-BASED JUDGMENT about worth/value
-   • Must show CRITERIA for assessment (what makes something good/bad/effective)
-   • Higher marks for COMPARATIVE ASSESSMENT (better/worse than alternatives)
-   • Should demonstrate INFORMED PERSPECTIVE with supporting reasoning
-   
-   COMMAND WORD PENALTIES:
-   • UNSUPPORTED ASSERTIONS: Major AO2 penalty
-   • NO ASSESSMENT CRITERIA SHOWN: Limits AO2 achievement
-   • PURELY OPINION-BASED without evidence: Max Level 2-3
-   
-   REWARD PATTERNS:
-   • Clear criteria for judgment ("This is effective because...")
-   • Comparative language ("More/less effective than...", "Superior to...")
-   • Evidence-based reasoning ("Studies show...", "Statistics indicate...")
-   • Acknowledgment of limitations while maintaining position
+    SPECIFIC MARKING EXPECTATIONS:
+    
+    AO2 EMPHASIS (Slightly different from Evaluate):
+    • Requires CRITICAL EXAMINATION of validity/effectiveness
+    • Expects EVIDENCE-BASED JUDGMENT about worth/value
+    • Must show CRITERIA for assessment (what makes something good/bad/effective)
+    • Higher marks for COMPARATIVE ASSESSMENT (better/worse than alternatives)
+    • Should demonstrate INFORMED PERSPECTIVE with supporting reasoning
+    
+    COMMAND WORD PENALTIES:
+    • UNSUPPORTED ASSERTIONS: Major AO2 penalty
+    • NO ASSESSMENT CRITERIA SHOWN: Limits AO2 achievement
+    • PURELY OPINION-BASED without evidence: Max Level 2-3
+    
+    REWARD PATTERNS:
+    • Clear criteria for judgment ("This is effective because...")
+    • Comparative language ("More/less effective than...", "Superior to...")
+    • Evidence-based reasoning ("Studies show...", "Statistics indicate...")
+    • Acknowledgment of limitations while maintaining position
 
-═══════════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════════════
 
-3. DISCUSS / DISCUSS THIS STATEMENT
-   Official Definition: "Write about issue(s) or topic(s) in depth in a structured way"
+    3. DISCUSS / DISCUSS THIS STATEMENT
+    Official Definition: "Write about issue(s) or topic(s) in depth in a structured way"
 
-   SPECIFIC MARKING EXPECTATIONS:
-   
-   AO2 EMPHASIS (Different from Evaluate/Assess):
-   • Must PRESENT MULTIPLE VIEWPOINTS with equal consideration
-   • Requires THOROUGH EXPLORATION of different angles/perspectives
-   • Expects STRUCTURED EXAMINATION of various aspects
-   • Can reach conclusion but not essential for high marks
-   • Values DEPTH OF EXPLORATION over definitive judgment
-   
-   COMMAND WORD PENALTIES:
-   • ONE-SIDED DISCUSSION: Limit to Level 3 maximum
-   • SUPERFICIAL TREATMENT: Affects AO2 significantly
-   • NO ALTERNATIVE PERSPECTIVES: Cannot achieve Level 4-5
-   
-   REWARD PATTERNS:
-   • "Some argue that...", "Others contend that...", "Another perspective is..."
-   • Structured exploration: "Economically...", "Socially...", "Politically..."
-   • Recognition of complexity: "This issue is complex because..."
-   • Multiple stakeholder perspectives considered
+    SPECIFIC MARKING EXPECTATIONS:
+    
+    AO2 EMPHASIS (Different from Evaluate/Assess):
+    • Must PRESENT MULTIPLE VIEWPOINTS with equal consideration
+    • Requires THOROUGH EXPLORATION of different angles/perspectives
+    • Expects STRUCTURED EXAMINATION of various aspects
+    • Can reach conclusion but not essential for high marks
+    • Values DEPTH OF EXPLORATION over definitive judgment
+    
+    COMMAND WORD PENALTIES:
+    • ONE-SIDED DISCUSSION: Limit to Level 3 maximum
+    • SUPERFICIAL TREATMENT: Affects AO2 significantly
+    • NO ALTERNATIVE PERSPECTIVES: Cannot achieve Level 4-5
+    
+    REWARD PATTERNS:
+    • "Some argue that...", "Others contend that...", "Another perspective is..."
+    • Structured exploration: "Economically...", "Socially...", "Politically..."
+    • Recognition of complexity: "This issue is complex because..."
+    • Multiple stakeholder perspectives considered
 
-═══════════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════════════
 
-4. TO WHAT EXTENT / HOW FAR DO YOU AGREE
-   Official Definition: Create argument showing degree of agreement/disagreement
+    4. TO WHAT EXTENT / HOW FAR DO YOU AGREE
+    Official Definition: Create argument showing degree of agreement/disagreement
 
-   SPECIFIC MARKING EXPECTATIONS:
-   
-   AO2 EMPHASIS (Most demanding command word):
-   • Must demonstrate SPECTRUM THINKING rather than binary positions
-   • Requires EXPLICIT POSITIONING on extent scale ("largely", "partially", "minimally")
-   • Expects GRADUATED ANALYSIS showing different degrees of validity
-   • Higher marks for SOPHISTICATED POSITIONING ("In certain contexts", "Under specific conditions")
-   • Must show WHY extent varies (conditions, circumstances, limitations)
-   
-   COMMAND WORD PENALTIES:
-   • BINARY THINKING (completely true/false): Limit to Level 3
-   • NO EXPLICIT EXTENT STATEMENT: Significant AO2 penalty
-   • FAILURE TO SHOW VARYING DEGREES: Max Level 2-3
-   
-   REWARD PATTERNS:
-   • Explicit extent language: "To a considerable extent...", "To a limited degree..."
-   • Conditional statements: "This is true when...", "This applies primarily to..."
-   • Graduated analysis: "More true for X than Y", "Varies depending on..."
-   • Contextual qualification: "In developed countries... however in developing nations..."
+    SPECIFIC MARKING EXPECTATIONS:
+    
+    AO2 EMPHASIS (Most demanding command word):
+    • Must demonstrate SPECTRUM THINKING rather than binary positions
+    • Requires EXPLICIT POSITIONING on extent scale ("largely", "partially", "minimally")
+    • Expects GRADUATED ANALYSIS showing different degrees of validity
+    • Higher marks for SOPHISTICATED POSITIONING ("In certain contexts", "Under specific conditions")
+    • Must show WHY extent varies (conditions, circumstances, limitations)
+    
+    COMMAND WORD PENALTIES:
+    • BINARY THINKING (completely true/false): Limit to Level 3
+    • NO EXPLICIT EXTENT STATEMENT: Significant AO2 penalty
+    • FAILURE TO SHOW VARYING DEGREES: Max Level 2-3
+    
+    REWARD PATTERNS:
+    • Explicit extent language: "To a considerable extent...", "To a limited degree..."
+    • Conditional statements: "This is true when...", "This applies primarily to..."
+    • Graduated analysis: "More true for X than Y", "Varies depending on..."
+    • Contextual qualification: "In developed countries... however in developing nations..."
 
-═══════════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════════════
 
-5. CONSIDER / WHAT IS YOUR VIEW
-   Official Definition: "Review and respond to given information"
+    5. CONSIDER / WHAT IS YOUR VIEW
+    Official Definition: "Review and respond to given information"
 
-   SPECIFIC MARKING EXPECTATIONS:
-   
-   AO2 EMPHASIS (More personal but still analytical):
-   • Allows more PERSONAL PERSPECTIVE but must be JUSTIFIED
-   • Requires THOUGHTFUL CONSIDERATION of different aspects
-   • Expects REASONED PERSONAL POSITION with supporting evidence
-   • Values REFLECTIVE THINKING and INFORMED OPINION
-   • Must show AWARENESS of alternative views even if disagreeing
-   
-   COMMAND WORD PENALTIES:
-   • PURELY SUBJECTIVE OPINION: Limit to Level 2-3
-   • NO JUSTIFICATION OF VIEW: Major AO2 penalty
-   • IGNORANCE of other perspectives: Affects AO2
-   
-   REWARD PATTERNS:
-   • "I believe that... because...", "My view is that... due to..."
-   • "While others might argue..., I maintain that..."
-   • Personal examples used appropriately to support position
-   • Acknowledgment of complexity in forming view
+    SPECIFIC MARKING EXPECTATIONS:
+    
+    AO2 EMPHASIS (More personal but still analytical):
+    • Allows more PERSONAL PERSPECTIVE but must be JUSTIFIED
+    • Requires THOUGHTFUL CONSIDERATION of different aspects
+    • Expects REASONED PERSONAL POSITION with supporting evidence
+    • Values REFLECTIVE THINKING and INFORMED OPINION
+    • Must show AWARENESS of alternative views even if disagreeing
+    
+    COMMAND WORD PENALTIES:
+    • PURELY SUBJECTIVE OPINION: Limit to Level 2-3
+    • NO JUSTIFICATION OF VIEW: Major AO2 penalty
+    • IGNORANCE of other perspectives: Affects AO2
+    
+    REWARD PATTERNS:
+    • "I believe that... because...", "My view is that... due to..."
+    • "While others might argue..., I maintain that..."
+    • Personal examples used appropriately to support position
+    • Acknowledgment of complexity in forming view
 
-═══════════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════════════
 
-6. ANALYSE / EXAMINE
-   Official Definition: "Examine in detail to show meaning, identify elements and relationships"
+    6. ANALYSE / EXAMINE
+    Official Definition: "Examine in detail to show meaning, identify elements and relationships"
 
-   SPECIFIC MARKING EXPECTATIONS:
-   
-   AO2 EMPHASIS (Focus on breakdown and understanding):
-   • Must BREAK DOWN complex issues into component parts
-   • Requires examination of RELATIONSHIPS and CONNECTIONS
-   • Expects DETAILED EXPLORATION of causes, effects, implications
-   • Values SYSTEMATIC EXAMINATION rather than broad coverage
-   • Should show HOW different elements interact or influence each other
-   
-   COMMAND WORD PENALTIES:
-   • PURELY DESCRIPTIVE without analysis: Max Level 2
-   • NO BREAKDOWN of complexity: Limits AO2 achievement
-   • SURFACE-LEVEL treatment: Affects level placement
-   
-   REWARD PATTERNS:
-   • "This is caused by...", "This leads to...", "The relationship between..."
-   • Systematic breakdown: "The main factors are...", "This comprises..."
-   • Cause-effect relationships explored
-   • Interconnections identified and explained
+    SPECIFIC MARKING EXPECTATIONS:
+    
+    AO2 EMPHASIS (Focus on breakdown and understanding):
+    • Must BREAK DOWN complex issues into component parts
+    • Requires examination of RELATIONSHIPS and CONNECTIONS
+    • Expects DETAILED EXPLORATION of causes, effects, implications
+    • Values SYSTEMATIC EXAMINATION rather than broad coverage
+    • Should show HOW different elements interact or influence each other
+    
+    COMMAND WORD PENALTIES:
+    • PURELY DESCRIPTIVE without analysis: Max Level 2
+    • NO BREAKDOWN of complexity: Limits AO2 achievement
+    • SURFACE-LEVEL treatment: Affects level placement
+    
+    REWARD PATTERNS:
+    • "This is caused by...", "This leads to...", "The relationship between..."
+    • Systematic breakdown: "The main factors are...", "This comprises..."
+    • Cause-effect relationships explored
+    • Interconnections identified and explained
 
-═══════════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════════════
 
 IMPLEMENTATION GUIDANCE FOR AI MARKING:
 

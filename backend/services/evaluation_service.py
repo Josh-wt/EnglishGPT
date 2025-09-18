@@ -74,6 +74,65 @@ class EvaluationService:
         
         return sub_marks_requirements.get(question_type, '')
     
+    def get_gp_essay_command_word_criteria(self, command_word: str) -> str:
+        """Get specific command word criteria for GP Essay."""
+        if not command_word:
+            return ""
+        
+        # Map command words to their specific criteria sections
+        command_word_mapping = {
+            'evaluate': 'EVALUATE / EVALUATE THE EXTENT TO WHICH / EVALUATE WHETHER',
+            'evaluate the extent to which': 'EVALUATE / EVALUATE THE EXTENT TO WHICH / EVALUATE WHETHER',
+            'evaluate whether': 'EVALUATE / EVALUATE THE EXTENT TO WHICH / EVALUATE WHETHER',
+            'assess': 'ASSESS / ASSESS THE VIEW THAT / ASSESS WHETHER',
+            'assess the view that': 'ASSESS / ASSESS THE VIEW THAT / ASSESS WHETHER',
+            'assess whether': 'ASSESS / ASSESS THE VIEW THAT / ASSESS WHETHER',
+            'discuss': 'DISCUSS / DISCUSS THIS STATEMENT',
+            'discuss this statement': 'DISCUSS / DISCUSS THIS STATEMENT',
+            'to what extent': 'TO WHAT EXTENT / HOW FAR DO YOU AGREE',
+            'how far do you agree': 'TO WHAT EXTENT / HOW FAR DO YOU AGREE',
+            'consider': 'CONSIDER / WHAT IS YOUR VIEW',
+            'what is your view': 'CONSIDER / WHAT IS YOUR VIEW',
+            'analyse': 'ANALYSE / EXAMINE',
+            'examine': 'ANALYSE / EXAMINE'
+        }
+        
+        # Normalize command word (lowercase, trim)
+        normalized_command = command_word.lower().strip()
+        
+        # Find matching section header
+        section_header = command_word_mapping.get(normalized_command)
+        if not section_header:
+            return ""
+        
+        # Extract the specific criteria for this command word from the marking criteria
+        gp_essay_criteria = self.marking_criteria.get('gp_essay', '')
+        
+        # Find the start of the command word section
+        start_marker = f"{section_header}"
+        start_index = gp_essay_criteria.find(start_marker)
+        
+        if start_index == -1:
+            return ""
+        
+        # Find the end of this section (next section or end of command word criteria)
+        end_markers = [
+            "═══════════════════════════════════════════════════════════════════",
+            "IMPLEMENTATION GUIDANCE FOR AI MARKING:",
+            "ASSESSMENT LEVELS (Total: 30 marks):"
+        ]
+        
+        end_index = len(gp_essay_criteria)
+        for marker in end_markers:
+            marker_index = gp_essay_criteria.find(marker, start_index)
+            if marker_index != -1 and marker_index < end_index:
+                end_index = marker_index
+        
+        # Extract the specific command word criteria
+        command_word_criteria = gp_essay_criteria[start_index:end_index].strip()
+        
+        return command_word_criteria
+    
     def build_evaluation_prompt(self, submission: SubmissionRequest) -> str:
         """Build the complete evaluation prompt."""
         # Get marking criteria
@@ -87,6 +146,12 @@ class EvaluationService:
             text_type_criteria = self.marking_criteria.get(text_type_key, "")
             if text_type_criteria:
                 marking_criteria = f"{marking_criteria}\n\n{text_type_criteria}"
+        
+        # For GP Essay, combine general criteria with command-word-specific criteria
+        if submission.question_type == 'gp_essay' and submission.command_word:
+            command_word_criteria = self.get_gp_essay_command_word_criteria(submission.command_word)
+            if command_word_criteria:
+                marking_criteria = f"{marking_criteria}\n\n{command_word_criteria}"
         
         # Add marking scheme to criteria if provided
         if submission.marking_scheme:
