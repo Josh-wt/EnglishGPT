@@ -24,6 +24,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   const [showInstructionModal, setShowInstructionModal] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [formattedText, setFormattedText] = useState('');
+  const [isUserTyping, setIsUserTyping] = useState(false);
   const essayRef = useRef(null);
 
   // Function to convert markdown to HTML
@@ -102,6 +103,15 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   useEffect(() => {
     setFormattedText(convertMarkdownToHtml(studentResponse));
   }, [studentResponse, convertMarkdownToHtml]);
+
+  // Set initial content in the editor only when needed (not when user is typing)
+  useEffect(() => {
+    const editor = essayRef.current;
+    if (editor && studentResponse && !isUserTyping && editor.textContent !== studentResponse) {
+      // Only update if the content is actually different and user is not actively typing
+      editor.textContent = studentResponse;
+    }
+  }, [studentResponse, isUserTyping]);
 
 
   // Autosave on change (debounced)
@@ -543,9 +553,13 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                       suppressContentEditableWarning={true}
                       onInput={(e) => {
                         const newValue = e.target.textContent || e.target.innerText || '';
+                        setIsUserTyping(true);
                         setStudentResponse(newValue);
                         setIsTyping(true);
-                        setTimeout(() => setIsTyping(false), 1000);
+                        setTimeout(() => {
+                          setIsTyping(false);
+                          setIsUserTyping(false);
+                        }, 1000);
                       }}
                       onKeyDown={(e) => {
                         // Handle Enter key for new paragraphs
@@ -557,9 +571,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                       className="w-full min-h-[400px] sm:min-h-[500px] md:min-h-[600px] p-4 sm:p-6 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-fredoka text-gray-900 transition-all duration-200 text-sm sm:text-base outline-none"
                       style={{ minHeight: '400px' }}
                       data-placeholder="Start writing your essay here... Use the toolbar above for formatting."
-                    >
-                      {studentResponse}
-                    </div>
+                    />
                     
                     {/* Auto-save indicator */}
                     {isTyping && (

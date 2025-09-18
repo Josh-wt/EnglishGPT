@@ -12,6 +12,7 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
   const [showStartMarkingModal, setShowStartMarkingModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [formattedText, setFormattedText] = useState('');
+  const [isUserTyping, setIsUserTyping] = useState(false);
   const essayRef = React.useRef(null);
 
   // Function to convert markdown to HTML
@@ -60,6 +61,15 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
   useEffect(() => {
     setFormattedText(convertMarkdownToHtml(studentResponse));
   }, [studentResponse]);
+
+  // Set initial content in the editor only when needed (not when user is typing)
+  useEffect(() => {
+    const editor = essayRef.current;
+    if (editor && studentResponse && !isUserTyping && editor.textContent !== studentResponse) {
+      // Only update if the content is actually different and user is not actively typing
+      editor.textContent = studentResponse;
+    }
+  }, [studentResponse, isUserTyping]);
 
   // Question types data (removing marking scheme required tags)
   const questionTypes = {
@@ -393,7 +403,9 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
                     suppressContentEditableWarning={true}
                     onInput={(e) => {
                       const newValue = e.target.textContent || e.target.innerText || '';
+                      setIsUserTyping(true);
                       setStudentResponse(newValue);
+                      setTimeout(() => setIsUserTyping(false), 1000);
                     }}
                     onKeyDown={(e) => {
                       // Handle Enter key for new paragraphs
@@ -405,9 +417,7 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
                     className="w-full h-80 sm:h-96 p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                     style={{ minHeight: '320px' }}
                     data-placeholder="Start writing your essay here... Use the toolbar above for formatting."
-                  >
-                    {studentResponse}
-                  </div>
+                  />
                   
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-6">
