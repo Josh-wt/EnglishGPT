@@ -153,34 +153,33 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   }
 
   const applyFormat = (prefix, suffix = prefix) => {
-    const textarea = essayRef.current;
-    if (!textarea) return;
-    const { selectionStart, selectionEnd, value } = textarea;
-    const before = value.substring(0, selectionStart);
-    const selected = value.substring(selectionStart, selectionEnd) || 'text';
-    const after = value.substring(selectionEnd);
-    const newValue = `${before}${prefix}${selected}${suffix}${after}`;
+    const editor = essayRef.current;
+    if (!editor) return;
+    
+    // Use document.execCommand for contentEditable
+    if (prefix === '**' && suffix === '**') {
+      document.execCommand('bold', false, null);
+    } else if (prefix === '*' && suffix === '*') {
+      document.execCommand('italic', false, null);
+    } else if (prefix === '"' && suffix === '"') {
+      document.execCommand('insertHTML', false, '"' + (window.getSelection().toString() || 'quote') + '"');
+    }
+    
+    // Update the state with the new content
+    const newValue = editor.textContent || editor.innerText || '';
     setStudentResponse(newValue);
-    setTimeout(() => {
-      const pos = selectionStart + prefix.length + selected.length + suffix.length;
-      textarea.focus();
-      textarea.setSelectionRange(pos, pos);
-    }, 0);
   };
 
   const insertParagraphBreak = () => {
-    const textarea = essayRef.current;
-    if (!textarea) return;
-    const { selectionStart, selectionEnd, value } = textarea;
-    const before = value.substring(0, selectionStart);
-    const after = value.substring(selectionEnd);
-    const newValue = `${before}\n\n${after}`;
+    const editor = essayRef.current;
+    if (!editor) return;
+    
+    // Insert paragraph break using contentEditable
+    document.execCommand('insertHTML', false, '<br><br>');
+    
+    // Update the state with the new content
+    const newValue = editor.textContent || editor.innerText || '';
     setStudentResponse(newValue);
-    setTimeout(() => {
-      const pos = selectionStart + 2;
-      textarea.focus();
-      textarea.setSelectionRange(pos, pos);
-    }, 0);
   };
 
   const wordCount = studentResponse.trim().split(/\s+/).filter(w => w.length > 0).length;
@@ -360,6 +359,13 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50">
+      <style jsx>{`
+        [contenteditable]:empty:before {
+          content: attr(data-placeholder);
+          color: #9ca3af;
+          pointer-events: none;
+        }
+      `}</style>
       {/* Enhanced Header */}
       <div className="bg-white/80 backdrop-blur-sm shadow-lg border-b border-pink-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -528,36 +534,30 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                     </div>
                   </div>
 
-                  {/* Text Editor - Split View with Live Preview */}
+                  {/* Text Editor with Live Markdown Formatting */}
                   <div className="flex-1 relative">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px]">
-                      {/* Editor Side */}
-                      <div className="relative">
-                        <div className="text-xs text-gray-500 mb-2 font-medium">Editor</div>
-                        <textarea
-                          ref={essayRef}
-                          value={studentResponse}
-                          onChange={(e) => {
-                            setStudentResponse(e.target.value);
-                            setIsTyping(true);
-                            setTimeout(() => setIsTyping(false), 1000);
-                          }}
-                          placeholder="Start writing your essay here... Use the toolbar above for formatting."
-                          className="w-full h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] p-3 sm:p-4 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-fredoka text-gray-900 placeholder-gray-400 transition-all duration-200 text-sm sm:text-base"
-                          style={{ minHeight: '300px' }}
-                        />
-                      </div>
-                      
-                      {/* Preview Side */}
-                      <div className="relative">
-                        <div className="text-xs text-gray-500 mb-2 font-medium">Preview</div>
-                        <div
-                          className="w-full h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] p-3 sm:p-4 border border-gray-200 rounded-lg font-fredoka text-gray-900 text-sm sm:text-base overflow-y-auto bg-gray-50"
-                          style={{ minHeight: '300px' }}
-                          dangerouslySetInnerHTML={{ __html: formattedText || '<p class="text-gray-400">Start writing to see preview...</p>' }}
-                        />
-                      </div>
-                    </div>
+                    <div 
+                      ref={essayRef}
+                      contentEditable
+                      suppressContentEditableWarning={true}
+                      onInput={(e) => {
+                        const newValue = e.target.textContent || e.target.innerText || '';
+                        setStudentResponse(newValue);
+                        setIsTyping(true);
+                        setTimeout(() => setIsTyping(false), 1000);
+                      }}
+                      onKeyDown={(e) => {
+                        // Handle Enter key for new paragraphs
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          document.execCommand('insertHTML', false, '<br><br>');
+                        }
+                      }}
+                      className="w-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] p-3 sm:p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-fredoka text-gray-900 transition-all duration-200 text-sm sm:text-base outline-none"
+                      style={{ minHeight: '300px' }}
+                      data-placeholder="Start writing your essay here... Use the toolbar above for formatting."
+                      dangerouslySetInnerHTML={{ __html: formattedText || '' }}
+                    />
                     
                     {/* Auto-save indicator */}
                     {isTyping && (

@@ -26,35 +26,34 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
 
   // Apply formatting to selected text
   const applyFormat = (prefix, suffix = prefix) => {
-    const textarea = essayRef.current;
-    if (!textarea) return;
-    const { selectionStart, selectionEnd, value } = textarea;
-    const before = value.substring(0, selectionStart);
-    const selected = value.substring(selectionStart, selectionEnd) || 'text';
-    const after = value.substring(selectionEnd);
-    const newValue = `${before}${prefix}${selected}${suffix}${after}`;
+    const editor = essayRef.current;
+    if (!editor) return;
+    
+    // Use document.execCommand for contentEditable
+    if (prefix === '**' && suffix === '**') {
+      document.execCommand('bold', false, null);
+    } else if (prefix === '*' && suffix === '*') {
+      document.execCommand('italic', false, null);
+    } else if (prefix === '"' && suffix === '"') {
+      document.execCommand('insertHTML', false, '"' + (window.getSelection().toString() || 'quote') + '"');
+    }
+    
+    // Update the state with the new content
+    const newValue = editor.textContent || editor.innerText || '';
     setStudentResponse(newValue);
-    setTimeout(() => {
-      const pos = selectionStart + prefix.length + selected.length + suffix.length;
-      textarea.focus();
-      textarea.setSelectionRange(pos, pos);
-    }, 0);
   };
 
   // Insert paragraph break
   const insertParagraphBreak = () => {
-    const textarea = essayRef.current;
-    if (!textarea) return;
-    const { selectionStart, selectionEnd, value } = textarea;
-    const before = value.substring(0, selectionStart);
-    const after = value.substring(selectionEnd);
-    const newValue = `${before}\n\n${after}`;
+    const editor = essayRef.current;
+    if (!editor) return;
+    
+    // Insert paragraph break using contentEditable
+    document.execCommand('insertHTML', false, '<br><br>');
+    
+    // Update the state with the new content
+    const newValue = editor.textContent || editor.innerText || '';
     setStudentResponse(newValue);
-    setTimeout(() => {
-      const pos = selectionStart + 2;
-      textarea.focus();
-      textarea.setSelectionRange(pos, pos);
-    }, 0);
   };
 
   // Update formatted text immediately for live preview
@@ -192,6 +191,13 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
 
   return (
     <section className="relative">
+      <style jsx>{`
+        [contenteditable]:empty:before {
+          content: attr(data-placeholder);
+          color: #9ca3af;
+          pointer-events: none;
+        }
+      `}</style>
       <motion.div 
         className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24"
         initial={{ opacity: 0 }}
@@ -380,31 +386,27 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
                     </div>
                   </div>
 
-                  {/* Text Editor - Split View with Live Preview */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-64 sm:h-80" style={{ minHeight: '256px' }}>
-                    {/* Editor Side */}
-                    <div className="relative">
-                      <div className="text-xs text-gray-500 mb-2 font-medium">Editor</div>
-                      <textarea
-                        ref={essayRef}
-                        value={studentResponse}
-                        onChange={(e) => setStudentResponse(e.target.value)}
-                        placeholder="Start writing your essay here... Use the toolbar above for formatting."
-                        className="w-full h-full p-4 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        style={{ minHeight: '200px' }}
-                      />
-                    </div>
-                    
-                    {/* Preview Side */}
-                    <div className="relative">
-                      <div className="text-xs text-gray-500 mb-2 font-medium">Preview</div>
-                      <div 
-                        className="w-full h-full p-4 border border-gray-300 rounded-xl bg-gray-50 overflow-y-auto"
-                        style={{ minHeight: '200px' }}
-                        dangerouslySetInnerHTML={{ __html: formattedText || '<p class="text-gray-400">Start writing to see preview...</p>' }}
-                      />
-                    </div>
-                  </div>
+                  {/* Text Editor with Live Markdown Formatting */}
+                  <div 
+                    ref={essayRef}
+                    contentEditable
+                    suppressContentEditableWarning={true}
+                    onInput={(e) => {
+                      const newValue = e.target.textContent || e.target.innerText || '';
+                      setStudentResponse(newValue);
+                    }}
+                    onKeyDown={(e) => {
+                      // Handle Enter key for new paragraphs
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        document.execCommand('insertHTML', false, '<br><br>');
+                      }
+                    }}
+                    className="w-full h-64 sm:h-80 p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    style={{ minHeight: '256px' }}
+                    data-placeholder="Start writing your essay here... Use the toolbar above for formatting."
+                    dangerouslySetInnerHTML={{ __html: formattedText || '' }}
+                  />
                   
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-6">
