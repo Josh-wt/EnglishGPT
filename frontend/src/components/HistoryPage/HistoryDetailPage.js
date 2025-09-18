@@ -11,7 +11,7 @@ const HistoryDetailPage = ({ evaluations, onBack, userPlan }) => {
 
   useEffect(() => {
     // Find the evaluation by short_id
-    const foundEvaluation = evaluations.find(eval => eval.short_id === shortId);
+    const foundEvaluation = evaluations.find(evaluation => evaluation.short_id === shortId);
     if (foundEvaluation) {
       setEvaluation(foundEvaluation);
       setLoading(false);
