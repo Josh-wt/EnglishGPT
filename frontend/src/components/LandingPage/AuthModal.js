@@ -6,35 +6,33 @@ const AuthModal = ({ isOpen, onClose, onDiscord, onGoogle, onAuthSuccess }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   
   const handleAuthSuccess = async () => {
-    // Check if there's a saved essay from landing page
-    const savedEssay = localStorage.getItem('landingPageEssay');
+    setIsProcessing(true);
     
-    if (savedEssay) {
-      console.log('📝 Found saved essay, processing immediately');
-      setIsProcessing(true);
-      
-      try {
-        // Call the custom auth success handler if provided
-        if (onAuthSuccess) {
-          await onAuthSuccess();
-        } else {
-          // Fallback to old behavior
+    try {
+      // Call the custom auth success handler if provided
+      if (onAuthSuccess) {
+        console.log('📝 Using custom onAuthSuccess callback');
+        await onAuthSuccess();
+      } else {
+        // Fallback behavior - check for saved essay
+        const savedEssay = localStorage.getItem('landingPageEssay');
+        
+        if (savedEssay) {
+          console.log('📝 Found saved essay, redirecting to write page');
           window.location.href = '/write';
+        } else {
+          console.log('📝 No saved essay, redirecting to dashboard');
+          window.location.href = '/dashboard';
         }
-      } catch (error) {
-        console.error('❌ Error processing essay after auth:', error);
-        // Fallback to write page on error
-        window.location.href = '/write';
-      } finally {
-        setIsProcessing(false);
       }
-    } else {
-      console.log('📝 No saved essay, redirecting to dashboard');
-      // No saved essay, go to dashboard
-      window.location.href = '/dashboard';
+    } catch (error) {
+      console.error('❌ Error processing auth success:', error);
+      // Fallback to write page on error
+      window.location.href = '/write';
+    } finally {
+      setIsProcessing(false);
+      onClose();
     }
-    
-    onClose();
   };
 
   return (
