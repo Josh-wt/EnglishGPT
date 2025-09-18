@@ -21,6 +21,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [showExample, setShowExample] = useState(false);
   const [showMarkingSchemeModal, setShowMarkingSchemeModal] = useState(false);
+  const [showInstructionModal, setShowInstructionModal] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [formattedText, setFormattedText] = useState('');
   const [isPreviewMode, setIsPreviewMode] = useState(false);
@@ -86,6 +87,51 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       } catch (error) {
         console.error('❌ Error restoring landing page essay:', error);
         localStorage.removeItem('landingPageEssay');
+      }
+    }
+  }, [questionTypes, studentResponse, convertMarkdownToHtml]);
+
+  // Check for write page data from landing page demo
+  useEffect(() => {
+    const writePageData = localStorage.getItem('writePageData');
+    if (writePageData && !studentResponse) {
+      try {
+        const data = JSON.parse(writePageData);
+        console.log('📝 Restoring write page data from landing page:', data);
+        
+        // Set the essay content
+        setStudentResponse(data.studentResponse);
+        setFormattedText(convertMarkdownToHtml(data.studentResponse));
+        
+        // Set the question type if it matches available types
+        if (data.questionType && data.level) {
+          // Find the matching question type
+          const matchingQuestion = questionTypes?.find(qt => 
+            qt.id === data.questionType.id && 
+            (qt.category === data.level || 
+             qt.category === 'IGCSE' && data.level === 'IGCSE' ||
+             qt.category === 'A-Level' && data.level === 'A Level')
+          );
+          
+          if (matchingQuestion) {
+            setSelectedQuestionType(matchingQuestion);
+            console.log('✅ Restored question type:', matchingQuestion.name);
+          }
+        }
+        
+        // Clear the write page data from localStorage
+        localStorage.removeItem('writePageData');
+        
+        // Show instruction modal if this came from landing page
+        if (data.fromLandingPage) {
+          setTimeout(() => {
+            setShowInstructionModal(true);
+          }, 1000); // Small delay to let the page load
+        }
+        
+      } catch (error) {
+        console.error('❌ Error restoring write page data:', error);
+        localStorage.removeItem('writePageData');
       }
     }
   }, [questionTypes, studentResponse, convertMarkdownToHtml]);
@@ -618,6 +664,32 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
         questionType={selectedQuestionType}
         darkMode={darkMode}
       />
+
+      {/* Instruction Modal for Landing Page Demo */}
+      {showInstructionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className={`${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'} rounded-2xl max-w-md w-full p-6 border shadow-xl`}>
+            <div className="text-center">
+              <div className="text-4xl mb-4">🎉</div>
+              <h3 className="text-xl font-bold mb-3">Welcome to EEnglishGPT!</h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
+                Great! Your essay has been loaded. Now click the <strong>"GET AI FEEDBACK"</strong> button below to get your AI-powered evaluation.
+              </p>
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 mb-4">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  💡 <strong>Tip:</strong> The AI will analyze your essay and provide detailed feedback with marks and improvement suggestions.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowInstructionModal(false)}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
+              >
+                Got it! Let's get my feedback
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

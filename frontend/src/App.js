@@ -362,7 +362,7 @@ const App = () => {
       if (wordCount === 1) {
         return {
           isValid: false,
-          error: `Your essay is too long. You have ${wordCount} word, but you need at least 100 words for a proper evaluation. We understand you might want to test our AI, for that, please look at our examples on the dashboard. Please write a more detailed response to get meaningful feedback.`
+          error: `Your essay is too short. You have ${wordCount} word, but you need at least 100 words for a proper evaluation. We understand you might want to test our AI, for that, please look at our examples on the dashboard. Please write a more detailed response to get meaningful feedback.`
         };
       }
     }
@@ -773,7 +773,7 @@ const App = () => {
     <>
       <Routes>
         {/* Public routes */}
-        <Route path="/" element={<LandingPage onDiscord={signInWithDiscord} onGoogle={signInWithGoogle} />} />
+        <Route path="/" element={<LandingPage onDiscord={signInWithDiscord} onGoogle={signInWithGoogle} user={user} />} />
         <Route path="/results/:id" element={
           <PublicResultPageWrapper 
             darkMode={darkMode}

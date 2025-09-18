@@ -9,7 +9,7 @@ import CTASection from './CTASection';
 import Footer from './Footer';
 import AuthModal from './AuthModal';
 
-const LandingPage = ({ onDiscord, onGoogle }) => {
+const LandingPage = ({ onDiscord, onGoogle, user }) => {
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleGetStarted = () => {
@@ -108,8 +108,8 @@ const LandingPage = ({ onDiscord, onGoogle }) => {
         </div>
       </div>
 
-      <Header onGetStarted={handleGetStarted} />
-      <HeroSection onGetStarted={handleGetStarted} onStartMarking={handleStartMarking} onDiscord={onDiscord} onGoogle={onGoogle} />
+      <Header onGetStarted={handleGetStarted} user={user} />
+      <HeroSection onGetStarted={handleGetStarted} onStartMarking={handleStartMarking} onDiscord={onDiscord} onGoogle={onGoogle} user={user} />
       <FeatureSection />
       <TestimonialsSection />
       <FAQSection />

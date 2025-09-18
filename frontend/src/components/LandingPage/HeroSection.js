@@ -3,17 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSpring, animated } from '@react-spring/web';
 import { supabase } from '../../supabaseClient';
 import AuthModal from './AuthModal';
-import LandingPageLoadingPage from './LandingPageLoadingPage';
 
-const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
+const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }) => {
   const [selectedLevel, setSelectedLevel] = useState('IGCSE');
   const [selectedQuestionType, setSelectedQuestionType] = useState(null);
   const [studentResponse, setStudentResponse] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showStartMarkingModal, setShowStartMarkingModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showLoadingPage, setShowLoadingPage] = useState(false);
-  const [loadingEssayData, setLoadingEssayData] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(null);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [formattedText, setFormattedText] = useState('');
   const essayRef = React.useRef(null);
@@ -145,62 +142,43 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
   };
 
   const processEssayAndRedirect = async (essayData, user) => {
-    console.log('🔄 LANDING PAGE DEBUG: processEssayAndRedirect called');
-    console.log('🔄 LANDING PAGE DEBUG: essayData:', essayData);
-    console.log('🔄 LANDING PAGE DEBUG: user:', user);
-    console.log('🔄 LANDING PAGE DEBUG: user.id:', user?.id);
+    console.log('🔄 Processing essay for authenticated user:', user.id);
     
-    // Set loading page data and show loading page
-    console.log('🔄 LANDING PAGE DEBUG: Setting loading page data...');
-    setLoadingEssayData(essayData);
-    setLoadingUser(user);
-    console.log('🔄 LANDING PAGE DEBUG: Showing loading page...');
-    setShowLoadingPage(true);
-    console.log('🔄 LANDING PAGE DEBUG: Loading page should now be visible');
+    // Save essay data to localStorage for the write page
+    const writePageData = {
+      questionType: essayData.questionType,
+      studentResponse: essayData.content,
+      level: essayData.level,
+      fromLandingPage: true // Flag to show instruction modal
+    };
+    
+    localStorage.setItem('writePageData', JSON.stringify(writePageData));
+    console.log('💾 Essay data saved for write page:', writePageData);
+    
+    // Redirect to write page
+    window.location.href = '/write';
   };
 
   const handleGetAIFeedback = async () => {
-    console.log('🚀 LANDING PAGE DEBUG: handleGetAIFeedback called');
-    console.log('🚀 LANDING PAGE DEBUG: selectedQuestionType:', selectedQuestionType);
-    console.log('🚀 LANDING PAGE DEBUG: studentResponse length:', studentResponse?.length);
-    console.log('🚀 LANDING PAGE DEBUG: studentResponse content:', studentResponse);
-    
     // Validate that a question type is selected and essay has content
     if (!selectedQuestionType) {
-      console.log('❌ LANDING PAGE DEBUG: No question type selected');
+      console.log('❌ No question type selected');
       return;
     }
     
     if (!studentResponse.trim()) {
-      console.log('❌ LANDING PAGE DEBUG: No essay content to evaluate');
+      console.log('❌ No essay content to evaluate');
       return;
     }
     
-    // Save the current essay to localStorage
-    const essayData = {
-      content: studentResponse,
-      questionType: selectedQuestionType,
-      level: selectedLevel,
-      timestamp: Date.now()
-    };
-    localStorage.setItem('landingPageEssay', JSON.stringify(essayData));
-    console.log('💾 LANDING PAGE DEBUG: Essay saved to localStorage:', essayData);
-    
     // Check if user is authenticated
-    console.log('🔍 LANDING PAGE DEBUG: Checking authentication...');
-    const { data: { session } } = await supabase.auth.getSession();
-    console.log('🔍 LANDING PAGE DEBUG: Session data:', session);
-    console.log('🔍 LANDING PAGE DEBUG: User from session:', session?.user);
-    
-    if (session?.user) {
-      // User is authenticated - process essay immediately and redirect to results
-      console.log('✅ LANDING PAGE DEBUG: User authenticated, processing essay immediately');
-      console.log('✅ LANDING PAGE DEBUG: User ID:', session.user.id);
-      console.log('✅ LANDING PAGE DEBUG: User email:', session.user.email);
-      await processEssayAndRedirect(essayData, session.user);
+    if (user) {
+      // User is authenticated - show start marking modal
+      console.log('✅ User authenticated, showing start marking modal');
+      setShowStartMarkingModal(true);
     } else {
       // User is not authenticated - show auth modal
-      console.log('❌ LANDING PAGE DEBUG: User not authenticated, showing sign-in modal');
+      console.log('❌ User not authenticated, showing sign-in modal');
       setShowAuthModal(true);
     }
   };
@@ -221,36 +199,6 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
     },
     config: { duration: 3000, tension: 120, friction: 15 }
   });
-
-  // Show loading page if evaluation is in progress
-  console.log('🎯 HERO DEBUG: Checking loading page conditions');
-  console.log('🎯 HERO DEBUG: showLoadingPage:', showLoadingPage);
-  console.log('🎯 HERO DEBUG: loadingEssayData:', loadingEssayData);
-  console.log('🎯 HERO DEBUG: loadingUser:', loadingUser);
-  
-  if (showLoadingPage && loadingEssayData && loadingUser) {
-    console.log('🎯 HERO DEBUG: Showing loading page');
-    return (
-      <LandingPageLoadingPage
-        essayData={loadingEssayData}
-        user={loadingUser}
-        onComplete={() => {
-          console.log('🎯 HERO DEBUG: Loading page completed');
-          setShowLoadingPage(false);
-          setLoadingEssayData(null);
-          setLoadingUser(null);
-        }}
-        onError={(error) => {
-          console.error('❌ HERO DEBUG: Loading page error:', error);
-          setShowLoadingPage(false);
-          setLoadingEssayData(null);
-          setLoadingUser(null);
-          // Redirect to write page on error
-          window.location.href = '/write';
-        }}
-      />
-    );
-  }
 
   return (
     <section className="relative">
@@ -554,52 +502,68 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle }) => {
           onDiscord={onDiscord}
           onGoogle={onGoogle}
           onAuthSuccess={async () => {
-            console.log('🔐 AUTH DEBUG: onAuthSuccess callback triggered');
             // Get the saved essay and process it after authentication
             const savedEssay = localStorage.getItem('landingPageEssay');
-            console.log('🔐 AUTH DEBUG: Saved essay from localStorage:', savedEssay);
-            
             if (savedEssay) {
               const essayData = JSON.parse(savedEssay);
-              console.log('🔐 AUTH DEBUG: Parsed essayData:', essayData);
-              
-              // Wait a bit for the session to be established
-              console.log('🔐 AUTH DEBUG: Waiting for session to be established...');
-              await new Promise(resolve => setTimeout(resolve, 1000));
-              
-              // Try to get session with retry mechanism
-              let session = null;
-              let attempts = 0;
-              const maxAttempts = 5;
-              
-              while (!session && attempts < maxAttempts) {
-                attempts++;
-                console.log(`🔐 AUTH DEBUG: Attempt ${attempts} to get session...`);
-                const { data: { session: currentSession } } = await supabase.auth.getSession();
-                session = currentSession;
-                
-                if (!session) {
-                  console.log(`🔐 AUTH DEBUG: No session on attempt ${attempts}, waiting 500ms...`);
-                  await new Promise(resolve => setTimeout(resolve, 500));
-                }
-              }
-              
-              console.log('🔐 AUTH DEBUG: Final session after retries:', session);
-              console.log('🔐 AUTH DEBUG: User from session:', session?.user);
-              
+              const { data: { session } } = await supabase.auth.getSession();
               if (session?.user) {
-                console.log('🔐 AUTH DEBUG: User authenticated, calling processEssayAndRedirect');
                 await processEssayAndRedirect(essayData, session.user);
-              } else {
-                console.error('❌ AUTH DEBUG: No user in session after authentication and retries');
-                // Fallback: redirect to write page
-                window.location.href = '/write';
               }
-            } else {
-              console.error('❌ AUTH DEBUG: No saved essay found in localStorage');
             }
           }}
         />
+      )}
+
+      {/* Start Marking Modal for Authenticated Users */}
+      {showStartMarkingModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 border shadow-xl">
+            <div className="text-center">
+              <div className="text-4xl mb-4">🎯</div>
+              <h3 className="text-xl font-bold mb-3">Ready to Get AI Feedback?</h3>
+              <p className="text-gray-600 mb-4">
+                You're already logged in! Click below to start marking your essay and get detailed AI feedback.
+              </p>
+              <div className="bg-green-50 rounded-lg p-3 mb-4">
+                <p className="text-sm text-green-800">
+                  ✨ <strong>You're all set!</strong> Your essay will be analyzed with our advanced AI system.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowStartMarkingModal(false)}
+                  className="flex-1 bg-gray-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-gray-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowStartMarkingModal(false);
+                    // Save essay data and redirect to write page
+                    const essayData = {
+                      content: studentResponse,
+                      questionType: selectedQuestionType,
+                      level: selectedLevel,
+                      timestamp: Date.now()
+                    };
+                    const writePageData = {
+                      questionType: essayData.questionType,
+                      studentResponse: essayData.content,
+                      level: essayData.level,
+                      fromLandingPage: true
+                    };
+                    localStorage.setItem('writePageData', JSON.stringify(writePageData));
+                    window.location.href = '/write';
+                  }}
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
+                >
+                  Start Marking
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   );

@@ -5,7 +5,7 @@ export const ERROR_MESSAGES = {
       message: 'Your essay exceeds the maximum word limit for this question type.',
       details: {
         IGCSE: 'IGCSE essays should be no more than 700 words.',
-        A_LEVEL: 'A-Level essays should be no more than 1400 words.',
+        A_LEVEL: 'A-Level essays should be no more than 1000 words.',
       },
     },
     PROFANITY_DETECTED: {

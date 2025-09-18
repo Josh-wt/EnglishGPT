@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { LOGO_URL } from '../../constants/uiConstants';
 
-const Header = ({ onGetStarted }) => {
+const Header = ({ onGetStarted, user }) => {
   return (
     <motion.header 
       className="relative"
@@ -77,7 +77,7 @@ const Header = ({ onGetStarted }) => {
               whileHover={{ x: "0%" }}
               transition={{ duration: 0.3 }}
             />
-            <span className="relative z-10">Get Started</span>
+            <span className="relative z-10">{user ? 'Log in' : 'Get Started'}</span>
           </motion.button>
         </motion.div>
       </div>
