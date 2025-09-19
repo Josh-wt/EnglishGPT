@@ -429,6 +429,15 @@ async def evaluate_submission(submission: SubmissionRequest):
         if dynamic_grade:
             grade = dynamic_grade
 
+        # Create full_chat data for admin view
+        import json
+        from datetime import datetime
+        full_chat_data = {
+            "prompt": full_prompt,
+            "response": ai_response,
+            "timestamp": datetime.now().isoformat()
+        }
+        
         # Create feedback response
         feedback_response = FeedbackResponse(
             user_id=submission.user_id,
@@ -445,7 +454,8 @@ async def evaluate_submission(submission: SubmissionRequest):
             style_accuracy_marks=style_accuracy_marks if submission.question_type in ['igcse_narrative', 'igcse_descriptive'] else None,
             improvement_suggestions=improvements,
             strengths=strengths,
-            next_steps=next_steps
+            next_steps=next_steps,
+            full_chat=json.dumps(full_chat_data)
         )
         
         logger.debug("DEBUG: Created feedback response, updating user stats...")
