@@ -260,7 +260,7 @@ async def evaluate_submission(submission: SubmissionRequest):
                 # GP essay needs AO1, AO2, and AO3 marks
                 if "AO1_MARKS:" in ai_response:
                     ao1_part = ai_response.split("AO1_MARKS:")[1]
-                    next_sections = ["AO2_MARKS:", "AO3_MARKS:", "IMPROVEMENTS:", "STRENGTHS:"]
+                    next_sections = ["AO2_MARKS:", "AO3_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
                     ao1_marks = ao1_part.strip()
                     for section in next_sections:
                         if section in ao1_part:
@@ -269,7 +269,7 @@ async def evaluate_submission(submission: SubmissionRequest):
                 
                 if "AO2_MARKS:" in ai_response:
                     ao2_part = ai_response.split("AO2_MARKS:")[1]
-                    next_sections = ["AO3_MARKS:", "IMPROVEMENTS:", "STRENGTHS:"]
+                    next_sections = ["AO3_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
                     ao2_marks = ao2_part.strip()
                     for section in next_sections:
                         if section in ao2_part:
@@ -278,7 +278,7 @@ async def evaluate_submission(submission: SubmissionRequest):
                 
                 if "AO3_MARKS:" in ai_response:
                     ao3_part = ai_response.split("AO3_MARKS:")[1]
-                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:"]
+                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
                     ao3_marks = ao3_part.strip()
                     for section in next_sections:
                         if section in ao3_part:
@@ -424,7 +424,8 @@ async def evaluate_submission(submission: SubmissionRequest):
             ao1_marks,
             ao2_marks,
             content_structure_marks,
-            style_accuracy_marks
+            style_accuracy_marks,
+            ao3_marks
         )
         if dynamic_grade:
             grade = dynamic_grade
