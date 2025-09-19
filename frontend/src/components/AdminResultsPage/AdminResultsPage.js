@@ -189,7 +189,7 @@ const AdminResultsPage = ({ darkMode }) => {
               </div>
               <div className="p-6">
                 <pre className={`whitespace-pre-wrap text-sm font-mono ${darkMode ? 'text-gray-300' : 'text-gray-800'} bg-gray-100 p-4 rounded-lg overflow-auto max-h-96`}>
-                  {fullChat?.prompt || 'No prompt data available'}
+                  {fullChat?.prompt || fullChat?.error || 'No prompt data available'}
                 </pre>
               </div>
             </div>
@@ -210,7 +210,7 @@ const AdminResultsPage = ({ darkMode }) => {
               </div>
               <div className="p-6">
                 <pre className={`whitespace-pre-wrap text-sm font-mono ${darkMode ? 'text-gray-300' : 'text-gray-800'} bg-gray-100 p-4 rounded-lg overflow-auto max-h-96`}>
-                  {fullChat?.response || 'No response data available'}
+                  {fullChat?.response || fullChat?.error || 'No response data available'}
                 </pre>
               </div>
             </div>

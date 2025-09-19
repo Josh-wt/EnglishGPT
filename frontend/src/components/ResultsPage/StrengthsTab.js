@@ -4,9 +4,15 @@ import { motion } from 'framer-motion';
 const StrengthsTab = ({ evaluation, darkMode, onFeedback }) => {
   // Extract strengths (4th, 5th, 6th bullet points from AI response)
   const getStrengths = () => {
-    if (!evaluation.strengths || !Array.isArray(evaluation.strengths)) return [];
+    // Combine all points into one array: improvements + strengths + next_steps
+    const allPoints = [
+      ...(evaluation.improvement_suggestions || []),
+      ...(evaluation.strengths || []),
+      ...(evaluation.next_steps || [])
+    ];
+    
     // AI provides 9 points: 1-3 improvements, 4-6 strengths, 7-9 next steps
-    return evaluation.strengths.slice(3, 6); // Get points 4, 5, 6
+    return allPoints.slice(3, 6); // Get points 4, 5, 6 (strengths)
   };
 
   const strengths = getStrengths();

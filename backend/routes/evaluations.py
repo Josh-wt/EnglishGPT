@@ -581,6 +581,8 @@ async def get_evaluation_admin_view(evaluation_id: str):
                 full_chat_data = json.loads(evaluation['full_chat'])
             except (json.JSONDecodeError, TypeError):
                 full_chat_data = {"error": "Failed to parse full_chat data"}
+        else:
+            full_chat_data = {"error": "No full_chat data available - this evaluation was created before admin logging was implemented"}
         
         return {
             "evaluation": evaluation,

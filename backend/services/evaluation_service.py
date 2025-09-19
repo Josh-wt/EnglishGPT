@@ -221,13 +221,23 @@ Student Response: {sanitized_response}
             
             # Extract grade (raw from model first)
             grade_part = feedback_parts[1].split("GRADE:")[1] if "GRADE:" in feedback_parts[1] else ""
-            grade = grade_part.split("READING_MARKS:")[0].strip() if grade_part else "Not provided"
+            if grade_part:
+                # Find the next section after GRADE
+                next_sections = ["READING_MARKS:", "AO1_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
+                grade = grade_part.strip()
+                for section in next_sections:
+                    if section in grade_part:
+                        grade = grade_part.split(section)[0].strip()
+                        break
+            else:
+                grade = "Not provided"
             
             # Extract marks based on question type
             reading_marks = "N/A"
             writing_marks = "N/A"
             ao1_marks = "N/A"
             ao2_marks = "N/A"
+            ao3_marks = "N/A"
             content_structure_marks = "N/A"
             style_accuracy_marks = "N/A"
             
@@ -304,10 +314,10 @@ Student Response: {sanitized_response}
                 if "AO3_MARKS:" in ai_response:
                     ao3_part = ai_response.split("AO3_MARKS:")[1]
                     next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                    ao1_marks = ao3_part.strip()  # Store AO3 in ao1_marks field for now
+                    ao3_marks = ao3_part.strip()
                     for section in next_sections:
                         if section in ao3_part:
-                            ao1_marks = ao3_part.split(section)[0].strip()
+                            ao3_marks = ao3_part.split(section)[0].strip()
                             break
             elif question_type in ['alevel_text_analysis']:
                 # A-Level text analysis needs AO1 and AO3 marks
@@ -507,6 +517,7 @@ Student Response: {sanitized_response}
             writing_marks = "N/A"
             ao1_marks = "N/A"
             ao2_marks = "N/A"
+            ao3_marks = "N/A"
             improvements = []
             strengths = []
             next_steps = []
@@ -518,6 +529,7 @@ Student Response: {sanitized_response}
             "writing_marks": writing_marks,
             "ao1_marks": ao1_marks,
             "ao2_marks": ao2_marks,
+            "ao3_marks": ao3_marks,
             "content_structure_marks": content_structure_marks,
             "style_accuracy_marks": style_accuracy_marks,
             "improvements": improvements,
@@ -587,6 +599,7 @@ Student Response: {sanitized_response}
                 writing_marks=parsed_data["writing_marks"],
                 ao1_marks=parsed_data["ao1_marks"],
                 ao2_marks=parsed_data["ao2_marks"],
+                ao3_marks=parsed_data["ao3_marks"] if submission.question_type in ['gp_essay'] else None,
                 content_structure_marks=parsed_data["content_structure_marks"] if submission.question_type in ['igcse_narrative', 'igcse_descriptive'] else None,
                 style_accuracy_marks=parsed_data["style_accuracy_marks"] if submission.question_type in ['igcse_narrative', 'igcse_descriptive'] else None,
                 improvement_suggestions=parsed_data["improvements"],

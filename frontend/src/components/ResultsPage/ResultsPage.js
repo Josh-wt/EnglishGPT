@@ -188,6 +188,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       alevel_text_analysis: ['AO1', 'AO2'], // AO3 is stored in ao2_marks field
       alevel_reflective_commentary: ['AO2'], // AO3 is stored in ao2_marks field, out of 10
       alevel_language_change: ['AO2', 'AO1', 'READING'], // AO4 stored in ao1_marks, AO5 stored in reading_marks
+      gp_essay: ['AO1', 'AO2', 'AO3'],
       sat_essay: ['READING', 'WRITING']
     };
 
@@ -203,6 +204,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       alevel_text_analysis: { AO1: 5, AO2: 20 },
       alevel_reflective_commentary: { AO2: 10 }, // AO3 out of 10
       alevel_language_change: { AO2: 5, AO1: 5, READING: 15 },
+      gp_essay: { AO1: 6, AO2: 12, AO3: 12 },
       sat_essay: { READING: 8, WRITING: 16 }
     };
 
