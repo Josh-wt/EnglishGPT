@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import ExampleModal from './ExampleModal';
 import LoadingSpinner from '../ui/LoadingSpinner';
@@ -28,14 +28,14 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   const essayRef = useRef(null);
 
   // Function to convert markdown to HTML
-  const convertMarkdownToHtml = (text) => {
+  const convertMarkdownToHtml = useCallback((text) => {
     return text
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
       .replace(/"(.*?)"/g, '<span class="text-blue-600 italic">"$1"</span>')
       .replace(/\n\n/g, '<br><br>')
       .replace(/\n/g, '<br>');
-  };
+  }, []);
 
   // Restore draft on mount
   useEffect(() => {
@@ -47,7 +47,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       setRestoredDraft(true);
       setTimeout(() => setRestoredDraft(false), 3000);
     }
-  }, []);
+  }, [convertMarkdownToHtml]);
 
   // Check for landing page essay and restore it
   useEffect(() => {
@@ -96,7 +96,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
         localStorage.removeItem('landingPageEssay');
       }
     }
-  }, [questionTypes, studentResponse, convertMarkdownToHtml]);
+  }, [questionTypes]); // Removed studentResponse and convertMarkdownToHtml from dependencies
 
 
   // Update formatted text immediately for preview mode
@@ -107,9 +107,13 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   // Set initial content in the editor only when needed (not when user is typing)
   useEffect(() => {
     const editor = essayRef.current;
-    if (editor && studentResponse && !isUserTyping && editor.textContent !== studentResponse) {
-      // Only update if the content is actually different and user is not actively typing
-      editor.textContent = studentResponse;
+    if (editor && studentResponse && !isUserTyping) {
+      // For contentEditable, we need to use innerHTML to properly display the content
+      const currentContent = editor.textContent || editor.innerText || '';
+      if (currentContent !== studentResponse) {
+        // console.log('🔄 Updating editor content:', { current: currentContent.substring(0, 50), new: studentResponse.substring(0, 50) });
+        editor.innerHTML = studentResponse.replace(/\n/g, '<br>');
+      }
     }
   }, [studentResponse, isUserTyping]);
 
@@ -194,6 +198,13 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   };
 
   const wordCount = studentResponse.trim().split(/\s+/).filter(w => w.length > 0).length;
+  
+  // Debug logging (remove in production)
+  // console.log('🔍 QuestionTypePage render:', { 
+  //   studentResponse: studentResponse ? studentResponse.substring(0, 50) + '...' : 'empty',
+  //   wordCount,
+  //   restoredDraft 
+  // });
 
   const handleQuestionSelect = (questionType) => {
     setSelectedQuestionType(questionType);
@@ -552,7 +563,8 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                       contentEditable
                       suppressContentEditableWarning={true}
                       onInput={(e) => {
-                        const newValue = e.target.textContent || e.target.innerText || '';
+                        // Extract text content from contentEditable div, converting <br> back to \n
+                        const newValue = (e.target.textContent || e.target.innerText || '').replace(/\n/g, '');
                         setIsUserTyping(true);
                         setStudentResponse(newValue);
                         setIsTyping(true);
