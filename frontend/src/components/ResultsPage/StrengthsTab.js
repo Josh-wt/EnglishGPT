@@ -2,46 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const StrengthsTab = ({ evaluation, darkMode, onFeedback }) => {
-  // Filter out NEXT STEPS content from strengths
-  const filterStrengths = (strengths) => {
-    if (!strengths || !Array.isArray(strengths)) return [];
-    
-    return strengths.filter(strength => {
-      // Remove any content that contains "NEXT STEPS" or similar patterns
-      const lowerStrength = strength.toLowerCase();
-      
-      // Check for any improvement/next step indicators
-      const isNextStep = lowerStrength.includes('next steps') || 
-                        lowerStrength.includes('next step') ||
-                        lowerStrength.includes('practice writing') ||
-                        lowerStrength.includes('create a checklist') ||
-                        lowerStrength.includes('read examples') ||
-                        lowerStrength.includes('practice incorporating') ||
-                        lowerStrength.includes('develop more') ||
-                        lowerStrength.includes('work on structuring') ||
-                        lowerStrength.includes('actionable suggestions') ||
-                        lowerStrength.includes('concrete suggestions') ||
-                        lowerStrength.includes('specific data') ||
-                        lowerStrength.includes('statistics from') ||
-                        lowerStrength.includes('source texts') ||
-                        lowerStrength.includes('to support arguments') ||
-                        lowerStrength.includes('topic sentences') ||
-                        lowerStrength.includes('paragraphs more effectively') ||
-                        lowerStrength.includes('develop a personal') ||
-                        lowerStrength.includes('word bank') ||
-                        lowerStrength.includes('descriptive vocabulary') ||
-                        lowerStrength.includes('exemplary descriptive') ||
-                        lowerStrength.includes('analyze how successful') ||
-                        lowerStrength.includes('maintain consistency') ||
-                        lowerStrength.includes('varying their sentence') ||
-                        lowerStrength.includes('avoid repetition') ||
-                        lowerStrength.includes('moods and atmospheres');
-      
-      return !isNextStep;
-    }).slice(0, 3); // Limit to only 3 strengths
-  };
-
-  const filteredStrengths = filterStrengths(evaluation.strengths);
+  // Display strengths directly from the evaluation data
+  const strengths = evaluation.strengths || [];
 
   return (
     <div className="space-y-8">
@@ -56,9 +18,9 @@ const StrengthsTab = ({ evaluation, darkMode, onFeedback }) => {
           ✅ Key Strengths
         </h2>
         
-        {filteredStrengths && filteredStrengths.length > 0 ? (
+        {strengths && strengths.length > 0 ? (
           <div className="space-y-4">
-            {filteredStrengths.map((strength, index) => (
+            {strengths.map((strength, index) => (
               <motion.div 
                 key={index}
                 className={`p-4 rounded-xl border ${

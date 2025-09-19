@@ -102,37 +102,6 @@ const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBul
                 <div className="bg-green-50 rounded-lg p-4">
                   <ul className="space-y-2">
                     {parseFeedbackToBullets(evaluation.strengths)
-                      .filter(strength => {
-                        // Filter out NEXT STEPS content from strengths
-                        const lowerStrength = strength.toLowerCase();
-                        const isNextStep = lowerStrength.includes('next steps') || 
-                                          lowerStrength.includes('next step') ||
-                                          lowerStrength.includes('practice writing') ||
-                                          lowerStrength.includes('create a checklist') ||
-                                          lowerStrength.includes('read examples') ||
-                                          lowerStrength.includes('practice incorporating') ||
-                                          lowerStrength.includes('develop more') ||
-                                          lowerStrength.includes('work on structuring') ||
-                                          lowerStrength.includes('actionable suggestions') ||
-                                          lowerStrength.includes('concrete suggestions') ||
-                                          lowerStrength.includes('specific data') ||
-                                          lowerStrength.includes('statistics from') ||
-                                          lowerStrength.includes('source texts') ||
-                                          lowerStrength.includes('to support arguments') ||
-                                          lowerStrength.includes('topic sentences') ||
-                                          lowerStrength.includes('paragraphs more effectively') ||
-                                          lowerStrength.includes('develop a personal') ||
-                                          lowerStrength.includes('word bank') ||
-                                          lowerStrength.includes('descriptive vocabulary') ||
-                                          lowerStrength.includes('exemplary descriptive') ||
-                                          lowerStrength.includes('analyze how successful') ||
-                                          lowerStrength.includes('maintain consistency') ||
-                                          lowerStrength.includes('varying their sentence') ||
-                                          lowerStrength.includes('avoid repetition') ||
-                                          lowerStrength.includes('moods and atmospheres');
-                        return !isNextStep;
-                      })
-                      .slice(0, 3) // Limit to only 3 strengths
                       .map((strength, idx) => (
                         <li key={idx} className="flex items-start gap-2">
                           <span className="text-green-600 mt-1">✓</span>
@@ -177,65 +146,21 @@ const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBul
             )}
 
             {/* Next Steps */}
-            {(() => {
-              // Extract NEXT STEPS content from strengths if it's not in next_steps
-              const extractNextStepsFromStrengths = (strengths) => {
-                if (!strengths || !Array.isArray(strengths)) return [];
-                
-                return strengths.filter(strength => {
-                  const lowerStrength = strength.toLowerCase();
-                  return lowerStrength.includes('next steps') || 
-                         lowerStrength.includes('next step') ||
-                         lowerStrength.includes('practice writing') ||
-                         lowerStrength.includes('create a checklist') ||
-                         lowerStrength.includes('read examples') ||
-                         lowerStrength.includes('practice incorporating') ||
-                         lowerStrength.includes('develop more') ||
-                         lowerStrength.includes('work on structuring') ||
-                         lowerStrength.includes('actionable suggestions') ||
-                         lowerStrength.includes('concrete suggestions') ||
-                         lowerStrength.includes('specific data') ||
-                         lowerStrength.includes('statistics from') ||
-                         lowerStrength.includes('source texts') ||
-                         lowerStrength.includes('to support arguments') ||
-                         lowerStrength.includes('topic sentences') ||
-                         lowerStrength.includes('paragraphs more effectively') ||
-                         lowerStrength.includes('develop a personal') ||
-                         lowerStrength.includes('word bank') ||
-                         lowerStrength.includes('descriptive vocabulary') ||
-                         lowerStrength.includes('exemplary descriptive') ||
-                         lowerStrength.includes('analyze how successful') ||
-                         lowerStrength.includes('maintain consistency') ||
-                         lowerStrength.includes('varying their sentence') ||
-                         lowerStrength.includes('avoid repetition') ||
-                         lowerStrength.includes('moods and atmospheres');
-                }).map(strength => {
-                  // Clean up the strength text to make it a proper next step
-                  return strength.replace(/^.*?next steps?:?\s*/i, '').trim();
-                });
-              };
-
-              // Get next steps from both the dedicated field and from strengths
-              const nextStepsFromField = evaluation.next_steps || [];
-              const nextStepsFromStrengths = extractNextStepsFromStrengths(evaluation.strengths);
-              const allNextSteps = [...nextStepsFromField, ...nextStepsFromStrengths];
-
-              return allNextSteps.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">🎯 Next Steps</h3>
-                  <div className="bg-indigo-50 rounded-lg p-4">
-                    <ul className="space-y-2">
-                      {allNextSteps.map((step, idx) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <span className="text-indigo-600 mt-1 font-bold">{idx + 1}.</span>
-                          <span className="text-gray-800">{step}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+            {evaluation.next_steps && evaluation.next_steps.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">🎯 Next Steps</h3>
+                <div className="bg-indigo-50 rounded-lg p-4">
+                  <ul className="space-y-2">
+                    {evaluation.next_steps.map((step, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-indigo-600 mt-1 font-bold">{idx + 1}.</span>
+                        <span className="text-gray-800">{step}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              );
-            })()}
+              </div>
+            )}
           </div>
 
           {/* Footer */}

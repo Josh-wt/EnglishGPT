@@ -69,7 +69,8 @@ class EvaluationService:
             'alevel_directed_writing': 'AO1_MARKS: [AO1 marks out of 5] | AO2_MARKS: [AO2 marks out of 5]',
             'alevel_text_analysis': 'AO1_MARKS: [AO1 marks out of 5] | AO3_MARKS: [AO3 marks out of 20]',
             'alevel_reflective_commentary': 'AO3_MARKS: [AO3 marks out of 10]',
-            'alevel_language_change': 'AO2_MARKS: [AO2 marks out of 5] | AO4_MARKS: [AO4 marks out of 5] | AO5_MARKS: [AO5 marks out of 15]'
+            'alevel_language_change': 'AO2_MARKS: [AO2 marks out of 5] | AO4_MARKS: [AO4 marks out of 5] | AO5_MARKS: [AO5 marks out of 15]',
+            'gp_essay': 'AO1_MARKS: [AO1 marks out of 6] | AO2_MARKS: [AO2 marks out of 12] | AO3_MARKS: [AO3 marks out of 12]'
         }
         
         return sub_marks_requirements.get(question_type, '')
@@ -194,13 +195,32 @@ CRITICAL: For NEXT STEPS, provide 3 specific, actionable steps the student shoul
 - "Create an outline template and use it for your next 3 essays"
 - "Study how professional writers use transitions between paragraphs"
 
-Format your response as:
-FEEDBACK: [detailed feedback in bullet points - each point should be a complete, standalone sentence that makes sense on its own]
-GRADE: [overall grade]
+Format your response EXACTLY as follows with clear line breaks:
+
+FEEDBACK: 
+[detailed feedback in bullet points - each point should be a complete, standalone sentence that makes sense on its own]
+
+GRADE: 
+[overall grade]
+
 {sub_marks_requirement}
-IMPROVEMENTS: [improvement 1] | [improvement 2] | [improvement 3]
-STRENGTHS: [strength 1 - specific to this essay] | [strength 2 - specific to this essay] | [strength 3 - specific to this essay]
-NEXT STEPS: [specific action 1] | [specific action 2] | [specific action 3]
+
+IMPROVEMENTS: 
+[improvement 1] | [improvement 2] | [improvement 3]
+
+STRENGTHS: 
+[strength 1 - specific to this essay] | [strength 2 - specific to this essay] | [strength 3 - specific to this essay]
+
+NEXT STEPS: 
+[specific action 1] | [specific action 2] | [specific action 3]
+
+CRITICAL: Keep STRENGTHS, IMPROVEMENTS, and NEXT STEPS completely separate. Do NOT mix them up or put next steps content in the strengths section.
+
+STRENGTHS should ONLY contain what the student did well in THIS specific essay (e.g., "Used sophisticated vocabulary like 'ubiquitous' and 'paradigm'", "Created a clear argument structure with strong topic sentences").
+
+IMPROVEMENTS should ONLY contain areas that need work in THIS specific essay (e.g., "Some sentences were too long and complex", "Missing specific examples to support claims").
+
+NEXT STEPS should ONLY contain actionable future actions (e.g., "Practice writing shorter, clearer sentences", "Read 3 sample essays to see how evidence is used").
 
 CRITICAL: For the FEEDBACK section, format it as bullet points where each bu
 
@@ -331,6 +351,38 @@ Student Response: {sanitized_response}
                         if section in ao3_part:
                             ao2_marks = ao3_part.split(section)[0].strip()
                             break
+            elif question_type in ['gp_essay']:
+                # GP essay needs AO1, AO2, and AO3 marks
+                if "AO1_MARKS:" in ai_response:
+                    ao1_part = ai_response.split("AO1_MARKS:")[1]
+                    next_sections = ["AO2_MARKS:", "AO3_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
+                    ao1_marks = ao1_part.strip()
+                    for section in next_sections:
+                        if section in ao1_part:
+                            ao1_marks = ao1_part.split(section)[0].strip()
+                            break
+                
+                if "AO2_MARKS:" in ai_response:
+                    ao2_part = ai_response.split("AO2_MARKS:")[1]
+                    next_sections = ["AO3_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
+                    ao2_marks = ao2_part.strip()
+                    for section in next_sections:
+                        if section in ao2_part:
+                            ao2_marks = ao2_part.split(section)[0].strip()
+                            break
+                
+                if "AO3_MARKS:" in ai_response:
+                    ao3_part = ai_response.split("AO3_MARKS:")[1]
+                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
+                    ao3_marks = ao3_part.strip()
+                    for section in next_sections:
+                        if section in ao3_part:
+                            ao3_marks = ao3_part.split(section)[0].strip()
+                            break
+                
+                # Set reading_marks and writing_marks to N/A for GP essay
+                reading_marks = "N/A"
+                writing_marks = "N/A"
             elif question_type in ['alevel_language_change']:
                 # A-Level language change needs AO2, AO4, and AO5 marks
                 if "AO2_MARKS:" in ai_response:
