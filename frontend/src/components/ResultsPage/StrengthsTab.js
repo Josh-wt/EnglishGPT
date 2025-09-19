@@ -2,8 +2,14 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const StrengthsTab = ({ evaluation, darkMode, onFeedback }) => {
-  // Display strengths directly from the evaluation data
-  const strengths = evaluation.strengths || [];
+  // Extract strengths (4th, 5th, 6th bullet points from AI response)
+  const getStrengths = () => {
+    if (!evaluation.strengths || !Array.isArray(evaluation.strengths)) return [];
+    // AI provides 9 points: 1-3 improvements, 4-6 strengths, 7-9 next steps
+    return evaluation.strengths.slice(3, 6); // Get points 4, 5, 6
+  };
+
+  const strengths = getStrengths();
 
   return (
     <div className="space-y-8">

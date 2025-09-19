@@ -101,8 +101,7 @@ const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBul
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Strengths</h3>
                 <div className="bg-green-50 rounded-lg p-4">
                   <ul className="space-y-2">
-                    {parseFeedbackToBullets(evaluation.strengths)
-                      .map((strength, idx) => (
+                    {evaluation.strengths && evaluation.strengths.slice(3, 6).map((strength, idx) => (
                         <li key={idx} className="flex items-start gap-2">
                           <span className="text-green-600 mt-1">✓</span>
                           <span className="text-gray-800">{strength}</span>
@@ -118,49 +117,41 @@ const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBul
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">💡 Areas for Improvement</h3>
                 <div className="space-y-4">
-                  {(() => {
-                    // Flatten all suggestions and split by numbered points, then number them sequentially
-                    let pointCounter = 1;
-                    return evaluation.improvement_suggestions.flatMap((suggestion, suggestionIndex) => {
-                      // Split by numbered points (e.g., 1. 2. 3.)
-                      const split = suggestion.split(/\s*(?=\d+\.)/g).map(s => s.trim()).filter(Boolean);
-                      return split.map((point, pointIndex) => (
-                        <div 
-                          key={`${suggestionIndex}-${pointIndex}`}
-                          className="bg-yellow-50 rounded-xl border border-yellow-200 p-4"
-                        >
-                          <div className="flex items-start space-x-3">
-                            <div className="w-6 h-6 bg-yellow-500 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5 flex-shrink-0">
-                              {pointCounter++}
-                            </div>
-                            <p className="text-yellow-800 font-medium">
-                              {point.replace(/^(\d+\.)\s*/, '')}
-                            </p>
-                          </div>
+                  {evaluation.improvement_suggestions.slice(0, 3).map((improvement, idx) => (
+                    <div 
+                      key={idx}
+                      className="bg-yellow-50 rounded-xl border border-yellow-200 p-4"
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div className="w-6 h-6 bg-yellow-500 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5 flex-shrink-0">
+                          {idx + 1}
                         </div>
-                      ));
-                    });
-                  })()}
+                        <p className="text-yellow-800 font-medium">
+                          {improvement}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
 
             {/* Next Steps */}
             {evaluation.next_steps && evaluation.next_steps.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">🎯 Next Steps</h3>
-                <div className="bg-indigo-50 rounded-lg p-4">
-                  <ul className="space-y-2">
-                    {evaluation.next_steps.map((step, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <span className="text-indigo-600 mt-1 font-bold">{idx + 1}.</span>
-                        <span className="text-gray-800">{step}</span>
-                      </li>
-                    ))}
-                  </ul>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">🎯 Next Steps</h3>
+                  <div className="bg-indigo-50 rounded-lg p-4">
+                    <ul className="space-y-2">
+                      {evaluation.next_steps && evaluation.next_steps.slice(6, 9).map((step, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span className="text-indigo-600 mt-1 font-bold">{idx + 1}.</span>
+                          <span className="text-gray-800">{step}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
 
           {/* Footer */}

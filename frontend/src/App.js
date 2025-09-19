@@ -19,6 +19,7 @@ import ModernPricingPage from './components/PricingPage/ModernPricingPage';
 import SubscriptionDashboard from './components/SubscriptionDashboard/SubscriptionDashboard';
 import PaymentSuccess from './components/PaymentSuccess/PaymentSuccess';
 import PaymentsDashboard from './components/AdminDashboard/PaymentsDashboard';
+import AdminResultsPage from './components/AdminResultsPage/AdminResultsPage';
 import { TermsOfService, RefundPolicy, PrivacyPolicy } from './components/legal';
 import EmailLogin from './components/EmailLogin';
 
@@ -784,6 +785,9 @@ const App = () => {
             signInWithGoogle={signInWithGoogle}
             signInWithDiscord={signInWithDiscord}
           />
+        } />
+        <Route path="/results/:shortId/admin/josh" element={
+          <AdminResultsPage darkMode={darkMode} />
         } />
         
         {/* Protected routes */}

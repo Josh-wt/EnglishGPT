@@ -1,6 +1,7 @@
 """
 Core evaluation service containing the main evaluation logic.
 """
+import json
 import logging
 import secrets
 import re
@@ -80,59 +81,35 @@ class EvaluationService:
         if not command_word:
             return ""
         
-        # Map command words to their specific criteria sections
+        # Map command words to their specific criteria keys
         command_word_mapping = {
-            'evaluate': 'EVALUATE / EVALUATE THE EXTENT TO WHICH / EVALUATE WHETHER',
-            'evaluate the extent to which': 'EVALUATE / EVALUATE THE EXTENT TO WHICH / EVALUATE WHETHER',
-            'evaluate whether': 'EVALUATE / EVALUATE THE EXTENT TO WHICH / EVALUATE WHETHER',
-            'assess': 'ASSESS / ASSESS THE VIEW THAT / ASSESS WHETHER',
-            'assess the view that': 'ASSESS / ASSESS THE VIEW THAT / ASSESS WHETHER',
-            'assess whether': 'ASSESS / ASSESS THE VIEW THAT / ASSESS WHETHER',
-            'discuss': 'DISCUSS / DISCUSS THIS STATEMENT',
-            'discuss this statement': 'DISCUSS / DISCUSS THIS STATEMENT',
-            'to what extent': 'TO WHAT EXTENT / HOW FAR DO YOU AGREE',
-            'how far do you agree': 'TO WHAT EXTENT / HOW FAR DO YOU AGREE',
-            'consider': 'CONSIDER / WHAT IS YOUR VIEW',
-            'what is your view': 'CONSIDER / WHAT IS YOUR VIEW',
-            'analyse': 'ANALYSE / EXAMINE',
-            'examine': 'ANALYSE / EXAMINE'
+            'evaluate': 'gp_essay_evaluate',
+            'evaluate the extent to which': 'gp_essay_evaluate',
+            'evaluate whether': 'gp_essay_evaluate',
+            'assess': 'gp_essay_assess',
+            'assess the view that': 'gp_essay_assess',
+            'assess whether': 'gp_essay_assess',
+            'discuss': 'gp_essay_discuss',
+            'discuss this statement': 'gp_essay_discuss',
+            'to what extent': 'gp_essay_to_what_extent',
+            'how far do you agree': 'gp_essay_to_what_extent',
+            'consider': 'gp_essay_consider',
+            'what is your view': 'gp_essay_consider',
+            'analyse': 'gp_essay_analyse',
+            'examine': 'gp_essay_analyse',
+            'analyze': 'gp_essay_analyse'  # Alternative spelling
         }
         
         # Normalize command word (lowercase, trim)
         normalized_command = command_word.lower().strip()
         
-        # Find matching section header
-        section_header = command_word_mapping.get(normalized_command)
-        if not section_header:
+        # Get the specific criteria key
+        criteria_key = command_word_mapping.get(normalized_command)
+        if not criteria_key:
             return ""
         
-        # Extract the specific criteria for this command word from the marking criteria
-        gp_essay_criteria = self.marking_criteria.get('gp_essay', '')
-        
-        # Find the start of the command word section
-        start_marker = f"{section_header}"
-        start_index = gp_essay_criteria.find(start_marker)
-        
-        if start_index == -1:
-            return ""
-        
-        # Find the end of this section (next section or end of command word criteria)
-        end_markers = [
-            "═══════════════════════════════════════════════════════════════════",
-            "IMPLEMENTATION GUIDANCE FOR AI MARKING:",
-            "ASSESSMENT LEVELS (Total: 30 marks):"
-        ]
-        
-        end_index = len(gp_essay_criteria)
-        for marker in end_markers:
-            marker_index = gp_essay_criteria.find(marker, start_index)
-            if marker_index != -1 and marker_index < end_index:
-                end_index = marker_index
-        
-        # Extract the specific command word criteria
-        command_word_criteria = gp_essay_criteria[start_index:end_index].strip()
-        
-        return command_word_criteria
+        # Return the specific command word criteria
+        return self.marking_criteria.get(criteria_key, "")
     
     def build_evaluation_prompt(self, submission: SubmissionRequest) -> str:
         """Build the complete evaluation prompt."""
@@ -214,7 +191,7 @@ STRENGTHS:
 NEXT STEPS: 
 [specific action 1] | [specific action 2] | [specific action 3]
 
-CRITICAL: Keep STRENGTHS, IMPROVEMENTS, and NEXT STEPS completely separate. Do NOT mix them up or put next steps content in the strengths section.
+CRITICAL: Keep STRENGTHS, IMPROVEMENTS, and NEXT STEPS completely separate. Do NOT mix them up or put next steps content in the strengths section. Keep the format, first three bullet points should be improvements, then three bullet points should be strengths, then three bullet points should be next steps. 
 
 STRENGTHS should ONLY contain what the student did well in THIS specific essay (e.g., "Used sophisticated vocabulary like 'ubiquitous' and 'paradigm'", "Created a clear argument structure with strong topic sentences").
 
@@ -575,6 +552,13 @@ Student Response: {sanitized_response}
             
             logger.debug(f"DEBUG: AI Response received: {ai_response[:500]}...")
             
+            # Store full chat data for admin view
+            full_chat_data = {
+                "prompt": full_prompt,
+                "response": ai_response,
+                "timestamp": datetime.now().isoformat()
+            }
+            
             # Parse AI response
             parsed_data = self.parse_ai_response(ai_response, submission.question_type)
             
@@ -607,7 +591,8 @@ Student Response: {sanitized_response}
                 style_accuracy_marks=parsed_data["style_accuracy_marks"] if submission.question_type in ['igcse_narrative', 'igcse_descriptive'] else None,
                 improvement_suggestions=parsed_data["improvements"],
                 strengths=parsed_data["strengths"],
-                next_steps=parsed_data["next_steps"]
+                next_steps=parsed_data["next_steps"],
+                full_chat=json.dumps(full_chat_data)
             )
             
             # Generate short ID for shareable URLs

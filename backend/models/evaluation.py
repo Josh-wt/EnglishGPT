@@ -32,6 +32,7 @@ class FeedbackResponse(BaseModel):
     improvement_suggestions: List[str]
     strengths: List[str] = Field(default_factory=list)
     next_steps: List[str] = Field(default_factory=list)
+    full_chat: Optional[str] = None
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     short_id: Optional[str] = None
 

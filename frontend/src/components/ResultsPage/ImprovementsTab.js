@@ -2,9 +2,22 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const ImprovementsTab = ({ evaluation, darkMode, onFeedback }) => {
-  // Display improvements and next steps directly from the evaluation data
-  const improvements = evaluation.improvement_suggestions || [];
-  const nextSteps = evaluation.next_steps || [];
+  // Extract improvements (1st, 2nd, 3rd bullet points from AI response)
+  const getImprovements = () => {
+    if (!evaluation.improvement_suggestions || !Array.isArray(evaluation.improvement_suggestions)) return [];
+    // AI provides 9 points: 1-3 improvements, 4-6 strengths, 7-9 next steps
+    return evaluation.improvement_suggestions.slice(0, 3); // Get points 1, 2, 3
+  };
+
+  // Extract next steps (7th, 8th, 9th bullet points from AI response)
+  const getNextSteps = () => {
+    if (!evaluation.next_steps || !Array.isArray(evaluation.next_steps)) return [];
+    // AI provides 9 points: 1-3 improvements, 4-6 strengths, 7-9 next steps
+    return evaluation.next_steps.slice(6, 9); // Get points 7, 8, 9
+  };
+
+  const improvements = getImprovements();
+  const nextSteps = getNextSteps();
 
   return (
     <div className="space-y-8">

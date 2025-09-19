@@ -141,12 +141,12 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
   };
 
   const commandWordOptions = [
-    'EVALUATE',
-    'ASSESS', 
-    'DISCUSS',
-    'TO WHAT EXTENT',
-    'CONSIDER / WHAT IS YOUR VIEW',
-    'ANALYSE/EXAMINE',
+    'evaluate',
+    'assess', 
+    'discuss',
+    'to what extent',
+    'consider',
+    'analyse',
     'custom'
   ];
 

@@ -554,6 +554,43 @@ async def get_evaluation_by_id(evaluation_id: str):
         print(f"[EVAL_DEBUG] Exception: {e}")
         raise HTTPException(status_code=500, detail=f"Evaluation retrieval error: {str(e)}")
 
+@router.get("/evaluations/{evaluation_id}/admin")
+async def get_evaluation_admin_view(evaluation_id: str):
+    """Get evaluation with full chat data for admin view"""
+    try:
+        # Check if it's a UUID format (36 chars with hyphens) or short ID (5 chars)
+        is_uuid = len(evaluation_id) == 36 and evaluation_id.count('-') == 4
+        
+        if is_uuid:
+            # Search by UUID
+            evaluation_response = supabase.table('assessment_evaluations').select('*').eq('id', evaluation_id).execute()
+        else:
+            # Search by short_id
+            evaluation_response = supabase.table('assessment_evaluations').select('*').eq('short_id', evaluation_id).execute()
+        
+        evaluation = evaluation_response.data[0] if evaluation_response.data else None
+        
+        if not evaluation:
+            raise HTTPException(status_code=404, detail="Evaluation not found")
+        
+        # Parse full_chat data if it exists
+        full_chat_data = None
+        if evaluation.get('full_chat'):
+            try:
+                import json
+                full_chat_data = json.loads(evaluation['full_chat'])
+            except (json.JSONDecodeError, TypeError):
+                full_chat_data = {"error": "Failed to parse full_chat data"}
+        
+        return {
+            "evaluation": evaluation,
+            "full_chat": full_chat_data
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Admin evaluation retrieval error: {str(e)}")
+
 @router.post("/feedback")
 async def submit_feedback(feedback: dict):
     """Submit user feedback about the evaluation system"""
