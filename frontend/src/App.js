@@ -38,7 +38,6 @@ import SignInModal from './components/modals/SignInModal';
 import ErrorModal from './components/modals/ErrorModal';
 import EarlyAccessModal from './components/modals/EarlyAccessModal';
 import AuthRequired from './components/auth/AuthRequired';
-import DashboardAuthWrapper from './components/auth/DashboardAuthWrapper';
 import PublicResultPageWrapper from './components/results/PublicResultPageWrapper';
 import KeyboardShortcutsHelp from './components/help/KeyboardShortcutsHelp';
 
@@ -789,7 +788,7 @@ const App = () => {
         
         {/* Protected routes */}
         <Route path="/dashboard" element={
-          <DashboardAuthWrapper darkMode={darkMode}>
+          <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
             <Dashboard 
               questionTypes={questionTypes}
               onStartQuestion={handleStartQuestion}
@@ -803,7 +802,7 @@ const App = () => {
               darkMode={darkMode}
               onSignOut={signOut}
             />
-          </DashboardAuthWrapper>
+          </AuthRequired>
         } />
         <Route path="/write" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
