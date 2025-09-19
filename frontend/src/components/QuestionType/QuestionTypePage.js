@@ -37,17 +37,20 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       .replace(/\n/g, '<br>');
   }, []);
 
-  // Restore draft on mount
+  // Restore draft on mount - linked to question type
   useEffect(() => {
-    const key = 'draft_student_response';
-    const saved = localStorage.getItem(key);
-    if (saved && !studentResponse) {
-      setStudentResponse(saved);
-      setFormattedText(convertMarkdownToHtml(saved));
-      setRestoredDraft(true);
-      setTimeout(() => setRestoredDraft(false), 3000);
+    if (selectedQuestionType?.id) {
+      const key = `draft_student_response_${selectedQuestionType.id}`;
+      const saved = localStorage.getItem(key);
+      if (saved && !studentResponse) {
+        // console.log('📝 Restoring draft for question type:', selectedQuestionType.id);
+        setStudentResponse(saved);
+        setFormattedText(convertMarkdownToHtml(saved));
+        setRestoredDraft(true);
+        setTimeout(() => setRestoredDraft(false), 3000);
+      }
     }
-  }, [convertMarkdownToHtml]);
+  }, [selectedQuestionType, convertMarkdownToHtml]);
 
   // Check for landing page essay and restore it
   useEffect(() => {
@@ -111,26 +114,37 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       // For contentEditable, we need to use innerHTML to properly display the content
       const currentContent = editor.textContent || editor.innerText || '';
       if (currentContent !== studentResponse) {
-        // console.log('🔄 Updating editor content:', { current: currentContent.substring(0, 50), new: studentResponse.substring(0, 50) });
-        editor.innerHTML = studentResponse.replace(/\n/g, '<br>');
+        // console.log('🔄 Updating editor content:', { 
+        //   current: currentContent.substring(0, 50), 
+        //   new: studentResponse.substring(0, 50),
+        //   isUserTyping 
+        // });
+        // Use a small delay to ensure the DOM is ready
+        setTimeout(() => {
+          if (editor && editor.innerHTML !== studentResponse.replace(/\n/g, '<br>')) {
+            editor.innerHTML = studentResponse.replace(/\n/g, '<br>');
+          }
+        }, 100);
       }
     }
   }, [studentResponse, isUserTyping]);
 
 
-  // Autosave on change (debounced)
+  // Autosave on change (debounced) - linked to question type
   useEffect(() => {
-    const key = 'draft_student_response';
-    const handle = setTimeout(() => {
-      if (studentResponse && studentResponse.trim().length > 0) {
-        localStorage.setItem(key, studentResponse);
-        setLastSavedAt(Date.now());
-      } else {
-        localStorage.removeItem(key);
-      }
-    }, 400);
-    return () => clearTimeout(handle);
-  }, [studentResponse]);
+    if (selectedQuestionType?.id) {
+      const key = `draft_student_response_${selectedQuestionType.id}`;
+      const handle = setTimeout(() => {
+        if (studentResponse && studentResponse.trim().length > 0) {
+          localStorage.setItem(key, studentResponse);
+          setLastSavedAt(Date.now());
+        } else {
+          localStorage.removeItem(key);
+        }
+      }, 400);
+      return () => clearTimeout(handle);
+    }
+  }, [studentResponse, selectedQuestionType]);
 
   // Show loading screen when evaluation is in progress
   if (evaluationLoading) {
@@ -207,7 +221,35 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   // });
 
   const handleQuestionSelect = (questionType) => {
+    // Clear current draft when switching question types
+    if (selectedQuestionType && selectedQuestionType.id !== questionType.id) {
+      setStudentResponse('');
+      setFormattedText('');
+      setRestoredDraft(false);
+      // Clear the contentEditable div
+      if (essayRef.current) {
+        essayRef.current.innerHTML = '';
+      }
+    }
     setSelectedQuestionType(questionType);
+  };
+
+  // Function to clear all drafts
+  const clearAllDrafts = () => {
+    // Clear all draft keys from localStorage
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => {
+      if (key.startsWith('draft_student_response_')) {
+        localStorage.removeItem(key);
+      }
+    });
+    // Clear current state
+    setStudentResponse('');
+    setFormattedText('');
+    setRestoredDraft(false);
+    if (essayRef.current) {
+      essayRef.current.innerHTML = '';
+    }
   };
 
   const handleProceed = () => {
@@ -601,12 +643,23 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
 
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-200">
-                    <button
-                      onClick={() => setSelectedQuestionType(null)}
-                      className="px-4 sm:px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-200 font-fredoka text-sm sm:text-base"
-                    >
-                      Change Question
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setSelectedQuestionType(null)}
+                        className="px-4 sm:px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-200 font-fredoka text-sm sm:text-base"
+                      >
+                        Change Question
+                      </button>
+                      
+                      {/* Debug button to clear drafts */}
+                      <button
+                        onClick={clearAllDrafts}
+                        className="px-3 py-2 rounded-lg font-medium font-fredoka transition-colors text-xs bg-red-200 text-red-700 hover:bg-red-300"
+                        title="Clear all drafts (debug)"
+                      >
+                        Clear Drafts
+                      </button>
+                    </div>
                     
                     <button
                       onClick={() => {

@@ -11,6 +11,15 @@ const StrengthsTab = ({ evaluation, darkMode, onFeedback }) => {
       ...(evaluation.next_steps || [])
     ];
     
+    // Debug logging (remove in production)
+    // console.log('🔍 StrengthsTab Debug:', {
+    //   improvement_suggestions: evaluation.improvement_suggestions,
+    //   strengths: evaluation.strengths,
+    //   next_steps: evaluation.next_steps,
+    //   allPoints: allPoints,
+    //   strengthsSlice: allPoints.slice(3, 6)
+    // });
+    
     // AI provides 9 points: 1-3 improvements, 4-6 strengths, 7-9 next steps
     return allPoints.slice(3, 6); // Get points 4, 5, 6 (strengths)
   };

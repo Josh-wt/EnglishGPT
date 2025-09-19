@@ -364,8 +364,8 @@ async def evaluate_submission(submission: SubmissionRequest):
                 strengths_part = ai_response.split("STRENGTHS:")[1].strip()
                 
                 # Stop at NEXT_STEPS: if it exists
-                if "NEXT_STEPS:" in strengths_part:
-                    strengths_part = strengths_part.split("NEXT_STEPS:")[0].strip()
+                if "NEXT STEPS:" in strengths_part:
+                    strengths_part = strengths_part.split("NEXT STEPS:")[0].strip()
                 
                 logger.debug(f"DEBUG: Raw strengths part: {strengths_part}")
                 
@@ -386,8 +386,8 @@ async def evaluate_submission(submission: SubmissionRequest):
             
             # Extract next steps
             next_steps = []
-            if "NEXT_STEPS:" in ai_response:
-                next_steps_part = ai_response.split("NEXT_STEPS:")[1].strip()
+            if "NEXT STEPS:" in ai_response:
+                next_steps_part = ai_response.split("NEXT STEPS:")[1].strip()
                 logger.debug(f"DEBUG: Raw next steps part: {next_steps_part}")
                 
                 # Try multiple parsing methods

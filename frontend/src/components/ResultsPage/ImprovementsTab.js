@@ -11,6 +11,16 @@ const ImprovementsTab = ({ evaluation, darkMode, onFeedback }) => {
       ...(evaluation.next_steps || [])
     ];
     
+    // Debug logging (remove in production)
+    // console.log('🔍 ImprovementsTab Debug:', {
+    //   improvement_suggestions: evaluation.improvement_suggestions,
+    //   strengths: evaluation.strengths,
+    //   next_steps: evaluation.next_steps,
+    //   allPoints: allPoints,
+    //   improvementsSlice: allPoints.slice(0, 3),
+    //   nextStepsSlice: allPoints.slice(6, 9)
+    // });
+    
     // AI provides 9 points: 1-3 improvements, 4-6 strengths, 7-9 next steps
     return allPoints.slice(0, 3); // Get points 1, 2, 3 (improvements)
   };
