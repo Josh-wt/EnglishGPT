@@ -100,24 +100,8 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
       };
       await onProceed(data);
       
-      // Clear localStorage after successful submission
-      if (questionType?.id) {
-        const markingSchemeKey = `draft_marking_scheme_${questionType.id}`;
-        localStorage.removeItem(markingSchemeKey);
-        console.log('🗑️ Cleared marking scheme from localStorage');
-        
-        if (questionType.id === 'gp_essay') {
-          const commandWordKey = `draft_command_word_${questionType.id}`;
-          localStorage.removeItem(commandWordKey);
-          console.log('🗑️ Cleared command word from localStorage');
-        }
-        
-        if (questionType.id === 'igcse_directed') {
-          const textTypeKey = `draft_text_type_${questionType.id}`;
-          localStorage.removeItem(textTypeKey);
-          console.log('🗑️ Cleared text type from localStorage');
-        }
-      }
+      // Don't clear localStorage here - let the evaluation process handle it
+      // The marking scheme should persist until evaluation is complete
     } catch (error) {
       console.error('Error proceeding with marking scheme:', error);
     } finally {

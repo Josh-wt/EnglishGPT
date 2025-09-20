@@ -401,12 +401,32 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
                     ref={essayRef}
                     contentEditable
                     suppressContentEditableWarning={true}
-                    onInput={(e) => {
-                      const newValue = e.target.textContent || e.target.innerText || '';
-                      setIsUserTyping(true);
-                      setStudentResponse(newValue);
-                      setTimeout(() => setIsUserTyping(false), 1000);
-                    }}
+                      onInput={(e) => {
+                        const newValue = e.target.textContent || e.target.innerText || '';
+                        setIsUserTyping(true);
+                        setStudentResponse(newValue);
+                        setTimeout(() => setIsUserTyping(false), 1000);
+                      }}
+                      onPaste={(e) => {
+                        // Handle paste to preserve formatting
+                        e.preventDefault();
+                        
+                        // Get the pasted content
+                        const clipboardData = e.clipboardData || window.clipboardData;
+                        const pastedData = clipboardData.getData('text/html') || clipboardData.getData('text/plain');
+                        
+                        // If we have HTML content, insert it directly
+                        if (clipboardData.getData('text/html')) {
+                          document.execCommand('insertHTML', false, pastedData);
+                        } else {
+                          // For plain text, insert as-is
+                          document.execCommand('insertText', false, pastedData);
+                        }
+                        
+                        // Update the state
+                        const newValue = e.target.textContent || e.target.innerText || '';
+                        setStudentResponse(newValue);
+                      }}
                     onKeyDown={(e) => {
                       // Handle Enter key for new paragraphs
                       if (e.key === 'Enter') {
