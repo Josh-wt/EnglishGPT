@@ -47,9 +47,14 @@ export const getUserProfile = async (userId) => {
     console.log('🔍 Fetching user profile for:', userId, {
       timestamp: new Date().toISOString()
     });
+    
+    const apiCallStartTime = Date.now();
     const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}`);
+    const apiCallTime = Date.now() - apiCallStartTime;
+    console.log(`📊 User profile API call: ${apiCallTime}ms`);
+    
     const duration = Date.now() - startTime;
-    console.log('📊 User profile response received in', duration, 'ms:', response.data);
+    console.log(`📊 User profile response received in ${duration}ms:`, response.data);
     
     // Handle both response structures: {user: {...}} and direct user data
     const userData = response.data.user || response.data;
@@ -60,7 +65,14 @@ export const getUserProfile = async (userId) => {
     return userData;
   } catch (error) {
     const duration = Date.now() - startTime;
-    console.error('❌ Error fetching user profile after', duration, 'ms:', error);
+    console.error(`❌ Error fetching user profile after ${duration}ms:`, {
+      error: error.message,
+      code: error.code,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      timeout: error.config?.timeout
+    });
     
     // If user doesn't exist (404), create them
     if (error.response?.status === 404) {
@@ -142,9 +154,14 @@ export const getUserStats = async (userId) => {
     console.log('📊 Fetching user stats for:', userId, {
       timestamp: new Date().toISOString()
     });
+    
+    const apiCallStartTime = Date.now();
     const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}`);
+    const apiCallTime = Date.now() - apiCallStartTime;
+    console.log(`📊 User stats API call: ${apiCallTime}ms`);
+    
     const duration = Date.now() - startTime;
-    console.log('📈 User stats received in', duration, 'ms:', response.data);
+    console.log(`📈 User stats received in ${duration}ms:`, response.data);
     
     // Handle both response structures: {user: {...}} and direct user data
     const userData = response.data.user || response.data;
@@ -155,7 +172,14 @@ export const getUserStats = async (userId) => {
     return userData;
   } catch (error) {
     const duration = Date.now() - startTime;
-    console.error('❌ Error fetching user stats after', duration, 'ms:', error);
+    console.error(`❌ Error fetching user stats after ${duration}ms:`, {
+      error: error.message,
+      code: error.code,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      timeout: error.config?.timeout
+    });
     
     // If user doesn't exist (404), create them
     if (error.response?.status === 404) {

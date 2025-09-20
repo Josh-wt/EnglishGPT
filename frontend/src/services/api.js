@@ -219,7 +219,20 @@ export const apiHelpers = {
    */
   get: (url, config = {}) => {
     console.log(`📡 Making GET request to: ${url}`);
-    return api.get(url, config);
+    
+    // Add timeout monitoring
+    const startTime = Date.now();
+    const timeoutWarning = setTimeout(() => {
+      console.warn(`⚠️ GET request to ${url} taking longer than 10s`);
+    }, 10000);
+    
+    return api.get(url, config).finally(() => {
+      clearTimeout(timeoutWarning);
+      const duration = Date.now() - startTime;
+      if (duration > 5000) {
+        console.warn(`⚠️ Slow GET request to ${url}: ${duration}ms`);
+      }
+    });
   },
   
   /**
