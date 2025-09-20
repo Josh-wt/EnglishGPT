@@ -49,9 +49,11 @@ export const getUserProfile = async (userId) => {
     });
     
     const apiCallStartTime = Date.now();
+    console.log(`🚀 Starting user profile API call at ${new Date().toISOString()}`);
+    
     const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}`);
     const apiCallTime = Date.now() - apiCallStartTime;
-    console.log(`📊 User profile API call: ${apiCallTime}ms`);
+    console.log(`📊 User profile API call completed in ${apiCallTime}ms`);
     
     const duration = Date.now() - startTime;
     console.log(`📊 User profile response received in ${duration}ms:`, response.data);
@@ -65,13 +67,19 @@ export const getUserProfile = async (userId) => {
     return userData;
   } catch (error) {
     const duration = Date.now() - startTime;
+    const apiCallDuration = Date.now() - (startTime + (Date.now() - startTime - duration));
+    
     console.error(`❌ Error fetching user profile after ${duration}ms:`, {
       error: error.message,
       code: error.code,
       status: error.response?.status,
       statusText: error.response?.statusText,
       url: error.config?.url,
-      timeout: error.config?.timeout
+      timeout: error.config?.timeout,
+      isCanceled: error.name === 'CanceledError' || error.code === 'ERR_CANCELED',
+      isTimeout: error.code === 'ECONNABORTED',
+      apiCallDuration,
+      timestamp: new Date().toISOString()
     });
     
     // If user doesn't exist (404), create them
@@ -156,9 +164,11 @@ export const getUserStats = async (userId) => {
     });
     
     const apiCallStartTime = Date.now();
+    console.log(`🚀 Starting user stats API call at ${new Date().toISOString()}`);
+    
     const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}`);
     const apiCallTime = Date.now() - apiCallStartTime;
-    console.log(`📊 User stats API call: ${apiCallTime}ms`);
+    console.log(`📊 User stats API call completed in ${apiCallTime}ms`);
     
     const duration = Date.now() - startTime;
     console.log(`📈 User stats received in ${duration}ms:`, response.data);
@@ -172,13 +182,19 @@ export const getUserStats = async (userId) => {
     return userData;
   } catch (error) {
     const duration = Date.now() - startTime;
+    const apiCallDuration = Date.now() - (startTime + (Date.now() - startTime - duration));
+    
     console.error(`❌ Error fetching user stats after ${duration}ms:`, {
       error: error.message,
       code: error.code,
       status: error.response?.status,
       statusText: error.response?.statusText,
       url: error.config?.url,
-      timeout: error.config?.timeout
+      timeout: error.config?.timeout,
+      isCanceled: error.name === 'CanceledError' || error.code === 'ERR_CANCELED',
+      isTimeout: error.code === 'ECONNABORTED',
+      apiCallDuration,
+      timestamp: new Date().toISOString()
     });
     
     // If user doesn't exist (404), create them

@@ -33,7 +33,14 @@ export const useUser = () => {
     const initializeUser = async () => {
       // Add timeout to prevent hanging
       const timeoutId = setTimeout(() => {
-        console.warn('⚠️ User initialization timeout - forcing loading to false');
+        const duration = Date.now() - initStartTime.current;
+        console.warn('⚠️ User initialization timeout - forcing loading to false', {
+          duration: `${duration}ms`,
+          timestamp: new Date().toISOString(),
+          userLoading: loading,
+          hasUser: !!user,
+          hasUserStats: !!userStats
+        });
         setLoading(false);
       }, 10000); // 10 second timeout
       try {
@@ -162,7 +169,13 @@ export const useUser = () => {
                 ])
               ]);
             } catch (apiError) {
-              console.error('❌ API calls failed or timed out:', apiError);
+              const apiErrorTime = Date.now() - apiStartTime;
+              console.error('❌ API calls failed or timed out:', {
+                error: apiError.message,
+                duration: `${apiErrorTime}ms`,
+                timeout: `${apiTimeout}ms`,
+                timestamp: new Date().toISOString()
+              });
               
               // Use fallback data when API calls fail - since user was just created and set to unlimited, use unlimited plan
               profileData = {
@@ -424,6 +437,7 @@ export const useUser = () => {
           try {
             console.log('📡 Fetching user data on sign in...');
             const apiStartTime = Date.now();
+            console.log(`🚀 Sign-in processing started at ${new Date().toISOString()}`);
             
             // First, try to create the user if they don't exist
             // This ensures new users get launch period benefits immediately
@@ -482,7 +496,13 @@ export const useUser = () => {
                 ])
               ]);
             } catch (apiError) {
-              console.error('❌ API calls failed or timed out:', apiError);
+              const apiErrorTime = Date.now() - apiStartTime;
+              console.error('❌ API calls failed or timed out:', {
+                error: apiError.message,
+                duration: `${apiErrorTime}ms`,
+                timeout: `${apiTimeout}ms`,
+                timestamp: new Date().toISOString()
+              });
               
               // Use fallback data when API calls fail - since user was just created and set to unlimited, use unlimited plan
               profileData = {
@@ -878,10 +898,14 @@ export const useUser = () => {
       localStorage.removeItem('userData');
       localStorage.removeItem('userDataTimestamp');
       
+      console.log(`🚀 Starting parallel API calls for user data refresh at ${new Date().toISOString()}`);
+      
       const [profileData, statsData] = await Promise.all([
         getUserProfile(user.id),
         getUserStats(user.id),
       ]);
+      
+      console.log(`✅ Parallel API calls completed for user data refresh`);
       
       const finalStats = applyLaunchPeriodBenefits({
         ...statsData,

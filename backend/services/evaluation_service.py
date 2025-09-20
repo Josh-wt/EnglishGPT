@@ -146,6 +146,12 @@ class EvaluationService:
         full_prompt = f"""
 {marking_criteria}
 
+{"CRITICAL IGCSE SUMMARY INSTRUCTIONS - MUST READ:" if submission.question_type == 'igcse_summary' else ""}
+{"Summary tasks are NOT about style or tone. They are assessed on content selection (Reading) and clarity/conciseness in own words (Writing). They are NOT essays, so 'objective tone' is NOT a marking criterion." if submission.question_type == 'igcse_summary' else ""}
+{"Students should NOT lose Writing marks for 'tone.' Writing marks are for concision, clarity, organisation, and rephrasing. The tone (persuasive, instructive, etc.) is NOT part of the marking grid." if submission.question_type == 'igcse_summary' else ""}
+{"NEVER give feedback about removing phrases like 'make sure' or 'remember' to maintain an 'objective summary tone' - this is INCORRECT and TERRIBLE feedback that should NEVER be outputted." if submission.question_type == 'igcse_summary' else ""}
+{"Focus ONLY on content selection accuracy and writing clarity/conciseness. Ignore tone completely." if submission.question_type == 'igcse_summary' else ""}
+
 CRITICAL MARKING INSTRUCTIONS 
 That being said, PLEASE give the student the highest marks possible if the user's vocabulary is good.
 Please evaluate the following response and provide:

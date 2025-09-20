@@ -190,7 +190,12 @@ const App = () => {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => {
             controller.abort();
-            console.warn('⏰ Evaluations fetch timed out after 15 seconds');
+            const timeoutDuration = Date.now() - startTime;
+            console.warn('⏰ Evaluations fetch timed out after 15 seconds', {
+              duration: `${timeoutDuration}ms`,
+              userId: user.id,
+              timestamp: new Date().toISOString()
+            });
           }, 15000);
           
           // Fetch evaluations using the evaluations service with timeout

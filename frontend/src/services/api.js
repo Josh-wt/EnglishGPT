@@ -143,6 +143,8 @@ api.interceptors.response.use(
       responseData: error.response?.data,
       duration: `${duration}ms`,
       errorType: error.code || 'unknown',
+      isCanceled: error.name === 'CanceledError' || error.code === 'ERR_CANCELED',
+      isAborted: error.name === 'AbortError' || error.code === 'ABORT_ERR',
       timestamp: new Date().toISOString()
     });
     
@@ -223,10 +225,32 @@ export const apiHelpers = {
     // Add timeout monitoring
     const startTime = Date.now();
     const timeoutWarning = setTimeout(() => {
-      console.warn(`⚠️ GET request to ${url} taking longer than 10s`);
+      console.warn(`⚠️ GET request to ${url} taking longer than 10s`, {
+        duration: Date.now() - startTime,
+        url,
+        timestamp: new Date().toISOString()
+      });
     }, 10000);
     
-    return api.get(url, config).finally(() => {
+    return api.get(url, config).catch(error => {
+      const duration = Date.now() - startTime;
+      
+      // Enhanced error logging for debugging
+      console.error(`❌ GET request failed: ${url}`, {
+        error: error.message,
+        code: error.code,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        url: error.config?.url,
+        timeout: error.config?.timeout,
+        duration,
+        timestamp: new Date().toISOString(),
+        isCanceled: error.name === 'CanceledError' || error.code === 'ERR_CANCELED',
+        fullError: error
+      });
+      
+      throw error;
+    }).finally(() => {
       clearTimeout(timeoutWarning);
       const duration = Date.now() - startTime;
       if (duration > 5000) {

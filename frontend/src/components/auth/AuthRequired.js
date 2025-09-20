@@ -10,31 +10,34 @@ const AuthRequired = ({ children, user, userLoading, userStats, darkMode }) => {
   const loadingStartTime = useRef(null);
   const apiCallTracker = useRef(new Map());
 
-  // Track component renders and performance
+  // Track component renders and performance - only log performance issues
   useEffect(() => {
     renderCount.current += 1;
     const currentTime = Date.now();
     const timeSinceLastRender = currentTime - lastRenderTime.current;
     
-    console.log('🔍 AuthRequired Debug:', {
-      renderCount: renderCount.current,
-      timeSinceLastRender: `${timeSinceLastRender}ms`,
-      currentPath: location.pathname,
-      userLoading,
-      hasUser: !!user,
-      hasUserStats: !!userStats,
-      userData: {
-        id: user?.id,
-        email: user?.email,
-        uid: user?.uid
-      },
-      userStatsData: userStats ? {
-        currentPlan: userStats.currentPlan,
-        credits: userStats.credits,
-        questionsMarked: userStats.questionsMarked
-      } : null,
-      timestamp: new Date().toISOString()
-    });
+    // Only log if there are performance issues or significant state changes
+    if (timeSinceLastRender > 1000 || renderCount.current > 20) {
+      console.log('🔍 AuthRequired Debug:', {
+        renderCount: renderCount.current,
+        timeSinceLastRender: `${timeSinceLastRender}ms`,
+        currentPath: location.pathname,
+        userLoading,
+        hasUser: !!user,
+        hasUserStats: !!userStats,
+        userData: {
+          id: user?.id,
+          email: user?.email,
+          uid: user?.uid
+        },
+        userStatsData: userStats ? {
+          currentPlan: userStats.currentPlan,
+          credits: userStats.credits,
+          questionsMarked: userStats.questionsMarked
+        } : null,
+        timestamp: new Date().toISOString()
+      });
+    }
 
     lastRenderTime.current = currentTime;
   });
@@ -45,6 +48,7 @@ const AuthRequired = ({ children, user, userLoading, userStats, darkMode }) => {
       if (!loadingStartTime.current) {
         loadingStartTime.current = Date.now();
         console.log('⏱️ AuthRequired: Loading started at', new Date().toISOString());
+        console.log('🔍 Starting API call monitoring...');
         
         // Start monitoring API calls when loading begins
         startAPIMonitoring();
@@ -53,6 +57,7 @@ const AuthRequired = ({ children, user, userLoading, userStats, darkMode }) => {
       if (loadingStartTime.current) {
         const loadingDuration = Date.now() - loadingStartTime.current;
         console.log('✅ AuthRequired: Loading completed in', loadingDuration, 'ms');
+        console.log('🛑 Stopping API call monitoring...');
         
         // Stop monitoring API calls when loading completes
         stopAPIMonitoring();
