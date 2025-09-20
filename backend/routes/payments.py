@@ -28,17 +28,27 @@ mcp_dodo_service = MCPDodoPaymentsService()
 @router.post("/payments")
 async def create_payment(payment_data: Dict):
     """Create a new payment"""
+    import time
+    start_time = time.time()
+    
     logger.debug(f"[PAYMENT_DEBUG] Received payment creation request")
     logger.debug(f"[PAYMENT_DEBUG] Payment data: {json.dumps(payment_data, indent=2, default=str)}")
     
     try:
         logger.debug(f"[PAYMENT_DEBUG] Calling dodo_service.create_payment")
         result = await dodo_service.create_payment(payment_data)
-        logger.debug(f"[PAYMENT_DEBUG] Payment creation successful")
+        
+        duration = time.time() - start_time
+        logger.debug(f"[PAYMENT_DEBUG] Payment creation successful in {duration:.2f}s")
         logger.debug(f"[PAYMENT_DEBUG] Result: {json.dumps(result, indent=2, default=str)}")
+        
+        if duration > 5:
+            logger.warning(f"[PAYMENT_WARN] Slow payment creation: {duration:.2f}s")
+        
         return result
     except Exception as e:
-        logger.error(f"[PAYMENT_ERROR] Payment creation failed: {e}")
+        duration = time.time() - start_time
+        logger.error(f"[PAYMENT_ERROR] Payment creation failed after {duration:.2f}s: {e}")
         logger.error(f"[PAYMENT_ERROR] Error type: {type(e)}")
         logger.error(f"[PAYMENT_ERROR] Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=400, detail=str(e))
@@ -184,6 +194,9 @@ async def get_transaction(transaction_id: str):
 @router.post("/payments/subscriptions")
 async def create_subscription(subscription_data: Dict):
     """Create a new subscription with real Dodo Payments integration"""
+    import time
+    start_time = time.time()
+    
     logger.info(f"[SUBSCRIPTION_CREATE] 🚀 Starting subscription creation")
     logger.info(f"[SUBSCRIPTION_CREATE] Raw input data: {json.dumps(subscription_data, indent=2, default=str)}")
     logger.info(f"[SUBSCRIPTION_CREATE] Request timestamp: {datetime.now().isoformat()}")
@@ -238,13 +251,18 @@ async def create_subscription(subscription_data: Dict):
         
         result = await dodo_service.create_subscription(subscription_payload)
         
-        logger.info(f"[SUBSCRIPTION_CREATE] ✅ Subscription creation successful!")
+        duration = time.time() - start_time
+        logger.info(f"[SUBSCRIPTION_CREATE] ✅ Subscription creation successful in {duration:.2f}s!")
         logger.info(f"[SUBSCRIPTION_CREATE] Result: {json.dumps(result, indent=2, default=str)}")
+        
+        if duration > 10:
+            logger.warning(f"[SUBSCRIPTION_WARN] Slow subscription creation: {duration:.2f}s")
         
         return result
         
     except Exception as e:
-        logger.error(f"[SUBSCRIPTION_ERROR] ❌ Subscription creation failed!")
+        duration = time.time() - start_time
+        logger.error(f"[SUBSCRIPTION_ERROR] ❌ Subscription creation failed after {duration:.2f}s!")
         logger.error(f"[SUBSCRIPTION_ERROR] Error message: {str(e)}")
         logger.error(f"[SUBSCRIPTION_ERROR] Error type: {type(e).__name__}")
         logger.error(f"[SUBSCRIPTION_ERROR] Full traceback:")
@@ -737,6 +755,9 @@ async def process_license_key_created(license_data: Dict):
 @router.get("/payments/analytics")
 async def get_payment_analytics(days: int = 30, currency: Optional[str] = "USD"):
     """Get payment analytics"""
+    import time
+    start_time = time.time()
+    
     logger.debug(f"[ANALYTICS_DEBUG] Generating analytics for {days} days, currency: {currency}")
     try:
         # Fetch real payment data for analytics
@@ -787,11 +808,17 @@ async def get_payment_analytics(days: int = 30, currency: Optional[str] = "USD")
             }
         }
         
-        logger.debug(f"[ANALYTICS_DEBUG] Calculated analytics: {json.dumps(analytics, indent=2, default=str)}")
+        duration = time.time() - start_time
+        logger.debug(f"[ANALYTICS_DEBUG] Calculated analytics in {duration:.2f}s: {json.dumps(analytics, indent=2, default=str)}")
+        
+        if duration > 5:
+            logger.warning(f"[ANALYTICS_WARN] Slow analytics generation: {duration:.2f}s")
+        
         return analytics
         
     except Exception as e:
-        logger.error(f"[ANALYTICS_ERROR] Failed to get analytics: {e}")
+        duration = time.time() - start_time
+        logger.error(f"[ANALYTICS_ERROR] Failed to get analytics after {duration:.2f}s: {e}")
         logger.error(f"[ANALYTICS_ERROR] Traceback: {traceback.format_exc()}")
         
         # Fallback to basic mock data if real analytics fail

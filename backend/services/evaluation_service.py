@@ -193,6 +193,8 @@ NEXT STEPS:
 
 CRITICAL: Keep STRENGTHS, IMPROVEMENTS, and NEXT STEPS completely separate. Do NOT mix them up or put next steps content in the strengths section. Keep the format, first three bullet points should be improvements, then three bullet points should be strengths, then three bullet points should be next steps. 
 
+PLEASE DO NOT GIVE MORE THAN 3 STRENGTHS AND 3 IMPROVEMENTS AND 3 NEXT STEPS. PLEASE DO NOT GIVE LESS THAN 3 STRENGTHS AND 3 IMPROVEMENTS AND 3 NEXT STEPS.
+
 STRENGTHS should ONLY contain what the student did well in THIS specific essay (e.g., "Used sophisticated vocabulary like 'ubiquitous' and 'paradigm'", "Created a clear argument structure with strong topic sentences").
 
 IMPROVEMENTS should ONLY contain areas that need work in THIS specific essay (e.g., "Some sentences were too long and complex", "Missing specific examples to support claims").
@@ -539,6 +541,9 @@ Student Response: {sanitized_response}
     
     async def evaluate_submission(self, submission: SubmissionRequest) -> FeedbackResponse:
         """Evaluate a student submission and return feedback."""
+        import time
+        start_time = time.time()
+        
         try:
             # Validate question type
             if submission.question_type not in self.marking_criteria:
@@ -553,16 +558,19 @@ Student Response: {sanitized_response}
                 raise ValueError("This question type requires a marking scheme")
             
             # Build evaluation prompt
+            prompt_start = time.time()
             full_prompt = self.build_evaluation_prompt(submission)
+            prompt_time = time.time() - prompt_start
             
-            logger.debug(f"DEBUG: Full prompt length: {len(full_prompt)}")
-            logger.debug(f"DEBUG: First 500 chars of prompt: {full_prompt[:500]}")
+            logger.debug(f"Prompt building took {prompt_time:.2f}s, length: {len(full_prompt)}")
             
             # Call AI API
-            logger.debug("DEBUG: Calling DeepSeek API...")
+            ai_start = time.time()
+            logger.debug("Calling DeepSeek API...")
             ai_response, _ = await call_deepseek_api(full_prompt)
+            ai_time = time.time() - ai_start
             
-            logger.debug(f"DEBUG: AI Response received: {ai_response[:500]}...")
+            logger.debug(f"AI API call took {ai_time:.2f}s, response length: {len(ai_response)}")
             
             # Store full chat data for admin view
             full_chat_data = {
@@ -572,9 +580,14 @@ Student Response: {sanitized_response}
             }
             
             # Parse AI response
+            parse_start = time.time()
             parsed_data = self.parse_ai_response(ai_response, submission.question_type)
+            parse_time = time.time() - parse_start
+            
+            logger.debug(f"Response parsing took {parse_time:.2f}s")
             
             # Compute dynamic overall grade
+            grade_start = time.time()
             dynamic_grade = compute_overall_grade(
                 submission.question_type,
                 parsed_data["reading_marks"],
@@ -584,6 +597,7 @@ Student Response: {sanitized_response}
                 parsed_data["content_structure_marks"],
                 parsed_data["style_accuracy_marks"]
             )
+            grade_time = time.time() - grade_start
             
             if dynamic_grade:
                 parsed_data["grade"] = dynamic_grade
@@ -612,9 +626,18 @@ Student Response: {sanitized_response}
             short_id = secrets.token_urlsafe(4)[:5]
             feedback_response.short_id = short_id
             
-            logger.debug("DEBUG: Evaluation completed successfully")
+            total_time = time.time() - start_time
+            logger.info(f"Evaluation completed in {total_time:.2f}s (prompt: {prompt_time:.2f}s, AI: {ai_time:.2f}s, parse: {parse_time:.2f}s, grade: {grade_time:.2f}s)")
+            
+            # Log performance warnings
+            if total_time > 30:
+                logger.warning(f"Slow evaluation detected: {total_time:.2f}s for question type {submission.question_type}")
+            if ai_time > 20:
+                logger.warning(f"Slow AI API call: {ai_time:.2f}s")
+            
             return feedback_response
             
         except Exception as e:
-            logger.error(f"ERROR in evaluate_submission: {str(e)}")
+            total_time = time.time() - start_time
+            logger.error(f"ERROR in evaluate_submission after {total_time:.2f}s: {str(e)}")
             raise

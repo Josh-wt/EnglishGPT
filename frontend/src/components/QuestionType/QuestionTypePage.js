@@ -5,15 +5,6 @@ import LoadingSpinner from '../ui/LoadingSpinner';
 import MarkingSchemeModal from '../modals/MarkingSchemeModal';
 
 const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvaluate, selectedLevel, darkMode, user, evaluationLoading, loadingMessage }) => {
-  console.log('🔍 DEBUG: QuestionTypePage rendered with props:', {
-    questionTypes: questionTypes?.length,
-    onSelectQuestionType: !!onSelectQuestionType,
-    onBack: !!onBack,
-    onEvaluate: !!onEvaluate,
-    selectedLevel,
-    darkMode,
-    user: !!user
-  });
 
   const [selectedQuestionType, setSelectedQuestionType] = useState(null);
   const [studentResponse, setStudentResponse] = useState('');
@@ -58,7 +49,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     if (landingPageEssay && !studentResponse) {
       try {
         const essayData = JSON.parse(landingPageEssay);
-        console.log('📝 Restoring landing page essay:', essayData);
         
         // Set the essay content
         setStudentResponse(essayData.content);
@@ -76,7 +66,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
           
           if (matchingQuestion) {
             setSelectedQuestionType(matchingQuestion);
-            console.log('✅ Restored question type:', matchingQuestion.name);
           }
         }
         
@@ -253,17 +242,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   };
 
   const handleProceed = () => {
-    console.log('🔍 DEBUG: handleProceed called');
-    console.log('🔍 DEBUG: selectedQuestionType:', selectedQuestionType);
-    console.log('🔍 DEBUG: studentResponse length:', studentResponse?.length);
-    console.log('🔍 DEBUG: studentResponse trimmed:', studentResponse?.trim()?.length);
-    console.log('🔍 DEBUG: user:', user);
-    console.log('🔍 DEBUG: onEvaluate function:', onEvaluate);
-    
     if (!selectedQuestionType || !studentResponse.trim()) {
-      console.log('🔍 DEBUG: Early return - missing questionType or response');
-      console.log('🔍 DEBUG: selectedQuestionType exists:', !!selectedQuestionType);
-      console.log('🔍 DEBUG: studentResponse trimmed exists:', !!studentResponse.trim());
       return;
     }
 
@@ -273,7 +252,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     
     if (requiresMarkingScheme || isWritersEffect) {
       // Show marking scheme modal
-      console.log('🔍 DEBUG: Question requires marking scheme, showing modal');
       setShowMarkingSchemeModal(true);
       return;
     }
@@ -286,19 +264,12 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       user_id: user?.id,
     };
     
-    console.log('🔍 DEBUG: Created evaluationData:', evaluationData);
-    console.log('🔍 DEBUG: About to call onEvaluate with:', evaluationData);
-    
     onEvaluate(evaluationData);
-    
-    console.log('🔍 DEBUG: onEvaluate called successfully');
   };
 
   const handleMarkingSchemeProceed = async (data) => {
-    console.log('🔍 DEBUG: handleMarkingSchemeProceed called with:', data);
     
     if (!selectedQuestionType || !studentResponse.trim()) {
-      console.log('🔍 DEBUG: Early return - missing questionType or response');
       return;
     }
 

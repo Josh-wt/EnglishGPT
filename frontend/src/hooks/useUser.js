@@ -20,17 +20,12 @@ export const useUser = () => {
   const apiCallTimes = useRef({});
   const renderCount = useRef(0);
 
-  // Track hook renders
+  // Track hook renders - only log performance issues
   useEffect(() => {
     renderCount.current += 1;
-    console.log('🔄 useUser Hook Debug:', {
-      renderCount: renderCount.current,
-      loading,
-      hasUser: !!user,
-      hasUserStats: !!userStats,
-      hasError: !!error,
-      timestamp: new Date().toISOString()
-    });
+    if (renderCount.current > 10) {
+      console.warn('⚠️ useUser hook excessive renders detected:', renderCount.current);
+    }
   });
 
   // Initialize user state with caching
@@ -43,12 +38,7 @@ export const useUser = () => {
       }, 10000); // 10 second timeout
       try {
         initStartTime.current = Date.now();
-        console.log('🔄 Initializing user...', {
-          startTime: new Date().toISOString(),
-          cacheCheck: 'starting'
-        });
         setLoading(true);
-        console.log('🔄 Loading state set to true');
         
         // Check for cached user data first
         const cacheStartTime = Date.now();
@@ -59,31 +49,26 @@ export const useUser = () => {
         // Check for cached academic level separately
         const cachedAcademicLevel = localStorage.getItem('academicLevel');
         
-        console.log('📦 Cache check completed in', Date.now() - cacheStartTime, 'ms', {
-          hasCachedData: !!cachedUserData,
-          isCacheValid,
-          cacheAge: cacheTimestamp ? Date.now() - parseInt(cacheTimestamp) : 'N/A',
-          cachedData: cachedUserData ? JSON.parse(cachedUserData) : null
-        });
+        const cacheTime = Date.now() - cacheStartTime;
+        if (cacheTime > 50) {
+          console.warn(`⚠️ Slow cache check: ${cacheTime}ms`);
+        }
         
         // Get current session
         const sessionStartTime = Date.now();
         const { data: { session } } = await supabase.auth.getSession();
         const sessionTime = Date.now() - sessionStartTime;
         
-        console.log('🔍 Session check completed in', sessionTime, 'ms:', { 
-          hasSession: !!session, 
-          hasUser: !!session?.user,
-          userId: session?.user?.id 
-        });
+        if (sessionTime > 1000) {
+          console.warn(`⚠️ Slow session check: ${sessionTime}ms`);
+        }
         
         if (session?.user) {
-          console.log('✅ User found:', session.user.id);
           setUser(session.user);
+          console.log(`🔄 Loading user data for ${session.user.id}...`);
           
           // Use cached user data if valid and available
           if (isCacheValid && cachedUserData) {
-            console.log('📦 Using cached user data');
             const parsedData = JSON.parse(cachedUserData);
             
             // Apply the same field mapping to cached data
@@ -98,20 +83,17 @@ export const useUser = () => {
             };
             
             setUserStats(mappedCachedData);
-            console.log('🔄 Setting loading to false (cached data path)');
             setLoading(false);
             
             const totalInitTime = Date.now() - initStartTime.current;
-            console.log('✅ User initialization completed with cache in', totalInitTime, 'ms');
+            console.log(`✅ User data loaded from cache in ${totalInitTime}ms`);
+            
+            if (totalInitTime > 2000) {
+              console.warn(`⚠️ Slow user initialization with cache: ${totalInitTime}ms`);
+            }
             
             // Instant redirect to dashboard if authenticated and on main domain
             if (typeof window !== 'undefined' && window.location.pathname === '/') {
-              console.log('🔄 Redirecting authenticated user to dashboard');
-              console.log('🔄 User data before redirect:', {
-                hasUser: !!user,
-                hasUserStats: !!userStats,
-                userStats: userStats
-              });
               // Use setTimeout to ensure state is updated before redirect
               setTimeout(() => {
                 window.location.href = '/dashboard';
@@ -122,13 +104,11 @@ export const useUser = () => {
           
           // Fetch user profile and stats
           try {
-            console.log('📡 Fetching user data...');
             const apiStartTime = Date.now();
             
             // First, try to create the user if they don't exist
             // This ensures new users get launch period benefits immediately
             try {
-              console.log('🆕 Attempting to create/ensure user exists...');
               const createStartTime = Date.now();
               const finalUrl = `${getApiUrl()}/users`;
               
@@ -139,31 +119,31 @@ export const useUser = () => {
               });
               
               if (createResponse.status >= 200 && createResponse.status < 300) {
-                const createData = createResponse.data;
-                console.log('✅ User created/ensured in', Date.now() - createStartTime, 'ms:', createData);
+                const createTime = Date.now() - createStartTime;
+                console.log(`📊 User creation/ensure: ${createTime}ms`);
+                if (createTime > 3000) {
+                  console.warn(`⚠️ Slow user creation: ${createTime}ms`);
+                }
                 
                 // Set user to unlimited immediately like the backup file
                 try {
-                  console.log('🚀 Setting user to unlimited plan...');
+                  const unlimitedStartTime = Date.now();
                   const unlimitedResponse = await axios.put(`${getApiUrl()}/users/${session.user.id}`, {
                     current_plan: 'unlimited',
                     updated_at: new Date().toISOString()
                   });
-                  console.log('✅ User set to unlimited plan:', unlimitedResponse.data);
+                  const unlimitedTime = Date.now() - unlimitedStartTime;
+                  console.log(`📊 Unlimited plan setup: ${unlimitedTime}ms`);
                 } catch (unlimitedError) {
                   console.error('❌ Failed to set unlimited plan:', unlimitedError);
                 }
-              } else {
-                console.log('ℹ️ User creation response:', createResponse.status, createResponse.statusText);
               }
             } catch (createError) {
-              console.log('ℹ️ User creation attempt result:', createError.message);
               // Continue with normal flow even if creation fails
             }
             
             // Add timeout to prevent hanging API calls
             const apiTimeout = 15000; // 15 seconds timeout
-            console.log('🔄 Starting user data fetch with timeout:', apiTimeout, 'ms');
             
             let profileData, statsData;
             try {
@@ -183,10 +163,8 @@ export const useUser = () => {
               ]);
             } catch (apiError) {
               console.error('❌ API calls failed or timed out:', apiError);
-              console.log('🔄 Using fallback user data...');
               
               // Use fallback data when API calls fail - since user was just created and set to unlimited, use unlimited plan
-              console.log('🔄 Using unlimited plan fallback data since user was just created');
               profileData = {
                 id: session.user.id,
                 email: session.user.email,
@@ -220,8 +198,7 @@ export const useUser = () => {
               profile: profileData,
             });
             const benefitsTime = Date.now() - benefitsStartTime;
-            
-            console.log('🎉 Final stats processed in', benefitsTime, 'ms:', finalStats);
+            console.log(`📊 Launch period benefits processing: ${benefitsTime}ms`);
             
             // Use the actual user data from backend, properly map field names
             const userStats = {
@@ -241,10 +218,8 @@ export const useUser = () => {
             const cacheWriteStartTime = Date.now();
             localStorage.setItem('userData', JSON.stringify(userStats));
             localStorage.setItem('userDataTimestamp', Date.now().toString());
-            console.log('💾 User data cached to localStorage:', userStats);
             const cacheWriteTime = Date.now() - cacheWriteStartTime;
-            
-            console.log('💾 Cache written in', cacheWriteTime, 'ms');
+            console.log(`📊 Cache write: ${cacheWriteTime}ms`);
             
             // Fetch academic level from backend like the backup file
             try {
@@ -258,7 +233,7 @@ export const useUser = () => {
             checkLaunchPeriodEligibility();
             
             const totalInitTime = Date.now() - initStartTime.current;
-            console.log('✅ User initialization completed in', totalInitTime, 'ms');
+            console.log(`✅ User initialization completed in ${totalInitTime}ms`);
             
             // Instant redirect to dashboard if authenticated and on main domain
             if (typeof window !== 'undefined' && window.location.pathname === '/') {
@@ -444,6 +419,7 @@ export const useUser = () => {
         if (event === 'SIGNED_IN' && session?.user) {
           setUser(session.user);
           setError(null);
+          console.log(`🔄 Processing sign-in for user ${session.user.id}...`);
           
           try {
             console.log('📡 Fetching user data on sign in...');
@@ -464,7 +440,8 @@ export const useUser = () => {
               
               if (createResponse.status >= 200 && createResponse.status < 300) {
                 const createData = createResponse.data;
-                console.log('✅ User created/ensured in', Date.now() - createStartTime, 'ms:', createData);
+                const createTime = Date.now() - createStartTime;
+                console.log(`📊 Auth sign-in user creation: ${createTime}ms`);
                 
                 // Set user to unlimited immediately like the backup file
                 try {
@@ -487,7 +464,6 @@ export const useUser = () => {
             
             // Add timeout to prevent hanging API calls
             const apiTimeout = 15000; // 15 seconds timeout
-            console.log('🔄 Starting user data fetch with timeout:', apiTimeout, 'ms');
             
             let profileData, statsData;
             try {
@@ -507,10 +483,8 @@ export const useUser = () => {
               ]);
             } catch (apiError) {
               console.error('❌ API calls failed or timed out:', apiError);
-              console.log('🔄 Using fallback user data...');
               
               // Use fallback data when API calls fail - since user was just created and set to unlimited, use unlimited plan
-              console.log('🔄 Using unlimited plan fallback data since user was just created');
               profileData = {
                 id: session.user.id,
                 email: session.user.email,
@@ -566,7 +540,7 @@ export const useUser = () => {
             checkLaunchPeriodEligibility();
             
             const totalAuthChangeTime = Date.now() - authChangeStartTime;
-            console.log('✅ Auth change (SIGNED_IN) completed in', totalAuthChangeTime, 'ms');
+            console.log(`✅ Sign-in processing completed in ${totalAuthChangeTime}ms`);
             
             // Instant redirect to dashboard if on main domain
             if (typeof window !== 'undefined' && window.location.pathname === '/') {
@@ -739,7 +713,7 @@ export const useUser = () => {
   const signInWithGoogle = async () => {
     try {
       const signInStartTime = Date.now();
-      console.log('🔐 Starting Google sign in...');
+      console.log('🔄 Starting Google sign in...');
       setLoading(true);
       setError(null);
       
@@ -755,7 +729,7 @@ export const useUser = () => {
       if (error) throw error;
       
       const signInTime = Date.now() - signInStartTime;
-      console.log('✅ Google sign in completed in', signInTime, 'ms');
+      console.log(`✅ Google sign in completed in ${signInTime}ms`);
       return data;
     } catch (err) {
       console.error('Error signing in with Google:', err);
@@ -772,7 +746,7 @@ export const useUser = () => {
   const signInWithDiscord = async () => {
     try {
       const signInStartTime = Date.now();
-      console.log('🔐 Starting Discord sign in...');
+      console.log('🔄 Starting Discord sign in...');
       setLoading(true);
       setError(null);
       
@@ -788,7 +762,7 @@ export const useUser = () => {
       if (error) throw error;
       
       const signInTime = Date.now() - signInStartTime;
-      console.log('✅ Discord sign in completed in', signInTime, 'ms');
+      console.log(`✅ Discord sign in completed in ${signInTime}ms`);
       return data;
     } catch (err) {
       console.error('Error signing in with Discord:', err);
@@ -898,7 +872,7 @@ export const useUser = () => {
       if (!user?.id) return;
       
       const refreshStartTime = Date.now();
-      console.log('🔄 Refreshing user data...');
+      console.log(`🔄 Refreshing user data for ${user.id}...`);
       
       // Clear cache to force fresh data
       localStorage.removeItem('userData');
@@ -921,7 +895,7 @@ export const useUser = () => {
       localStorage.setItem('userDataTimestamp', Date.now().toString());
       
       const refreshTime = Date.now() - refreshStartTime;
-      console.log('✅ User data refresh completed in', refreshTime, 'ms');
+      console.log(`✅ User data refresh completed in ${refreshTime}ms`);
     } catch (err) {
       console.error('Error refreshing user data:', err);
       setError(err.message);

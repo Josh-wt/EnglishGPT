@@ -755,12 +755,128 @@ If you think the Sensory Details are good, the narrative must get over 30/40.
 """,
     "igcse_summary": """
 
-Comprehensive Guide: Understanding Marks in Summary Tasks.
+Marking Guide for AI: IGCSE 0500 English – Paper 1 Question 1(f) (Selective Summary)
 
-I. Reading Marks (Content & Understanding) - Out of X Marks (e.g., 10) This component assesses how accurately and thoroughly you have understood the source text and extracted information relevant to the specific question posed. Where Marks are Gained: Accurate Identification of Key Points (from Mark Scheme the mark scheme will be provided, use only that, nothing else): Marks are awarded for each distinct and accurate point extracted from the source text that directly addresses the specific aspects of the question (e.g., a specific advantage, a particular cause). All content points should be taken from the mark scheme provided for the question. Clear Understanding: Demonstrating a clear and precise grasp of the meaning of the points. This is shown by presenting the information accurately and without ambiguity. Coverage and Breadth: Providing a good range of relevant ideas from all required parts of the question (e.g., covering both advantages and disadvantages, or multiple causes and effects). A balanced summary will typically score higher. Implied and Inferred Understanding: Credit can be given for points that are conveyed through reasonable inference or abstract interpretation of the text, even if not explicitly stated in the summary using the exact words of the source. The ability to grasp underlying concepts from the text is valued. Contextual Relevance: Summarizing information that is broadly relevant to the prompt's context, even if not explicitly framed in a highly specific way (e.g., as a "personal experience"), can still gain marks. The focus is on extracting information pertinent to the overarching subject of the summary. Where Marks are Lost: Misreadings / Factual Inaccuracies: Stating information that directly contradicts the source text is a major area for mark loss. It demonstrates a lack of accurate understanding. However, for an otherwise strong response, a single "slight misreading" at a specific point might not prevent a very high score, indicating some tolerance for minor factual nuances. Irrelevant Information / Lack of Focus: Including details that do not directly address the specific question will lead to mark deductions. The summary must stick strictly to the prompt's requirements. Indiscriminate Selection: Copying excessive amounts of text or including extraneous details that are not essential to the core summary will reduce marks, indicating poor selection and concision. Vagueness and Lack of Precision: Presenting points in an unclear or imprecise manner, or making general statements that lack specific detail from the text, will limit marks. Speculation: Introducing information, opinions, or examples that are not present in the source text will result in lost marks, as the task requires summarizing the provided text only. Over-reliance on Direct Lifting / Repetition: While some close paraphrasing may occur, extensive direct lifting of phrases or repeating the same idea multiple times without adding new relevant information will negatively impact your score. It shows a lack of true summarization in your own words.
+Overview: The summary is worth 10 Reading (content) marks and 5 Writing (language) marks
 
-II. Writing Marks (Language & Organization) - Out of Y Marks (e.g., 5) This component assesses the quality of your summary's written expression, including your use of own words, clarity, organization, and concision. Where Marks are Gained: Use of Own Words: Marks are primarily awarded for rephrasing the information from the source text using your own vocabulary and sentence structures. "Largely communicated in own words" is generally sufficient for achieving top marks, indicating that minor instances of close phrasing or structural similarities to the source text are acceptable, provided overall originality is evident. Clarity of Expression: Writing that is easy to understand, with clear, unambiguous, and precise language, will score highly. Organization and Structure: A well-organized summary that flows logically, with ideas presented in a coherent order, will be rewarded. Use of appropriate linking words and phrases contributes to a smooth progression of ideas. Conciseness: Effectively conveying the maximum amount of relevant information within the stipulated word limit demonstrates strong concision. Where Marks are Lost: Exceeding Word Limit: While the impact can vary, exceeding the word limit is generally a sign of a lack of concision. Examiners typically stop marking after the word count. However, "Real Marking" feedback suggests that significantly exceeding the limit (e.g., by 25%) does not necessarily preclude a perfect writing score if other writing qualities (clarity, organization, own words) are exceptionally strong. Lack of Concision (Internal): Even if the word count is adhered to, if the writing is verbose, uses unnecessary words or phrases, or repeats ideas unnecessarily, marks for concision will be lost. Grammar, Punctuation, and Spelling Errors: Frequent or significant errors will impede clear communication and reduce your score. Over-reliance on Source Text Language: If your summary heavily relies on direct lifting of sentences or phrases from the source text, it shows a limited ability to rephrase and use your own words effectively. Poor Flow and Organization: A summary that jumps between ideas abruptly, lacks logical transitions, or is difficult to follow will lose marks.
+. Reading marks reward accurate selection of relevant ideas; Writing marks reward clarity, concision and use of own words. Candidates must write in continuous prose (not notes) and stay close to 120 words
 
+. The AI should score content points first, then assess writing quality separately. Use Cambridge’s published criteria (Table A and B) as the rubric
+
+
+.
+
+Reading (Content) Marks (10 marks)
+
+Level 5 (9–10 marks): The response shows a thorough understanding of the task
+
+. It covers a wide range of relevant ideas, stays fully focused, and skillfully selects only the key points
+
+. (e.g. grouping related ideas to give an overview.)
+
+Level 4 (7–8 marks): A competent summary covering a good range of relevant ideas
+
+. Mostly focused on the task, with evidence of a clear overview (though one or two minor points may be omitted).
+
+Level 3 (5–6 marks): A reasonable summary that shows some understanding of requirements
+
+. It selects some relevant ideas but may include extraneous details or lose focus occasionally
+
+. (For example, listing ideas without strong organization or adding minor irrelevant information.)
+
+Level 2 (3–4 marks): A basic attempt
+
+. Only a few relevant ideas are conveyed; understanding is general. The answer may stray off‐task or include obvious irrelevant points. (Some ideas may be listed indiscriminately
+
+.)
+
+Level 1 (1–2 marks): A limited response
+
+. Very few ideas are relevant; it reads like a disjointed list or shows confusion. Little evidence of selection – mostly vague or unsupported statements.
+
+Level 0 (0 marks): No relevant content (ideas from the text are missing or wholly incorrect).
+
+Marking Guidance: For each candidate idea, the AI should check if it matches an idea in the source text. Award a content point if the meaning is correct and relevant. Paraphrasing is allowed; the phrasing need not match exactly
+
+. Combining multiple related points into one sentence is acceptable and should still earn separate marks for each idea, as long as no information is lost
+
+
+. Irrelevant details or personal commentary must not earn reading marks
+
+. Similarly, if a statement is a minor misinterpretation (the main idea is present but a detail is slightly off), the AI can still award that point (perhaps at a mid-level score)
+
+
+. However, major factual errors (e.g. reversing a cause/effect) mean no mark for that idea
+
+. In practice, treat any incorrect idea as non-creditable content.
+
+Writing (Language) Marks (5 marks)
+
+4–5 marks: A very clear, concise summary
+
+. Writing is relevant and fluent, with well‐organised paragraphs or structure. The candidate mostly uses own words (synonyms) and a good range of vocabulary
+
+. Explanations are short and to the point (concise). Spelling and grammar are largely accurate.
+
+2–3 marks: A mostly clear response
+
+. Generally relevant, with some attempts at conciseness. The organisation may have minor lapses (e.g. slight repetition or less logical sequencing). Most wording is original, but the answer may rely on a few phrases from the text. Some spelling/punctuation errors may occur, but meaning is not seriously obscured.
+
+1 mark: A poorly expressed summary
+
+. It lacks clarity or conciseness. The answer might be too long (wordy) or too short, and may include lifted phrases or be list-like. Frequent errors or awkward sentences impede clarity.
+
+0 marks: No readable content.
+
+Marking Guidance: Check that the answer is in continuous prose
+
+. If it is note‐form or bullet points, consider awarding at most 1 mark for writing (since format instructions are violated). Enforce the 120‐word limit: answers far over 120 words likely lose writing marks for lack of concision
+
+
+. The use of own words is critical
+
+
+ – heavy copying of text phrases should reduce Writing marks (tending toward the 1–2 band). (As examiners note, “better responses used suitable alternatives…uncopied”
+
+, whereas copied summaries “lacked concision and focus”
+
+.) Minor grammar or spelling errors do not automatically zero the writing score; only reduce the band if they repeatedly impair readability. Good use of synonyms and varied sentence structure should be rewarded
+
+. Logic and organisation count: linking similar ideas into coherent paragraphs improves the score
+
+.
+
+Subtleties & AI Tips
+
+Combining and Order: Candidates are encouraged to reorganise ideas for fluency
+
+
+. If a student merges two related ideas into one sentence (instead of separate list items), do not penalize that – still award both content points as long as each idea is clearly present. Likewise, candidates may present points in a different order than the text; AI should focus on coverage of ideas, not text order
+
+.
+
+Concision over Detail: Answers must be concise. If a student adds repetitive or irrelevant detail (e.g. unnecessary examples or commentary), that should hurt their Writing score for conciseness and focus
+
+
+. For Reading, ignore these when selecting content. Only factual points from the text count; personal opinions or extras earn no marks
+
+.
+
+Tolerance for Misreadings: Small slips in wording are tolerated if the main idea is correct. The mark scheme allows a general understanding with some loss for inaccuracies
+
+
+. But if a student’s phrasing clearly misstates a fact (as in the examiner’s example “lost legs” vs “lost race”)
+
+, the AI should treat that point as incorrect. In summary, minor imprecision can still earn credit; major distortion cannot.
+
+Own Words Emphasis: Emphasize paraphrase. The AI should reward synonyms or rephrasings of the text and not count them as wrong. Conversely, copying long phrases from the source should cut writing marks
+
+
+. Do not require every word changed, but avoid “lifting whole phrases”
+
+.
+
+Content vs Descriptive Style: The summary must be factual. Do not reward descriptive or evaluative language that is not in the text. For example, if the original just says “they face danger,” and a candidate writes “they face terrifying danger,” the added adjective is stylistic. Award the content point for “they face danger” if correct, but do not give extra. The AI should focus on whether the summary conveys the facts, not on literary flair
 SPECIFIC FOCUS AREAS - Where you, the AI, consistently makes mistakes while marking:
 
 Bad vocabulary, does not affect reading marks, but does affect writing marks, but not by a lot, so do not be strict

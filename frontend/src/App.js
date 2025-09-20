@@ -61,14 +61,6 @@ const App = () => {
       api: api
     };
 
-    console.log('🔧 Global debugging functions available:');
-    console.log('  - window.debugAPI.pendingRequests() - Check pending API requests');
-    console.log('  - window.debugAPI.allRequests() - Check all tracked requests');
-    console.log('  - window.debugAPI.backendUrl() - Get current backend URL');
-    console.log('  - window.debugAPI.userState() - Get current user state');
-    console.log('  - window.debugAPI.supabase - Access Supabase client');
-    console.log('  - window.debugAPI.api - Access API instance');
-
     // Cleanup function
     return () => {
       delete window.debugAPI;
@@ -86,7 +78,6 @@ const App = () => {
   // Add debug panel toggle to window
   useEffect(() => {
     window.toggleDebugPanel = toggleDebugPanel;
-    console.log('🔧 Debug panel toggle available: window.toggleDebugPanel()');
     
     return () => {
       delete window.toggleDebugPanel;
@@ -99,12 +90,14 @@ const App = () => {
     const currentTime = Date.now();
     const timeSinceLastRender = currentTime - lastRenderTime.current;
     
-    console.log('🚀 App Debug:', {
-      renderCount: renderCount.current,
-      timeSinceLastRender: `${timeSinceLastRender}ms`,
-      currentPath: location.pathname,
-      timestamp: new Date().toISOString()
-    });
+    // Performance monitoring - only log if render time is concerning
+    if (timeSinceLastRender > 100) {
+      console.warn('⚠️ Slow render detected:', {
+        renderCount: renderCount.current,
+        timeSinceLastRender: `${timeSinceLastRender}ms`,
+        currentPath: location.pathname
+      });
+    }
 
     lastRenderTime.current = currentTime;
   });
@@ -121,30 +114,17 @@ const App = () => {
     if (navigationHistory.current.length > 10) {
       navigationHistory.current = navigationHistory.current.slice(-10);
     }
-
-    console.log('🧭 App Navigation:', {
-      pathname: location.pathname,
-      search: location.search,
-      hash: location.hash,
-      navigationHistory: navigationHistory.current.slice(-3), // Last 3 events
-      timestamp: new Date().toISOString()
-    });
   }, [location]);
 
   // Use custom hooks for state management
   const { user, userStats, loading: userLoading, signInWithGoogle, signInWithDiscord, signOut, updateLevel, refreshUserData } = useUser();
   const { questionTypes } = useQuestionTypes();
 
-  // Debug user state changes
+  // Debug user state changes - only log errors
   useEffect(() => {
-    console.log('🔍 DEBUG: User state changed in App.js:', {
-      user: user,
-      hasUser: !!user,
-      userId: user?.id,
-      userEmail: user?.email,
-      userLoading: userLoading,
-      timestamp: new Date().toISOString()
-    });
+    if (userLoading && user) {
+      console.warn('⚠️ User loading state inconsistency detected');
+    }
   }, [user, userLoading]);
 
   // Track when new users get unlimited access and show early access modal
@@ -159,8 +139,6 @@ const App = () => {
       const hasDeclinedUnlimited = localStorage.getItem(`declinedUnlimited_${user.id}`);
       
       if (isUnlimitedUser && isNewUser && !hasSeenEarlyAccessModal && !hasDeclinedUnlimited) {
-        console.log('🎉 New unlimited user detected, showing early access modal');
-        
         // Delay showing modal to ensure smooth user experience
         setTimeout(() => {
           setShowEarlyAccessModal(true);
@@ -193,24 +171,11 @@ const App = () => {
 
   const navigate = useNavigate();
 
-  // Track user state changes
+  // Track user state changes - only log critical issues
   useEffect(() => {
-    console.log('👤 App User State:', {
-      userLoading,
-      hasUser: !!user,
-      hasUserStats: !!userStats,
-      userData: user ? {
-        id: user.id,
-        email: user.email,
-        uid: user.uid
-      } : null,
-      userStatsData: userStats ? {
-        currentPlan: userStats.currentPlan,
-        credits: userStats.credits,
-        questionsMarked: userStats.questionsMarked
-      } : null,
-      timestamp: new Date().toISOString()
-    });
+    if (user && !userStats && !userLoading) {
+      console.warn('⚠️ User exists but no userStats available');
+    }
   }, [user, userStats, userLoading]);
 
   // Fetch evaluations when user is logged in
@@ -218,8 +183,8 @@ const App = () => {
     const fetchEvaluations = async () => {
       if (user?.id) {
         try {
-          console.log('📊 Fetching evaluations for user:', user.id);
           const startTime = Date.now();
+          console.log(`🔄 Loading evaluations for user ${user.id}...`);
           
           // Add timeout to evaluation fetching
           const controller = new AbortController();
@@ -237,17 +202,16 @@ const App = () => {
           clearTimeout(timeoutId);
           const duration = Date.now() - startTime;
           
-          console.log('📊 Evaluations fetched in', duration, 'ms:', {
-            count: evalResponse.data?.evaluations?.length || 0,
-            hasData: !!evalResponse.data?.evaluations,
-            fullResponse: evalResponse.data
-          });
+          console.log(`✅ Evaluations loaded: ${evalResponse.data?.evaluations?.length || 0} items in ${duration}ms`);
+          
+          // Performance monitoring - log slow requests
+          if (duration > 3000) {
+            console.warn(`⚠️ Slow evaluations fetch: ${duration}ms for user ${user.id}`);
+          }
           
           if (evalResponse.data?.evaluations) {
             setEvaluations(evalResponse.data.evaluations);
-            console.log('✅ Evaluations set in state:', evalResponse.data.evaluations.length, 'items');
           } else {
-            console.log('⚠️ No evaluations found in response, setting empty array');
             setEvaluations([]);
           }
         } catch (error) {
@@ -256,14 +220,6 @@ const App = () => {
             setEvaluations([]);
           } else {
             console.error('❌ Error fetching evaluations:', error);
-            console.error('❌ Error details:', {
-              status: error.response?.status,
-              statusText: error.response?.statusText,
-              data: error.response?.data,
-              config: error.config,
-              message: error.message,
-              code: error.code
-            });
             setEvaluations([]);
           }
         }
@@ -276,7 +232,6 @@ const App = () => {
   // Set academic level from userStats when available
   useEffect(() => {
     if (userStats?.academicLevel && userStats.academicLevel !== 'N/A') {
-      console.log('🎓 Setting academic level from userStats:', userStats.academicLevel);
       setSelectedLevel(userStats.academicLevel.toLowerCase());
     }
   }, [userStats]);
@@ -285,29 +240,16 @@ const App = () => {
 
   // Navigation handlers
   const handleStartQuestion = () => {
-    console.log('🎯 handleStartQuestion called:', {
-      selectedLevel,
-      currentPage,
-      timestamp: new Date().toISOString()
-    });
-    
     if (selectedLevel) {
       setCurrentPage('questionTypes');
       navigate('/write');
     } else {
       // Show level selection modal for first-time users
-      console.log('🎓 Showing level selection modal');
       setShowLevelSelectionModal(true);
     }
   };
 
   const handleLevelSelect = async (level) => {
-    console.log('🎓 handleLevelSelect called:', {
-      level,
-      userId: user?.id,
-      timestamp: new Date().toISOString()
-    });
-    
     setSelectedLevel(level);
     setShowLevelSelectionModal(false);
     
@@ -315,7 +257,6 @@ const App = () => {
     if (user?.id) {
       try {
         await updateLevel(level);
-        console.log('✅ Academic level saved and cached');
       } catch (error) {
         console.error('❌ Error saving academic level:', error);
       }
@@ -327,12 +268,6 @@ const App = () => {
   };
 
   const handleSelectQuestionType = (questionType) => {
-    console.log('📝 handleSelectQuestionType called:', {
-      questionType: questionType?.id,
-      hasStudentResponse: !!questionType?.studentResponse,
-      timestamp: new Date().toISOString()
-    });
-    
     setSelectedQuestionType(questionType);
     if (questionType.studentResponse) {
       // This is coming from QuestionTypePage with student response
@@ -396,20 +331,15 @@ const App = () => {
   };
 
   const handleEvaluate = async (evaluationResult) => {
-    console.log('🔍 DEBUG: handleEvaluate called with:', evaluationResult);
-    console.log('🔍 DEBUG: Current user:', user);
-    console.log('🔍 DEBUG: Current userStats:', userStats);
-    
     if (!evaluationResult) {
-      console.error('🔍 DEBUG: No evaluationResult provided');
+      console.error('❌ No evaluationResult provided');
       return;
     }
     
     const userId = user?.uid || user?.id;
-    console.log('🔍 DEBUG: User ID extracted:', userId);
     
     if (!user || !userId) {
-      console.error('🔍 DEBUG: Cannot evaluate: user not ready');
+      console.error('❌ Cannot evaluate: user not ready');
       setErrorMessage('Please wait for authentication to complete.');
       setShowErrorModal(true);
       return;
@@ -418,25 +348,17 @@ const App = () => {
     // Ensure user_id is set
     if (!evaluationResult.user_id && user?.id) {
       evaluationResult.user_id = user.id;
-      console.log('🔍 DEBUG: Set user_id in evaluationResult:', evaluationResult.user_id);
     }
-    
-    console.log('🔍 DEBUG: About to validate essay content');
-    console.log('🔍 DEBUG: student_response length:', evaluationResult.student_response?.length);
-    console.log('🔍 DEBUG: question_type:', evaluationResult.question_type);
     
     // Validate essay content before sending to API
     const validation = validateEssayContent(evaluationResult.student_response, evaluationResult.question_type);
-    console.log('🔍 DEBUG: Validation result:', validation);
     
     if (!validation.isValid) {
-      console.log('🔍 DEBUG: Validation failed:', validation.error);
       setErrorMessage(validation.error);
       setShowErrorModal(true);
       return;
     }
     
-    console.log('🔍 DEBUG: Validation passed, setting loading state');
     setEvaluationLoading(true);
     
     try {
@@ -445,13 +367,9 @@ const App = () => {
         user_id: userId
       };
       
-      console.log('🔍 DEBUG: Evaluation data to send:', evaluationWithUser);
-      
       const API = getApiUrl();
-      console.log('🔍 DEBUG: API endpoint:', `${API}/evaluate`);
-      console.log('🔍 DEBUG: Full URL:', `${API}/evaluate`);
-      
-      console.log('🔍 DEBUG: About to make fetch request');
+      const startTime = Date.now();
+      console.log(`🔄 Starting evaluation for ${evaluationResult.question_type}...`);
       
       // Get auth token for the request
       let authHeaders = {
@@ -459,10 +377,13 @@ const App = () => {
       };
       
       try {
+        const authStartTime = Date.now();
         const { data: { session } } = await supabase.auth.getSession();
+        const authTime = Date.now() - authStartTime;
+        console.log(`📊 Auth session fetch: ${authTime}ms`);
+        
         if (session?.access_token) {
           authHeaders.Authorization = `Bearer ${session.access_token}`;
-          console.log('🔐 Auth token added to evaluate request');
         } else {
           console.warn('⚠️ No auth session found for evaluate request');
         }
@@ -470,68 +391,61 @@ const App = () => {
         console.error('❌ Error getting auth session for evaluate:', authError);
       }
       
+      const fetchStartTime = Date.now();
       const response = await fetch(`${API}/evaluate`, {
         method: 'POST',
         headers: authHeaders,
         body: JSON.stringify(evaluationWithUser),
       });
+      const fetchTime = Date.now() - fetchStartTime;
+      console.log(`📊 Evaluation API call: ${fetchTime}ms`);
       
-      console.log('🔍 DEBUG: Response received:', response);
-      console.log('🔍 DEBUG: Response status:', response.status);
-      console.log('🔍 DEBUG: Response ok:', response.ok);
+      const duration = Date.now() - startTime;
+      console.log(`✅ Evaluation completed in ${duration}ms`);
+      
+      // Performance monitoring - log slow evaluations
+      if (duration > 10000) {
+        console.warn(`⚠️ Slow evaluation request: ${duration}ms`);
+      }
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('🔍 DEBUG: Response not ok, error text:', errorText);
+        console.error('❌ Evaluation request failed:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
       }
       
-      console.log('🔍 DEBUG: About to parse response as JSON');
+      const parseStartTime = Date.now();
       const responseData = await response.json();
-      console.log('🔍 DEBUG: Response data:', responseData);
-      console.log('🔍 DEBUG: Response data type:', typeof responseData);
-      console.log('🔍 DEBUG: Response data keys:', Object.keys(responseData || {}));
+      const parseTime = Date.now() - parseStartTime;
+      console.log(`📊 Response parsing: ${parseTime}ms`);
       
       setEvaluation(responseData);
-      console.log('🔍 DEBUG: Set evaluation state');
-      
       setEvaluations(prev => [responseData, ...prev]);
-      console.log('🔍 DEBUG: Added to evaluations list');
       
       // Refresh user data to get updated questions marked counter from backend
-      console.log('🔍 DEBUG: Refreshing user data to get updated questions marked counter');
       try {
+        const refreshStartTime = Date.now();
         await refreshUserData();
-        console.log('🔍 DEBUG: User data refreshed successfully');
+        const refreshTime = Date.now() - refreshStartTime;
+        console.log(`📊 User data refresh: ${refreshTime}ms`);
       } catch (refreshError) {
-        console.error('🔍 DEBUG: Error refreshing user data:', refreshError);
+        console.error('❌ Error refreshing user data:', refreshError);
       }
       
       // Navigate to shareable public results page (prefer short_id if present)
       const resultId = responseData?.short_id || responseData?.id;
-      console.log('🔍 DEBUG: Result ID for navigation:', resultId);
-      console.log('🔍 DEBUG: responseData.short_id:', responseData?.short_id);
-      console.log('🔍 DEBUG: responseData.id:', responseData?.id);
       
       if (resultId) {
-        console.log('🔍 DEBUG: Navigating to results page with ID:', resultId);
         navigate(`/results/${resultId}`);
-        console.log('🔍 DEBUG: Navigation called');
       } else {
-        console.warn('🔍 WARNING: No result ID available, navigating to dashboard');
+        console.warn('⚠️ No result ID available, navigating to dashboard');
         navigate(`/dashboard`);
-        console.log('🔍 DEBUG: Navigation to dashboard called');
       }
       
-      console.log('🔍 DEBUG: About to clear loading state');
       setEvaluationLoading(false);
-      console.log('🔍 DEBUG: Loading state cleared');
       
     } catch (error) {
-      console.error('🔍 DEBUG: Error evaluating submission:', error);
-      console.error('🔍 DEBUG: Error name:', error.name);
-      console.error('🔍 DEBUG: Error message:', error.message);
-      console.error('🔍 DEBUG: Error stack:', error.stack);
+      console.error('❌ Error evaluating submission:', error);
       
       // Handle specific error messages
       let errorMsg = 'Evaluation failed. Please try again.';
@@ -545,37 +459,21 @@ const App = () => {
       } else if (error.message.includes('500')) {
         errorMsg = 'Server error. Please try again later.';
       } else if (error.message.includes('NetworkError')) {
-        errorMsg = 'Network error. Please check your connection and try again.';
+        errorMsg = 'Network error. You might wanna plug in your router, just a thought. ';
       }
       
-      console.log('🔍 DEBUG: Setting error message:', errorMsg);
       setErrorMessage(errorMsg);
       setShowErrorModal(true);
-      console.log('🔍 DEBUG: Error modal shown');
     } finally {
-      console.log('🔍 DEBUG: Finally block - clearing loading state');
       setEvaluationLoading(false);
-      console.log('🔍 DEBUG: Loading state cleared in finally block');
     }
   };
 
   const handleNewEvaluation = () => {
-    console.log('🔍 DEBUG: handleNewEvaluation called');
-    console.log('🔍 DEBUG: user state:', {
-      user: user,
-      hasUser: !!user,
-      userId: user?.id,
-      userEmail: user?.email,
-      userLoading: userLoading,
-      timestamp: new Date().toISOString()
-    });
-    
     if (!user) {
-      console.log('❌ DEBUG: No user found, showing sign-in modal');
       // Show sign-in modal for unauthenticated users
       setShowSignInModal(true);
     } else {
-      console.log('✅ DEBUG: User authenticated, redirecting to /write');
       // For authenticated users, navigate to write page
       setEvaluation(null);
       setSelectedQuestionType(null);
@@ -592,16 +490,12 @@ const App = () => {
   };
 
   const handleDeclineUnlimited = async () => {
-    console.log('🔄 User declined unlimited access, setting to free plan');
-    
     if (!user?.id) {
       console.error('❌ No user ID available');
       return;
     }
     
     try {
-      console.log('🔄 Updating user plan to free via backend API');
-      
       // Update user plan via backend API
       const response = await fetch(`${getApiUrl()}/users/${user.id}`, {
         method: 'PUT',
@@ -620,9 +514,6 @@ const App = () => {
         console.error('❌ Backend API update error:', errorData);
         throw new Error(`API Error: ${errorData.detail || response.statusText}`);
       }
-      
-      const result = await response.json();
-      console.log('✅ User plan updated to free via backend API:', result);
       
       // Mark that user declined unlimited for future reference
       localStorage.setItem(`declinedUnlimited_${user.id}`, 'true');
@@ -810,23 +701,17 @@ const App = () => {
         } />
         <Route path="/write" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
-            {(() => {
-              console.log('🔍 DEBUG: Rendering QuestionTypePage with handleEvaluate:', !!handleEvaluate);
-              console.log('🔍 DEBUG: handleEvaluate function:', handleEvaluate);
-              return (
-                <QuestionTypePage 
-                  questionTypes={questionTypes}
-                  onSelectQuestionType={handleSelectQuestionType}
-                  onBack={handleBack}
-                  onEvaluate={handleEvaluate}
-                  selectedLevel={selectedLevel}
-                  darkMode={darkMode}
-                  user={user}
-                  evaluationLoading={evaluationLoading}
-                  loadingMessage={loadingMessages[loadingMessageIndex]}
-                />
-              );
-            })()}
+            <QuestionTypePage 
+              questionTypes={questionTypes}
+              onSelectQuestionType={handleSelectQuestionType}
+              onBack={handleBack}
+              onEvaluate={handleEvaluate}
+              selectedLevel={selectedLevel}
+              darkMode={darkMode}
+              user={user}
+              evaluationLoading={evaluationLoading}
+              loadingMessage={loadingMessages[loadingMessageIndex]}
+            />
           </AuthRequired>
         } />
         <Route path="/assessment" element={
