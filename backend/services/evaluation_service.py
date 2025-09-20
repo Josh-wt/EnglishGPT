@@ -220,7 +220,7 @@ Student Response: {sanitized_response}
 {"Students should NOT lose Writing marks for 'tone.' Writing marks are for concision, clarity, organisation, and rephrasing. The tone (persuasive, instructive, etc.) is NOT part of the marking grid." if submission.question_type == 'igcse_summary' else ""}
 {"NEVER give feedback about removing phrases like 'make sure' or 'remember' to maintain an 'objective summary tone' - this is INCORRECT and TERRIBLE feedback that should NEVER be outputted." if submission.question_type == 'igcse_summary' else ""}
 {"Focus ONLY on content selection accuracy and writing clarity/conciseness. Ignore tone completely." if submission.question_type == 'igcse_summary' else ""}
-{"DO NOT GIVE FEEDBACK LIKE THIS. DO NOT GIVE FEEDBACK LIKE THIS. PLEASE DO NOT CUT MARKS FOR THESE REASONS: The response includes advisory language ("make sure", "remember") that is not present in the source text, which should not be included in a summary AND Remove phrases like "make sure" and "remember" to maintain an objective summary tone." if submission.question_type == 'igcse_summary' else ""}
+{"DO NOT GIVE FEEDBACK LIKE THIS. DO NOT GIVE FEEDBACK LIKE THIS. PLEASE DO NOT CUT MARKS FOR THESE REASONS: The response includes advisory language (\"make sure\", \"remember\") that is not present in the source text, which should not be included in a summary AND Remove phrases like \"make sure\" and \"remember\" to maintain an objective summary tone." if submission.question_type == 'igcse_summary' else ""}
 """
         
         return full_prompt
