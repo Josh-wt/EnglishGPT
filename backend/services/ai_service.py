@@ -62,19 +62,7 @@ async def call_deepseek_api(prompt: str) -> tuple[str, str]:
             except:
                 response_text = "Unable to read response text"
             
-            logger.error("DeepSeek API HTTP error - DETAILED DEBUG", extra={
-                "component": "deepseek",
-                "status_code": e.response.status_code,
-                "status_text": getattr(e.response, 'reason_phrase', 'Unknown'),
-                "response_headers": dict(e.response.headers),
-                "response_text": response_text,
-                "request_url": str(e.response.request.url),
-                "request_method": e.response.request.method,
-                "request_headers": dict(e.response.request.headers),
-                "model_used": payload.get("model", "unknown"),
-                "endpoint_used": DEEPSEEK_ENDPOINT,
-                "api_key_prefix": DEEPSEEK_API_KEY[:20] + "..." if DEEPSEEK_API_KEY else "None"
-            })
+            logger.error(f"DeepSeek API HTTP error - Status: {e.response.status_code}, Response: {response_text}")
             
             if e.response.status_code == 401:
                 error_msg = f"DeepSeek API authentication failed. Status: {e.response.status_code}, Response: {response_text}"
@@ -94,16 +82,7 @@ async def call_deepseek_api(prompt: str) -> tuple[str, str]:
                 raise HTTPException(status_code=500, detail=error_msg)
         except Exception as e:
             error_msg = str(e)
-            logger.error("DeepSeek API exception - DETAILED DEBUG", extra={
-                "component": "deepseek",
-                "error": error_msg,
-                "error_type": type(e).__name__,
-                "model_used": payload.get("model", "unknown"),
-                "endpoint_used": DEEPSEEK_ENDPOINT,
-                "api_key_prefix": DEEPSEEK_API_KEY[:20] + "..." if DEEPSEEK_API_KEY else "None",
-                "payload_keys": list(payload.keys()) if payload else "None",
-                "prompt_length": len(prompt) if prompt else 0
-            })
+            logger.error(f"DeepSeek API exception - Error: {error_msg}, Type: {type(e).__name__}")
             if "401" in error_msg or "unauthorized" in error_msg.lower():
                 error_msg = f"DeepSeek API authentication failed. Error: {error_msg}"
                 logger.error(error_msg)

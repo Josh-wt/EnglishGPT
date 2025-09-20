@@ -24,8 +24,7 @@ evaluation_service = EvaluationService()
 async def evaluate_submission(submission: SubmissionRequest):
     """Evaluate student submission using AI"""
     try:
-        # Debug logging removed for production
-        # print(f"DEBUG: Starting evaluation for user {submission.user_id}, question type: {submission.question_type}")
+        logger.info(f"Starting evaluation for user {submission.user_id}, question type: {submission.question_type}")
         
         # Get user data using the user management service
         if not user_management_service:
@@ -38,7 +37,7 @@ async def evaluate_submission(submission: SubmissionRequest):
         credits = user_data.get('credits', 3)
         questions_marked = user_data.get('questions_marked', 0)
         
-        logger.debug(f"DEBUG: User plan: {current_plan}, credits: {credits}")
+        logger.info(f"User plan: {current_plan}, credits: {credits}")
         
         # Check if question type requires marking scheme
         requires_marking_scheme = submission.question_type in ['igcse_summary', 'alevel_comparative', 'alevel_text_analysis', 'alevel_language_change']
@@ -49,43 +48,12 @@ async def evaluate_submission(submission: SubmissionRequest):
         
         # Build evaluation prompt using the evaluation service
         try:
+            logger.info("Building evaluation prompt...")
             full_prompt = evaluation_service.build_evaluation_prompt(submission)
+            logger.info(f"Prompt built successfully, length: {len(full_prompt)}")
         except ValueError as e:
+            logger.error(f"Error building prompt: {str(e)}")
             raise HTTPException(status_code=400, detail=str(e))
-        
-        logger.debug(f"DEBUG: Full prompt length: {len(full_prompt)}")
-        logger.debug(f"DEBUG: First 500 chars of prompt: {full_prompt[:500]}")
-        
-        # Additional debugging to check if the right criteria is being used
-        if submission.question_type == "igcse_descriptive":
-            logger.debug(f"DEBUG: This should be descriptive criteria. First 500 chars: {full_prompt[:500]}")
-            # Check for specific markers that indicate descriptive criteria
-            if "Core Principle for Descriptive Marking" in full_prompt:
-                logger.debug("DEBUG: Correct descriptive criteria confirmed")
-                pass
-            elif "Primary Focus:" in full_prompt and "narrative" in full_prompt.lower():
-                logger.error("Narrative criteria found in descriptive request")
-            else:
-                logger.debug("DEBUG: Criteria type unclear")
-                pass
-        elif submission.question_type == "igcse_narrative":
-            logger.debug(f"DEBUG: This should be narrative criteria. First 500 chars: {full_prompt[:500]}")
-            # Check for specific markers that indicate narrative criteria
-            if "Primary Focus:" in full_prompt and "Content/Structure (16 marks)" in full_prompt:
-                logger.debug("DEBUG: Correct narrative criteria confirmed")
-                pass
-            elif "Core Principle for Descriptive Marking" in full_prompt:
-                logger.error("Descriptive criteria found in narrative request")
-            else:
-                logger.debug("DEBUG: Criteria type unclear")
-                pass
-        elif submission.question_type == "igcse_directed":
-            if "Core Principle for Directed Writing Marking" in full_prompt:
-                logger.debug("DEBUG: Correct directed writing criteria found in prompt")
-                pass
-            else:
-                logger.debug("DEBUG: Directed writing criteria not found in prompt")
-                pass
         
         # Sanitize input to prevent prompt injection
         def sanitize_input(text):
@@ -128,13 +96,15 @@ async def evaluate_submission(submission: SubmissionRequest):
         # IMPORTANT: Do NOT sanitize the full_prompt as it contains the official marking guidelines
         # The full_prompt should be used as-is to ensure correct evaluation
         
-        logger.debug("DEBUG: Calling DeepSeek API...")
+        logger.info("Calling AI API for evaluation...")
         
         # Call AI API
-        ai_response, _ = await call_deepseek_api(full_prompt)
-        
-        logger.debug(f"DEBUG: AI Response received: {ai_response[:500]}...")
-        logger.debug(f"DEBUG: Full AI Response: {ai_response}")
+        try:
+            ai_response, _ = await call_deepseek_api(full_prompt)
+            logger.info(f"AI API response received, length: {len(ai_response)}")
+        except Exception as e:
+            logger.error(f"AI API call failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"AI evaluation failed: {str(e)}")
         
         # Remove any bolding from the response
         ai_response = ai_response.replace('**', '')
@@ -459,7 +429,7 @@ async def evaluate_submission(submission: SubmissionRequest):
             full_chat=json.dumps(full_chat_data)
         )
         
-        logger.debug("DEBUG: Created feedback response, updating user stats...")
+        logger.info("Processing evaluation response and saving to database...")
         
         # Update user stats
         new_questions_marked = questions_marked + 1
@@ -477,12 +447,14 @@ async def evaluate_submission(submission: SubmissionRequest):
         # Also persist short_id alongside the evaluation record (requires DB column)
         try:
             supabase.table('assessment_evaluations').insert(evaluation_data).execute()
-        except Exception:
+            logger.info("Evaluation saved to database successfully")
+        except Exception as e:
+            logger.error(f"Database save failed: {str(e)}")
             # Fallback: if the DB doesn't have short_id column yet, strip it and insert
             eval_copy = {k: v for k, v in evaluation_data.items() if k != 'short_id'}
             supabase.table('assessment_evaluations').insert(eval_copy).execute()
         
-        logger.debug("DEBUG: Evaluation completed successfully")
+        logger.info("Evaluation completed successfully")
         return feedback_response
         
     except HTTPException as http_exc:
