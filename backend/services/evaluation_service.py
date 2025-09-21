@@ -221,6 +221,9 @@ Student Response: {sanitized_response}
 {"NEVER give feedback about removing phrases like 'make sure' or 'remember' to maintain an 'objective summary tone' - this is INCORRECT and TERRIBLE feedback that should NEVER be outputted." if submission.question_type == 'igcse_summary' else ""}
 {"Focus ONLY on content selection accuracy and writing clarity/conciseness. Ignore tone completely." if submission.question_type == 'igcse_summary' else ""}
 {"DO NOT GIVE FEEDBACK LIKE THIS. DO NOT GIVE FEEDBACK LIKE THIS. PLEASE DO NOT CUT MARKS FOR THESE REASONS: The response includes advisory language (\"make sure\", \"remember\") that is not present in the source text, which should not be included in a summary AND Remove phrases like \"make sure\" and \"remember\" to maintain an objective summary tone." if submission.question_type == 'igcse_summary' else ""}
+
+{"CRITICAL IGCSE NARRATIVE/DESCRIPTIVE INSTRUCTIONS - MUST READ:" if submission.question_type in ['igcse_narrative', 'igcse_descriptive'] else ""}
+{"If your feedback and understanding of the essay concludes that the essay has consistent grammatical errors and bad sentence structures, the essay must not be given more than 21/40 and consider giving it less than 20/40. Please remember this rule ONLY applies if the essay needs CONSISTENTLY (NOT ONE OFF) to: Develop more complex sentence structures to vary the rhythm and flow of the narrative AND Fix grammatical errors, particularly with pronoun usage and awkward phrasing." if submission.question_type in ['igcse_narrative', 'igcse_descriptive'] else ""}
 """
         
         return full_prompt
