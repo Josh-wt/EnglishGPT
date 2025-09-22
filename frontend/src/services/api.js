@@ -411,5 +411,5 @@ export const cacheHelpers = {
   }
 };
 
-export { api, apiHelpers, debugAllRequests, cacheHelpers };
+export { api, debugAllRequests, cacheHelpers };
 export default api;
