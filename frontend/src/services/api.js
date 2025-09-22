@@ -4,7 +4,7 @@ import { API_ENDPOINTS } from '../constants/apiEndpoints';
 // Create axios instance with default configuration
 const api = axios.create({
   baseURL: API_ENDPOINTS.API, // Use API which includes /api prefix
-  timeout: 30000, // 30 seconds
+  timeout: 15000, // 15 seconds - reduced from 30s
   headers: {
     'Content-Type': 'application/json',
   },
@@ -12,6 +12,10 @@ const api = axios.create({
 
 // Track request timing and lifecycle
 const requestTracker = new Map();
+
+// Request deduplication cache
+const requestCache = new Map();
+const pendingRequests = new Map();
 
 // Combined request interceptor for debugging and auth token
 api.interceptors.request.use(
@@ -214,26 +218,67 @@ export const debugAllRequests = () => {
 // API helper functions
 export const apiHelpers = {
   /**
-   * Make a GET request
+   * Make a GET request with deduplication and caching
    * @param {string} url - The endpoint URL
    * @param {Object} config - Additional axios config
+   * @param {Object} options - Request options
+   * @param {boolean} options.cache - Whether to cache the response (default: true)
+   * @param {number} options.cacheTime - Cache duration in ms (default: 30000)
+   * @param {boolean} options.deduplicate - Whether to deduplicate identical requests (default: true)
    * @returns {Promise} - Axios response
    */
-  get: (url, config = {}) => {
+  get: (url, config = {}, options = {}) => {
+    const { cache = true, cacheTime = 30000, deduplicate = true } = options;
+    const cacheKey = `${url}_${JSON.stringify(config)}`;
+    
     console.log(`📡 Making GET request to: ${url}`);
+    
+    // Check cache first
+    if (cache && requestCache.has(cacheKey)) {
+      const cached = requestCache.get(cacheKey);
+      if (Date.now() - cached.timestamp < cacheTime) {
+        console.log(`🚀 [CACHE HIT] Returning cached response for: ${url}`);
+        return Promise.resolve(cached.response);
+      } else {
+        requestCache.delete(cacheKey);
+      }
+    }
+    
+    // Check for pending identical requests
+    if (deduplicate && pendingRequests.has(cacheKey)) {
+      console.log(`🔄 [DEDUP] Joining pending request for: ${url}`);
+      return pendingRequests.get(cacheKey);
+    }
     
     // Add timeout monitoring
     const startTime = Date.now();
     const timeoutWarning = setTimeout(() => {
-      console.warn(`⚠️ GET request to ${url} taking longer than 10s`, {
+      console.warn(`⚠️ GET request to ${url} taking longer than 8s`, {
         duration: Date.now() - startTime,
         url,
         timestamp: new Date().toISOString()
       });
-    }, 10000);
+    }, 8000);
     
-    return api.get(url, config).catch(error => {
+    // Create the request promise
+    const requestPromise = api.get(url, config).then(response => {
+      // Cache successful responses
+      if (cache) {
+        requestCache.set(cacheKey, {
+          response,
+          timestamp: Date.now()
+        });
+      }
+      
+      // Clean up pending request
+      pendingRequests.delete(cacheKey);
+      
+      return response;
+    }).catch(error => {
       const duration = Date.now() - startTime;
+      
+      // Clean up pending request on error
+      pendingRequests.delete(cacheKey);
       
       // Enhanced error logging for debugging
       console.error(`❌ GET request failed: ${url}`, {
@@ -257,6 +302,13 @@ export const apiHelpers = {
         console.warn(`⚠️ Slow GET request to ${url}: ${duration}ms`);
       }
     });
+    
+    // Store pending request for deduplication
+    if (deduplicate) {
+      pendingRequests.set(cacheKey, requestPromise);
+    }
+    
+    return requestPromise;
   },
   
   /**
@@ -307,4 +359,57 @@ export const apiHelpers = {
   },
 };
 
+// Cache management functions
+export const cacheHelpers = {
+  /**
+   * Clear all cached requests
+   */
+  clearAll: () => {
+    requestCache.clear();
+    pendingRequests.clear();
+    console.log('🧹 Cleared all API caches');
+  },
+  
+  /**
+   * Clear cache for specific URL pattern
+   * @param {string} pattern - URL pattern to match
+   */
+  clearPattern: (pattern) => {
+    let cleared = 0;
+    for (const key of requestCache.keys()) {
+      if (key.includes(pattern)) {
+        requestCache.delete(key);
+        cleared++;
+      }
+    }
+    console.log(`🧹 Cleared ${cleared} cached requests matching pattern: ${pattern}`);
+  },
+  
+  /**
+   * Clear user-specific cache (call on sign out)
+   */
+  clearUserCache: () => {
+    let cleared = 0;
+    for (const key of requestCache.keys()) {
+      if (key.includes('/users/') || key.includes('/analytics/') || key.includes('/evaluations/')) {
+        requestCache.delete(key);
+        cleared++;
+      }
+    }
+    console.log(`🧹 Cleared ${cleared} user-specific cached requests`);
+  },
+  
+  /**
+   * Get cache statistics
+   */
+  getStats: () => {
+    return {
+      cachedRequests: requestCache.size,
+      pendingRequests: pendingRequests.size,
+      cacheKeys: Array.from(requestCache.keys())
+    };
+  }
+};
+
+export { api, apiHelpers, debugAllRequests, cacheHelpers };
 export default api;

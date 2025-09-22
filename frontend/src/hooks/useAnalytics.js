@@ -215,20 +215,20 @@ export const useAnalytics = () => {
       setLoading(true);
       setError(null);
       
-      const [
-        analyticsData,
-        trendsData,
-        gradeData,
-        questionTypeData,
-        submarkData,
-        recommendationsData,
-        weeklyData,
-        improvementData
-      ] = await Promise.all([
+      // Load critical data first
+      const [analyticsData, trendsData] = await Promise.all([
         getUserAnalytics(userId, filters),
         getPerformanceTrends(userId, filters.timeRange || 'month'),
+      ]);
+      
+      // Load secondary data
+      const [gradeData, questionTypeData] = await Promise.all([
         getGradeDistribution(userId),
         getQuestionTypePerformance(userId),
+      ]);
+      
+      // Load remaining data
+      const [submarkData, recommendationsData, weeklyData, improvementData] = await Promise.all([
         getSubmarkAnalysis(userId),
         getAIRecommendations(userId),
         getWeeklyPerformance(userId, 12),

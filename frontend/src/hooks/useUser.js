@@ -156,13 +156,13 @@ export const useUser = () => {
             try {
               [profileData, statsData] = await Promise.all([
                 Promise.race([
-                  getUserProfile(session.user.id),
+                  getUserProfile(session.user.id, { cache: true, cacheTime: 300000, deduplicate: true }),
                   new Promise((_, reject) => 
                     setTimeout(() => reject(new Error('getUserProfile timeout')), apiTimeout)
                   )
                 ]),
                 Promise.race([
-                  getUserStats(session.user.id),
+                  getUserStats(session.user.id, { cache: true, cacheTime: 300000, deduplicate: true }),
                   new Promise((_, reject) => 
                     setTimeout(() => reject(new Error('getUserStats timeout')), apiTimeout)
                   )
@@ -308,8 +308,8 @@ export const useUser = () => {
                   try {
                     console.log('🔄 Retrying user data fetch after successful creation...');
                     const [profileData, statsData] = await Promise.all([
-                      getUserProfile(session.user.id),
-                      getUserStats(session.user.id),
+                      getUserProfile(session.user.id, { cache: true, cacheTime: 300000, deduplicate: true }),
+                      getUserStats(session.user.id, { cache: true, cacheTime: 300000, deduplicate: true }),
                     ]);
                     
                     const finalStats = applyLaunchPeriodBenefits({
@@ -483,13 +483,13 @@ export const useUser = () => {
             try {
               [profileData, statsData] = await Promise.all([
                 Promise.race([
-                  getUserProfile(session.user.id),
+                  getUserProfile(session.user.id, { cache: true, cacheTime: 300000, deduplicate: true }),
                   new Promise((_, reject) => 
                     setTimeout(() => reject(new Error('getUserProfile timeout')), apiTimeout)
                   )
                 ]),
                 Promise.race([
-                  getUserStats(session.user.id),
+                  getUserStats(session.user.id, { cache: true, cacheTime: 300000, deduplicate: true }),
                   new Promise((_, reject) => 
                     setTimeout(() => reject(new Error('getUserStats timeout')), apiTimeout)
                   )
@@ -622,8 +622,8 @@ export const useUser = () => {
                   try {
                     console.log('🔄 Retrying user data fetch after creation during sign in...');
                     const [profileData, statsData] = await Promise.all([
-                      getUserProfile(session.user.id),
-                      getUserStats(session.user.id),
+                      getUserProfile(session.user.id, { cache: true, cacheTime: 300000, deduplicate: true }),
+                      getUserStats(session.user.id, { cache: true, cacheTime: 300000, deduplicate: true }),
                     ]);
                     
                     const finalStats = applyLaunchPeriodBenefits({
@@ -901,8 +901,8 @@ export const useUser = () => {
       console.log(`🚀 Starting parallel API calls for user data refresh at ${new Date().toISOString()}`);
       
       const [profileData, statsData] = await Promise.all([
-        getUserProfile(user.id),
-        getUserStats(user.id),
+        getUserProfile(user.id, { cache: false }), // Force fresh data on refresh
+        getUserStats(user.id, { cache: false }), // Force fresh data on refresh
       ]);
       
       console.log(`✅ Parallel API calls completed for user data refresh`);

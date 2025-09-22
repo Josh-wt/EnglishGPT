@@ -41,7 +41,7 @@ export const createUser = async (userId, userData = {}) => {
  * @param {string} userId - The user ID
  * @returns {Promise} - API response
  */
-export const getUserProfile = async (userId) => {
+export const getUserProfile = async (userId, options = {}) => {
   const startTime = Date.now();
   try {
     console.log('🔍 Fetching user profile for:', userId, {
@@ -51,7 +51,14 @@ export const getUserProfile = async (userId) => {
     const apiCallStartTime = Date.now();
     console.log(`🚀 Starting user profile API call at ${new Date().toISOString()}`);
     
-    const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}`);
+    // Use caching with longer cache time for user profiles (5 minutes)
+    const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}`, {}, {
+      cache: true,
+      cacheTime: 300000, // 5 minutes
+      deduplicate: true,
+      ...options
+    });
+    
     const apiCallTime = Date.now() - apiCallStartTime;
     console.log(`📊 User profile API call completed in ${apiCallTime}ms`);
     
@@ -156,7 +163,7 @@ export const updateAcademicLevel = async (userId, academicLevel) => {
  * @param {string} userId - The user ID
  * @returns {Promise} - API response
  */
-export const getUserStats = async (userId) => {
+export const getUserStats = async (userId, options = {}) => {
   const startTime = Date.now();
   try {
     console.log('📊 Fetching user stats for:', userId, {
@@ -166,7 +173,14 @@ export const getUserStats = async (userId) => {
     const apiCallStartTime = Date.now();
     console.log(`🚀 Starting user stats API call at ${new Date().toISOString()}`);
     
-    const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}`);
+    // Use caching with longer cache time for user stats (5 minutes)
+    const response = await apiHelpers.get(`${API_ENDPOINTS.USERS}/${userId}`, {}, {
+      cache: true,
+      cacheTime: 300000, // 5 minutes
+      deduplicate: true,
+      ...options
+    });
+    
     const apiCallTime = Date.now() - apiCallStartTime;
     console.log(`📊 User stats API call completed in ${apiCallTime}ms`);
     

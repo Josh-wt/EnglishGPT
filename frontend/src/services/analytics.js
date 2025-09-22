@@ -17,7 +17,11 @@ export const getUserAnalytics = async (userId, filters = {}) => {
     if (filters.questionType) params.append('question_type', filters.questionType);
     
     const url = `${API_ENDPOINTS.ANALYTICS}/${userId}${params.toString() ? `?${params.toString()}` : ''}`;
-    const response = await apiHelpers.get(url);
+    const response = await apiHelpers.get(url, {}, {
+      cache: true,
+      cacheTime: 120000, // 2 minutes cache for analytics
+      deduplicate: true
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching user analytics:', error);
