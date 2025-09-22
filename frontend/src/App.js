@@ -3,6 +3,27 @@ import './App.css';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
+// Import hooks
+import { useUser } from './hooks/useUser';
+import { useQuestionTypes } from './hooks/useQuestionTypes';
+
+// Import services
+import { submitFeedback } from './services/feedback';
+import api, { debugPendingRequests, debugAllRequests } from './services/api';
+import { getApiUrl } from './utils/backendUrl';
+import { supabase } from './supabaseClient';
+
+// Import new modular components
+import LevelSelectionModal from './components/modals/LevelSelectionModal';
+import SignInModal from './components/modals/SignInModal';
+import ErrorModal from './components/modals/ErrorModal';
+import EarlyAccessModal from './components/modals/EarlyAccessModal';
+import AuthRequired from './components/auth/AuthRequired';
+import PublicResultPageWrapper from './components/results/PublicResultPageWrapper';
+import KeyboardShortcutsHelp from './components/help/KeyboardShortcutsHelp';
+import { LazyWrapper, PageSkeleton } from './components/LazyWrapper';
+import PerformanceMonitor from './components/PerformanceMonitor';
+
 // Lazy load all route components for code splitting
 const LandingPage = lazy(() => import('./components/LandingPage'));
 const QuestionTypePage = lazy(() => import('./components/QuestionType'));
@@ -26,27 +47,6 @@ const EmailLogin = lazy(() => import('./components/EmailLogin'));
 const TermsOfService = lazy(() => import('./components/legal').then(module => ({ default: module.TermsOfService })));
 const RefundPolicy = lazy(() => import('./components/legal').then(module => ({ default: module.RefundPolicy })));
 const PrivacyPolicy = lazy(() => import('./components/legal').then(module => ({ default: module.PrivacyPolicy })));
-
-// Import hooks
-import { useUser } from './hooks/useUser';
-import { useQuestionTypes } from './hooks/useQuestionTypes';
-
-// Import services
-import { submitFeedback } from './services/feedback';
-import api, { debugPendingRequests, debugAllRequests } from './services/api';
-import { getApiUrl } from './utils/backendUrl';
-import { supabase } from './supabaseClient';
-
-// Import new modular components
-import LevelSelectionModal from './components/modals/LevelSelectionModal';
-import SignInModal from './components/modals/SignInModal';
-import ErrorModal from './components/modals/ErrorModal';
-import EarlyAccessModal from './components/modals/EarlyAccessModal';
-import AuthRequired from './components/auth/AuthRequired';
-import PublicResultPageWrapper from './components/results/PublicResultPageWrapper';
-import KeyboardShortcutsHelp from './components/help/KeyboardShortcutsHelp';
-import { LazyWrapper, PageSkeleton } from './components/LazyWrapper';
-import PerformanceMonitor from './components/PerformanceMonitor';
 
 const App = () => {
   // Debug tracking
