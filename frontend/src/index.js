@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import ErrorBoundary from "./components/ui/ErrorBoundary";
 import { logSecurityInfo } from "./utils/securityDebug";
+import * as serviceWorker from "./utils/serviceWorker";
 
 // Add global error handler for nodeType permission errors
 window.addEventListener('error', (event) => {
@@ -101,3 +102,28 @@ root.render(
     </ErrorBoundary>
   </React.StrictMode>
 );
+
+// Register service worker for performance optimization
+serviceWorker.register({
+  onSuccess: (registration) => {
+    console.log('✅ Service worker registered successfully');
+  },
+  onUpdate: (registration) => {
+    console.log('🔄 Service worker updated');
+  }
+});
+
+// Measure Core Web Vitals
+serviceWorker.performanceUtils.measureWebVitals((metric) => {
+  console.log('📊 Web Vital:', metric);
+  
+  // Send to analytics if needed
+  if (window.posthog) {
+    window.posthog.capture('web_vital', {
+      name: metric.name,
+      value: metric.value,
+      delta: metric.delta,
+      id: metric.id
+    });
+  }
+});

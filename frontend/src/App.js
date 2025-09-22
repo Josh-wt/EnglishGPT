@@ -1,27 +1,31 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy } from 'react';
 import './App.css';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
-// Import extracted components
-import LandingPage from './components/LandingPage';
-import QuestionTypePage from './components/QuestionType';
-import AssessmentPage from './components/AssessmentPage';
-import ResultsPage from './components/ResultsPage';
-import HistoryPage from './components/HistoryPage';
-import HistoryDetailPage from './components/HistoryPage/HistoryDetailPage';
-import AnalyticsDashboard from './components/AnalyticsDashboard';
-import AccountPage from './components/AccountPage';
-import PricingPage from './components/PricingPage';
-import Dashboard from './components/Dashboard';
-import LaunchPeriodModal from './components/LaunchPeriodModal/LaunchPeriodModal';
-import ModernPricingPage from './components/PricingPage/ModernPricingPage';
-import SubscriptionDashboard from './components/SubscriptionDashboard/SubscriptionDashboard';
-import PaymentSuccess from './components/PaymentSuccess/PaymentSuccess';
-import PaymentsDashboard from './components/AdminDashboard/PaymentsDashboard';
-import AdminResultsPage from './components/AdminResultsPage/AdminResultsPage';
-import { TermsOfService, RefundPolicy, PrivacyPolicy } from './components/legal';
-import EmailLogin from './components/EmailLogin';
+// Lazy load all route components for code splitting
+const LandingPage = lazy(() => import('./components/LandingPage'));
+const QuestionTypePage = lazy(() => import('./components/QuestionType'));
+const AssessmentPage = lazy(() => import('./components/AssessmentPage'));
+const ResultsPage = lazy(() => import('./components/ResultsPage'));
+const HistoryPage = lazy(() => import('./components/HistoryPage'));
+const HistoryDetailPage = lazy(() => import('./components/HistoryPage/HistoryDetailPage'));
+const AnalyticsDashboard = lazy(() => import('./components/AnalyticsDashboard'));
+const AccountPage = lazy(() => import('./components/AccountPage'));
+const PricingPage = lazy(() => import('./components/PricingPage'));
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const LaunchPeriodModal = lazy(() => import('./components/LaunchPeriodModal/LaunchPeriodModal'));
+const ModernPricingPage = lazy(() => import('./components/PricingPage/ModernPricingPage'));
+const SubscriptionDashboard = lazy(() => import('./components/SubscriptionDashboard/SubscriptionDashboard'));
+const PaymentSuccess = lazy(() => import('./components/PaymentSuccess/PaymentSuccess'));
+const PaymentsDashboard = lazy(() => import('./components/AdminDashboard/PaymentsDashboard'));
+const AdminResultsPage = lazy(() => import('./components/AdminResultsPage/AdminResultsPage'));
+const EmailLogin = lazy(() => import('./components/EmailLogin'));
+
+// Lazy load legal components
+const TermsOfService = lazy(() => import('./components/legal').then(module => ({ default: module.TermsOfService })));
+const RefundPolicy = lazy(() => import('./components/legal').then(module => ({ default: module.RefundPolicy })));
+const PrivacyPolicy = lazy(() => import('./components/legal').then(module => ({ default: module.PrivacyPolicy })));
 
 // Import hooks
 import { useUser } from './hooks/useUser';
@@ -41,6 +45,8 @@ import EarlyAccessModal from './components/modals/EarlyAccessModal';
 import AuthRequired from './components/auth/AuthRequired';
 import PublicResultPageWrapper from './components/results/PublicResultPageWrapper';
 import KeyboardShortcutsHelp from './components/help/KeyboardShortcutsHelp';
+import { LazyWrapper, PageSkeleton } from './components/LazyWrapper';
+import PerformanceMonitor from './components/PerformanceMonitor';
 
 const App = () => {
   // Debug tracking
@@ -670,7 +676,11 @@ const App = () => {
     <>
       <Routes>
         {/* Public routes */}
-        <Route path="/" element={<LandingPage onDiscord={signInWithDiscord} onGoogle={signInWithGoogle} user={user} />} />
+        <Route path="/" element={
+          <LazyWrapper fallback={<PageSkeleton />}>
+            <LandingPage onDiscord={signInWithDiscord} onGoogle={signInWithGoogle} user={user} />
+          </LazyWrapper>
+        } />
         <Route path="/results/:id" element={
           <PublicResultPageWrapper 
             darkMode={darkMode}
@@ -683,166 +693,210 @@ const App = () => {
           />
         } />
         <Route path="/results/:shortId/admin/josh" element={
-          <AdminResultsPage darkMode={darkMode} />
+          <LazyWrapper fallback={<PageSkeleton />}>
+            <AdminResultsPage darkMode={darkMode} />
+          </LazyWrapper>
         } />
         
         {/* Protected routes */}
         <Route path="/dashboard" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
-            <Dashboard 
-              questionTypes={questionTypes}
-              onStartQuestion={handleStartQuestion}
-              onPricing={() => navigate('/pricing')}
-              onHistory={() => navigate('/history')}
-              onAnalytics={() => navigate('/analytics')}
-              onAccountSettings={() => navigate('/account')}
-              onSubscription={() => navigate('/subscription')}
-              userStats={userStats || {}}
-              user={user}
-              darkMode={darkMode}
-              onSignOut={signOut}
-            />
+            <LazyWrapper fallback={<PageSkeleton />}>
+              <Dashboard 
+                questionTypes={questionTypes}
+                onStartQuestion={handleStartQuestion}
+                onPricing={() => navigate('/pricing')}
+                onHistory={() => navigate('/history')}
+                onAnalytics={() => navigate('/analytics')}
+                onAccountSettings={() => navigate('/account')}
+                onSubscription={() => navigate('/subscription')}
+                userStats={userStats || {}}
+                user={user}
+                darkMode={darkMode}
+                onSignOut={signOut}
+              />
+            </LazyWrapper>
           </AuthRequired>
         } />
         <Route path="/write" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
-            <QuestionTypePage 
-              questionTypes={questionTypes}
-              onSelectQuestionType={handleSelectQuestionType}
-              onBack={handleBack}
-              onEvaluate={handleEvaluate}
-              selectedLevel={selectedLevel}
-              darkMode={darkMode}
-              user={user}
-              evaluationLoading={evaluationLoading}
-              loadingMessage={loadingMessages[loadingMessageIndex]}
-            />
+            <LazyWrapper fallback={<PageSkeleton />}>
+              <QuestionTypePage 
+                questionTypes={questionTypes}
+                onSelectQuestionType={handleSelectQuestionType}
+                onBack={handleBack}
+                onEvaluate={handleEvaluate}
+                selectedLevel={selectedLevel}
+                darkMode={darkMode}
+                user={user}
+                evaluationLoading={evaluationLoading}
+                loadingMessage={loadingMessages[loadingMessageIndex]}
+              />
+            </LazyWrapper>
           </AuthRequired>
         } />
         <Route path="/assessment" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
-            <AssessmentPage 
-              selectedQuestionType={selectedQuestionType}
-              onEvaluate={handleEvaluate}
-              onBack={() => navigate('/write')}
-              darkMode={darkMode}
-              evaluationLoading={evaluationLoading}
-              loadingMessage={loadingMessages[loadingMessageIndex]}
-            />
+            <LazyWrapper fallback={<PageSkeleton />}>
+              <AssessmentPage 
+                selectedQuestionType={selectedQuestionType}
+                onEvaluate={handleEvaluate}
+                onBack={() => navigate('/write')}
+                darkMode={darkMode}
+                evaluationLoading={evaluationLoading}
+                loadingMessage={loadingMessages[loadingMessageIndex]}
+              />
+            </LazyWrapper>
           </AuthRequired>
         } />
         <Route path="/results" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
-            <ResultsPage 
-              evaluation={evaluation}
-              onNewEvaluation={handleNewEvaluation}
-              onBack={handleBack}
-              feedbackModal={feedbackModal}
-              setFeedbackModal={setFeedbackModal}
-              feedbackAccurate={feedbackAccurate}
-              setFeedbackAccurate={setFeedbackAccurate}
-              feedbackComments={feedbackComments}
-              setFeedbackComments={setFeedbackComments}
-              feedbackSubmitting={feedbackSubmitting}
-              onSubmitFeedback={handleSubmitFeedback}
-              user={user}
-              signInWithGoogle={signInWithGoogle}
-              signInWithDiscord={signInWithDiscord}
-              navigate={navigate}
-            />
+            <LazyWrapper fallback={<PageSkeleton />}>
+              <ResultsPage 
+                evaluation={evaluation}
+                onNewEvaluation={handleNewEvaluation}
+                onBack={handleBack}
+                feedbackModal={feedbackModal}
+                setFeedbackModal={setFeedbackModal}
+                feedbackAccurate={feedbackAccurate}
+                setFeedbackAccurate={setFeedbackAccurate}
+                feedbackComments={feedbackComments}
+                setFeedbackComments={setFeedbackComments}
+                feedbackSubmitting={feedbackSubmitting}
+                onSubmitFeedback={handleSubmitFeedback}
+                user={user}
+                signInWithGoogle={signInWithGoogle}
+                signInWithDiscord={signInWithDiscord}
+                navigate={navigate}
+              />
+            </LazyWrapper>
           </AuthRequired>
         } />
         <Route path="/history" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
-            <HistoryPage 
-              evaluations={evaluations}
-              onBack={handleBack}
-              userPlan={userStats?.currentPlan || 'free'}
-            />
+            <LazyWrapper fallback={<PageSkeleton />}>
+              <HistoryPage 
+                evaluations={evaluations}
+                onBack={handleBack}
+                userPlan={userStats?.currentPlan || 'free'}
+              />
+            </LazyWrapper>
           </AuthRequired>
         } />
         <Route path="/history/:shortId" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
-            <HistoryDetailPage 
-              evaluations={evaluations}
-              onBack={handleBack}
-              userPlan={userStats?.currentPlan || 'free'}
-            />
+            <LazyWrapper fallback={<PageSkeleton />}>
+              <HistoryDetailPage 
+                evaluations={evaluations}
+                onBack={handleBack}
+                userPlan={userStats?.currentPlan || 'free'}
+              />
+            </LazyWrapper>
           </AuthRequired>
         } />
         <Route path="/analytics" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
-            <AnalyticsDashboard 
-              userStats={userStats || {}}
-              user={user}
-              evaluations={evaluations}
-              onBack={handleBack}
-              onUpgrade={() => navigate('/pricing')}
-            />
+            <LazyWrapper fallback={<PageSkeleton />}>
+              <AnalyticsDashboard 
+                userStats={userStats || {}}
+                user={user}
+                evaluations={evaluations}
+                onBack={handleBack}
+                onUpgrade={() => navigate('/pricing')}
+              />
+            </LazyWrapper>
           </AuthRequired>
         } />
         <Route path="/account" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
-            <AccountPage 
-              user={user}
-              userStats={userStats || {}}
-              onLevelChange={updateLevel}
-              darkMode={darkMode}
-              toggleDarkMode={toggleDarkMode}
-              onPricing={() => navigate('/pricing')}
-              onBack={handleBack}
-            />
+            <LazyWrapper fallback={<PageSkeleton />}>
+              <AccountPage 
+                user={user}
+                userStats={userStats || {}}
+                onLevelChange={updateLevel}
+                darkMode={darkMode}
+                toggleDarkMode={toggleDarkMode}
+                onPricing={() => navigate('/pricing')}
+                onBack={handleBack}
+              />
+            </LazyWrapper>
           </AuthRequired>
         } />
         <Route path="/account/preferences" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
-            <AccountPage 
-              user={user}
-              userStats={userStats || {}}
-              onLevelChange={updateLevel}
-              darkMode={darkMode}
-              toggleDarkMode={toggleDarkMode}
-              onPricing={() => navigate('/pricing')}
-              onBack={handleBack}
-              defaultTab="preferences"
-            />
+            <LazyWrapper fallback={<PageSkeleton />}>
+              <AccountPage 
+                user={user}
+                userStats={userStats || {}}
+                onLevelChange={updateLevel}
+                darkMode={darkMode}
+                toggleDarkMode={toggleDarkMode}
+                onPricing={() => navigate('/pricing')}
+                onBack={handleBack}
+                defaultTab="preferences"
+              />
+            </LazyWrapper>
           </AuthRequired>
         } />
         <Route path="/pricing" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
-            <ModernPricingPage 
-              user={user}
-              onBack={handleBack}
-              darkMode={darkMode}
-            />
+            <LazyWrapper fallback={<PageSkeleton />}>
+              <ModernPricingPage 
+                user={user}
+                onBack={handleBack}
+                darkMode={darkMode}
+              />
+            </LazyWrapper>
           </AuthRequired>
         } />
         <Route path="/subscription" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
-            <SubscriptionDashboard 
-              user={user}
-              darkMode={darkMode}
-            />
-          </AuthRequired>
-        } />
-            <Route path="/payment-success" element={
-              <PaymentSuccess
+            <LazyWrapper fallback={<PageSkeleton />}>
+              <SubscriptionDashboard 
                 user={user}
                 darkMode={darkMode}
               />
-            } />
-            <Route path="/admin/payments" element={
-              <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
-                <PaymentsDashboard
+            </LazyWrapper>
+          </AuthRequired>
+        } />
+            <Route path="/payment-success" element={
+              <LazyWrapper fallback={<PageSkeleton />}>
+                <PaymentSuccess
                   user={user}
                   darkMode={darkMode}
                 />
+              </LazyWrapper>
+            } />
+            <Route path="/admin/payments" element={
+              <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
+                <LazyWrapper fallback={<PageSkeleton />}>
+                  <PaymentsDashboard
+                    user={user}
+                    darkMode={darkMode}
+                  />
+                </LazyWrapper>
               </AuthRequired>
             } />
-        <Route path="/login/email" element={<EmailLogin />} />
-        <Route path="/terms" element={<TermsOfService />} />
-        <Route path="/refund" element={<RefundPolicy />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/login/email" element={
+          <LazyWrapper fallback={<PageSkeleton />}>
+            <EmailLogin />
+          </LazyWrapper>
+        } />
+        <Route path="/terms" element={
+          <LazyWrapper fallback={<PageSkeleton />}>
+            <TermsOfService />
+          </LazyWrapper>
+        } />
+        <Route path="/refund" element={
+          <LazyWrapper fallback={<PageSkeleton />}>
+            <RefundPolicy />
+          </LazyWrapper>
+        } />
+        <Route path="/privacy" element={
+          <LazyWrapper fallback={<PageSkeleton />}>
+            <PrivacyPolicy />
+          </LazyWrapper>
+        } />
       </Routes>
 
       {/* Global modals and components */}
@@ -950,6 +1004,11 @@ const App = () => {
           },
         }}
       />
+      
+      {/* Performance Monitor - only in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <PerformanceMonitor enabled={true} />
+      )}
     </>
   );
 };
