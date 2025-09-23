@@ -95,9 +95,9 @@ const SubscriptionInfo = ({ userStats, onPricing, darkMode, toggleDarkMode }) =>
           <p className="text-xs text-gray-500">evaluations</p>
         </div>
         <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-sm text-gray-500 mb-1">Next Renewal</p>
+          <p className="text-sm text-gray-500 mb-1">Access Type</p>
           <p className="text-lg font-bold text-gray-900">
-            {userStats?.nextRenewal || 'N/A'}
+            {hasUnlimitedAccess() ? 'Lifetime' : 'Free'}
           </p>
         </div>
       </div>
@@ -114,7 +114,7 @@ const SubscriptionInfo = ({ userStats, onPricing, darkMode, toggleDarkMode }) =>
               className="text-indigo-600 hover:text-indigo-700 text-sm font-medium opacity-50 cursor-not-allowed"
               disabled
             >
-              Manage Billing (Coming Soon)
+              Lifetime Access - No Billing
             </button>
           </div>
         </div>

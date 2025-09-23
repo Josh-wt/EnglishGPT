@@ -203,32 +203,31 @@ async def create_subscription(subscription_data: Dict):
     
     try:
         from config.settings import (
-            DODO_MONTHLY_PRODUCT_ID, 
-            DODO_YEARLY_PRODUCT_ID,
+            DODO_LIFETIME_PRODUCT_ID,
             SUCCESS_REDIRECT_URL,
             CANCEL_REDIRECT_URL,
             WEBHOOK_ENDPOINT_URL
         )
         
-        # Extract subscription details
-        plan_type = subscription_data.get('plan_type', 'monthly')
+        # Extract payment details
+        plan_type = subscription_data.get('plan_type', 'lifetime')
         customer_info = subscription_data.get('customer', {})
         billing_info = subscription_data.get('billing', {})
         discount_code = subscription_data.get('discount_code')
+        product_cart = subscription_data.get('product_cart', [])
         
-        # Determine product ID based on plan
-        if plan_type == 'yearly':
-            product_id = DODO_YEARLY_PRODUCT_ID.strip() if DODO_YEARLY_PRODUCT_ID else ""
-        else:
-            product_id = DODO_MONTHLY_PRODUCT_ID.strip() if DODO_MONTHLY_PRODUCT_ID else ""
+        # Use lifetime product ID
+        product_id = DODO_LIFETIME_PRODUCT_ID.strip() if DODO_LIFETIME_PRODUCT_ID else ""
             
-        logger.debug(f"[SUBSCRIPTION_DEBUG] Using product_id: {product_id} for plan: {plan_type}")
-        logger.info(f"[SUBSCRIPTION_CREATE] 🆔 Product ID cleaned: '{product_id}' (length: {len(product_id)})")
+        logger.debug(f"[PAYMENT_DEBUG] Using product_id: {product_id} for plan: {plan_type}")
+        logger.info(f"[PAYMENT_CREATE] 🆔 Product ID cleaned: '{product_id}' (length: {len(product_id)})")
         
-        # Prepare subscription creation payload
-        subscription_payload = {
-            "product_id": product_id,
-            "quantity": 1,
+        # Prepare payment creation payload for one-time purchase
+        payment_payload = {
+            "product_cart": product_cart if product_cart else [{
+                "product_id": product_id,
+                "quantity": 1
+            }],
             "customer": customer_info,
             "billing": billing_info,
             "billing_currency": "USD",
@@ -239,17 +238,17 @@ async def create_subscription(subscription_data: Dict):
         
         # Add discount code if provided
         if discount_code:
-            logger.debug(f"[SUBSCRIPTION_DEBUG] Applying discount code: {discount_code}")
-            subscription_payload["discount_code"] = discount_code
+            logger.debug(f"[PAYMENT_DEBUG] Applying discount code: {discount_code}")
+            payment_payload["discount_code"] = discount_code
         
-        logger.info(f"[SUBSCRIPTION_CREATE] 📋 Final subscription payload prepared:")
-        logger.info(f"[SUBSCRIPTION_CREATE] Payload: {json.dumps(subscription_payload, indent=2, default=str)}")
+        logger.info(f"[PAYMENT_CREATE] 📋 Final payment payload prepared:")
+        logger.info(f"[PAYMENT_CREATE] Payload: {json.dumps(payment_payload, indent=2, default=str)}")
         
-        # Use Dodo service to create subscription
-        logger.info(f"[SUBSCRIPTION_CREATE] 🎯 Calling dodo_service.create_subscription...")
-        logger.info(f"[SUBSCRIPTION_CREATE] Service base URL: {dodo_service.base_url}")
+        # Use Dodo service to create one-time payment
+        logger.info(f"[PAYMENT_CREATE] 🎯 Calling dodo_service.create_payment...")
+        logger.info(f"[PAYMENT_CREATE] Service base URL: {dodo_service.base_url}")
         
-        result = await dodo_service.create_subscription(subscription_payload)
+        result = await dodo_service.create_payment(payment_payload)
         
         duration = time.time() - start_time
         logger.info(f"[SUBSCRIPTION_CREATE] ✅ Subscription creation successful in {duration:.2f}s!")

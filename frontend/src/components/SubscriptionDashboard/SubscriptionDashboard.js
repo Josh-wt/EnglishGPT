@@ -336,16 +336,14 @@ const SubscriptionDashboard = ({ user, darkMode }) => {
                   {subscription ? (
                     <div className="space-y-1">
                       <p className="text-2xl font-bold">
-                        {formatCurrency(subscription.recurring_amount, subscription.currency)}
+                        {formatCurrency(subscription.recurring_amount || 499, subscription.currency || 'USD')}
                         <span className="text-sm font-normal text-gray-500">
-                          /{subscription.payment_frequency_interval?.toLowerCase()}
+                          lifetime access
                         </span>
                       </p>
-                      {subscription.trial_end && new Date(subscription.trial_end) > new Date() && (
-                        <p className="text-sm text-green-600">
-                          Trial ends {formatDate(subscription.trial_end)}
-                        </p>
-                      )}
+                      <p className="text-sm text-green-600">
+                        One-time payment - no recurring charges
+                      </p>
                     </div>
                   ) : (
                     <p className="text-2xl font-bold">$0<span className="text-sm font-normal text-gray-500">/month</span></p>

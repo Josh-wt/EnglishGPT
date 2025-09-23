@@ -116,7 +116,7 @@ const PaymentSuccess = ({ user, darkMode }) => {
           </div>
           <h1 className="text-4xl font-bold mb-4">Payment Successful! 🎉</h1>
           <p className="text-xl text-gray-600 dark:text-gray-300">
-            Thank you for choosing EEnglishGPT. Your subscription is now active.
+            Thank you for choosing EEnglishGPT. You now have lifetime access to all features!
           </p>
         </div>
 
@@ -276,7 +276,7 @@ const PaymentSuccess = ({ user, darkMode }) => {
                 <ul className="space-y-2">
                   <li className="flex items-center gap-2">
                     <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span>Access your subscription dashboard</span>
+                    <span>Access your account dashboard</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />

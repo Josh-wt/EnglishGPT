@@ -8,7 +8,6 @@ import toast from 'react-hot-toast';
 import paymentService from '../../services/paymentService';
 
 const ModernPricingPage = ({ user, onBack, darkMode }) => {
-  const [billingCycle, setBillingCycle] = useState('monthly');
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [discountCode, setDiscountCode] = useState('');
@@ -20,8 +19,7 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
       id: 'free',
       name: 'Free',
       description: 'Try out our AI-powered English learning platform',
-      monthlyPrice: 0,
-      yearlyPrice: 0,
+      price: 0,
       currency: 'USD',
       badge: null,
       features: [
@@ -43,8 +41,7 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
       id: 'unlimited',
       name: 'Unlimited',
       description: 'Everything you need for mastering English writing',
-      monthlyPrice: 4.99,
-      yearlyPrice: 49.99,
+      price: 4.99,
       currency: 'USD',
       badge: 'Best Value',
       features: [
@@ -62,20 +59,17 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
         'Academic level assessment'
       ],
       limitations: [],
-      ctaText: 'Get Unlimited Access',
+      ctaText: 'Get Lifetime Access',
       ctaVariant: 'default',
       popular: true,
-      dodoProductId: {
-        monthly: 'pdt_LOhuvCIgbeo2qflVuaAty',
-        yearly: 'pdt_R9BBFdK801119u9r3r6jyL'
-      }
+      dodoProductId: 'pdt_8lkWiOxSJLP8x4bq1Ow0'
     }
   ];
 
   // Handle plan selection
   const handlePlanSelect = async (plan) => {
     if (!user?.id) {
-      toast.error('Please sign in to subscribe to a plan');
+      toast.error('Please sign in to purchase a plan');
       return;
     }
 
@@ -104,41 +98,42 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
         zipcode: "10001"
       };
 
-      // Prepare subscription data
-      const subscriptionData = {
+      // Prepare payment data for one-time purchase
+      const paymentData = {
         customer: customerData,
-        product_id: plan.dodoProductId[billingCycle],
-        quantity: 1,
+        product_cart: [{
+          product_id: plan.dodoProductId,
+          quantity: 1
+        }],
         billing: billingAddress,
         billing_currency: 'USD',
-        trial_period_days: 7,
         payment_link: true,
         return_url: `${window.location.origin}/payment-success`,
         metadata: {
           user_id: user.id,
           plan_type: plan.id,
-          billing_cycle: billingCycle,
+          payment_type: 'lifetime',
           source: 'pricing_page'
         }
       };
 
       if (appliedDiscount) {
-        subscriptionData.discount_code = appliedDiscount.code;
+        paymentData.discount_code = appliedDiscount.code;
       }
 
-      // Create subscription using payment service
-      const subscription = await paymentService.createSubscription(subscriptionData);
+      // Create one-time payment using payment service
+      const payment = await paymentService.createPayment(paymentData);
       
       // Redirect to Dodo Payments checkout
-      if (subscription.payment_link) {
-        window.location.href = subscription.payment_link;
+      if (payment.payment_link) {
+        window.location.href = payment.payment_link;
       } else {
-        toast.success('Subscription created successfully!');
+        toast.success('Payment created successfully!');
       }
 
     } catch (error) {
-      console.error('Subscription error:', error);
-      toast.error('Failed to create subscription. Please try again.');
+      console.error('Payment error:', error);
+      toast.error('Failed to create payment. Please try again.');
     } finally {
       setLoading(false);
       setSelectedPlan(null);
@@ -163,7 +158,7 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
         },
         body: JSON.stringify({ 
           code: discountCode.toUpperCase().trim(),
-          plan_type: billingCycle 
+          plan_type: 'lifetime' 
         }),
       });
 
@@ -222,39 +217,8 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600"> Learning Plan</span>
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8">
-              Unlock the power of AI-driven English learning. Get personalized feedback, track your progress, and achieve your writing goals.
+              Unlock the power of AI-driven English learning. Get personalized feedback, track your progress, and achieve your writing goals with lifetime access.
             </p>
-            
-            {/* Billing Cycle Toggle */}
-            <div className="flex items-center justify-center mb-8">
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-1 shadow-lg">
-                <div className="flex">
-                  <button
-                    onClick={() => setBillingCycle('monthly')}
-                    className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-                      billingCycle === 'monthly'
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-gray-700 dark:text-gray-300 hover:text-blue-600'
-                    }`}
-                  >
-                    Monthly
-                  </button>
-                  <button
-                    onClick={() => setBillingCycle('yearly')}
-                    className={`px-6 py-2 rounded-md text-sm font-medium transition-all relative ${
-                      billingCycle === 'yearly'
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-gray-700 dark:text-gray-300 hover:text-blue-600'
-                    }`}
-                  >
-                    Yearly
-                    <Badge variant="success" className="absolute -top-2 -right-2 text-xs">
-                      Save 16%
-                    </Badge>
-                  </button>
-                </div>
-              </div>
-            </div>
 
             {/* Discount Code Section */}
             <div className="max-w-md mx-auto mb-8">
@@ -283,9 +247,9 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
 
       {/* Pricing Cards */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {plans.map((plan) => {
-            const currentPrice = billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
+            const currentPrice = plan.price;
             const discountedPrice = getDiscountedPrice(currentPrice);
             const hasDiscount = appliedDiscount && currentPrice !== discountedPrice;
 
@@ -324,13 +288,8 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
                       </span>
                     </div>
                     <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-                      {plan.id !== 'free' && `per ${billingCycle === 'monthly' ? 'month' : 'year'}`}
+                      {plan.id !== 'free' && 'lifetime access'}
                     </p>
-                    {billingCycle === 'yearly' && plan.monthlyPrice > 0 && (
-                      <p className="text-green-600 dark:text-green-400 text-sm">
-                        {formatPrice(discountedPrice / 12)}/month when billed annually
-                      </p>
-                    )}
                   </div>
                 </CardHeader>
 
@@ -417,12 +376,12 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
           <div className="max-w-3xl mx-auto space-y-6">
             {[
               {
-                question: "Can I cancel my subscription anytime?",
-                answer: "Yes, you can cancel your subscription at any time. Your access will continue until the end of your current billing period."
+                question: "What does lifetime access mean?",
+                answer: "Lifetime access means you pay once and get unlimited access to all features forever. No recurring charges, no expiration date."
               },
               {
                 question: "Do you offer refunds?",
-                answer: "We offer a 7-day free trial for all paid plans. If you're not satisfied within the trial period, you won't be charged."
+                answer: "We offer a 30-day money-back guarantee. If you're not satisfied with your purchase, contact us for a full refund."
               },
               {
                 question: "How does the AI feedback work?",

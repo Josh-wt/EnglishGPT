@@ -48,13 +48,14 @@ CANCEL_REDIRECT_URL = os.environ.get('CANCEL_REDIRECT_URL', 'https://englishgpt.
 
 # Dodo Payments Configuration loaded
 
-# Product Configuration - Unlimited Plan ($4.99/month, $49.99/year)
-DODO_MONTHLY_PRODUCT_ID = os.environ.get('DODO_MONTHLY_PRODUCT_ID', 'pdt_LOhuvCIgbeo2qflVuaAty')  # Unlimited Monthly $4.99
-DODO_YEARLY_PRODUCT_ID = os.environ.get('DODO_YEARLY_PRODUCT_ID', 'pdt_R9BBFdK801119u9r3r6jyL')    # Unlimited Yearly $49.99
+# Product Configuration - Lifetime Plan ($4.99/lifetime)
+DODO_LIFETIME_PRODUCT_ID = os.environ.get('DODO_MONTHLY_PRODUCT_ID', 'pdt_8lkWiOxSJLP8x4bq1Ow0')  # Lifetime $4.99
 
-# Product aliases for clarity
-DODO_UNLIMITED_MONTHLY_PRODUCT_ID = DODO_MONTHLY_PRODUCT_ID
-DODO_UNLIMITED_YEARLY_PRODUCT_ID = DODO_YEARLY_PRODUCT_ID
+# Product aliases for clarity (keeping for backward compatibility)
+DODO_MONTHLY_PRODUCT_ID = DODO_LIFETIME_PRODUCT_ID
+DODO_YEARLY_PRODUCT_ID = DODO_LIFETIME_PRODUCT_ID
+DODO_UNLIMITED_MONTHLY_PRODUCT_ID = DODO_LIFETIME_PRODUCT_ID
+DODO_UNLIMITED_YEARLY_PRODUCT_ID = DODO_LIFETIME_PRODUCT_ID
 
 # Product IDs configured
 
