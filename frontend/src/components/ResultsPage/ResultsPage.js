@@ -220,6 +220,8 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       let value = 'N/A';
       
       console.log('🔍 DEBUG: Processing metric:', metric);
+      console.log('🔍 DEBUG: questionType variable:', questionType);
+      console.log('🔍 DEBUG: questionType === "gp_essay":', questionType === 'gp_essay');
       console.log('🔍 DEBUG: Raw evaluation data for', metric, ':', {
         ao1_marks: evaluation.ao1_marks,
         ao2_marks: evaluation.ao2_marks,
@@ -235,61 +237,21 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         value = evaluation.style_accuracy_marks || 'N/A';
         console.log('🔍 DEBUG: Style Accuracy marks:', value);
       } else if (metric === 'AO2') {
-        // AO2 is stored in ao2_marks field for gp_essay
-        if (questionType === 'gp_essay') {
-          value = evaluation.ao2_marks || 'N/A';
-          console.log('🔍 DEBUG: AO2 marks (from ao2_marks for gp_essay):', value);
-          console.log('🔍 DEBUG: Raw ao2_marks value:', evaluation.ao2_marks);
-          // Clean up malformed data that contains AO3_MARKS
-          if (value.includes('AO3_MARKS:')) {
-            value = value.split('AO3_MARKS:')[0].trim();
-            console.log('🔍 DEBUG: AO2 marks (cleaned from malformed data):', value);
-          }
-        } else {
-          value = evaluation.ao2_marks || 'N/A';
-          console.log('🔍 DEBUG: AO2 marks (from ao2_marks for other types):', value);
-        }
+        value = evaluation.ao2_marks || 'N/A';
+        console.log('🔍 DEBUG: AO2 marks:', value);
       } else if (metric === 'AO3') {
-        // AO3 is stored in ao3_marks field for gp_essay, ao2_marks for other types
-        if (questionType === 'gp_essay') {
-          // Check if ao3_marks exists, otherwise parse from ao2_marks if it contains AO3_MARKS
-          if (evaluation.ao3_marks) {
-            value = evaluation.ao3_marks;
-            console.log('🔍 DEBUG: AO3 marks (from ao3_marks for gp_essay):', value);
-          } else if (evaluation.ao2_marks && evaluation.ao2_marks.includes('AO3_MARKS:')) {
-            // Parse AO3 marks from the malformed ao2_marks field
-            const ao3Match = evaluation.ao2_marks.match(/AO3_MARKS:\s*(\d+\/\d+)/);
-            value = ao3Match ? ao3Match[1] : 'N/A';
-            console.log('🔍 DEBUG: AO3 marks (parsed from ao2_marks for gp_essay):', value);
-          } else {
-            value = 'N/A';
-            console.log('🔍 DEBUG: AO3 marks (not found for gp_essay):', value);
-          }
-        } else {
-          value = evaluation.ao2_marks || 'N/A';
-          console.log('🔍 DEBUG: AO3 marks (from ao2_marks for other types):', value);
-        }
+        value = evaluation.ao3_marks || 'N/A';
+        console.log('🔍 DEBUG: AO3 marks:', value);
       } else {
         const fieldName = `${metric.toLowerCase()}_marks`;
         value = evaluation[fieldName] || 'N/A';
         console.log('🔍 DEBUG: Field name:', fieldName, 'Value:', value);
       }
       
-      // Clean the value first to remove any malformed content
-      console.log('🔍 DEBUG: Before cleaning - metric:', metric, 'value:', value);
+      // Clean the value - remove pipes and extra text
       if (value !== 'N/A') {
-        const originalValue = value;
-        // Remove any extra text like "AO3_MARKS:" that might be concatenated
-        value = value.replace(/AO\d+_MARKS:\s*/g, '').replace(/\|/g, '').trim();
-        console.log('🔍 DEBUG: After cleaning - original:', originalValue, 'cleaned:', value);
-        
-        // If value doesn't contain "/", add the total marks
-        if (maxMarks[metric] && !value.includes('/')) {
-          value = `${value}/${maxMarks[metric]}`;
-          console.log('🔍 DEBUG: Added total to value:', value, 'maxMarks:', maxMarks[metric]);
-        } else {
-          console.log('🔍 DEBUG: Using cleaned value:', value);
-        }
+        value = value.replace(/\|/g, '').replace(/AO\d+_MARKS:\s*/g, '').trim();
+        console.log('🔍 DEBUG: Cleaned value for', metric, ':', value);
       }
       
       const result = {
