@@ -51,9 +51,9 @@ def compute_overall_grade(question_type: str, reading_marks: Optional[str], writ
         if "AO1" in components:
             achieved += parse_marks_value(ao1_marks)
         if "AO2" in components:
-            achieved += parse_marks_value(ao2_or_ao3_marks)  # AO2 marks
+            achieved += parse_marks_value(ao2_or_ao3_marks)  # AO2 marks (stored in ao2_marks field)
         if "AO3" in components:
-            achieved += parse_marks_value(ao3_marks)  # AO3 marks
+            achieved += parse_marks_value(ao3_marks)  # AO3 marks (stored in ao3_marks field)
     else:
         # Standard handling for other question types
         if "reading" in components:

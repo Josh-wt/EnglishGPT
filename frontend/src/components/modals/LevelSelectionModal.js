@@ -46,6 +46,21 @@ const LevelSelectionModal = ({ isOpen, onClose, onLevelSelect, darkMode }) => {
               </div>
             </div>
           </button>
+          
+          <button
+            onClick={() => onLevelSelect('gp')}
+            className="w-full p-4 border-2 border-green-200 rounded-xl hover:border-green-400 hover:bg-green-50 transition-all duration-200 text-left group"
+          >
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-teal-500 rounded-lg flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
+                <span className="text-white font-bold text-lg">G</span>
+              </div>
+              <div>
+                <h4 className="font-bold text-gray-900">English General Paper (8021)</h4>
+                <p className="text-sm text-gray-600"> AS & A Level English General Paper</p>
+              </div>
+            </div>
+          </button>
         </div>
         
         <button

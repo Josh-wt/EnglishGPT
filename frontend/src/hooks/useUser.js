@@ -132,18 +132,6 @@ export const useUser = () => {
                   console.warn(`⚠️ Slow user creation: ${createTime}ms`);
                 }
                 
-                // Set user to unlimited immediately like the backup file
-                try {
-                  const unlimitedStartTime = Date.now();
-                  const unlimitedResponse = await axios.put(`${getApiUrl()}/users/${session.user.id}`, {
-                    current_plan: 'unlimited',
-                    updated_at: new Date().toISOString()
-                  });
-                  const unlimitedTime = Date.now() - unlimitedStartTime;
-                  console.log(`📊 Unlimited plan setup: ${unlimitedTime}ms`);
-                } catch (unlimitedError) {
-                  console.error('❌ Failed to set unlimited plan:', unlimitedError);
-                }
               }
             } catch (createError) {
               // Continue with normal flow even if creation fails
@@ -177,13 +165,13 @@ export const useUser = () => {
                 timestamp: new Date().toISOString()
               });
               
-              // Use fallback data when API calls fail - since user was just created and set to unlimited, use unlimited plan
+              // Use fallback data when API calls fail - use free plan as default
               profileData = {
                 id: session.user.id,
                 email: session.user.email,
                 name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                current_plan: 'unlimited',
-                credits: 999999,
+                current_plan: 'free',
+                credits: 3,
                 questions_marked: 0,
                 academic_level: 'N/A'
               };
@@ -191,8 +179,8 @@ export const useUser = () => {
                 id: session.user.id,
                 email: session.user.email,
                 name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                current_plan: 'unlimited',
-                credits: 999999,
+                current_plan: 'free',
+                credits: 3,
                 questions_marked: 0,
                 academic_level: 'N/A'
               };
@@ -292,17 +280,6 @@ export const useUser = () => {
                 if (createResponse.status >= 200 && createResponse.status < 300) {
                   console.log('✅ User created after error detection in', Date.now() - createStartTime, 'ms:', createResponse.data);
                   
-                  // Set user to unlimited immediately like the backup file
-                  try {
-                    console.log('🚀 Setting user to unlimited plan after error recovery...');
-                    const unlimitedResponse = await axios.put(`${getApiUrl()}/users/${session.user.id}`, {
-                      current_plan: 'unlimited',
-                      updated_at: new Date().toISOString()
-                    });
-                    console.log('✅ User set to unlimited plan after error recovery:', unlimitedResponse.data);
-                  } catch (unlimitedError) {
-                    console.error('❌ Failed to set unlimited plan after error recovery:', unlimitedError);
-                  }
                   
                   // Now try to fetch the user data again
                   try {
@@ -457,17 +434,6 @@ export const useUser = () => {
                 const createTime = Date.now() - createStartTime;
                 console.log(`📊 Auth sign-in user creation: ${createTime}ms`);
                 
-                // Set user to unlimited immediately like the backup file
-                try {
-                  console.log('🚀 Setting user to unlimited plan...');
-                  const unlimitedResponse = await axios.put(`${getApiUrl()}/users/${session.user.id}`, {
-                    current_plan: 'unlimited',
-                    updated_at: new Date().toISOString()
-                  });
-                  console.log('✅ User set to unlimited plan:', unlimitedResponse.data);
-                } catch (unlimitedError) {
-                  console.error('❌ Failed to set unlimited plan:', unlimitedError);
-                }
               } else {
                 console.log('ℹ️ User creation response:', createResponse.status, createResponse.statusText);
               }
@@ -504,13 +470,13 @@ export const useUser = () => {
                 timestamp: new Date().toISOString()
               });
               
-              // Use fallback data when API calls fail - since user was just created and set to unlimited, use unlimited plan
+              // Use fallback data when API calls fail - use free plan as default
               profileData = {
                 id: session.user.id,
                 email: session.user.email,
                 name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                current_plan: 'unlimited',
-                credits: 999999,
+                current_plan: 'free',
+                credits: 3,
                 questions_marked: 0,
                 academic_level: 'N/A'
               };
@@ -518,8 +484,8 @@ export const useUser = () => {
                 id: session.user.id,
                 email: session.user.email,
                 name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                current_plan: 'unlimited',
-                credits: 999999,
+                current_plan: 'free',
+                credits: 3,
                 questions_marked: 0,
                 academic_level: 'N/A'
               };
@@ -606,17 +572,6 @@ export const useUser = () => {
                 if (createResponse.status >= 200 && createResponse.status < 300) {
                   console.log('✅ User created after error detection during sign in in', Date.now() - createStartTime, 'ms:', createResponse.data);
                   
-                  // Set user to unlimited immediately like the backup file
-                  try {
-                    console.log('🚀 Setting user to unlimited plan after error recovery...');
-                    const unlimitedResponse = await axios.put(`${getApiUrl()}/users/${session.user.id}`, {
-                      current_plan: 'unlimited',
-                      updated_at: new Date().toISOString()
-                    });
-                    console.log('✅ User set to unlimited plan after error recovery:', unlimitedResponse.data);
-                  } catch (unlimitedError) {
-                    console.error('❌ Failed to set unlimited plan after error recovery:', unlimitedError);
-                  }
                   
                   // Now try to fetch the user data again
                   try {

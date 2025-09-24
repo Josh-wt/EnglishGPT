@@ -89,15 +89,6 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
         phone_number: user.user_metadata?.phone || null
       };
 
-      // Prepare billing address (this should be collected from user in a real app)
-      const billingAddress = {
-        street: "123 Main St",
-        city: "New York",
-        state: "NY",
-        country: "US",
-        zipcode: "10001"
-      };
-
       // Prepare payment data for one-time purchase
       const paymentData = {
         customer: customerData,
@@ -105,7 +96,6 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
           product_id: plan.dodoProductId,
           quantity: 1
         }],
-        billing: billingAddress,
         billing_currency: 'USD',
         payment_link: true,
         return_url: `${window.location.origin}/payment-success`,

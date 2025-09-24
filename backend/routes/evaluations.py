@@ -395,7 +395,7 @@ async def evaluate_submission(submission: SubmissionRequest):
             ao2_marks,
             content_structure_marks,
             style_accuracy_marks,
-            ao3_marks
+            ao3_marks if submission.question_type == 'gp_essay' else None
         )
         if dynamic_grade:
             grade = dynamic_grade

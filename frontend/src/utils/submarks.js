@@ -14,6 +14,7 @@ export const getSubmarks = (evaluation) => {
     alevel_text_analysis: ['AO1', 'AO3'],  // Backend stores AO1 in ao1_marks, AO3 in ao2_marks
     alevel_reflective_commentary: ['AO3'],  // Only AO3 marks out of 10
     alevel_language_change: ['AO2', 'AO4', 'AO5'],  // AO2 in ao2_marks, AO4 in ao1_marks, AO5 in reading_marks
+    gp_essay: ['AO1', 'AO2', 'AO3'],  // GP essay has AO1, AO2, AO3
     sat_essay: ['READING', 'WRITING']
   };
 
@@ -43,8 +44,12 @@ export const getSubmarks = (evaluation) => {
       // For alevel_comparative, backend asks for AO2 but looks for AO3
       value = evaluation.ao2_marks || 'N/A';
     } else if (metric === 'AO3') {
-      // For text_analysis, AO3 is stored in ao2_marks field
-      value = evaluation.ao2_marks || 'N/A';
+      // For gp_essay, AO3 is stored in ao3_marks field; for other types, it's in ao2_marks field
+      if (questionType === 'gp_essay') {
+        value = evaluation.ao3_marks || 'N/A';
+      } else {
+        value = evaluation.ao2_marks || 'N/A';
+      }
     } else if (metric === 'AO4') {
       // For language_change, AO4 is stored in ao1_marks field
       value = evaluation.ao1_marks || 'N/A';

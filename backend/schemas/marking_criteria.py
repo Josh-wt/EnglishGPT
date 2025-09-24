@@ -1453,4 +1453,108 @@ REWARD PATTERNS:
 • Cause-effect relationships explored
 • Interconnections identified and explained
 """
+  "gp_comprehension": """
+  
+CAMBRIDGE INTERNATIONAL AS LEVEL ENGLISH GENERAL PAPER 8021 - PAPER 2 QUESTION 1 MARKING CRITERIA
+
+QUESTION TYPE: Extended Analytical Response (Levels-Based)
+TOTAL MARKS: 8 marks 
+TIME ALLOCATION: Approximately 12-15 minutes
+
+Core Principle for AI Marking: Cambridge Paper 2 Q1 follows "positive marking" approach using levels-based assessment. Award marks for analytical interpretation of evidence, relevant arguments, and clear communication based on text material.
+
+MARKING PRINCIPLES (Apply to ALL Q1 responses):
+1. Award marks positively - credit analytical skills and interpretation of evidence from text
+2. Do not deduct marks for minor errors unless meaning is unclear  
+3. Use "best-fit" approach - place response in most appropriate level first, then fine-tune within range
+4. Focus on candidate's ability to interpret evidence and present relevant arguments
+5. Credit sustained analysis and exemplification maintaining focus on main issues
+6. Reward comprehensive approach demonstrating selection of relevant information and concepts
+
+LEVELS-BASED MARKING CRITERIA FOR Q1:
+
+LEVEL 4 (7-8 marks) - EXCEPTIONAL ANALYTICAL RESPONSE
+• CAPACITY TO INTERPRET EVIDENCE and sustained ability to present RELEVANT ARGUMENTS, ANALYSIS and EXEMPLIFICATION maintaining a STRONG FOCUS on the main issues in the question
+• COMPREHENSIVE APPROACH demonstrating ability to identify and select RELEVANT INFORMATION, DATA, CONCEPTS and OPINIONS and maintain a strong focus on the KEY ISSUES  
+• Shows the ability to COMMUNICATE CLEARLY and ACCURATELY in a FLUENT and ORGANISED manner
+
+Award within Level 4:
+8 marks: Exceptional interpretation with sustained, highly relevant analysis throughout
+7 marks: Strong analytical response meeting all criteria effectively
+
+LEVEL 3 (5-6 marks) - COMPETENT ANALYTICAL RESPONSE  
+• MODERATE RANGE of arguments, analysis and exemplification covering SOME of the main issues in the question
+• Demonstrating SOME GRASP of the nature of key issues but with a RESTRICTED RANGE or a LOSS OF FOCUS leading to the inclusion of some irrelevant material
+• Shows the ability to communicate clearly and accurately in a fluent and organised manner
+
+Award within Level 3:
+6 marks: Good analytical response with most criteria met well
+5 marks: Adequate analytical response meeting basic criteria
+
+LEVEL 2 (3-4 marks) - LIMITED ANALYTICAL RESPONSE
+• LIMITED ANALYSIS shown in a response consisting of mainly UNDEVELOPED MATERIAL  
+• A MODEST RANGE of selected points, perhaps some of which are IRRELEVANT or INCORRECT
+• Ability to convey meaning but with LIMITED POWERS OF EXPRESSION with some errors in spelling, punctuation or grammar which IMPEDE THE FLOW and hinder communication
+
+Award within Level 2:  
+4 marks: Shows some analytical ability with clearer elements
+3 marks: Limited analysis with significant weaknesses
+
+LEVEL 1 (1-2 marks) - MINIMAL ANALYTICAL RESPONSE
+• Some SIMPLE, mainly UNEXPLAINED or UNDEVELOPED points or perhaps a VERY NARROW RANGE – with LITTLE INTERPRETATION or ANALYSIS and little development or exemplification
+• LIMITED RANGE, DUBIOUS CHOICE showing RESTRICTED APPRECIATION of key issues
+• Ability to convey meaning but with limited powers of expression with some errors in spelling, punctuation or grammar which impede the flow and hinder communication
+
+Award within Level 1:
+2 marks: Some attempt at analysis but very limited
+1 mark: Minimal creditable analytical content
+
+LEVEL 0 (0 marks) - NO CREDITABLE CONTENT
+• No response or response completely irrelevant to question
+• Illegible or incomprehensible response
+
+SPECIFIC GUIDANCE FOR Q1 ANALYTICAL RESPONSES:
+
+WHAT Q1 TYPICALLY REQUIRES:
+• Analysis and interpretation of evidence from provided text/data
+• Presentation of relevant arguments based on material  
+• Exemplification using information from the text
+• Sustained focus on main issues identified in the question
+• Clear selection and application of relevant concepts and opinions from material
+
+KEY SUCCESS INDICATORS:
+✓ INTERPRETS EVIDENCE rather than just describing it
+✓ PRESENTS ARGUMENTS based on text analysis  
+✓ MAINTAINS FOCUS on question requirements throughout
+✓ SELECTS most relevant information from comprehensive reading
+✓ DEMONSTRATES analytical thinking through exemplification
+✓ COMMUNICATES analysis clearly and in organised manner
+
+COMMON WEAKNESSES TO IDENTIFY:
+❌ Narration without analysis (describing rather than interpreting)
+❌ Including irrelevant material not focused on key issues
+❌ Undeveloped points without exemplification
+❌ Loss of focus leading to off-topic discussion
+❌ Limited range showing restricted appreciation of issues
+❌ Poor expression impeding communication of analytical points
+
+ANNOTATION GUIDANCE:
+✓ = Valid analytical point with text evidence
+DEV = Developed analytical point worthy of credit  
+NAQ = Not answering the question analytically
+NAR = Narration rather than analysis
+TV = Too vague to demonstrate analytical understanding
+REP = Repetition of same analytical point
+? = Unclear analysis that may merit benefit of doubt
+
+MARKING PROCESS:
+1. Read response for overall analytical approach and focus
+2. Identify level based on analytical interpretation demonstrated
+3. Check for sustained ability to present relevant arguments
+4. Assess selection and use of evidence from text material
+5. Evaluate clarity and organisation of analytical communication
+6. Fine-tune mark within identified level based on strength/weakness
+
+Q1 SUCCESS REQUIRES: Moving beyond basic comprehension to demonstrate analytical interpretation of evidence, sustained argumentation, and clear focus on key issues identified in the question.
+"""
 }

@@ -52,12 +52,25 @@ export const QUESTION_TYPES = [
     name: 'Language Change Analysis (P3, Section A)',
     category: 'A-Level English (9093)',
     description: 'Analyze historical prose extract demonstrating English language change using quantitative data'
+  },
+  {
+    id: 'gp_essay',
+    name: 'Essay (Paper 1)',
+    category: 'English General Paper (8021)',
+    description: 'Write a well-structured essay on a given topic with clear argumentation and evidence'
+  },
+  {
+    id: 'gp_comprehension',
+    name: 'Comprehension (Paper 2) Q1(a)',
+    category: 'English General Paper (8021)',
+    description: 'Answer comprehension questions based on given texts with analysis and evaluation'
   }
 ];
 
 export const QUESTION_CATEGORIES = {
   IGCSE: 'IGCSE',
   A_LEVEL: 'A-Level',
+  GP: 'English General Paper (8021)',
 };
 
 export default QUESTION_TYPES;

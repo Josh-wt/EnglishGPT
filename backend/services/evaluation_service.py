@@ -611,7 +611,8 @@ Student Response: {sanitized_response}
                 parsed_data["ao1_marks"],
                 parsed_data["ao2_marks"],
                 parsed_data["content_structure_marks"],
-                parsed_data["style_accuracy_marks"]
+                parsed_data["style_accuracy_marks"],
+                parsed_data["ao3_marks"] if submission.question_type == 'gp_essay' else None
             )
             grade_time = time.time() - grade_start
             

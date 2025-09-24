@@ -228,9 +228,14 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         value = evaluation.style_accuracy_marks || 'N/A';
         console.log('🔍 DEBUG: Style Accuracy marks:', value);
       } else if (metric === 'AO3') {
-        // AO3 is stored in ao2_marks field for some question types
-        value = evaluation.ao2_marks || 'N/A';
-        console.log('🔍 DEBUG: AO3 marks (from ao2_marks):', value);
+        // AO3 is stored in ao3_marks field for gp_essay, ao2_marks for other types
+        if (questionType === 'gp_essay') {
+          value = evaluation.ao3_marks || 'N/A';
+          console.log('🔍 DEBUG: AO3 marks (from ao3_marks for gp_essay):', value);
+        } else {
+          value = evaluation.ao2_marks || 'N/A';
+          console.log('🔍 DEBUG: AO3 marks (from ao2_marks for other types):', value);
+        }
       } else {
         const fieldName = `${metric.toLowerCase()}_marks`;
         value = evaluation[fieldName] || 'N/A';

@@ -58,54 +58,13 @@ export const getLaunchPeriodMessage = () => {
 /**
  * Apply launch period benefits to user stats
  * @param {Object} userStats - User statistics object
- * @returns {Object} - Updated user stats with launch period benefits
+ * @returns {Object} - User stats without any modifications (launch period benefits removed)
  */
 export const applyLaunchPeriodBenefits = (userStats) => {
-  if (!isLaunchPeriod()) {
-    return userStats;
-  }
-
-  // Check if user has specifically declined unlimited access
-  const userId = userStats?.id || userStats?.user_id;
-  const hasDeclinedUnlimited = userId && localStorage.getItem(`declinedUnlimited_${userId}`);
-  
-  if (hasDeclinedUnlimited) {
-    console.log('🔄 Launch period: User declined unlimited, keeping their current plan from database');
-    return {
-      ...userStats,
-      questionsMarked: userStats?.questions_marked || userStats?.questionsMarked || 0,
-      evaluationsUsed: userStats?.evaluations_used || userStats?.evaluationsUsed || 0,
-    };
-  }
-
-  // Check if user is already unlimited or is a new user (0 questions marked)
-  const isNewUser = (userStats?.questions_marked || userStats?.questionsMarked || 0) === 0;
-  const isAlreadyUnlimited = userStats?.currentPlan === 'unlimited' || 
-                            userStats?.current_plan === 'unlimited' ||
-                            userStats?.credits === 999999;
-  
-  if (isNewUser || isAlreadyUnlimited) {
-    console.log('🎉 Launch period: User granted/maintaining unlimited plan!', {
-      isNewUser,
-      isAlreadyUnlimited,
-      currentPlan: userStats?.currentPlan || userStats?.current_plan,
-      credits: userStats?.credits
-    });
-    return {
-      ...userStats,
-      currentPlan: 'unlimited',
-      credits: 999999,
-      questionsMarked: userStats?.questions_marked || userStats?.questionsMarked || 0,
-      evaluationsLimit: '∞',
-      evaluationsUsed: userStats?.evaluations_used || userStats?.evaluationsUsed || 0,
-    };
-  } else {
-    // Existing users keep their current plan
-    console.log('🔄 Launch period: Existing user keeps current plan');
-    return {
-      ...userStats,
-      questionsMarked: userStats?.questions_marked || userStats?.questionsMarked || 0,
-      evaluationsUsed: userStats?.evaluations_used || userStats?.evaluationsUsed || 0,
-    };
-  }
+  // Launch period benefits have been removed - return user stats as-is
+  return {
+    ...userStats,
+    questionsMarked: userStats?.questions_marked || userStats?.questionsMarked || 0,
+    evaluationsUsed: userStats?.evaluations_used || userStats?.evaluationsUsed || 0,
+  };
 };
