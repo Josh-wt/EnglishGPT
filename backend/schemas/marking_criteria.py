@@ -1452,9 +1452,8 @@ REWARD PATTERNS:
 • Systematic breakdown: "The main factors are...", "This comprises..."
 • Cause-effect relationships explored
 • Interconnections identified and explained
-"""
-  "gp_comprehension": """
-  
+""",
+    "gp_comprehension": """
 CAMBRIDGE INTERNATIONAL AS LEVEL ENGLISH GENERAL PAPER 8021 - PAPER 2 QUESTION 1 MARKING CRITERIA
 
 QUESTION TYPE: Extended Analytical Response (Levels-Based)
