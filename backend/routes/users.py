@@ -49,7 +49,7 @@ async def create_or_get_user(user_data: dict):
             display_name=name,
             academic_level='igcse',
             current_plan='free',  # Start with free plan
-            credits=5,  # Free tier credits
+            credits=3,  # Free tier credits
             is_launch_user=False,  # Will be set to True only if they accept launch offer
             photo_url=None,
             dark_mode=False

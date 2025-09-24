@@ -1012,7 +1012,9 @@ export const useUser = () => {
 
   // Check if user has unlimited access
   const hasUnlimitedAccess = () => {
-    return userStats?.currentPlan === 'unlimited';
+    const plan = userStats?.currentPlan?.toLowerCase();
+    const credits = userStats?.credits;
+    return plan === 'unlimited' || credits >= 99999;
   };
 
   // Set academic level (called from components)

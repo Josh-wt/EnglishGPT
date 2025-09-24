@@ -40,8 +40,7 @@ export const getSubmarks = (evaluation) => {
       // Note: alevel_comparative has a backend bug where AO3 overwrites AO1 in ao1_marks
       value = evaluation.ao1_marks || 'N/A';
     } else if (metric === 'AO2') {
-      // AO2 is stored in ao2_marks for most types
-      // For alevel_comparative, backend asks for AO2 but looks for AO3
+      // AO2 is stored in ao2_marks field for gp_essay and other types
       value = evaluation.ao2_marks || 'N/A';
     } else if (metric === 'AO3') {
       // For gp_essay, AO3 is stored in ao3_marks field; for other types, it's in ao2_marks field

@@ -8,8 +8,9 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
   // Memoized helper function to check if user has unlimited access
   const hasUnlimitedAccess = useMemo(() => {
     const plan = userStats?.currentPlan?.toLowerCase();
-    return plan === 'unlimited';
-  }, [userStats?.currentPlan]);
+    const credits = userStats?.credits;
+    return plan === 'unlimited' || credits >= 99999;
+  }, [userStats?.currentPlan, userStats?.credits]);
 
   // Memoized user stats to prevent unnecessary recalculations
   const memoizedUserStats = useMemo(() => ({

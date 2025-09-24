@@ -4,11 +4,24 @@ import { motion } from 'framer-motion';
 const SubscriptionInfo = ({ userStats, onPricing, darkMode, toggleDarkMode }) => {
   const hasUnlimitedAccess = () => {
     const plan = userStats?.currentPlan?.toLowerCase();
-    return plan === 'unlimited' || plan === 'premium';
+    const credits = userStats?.credits;
+    return plan === 'unlimited' || plan === 'premium' || credits >= 99999;
   };
 
   const getPlanDetails = () => {
     const plan = userStats?.currentPlan?.toLowerCase() || 'free';
+    const credits = userStats?.credits;
+    
+    // If user has 99999 credits, they have unlimited access regardless of plan name
+    if (credits >= 99999) {
+      return {
+        name: 'Unlimited',
+        color: 'from-blue-500 to-purple-600',
+        features: ['Unlimited evaluations', 'Priority support', 'Advanced analytics', 'Custom rubrics'],
+        icon: '🚀'
+      };
+    }
+    
     switch(plan) {
       case 'premium':
         return {

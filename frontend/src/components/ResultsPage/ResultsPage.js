@@ -227,6 +227,15 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       } else if (metric === 'STYLE_ACCURACY') {
         value = evaluation.style_accuracy_marks || 'N/A';
         console.log('🔍 DEBUG: Style Accuracy marks:', value);
+      } else if (metric === 'AO2') {
+        // AO2 is stored in ao2_marks field for gp_essay
+        if (questionType === 'gp_essay') {
+          value = evaluation.ao2_marks || 'N/A';
+          console.log('🔍 DEBUG: AO2 marks (from ao2_marks for gp_essay):', value);
+        } else {
+          value = evaluation.ao2_marks || 'N/A';
+          console.log('🔍 DEBUG: AO2 marks (from ao2_marks for other types):', value);
+        }
       } else if (metric === 'AO3') {
         // AO3 is stored in ao3_marks field for gp_essay, ao2_marks for other types
         if (questionType === 'gp_essay') {
