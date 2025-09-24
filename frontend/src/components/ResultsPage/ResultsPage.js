@@ -220,6 +220,13 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       let value = 'N/A';
       
       console.log('🔍 DEBUG: Processing metric:', metric);
+      console.log('🔍 DEBUG: Raw evaluation data for', metric, ':', {
+        ao1_marks: evaluation.ao1_marks,
+        ao2_marks: evaluation.ao2_marks,
+        ao3_marks: evaluation.ao3_marks,
+        reading_marks: evaluation.reading_marks,
+        writing_marks: evaluation.writing_marks
+      });
       
       if (metric === 'CONTENT_STRUCTURE') {
         value = evaluation.content_structure_marks || 'N/A';
@@ -232,6 +239,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         if (questionType === 'gp_essay') {
           value = evaluation.ao2_marks || 'N/A';
           console.log('🔍 DEBUG: AO2 marks (from ao2_marks for gp_essay):', value);
+          console.log('🔍 DEBUG: Raw ao2_marks value:', evaluation.ao2_marks);
         } else {
           value = evaluation.ao2_marks || 'N/A';
           console.log('🔍 DEBUG: AO2 marks (from ao2_marks for other types):', value);
@@ -241,6 +249,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         if (questionType === 'gp_essay') {
           value = evaluation.ao3_marks || 'N/A';
           console.log('🔍 DEBUG: AO3 marks (from ao3_marks for gp_essay):', value);
+          console.log('🔍 DEBUG: Raw ao3_marks value:', evaluation.ao3_marks);
         } else {
           value = evaluation.ao2_marks || 'N/A';
           console.log('🔍 DEBUG: AO3 marks (from ao2_marks for other types):', value);
@@ -252,23 +261,28 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       }
       
       // Clean the value first to remove any malformed content
+      console.log('🔍 DEBUG: Before cleaning - metric:', metric, 'value:', value);
       if (value !== 'N/A') {
+        const originalValue = value;
         // Remove any extra text like "AO3_MARKS:" that might be concatenated
         value = value.replace(/AO\d+_MARKS:\s*/g, '').replace(/\|/g, '').trim();
+        console.log('🔍 DEBUG: After cleaning - original:', originalValue, 'cleaned:', value);
         
         // If value doesn't contain "/", add the total marks
         if (maxMarks[metric] && !value.includes('/')) {
           value = `${value}/${maxMarks[metric]}`;
-          console.log('🔍 DEBUG: Added total to value:', value);
+          console.log('🔍 DEBUG: Added total to value:', value, 'maxMarks:', maxMarks[metric]);
         } else {
           console.log('🔍 DEBUG: Using cleaned value:', value);
         }
       }
       
-      return {
+      const result = {
         label: metric.replace('_', ' '),
         value: value
       };
+      console.log('🔍 DEBUG: Final submark result for', metric, ':', result);
+      return result;
     }).filter(submark => {
       const isValid = submark.value !== 'N/A' && submark.value !== null && submark.value !== undefined;
       console.log('🔍 DEBUG: Submark validation:', submark.label, submark.value, 'Valid:', isValid);
@@ -282,6 +296,10 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
   const parseGrade = (gradeString) => {
     console.log('🔍 DEBUG: parseGrade called with:', gradeString);
     console.log('🔍 DEBUG: evaluation object:', evaluation);
+    console.log('🔍 DEBUG: evaluation.question_type:', evaluation?.question_type);
+    console.log('🔍 DEBUG: evaluation.ao1_marks:', evaluation?.ao1_marks);
+    console.log('🔍 DEBUG: evaluation.ao2_marks:', evaluation?.ao2_marks);
+    console.log('🔍 DEBUG: evaluation.ao3_marks:', evaluation?.ao3_marks);
     
     // Always try to calculate from submarks first, as they're more accurate
     const submarks = getSubmarks(evaluation);
@@ -290,18 +308,22 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
     if (submarks.length > 0) {
       let totalScore = 0;
       let maxScore = 0;
-      submarks.forEach(submark => {
-        console.log('🔍 DEBUG: Processing submark:', submark);
+        console.log('🔍 DEBUG: Processing', submarks.length, 'submarks for total calculation');
+      submarks.forEach((submark, index) => {
+        console.log('🔍 DEBUG: Processing submark', index + 1, ':', submark);
         // Handle different formats: "5/16 |", "6/24", etc.
         const cleanValue = submark.value.replace(/\|/g, '').trim();
         const [score, max] = cleanValue.split('/').map(Number);
-        console.log('🔍 DEBUG: Parsed submark - score:', score, 'max:', max);
+        console.log('🔍 DEBUG: Parsed submark - cleanValue:', cleanValue, 'score:', score, 'max:', max);
         if (!isNaN(score) && !isNaN(max)) {
           totalScore += score;
           maxScore += max;
+          console.log('🔍 DEBUG: Running totals - totalScore:', totalScore, 'maxScore:', maxScore);
+        } else {
+          console.log('🔍 DEBUG: Invalid submark values - score:', score, 'max:', max);
         }
       });
-      console.log('🔍 DEBUG: Calculated from submarks - totalScore:', totalScore, 'maxScore:', maxScore);
+      console.log('🔍 DEBUG: Final calculated from submarks - totalScore:', totalScore, 'maxScore:', maxScore);
       
       if (maxScore > 0) {
         return { 
