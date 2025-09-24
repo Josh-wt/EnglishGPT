@@ -240,6 +240,11 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
           value = evaluation.ao2_marks || 'N/A';
           console.log('🔍 DEBUG: AO2 marks (from ao2_marks for gp_essay):', value);
           console.log('🔍 DEBUG: Raw ao2_marks value:', evaluation.ao2_marks);
+          // Clean up malformed data that contains AO3_MARKS
+          if (value.includes('AO3_MARKS:')) {
+            value = value.split('AO3_MARKS:')[0].trim();
+            console.log('🔍 DEBUG: AO2 marks (cleaned from malformed data):', value);
+          }
         } else {
           value = evaluation.ao2_marks || 'N/A';
           console.log('🔍 DEBUG: AO2 marks (from ao2_marks for other types):', value);
@@ -247,9 +252,19 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       } else if (metric === 'AO3') {
         // AO3 is stored in ao3_marks field for gp_essay, ao2_marks for other types
         if (questionType === 'gp_essay') {
-          value = evaluation.ao3_marks || 'N/A';
-          console.log('🔍 DEBUG: AO3 marks (from ao3_marks for gp_essay):', value);
-          console.log('🔍 DEBUG: Raw ao3_marks value:', evaluation.ao3_marks);
+          // Check if ao3_marks exists, otherwise parse from ao2_marks if it contains AO3_MARKS
+          if (evaluation.ao3_marks) {
+            value = evaluation.ao3_marks;
+            console.log('🔍 DEBUG: AO3 marks (from ao3_marks for gp_essay):', value);
+          } else if (evaluation.ao2_marks && evaluation.ao2_marks.includes('AO3_MARKS:')) {
+            // Parse AO3 marks from the malformed ao2_marks field
+            const ao3Match = evaluation.ao2_marks.match(/AO3_MARKS:\s*(\d+\/\d+)/);
+            value = ao3Match ? ao3Match[1] : 'N/A';
+            console.log('🔍 DEBUG: AO3 marks (parsed from ao2_marks for gp_essay):', value);
+          } else {
+            value = 'N/A';
+            console.log('🔍 DEBUG: AO3 marks (not found for gp_essay):', value);
+          }
         } else {
           value = evaluation.ao2_marks || 'N/A';
           console.log('🔍 DEBUG: AO3 marks (from ao2_marks for other types):', value);
