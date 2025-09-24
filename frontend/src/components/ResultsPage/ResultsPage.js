@@ -170,7 +170,6 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
   
   // Extract submarks dynamically per question type and present as "xx/xx"
   const getSubmarks = (evaluation) => {
-    console.log('🔍 DEBUG: getSubmarks called with evaluation:', evaluation);
     
     if (!evaluation) {
       console.log('❌ No evaluation provided to getSubmarks');
@@ -209,98 +208,60 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
     };
 
     const questionType = evaluation.question_type;
-    console.log('🔍 DEBUG: Question type:', questionType);
-    
     const metrics = metricsByType[questionType] || [];
     const maxMarks = maxMarksByType[questionType] || {};
-    console.log('🔍 DEBUG: Metrics for this question type:', metrics);
-    console.log('🔍 DEBUG: Max marks for this question type:', maxMarks);
 
     const submarks = metrics.map(metric => {
       let value = 'N/A';
       
-      console.log('🔍 DEBUG: Processing metric:', metric);
-      console.log('🔍 DEBUG: questionType variable:', questionType);
-      console.log('🔍 DEBUG: questionType === "gp_essay":', questionType === 'gp_essay');
-      console.log('🔍 DEBUG: Raw evaluation data for', metric, ':', {
-        ao1_marks: evaluation.ao1_marks,
-        ao2_marks: evaluation.ao2_marks,
-        ao3_marks: evaluation.ao3_marks,
-        reading_marks: evaluation.reading_marks,
-        writing_marks: evaluation.writing_marks
-      });
-      
       if (metric === 'CONTENT_STRUCTURE') {
         value = evaluation.content_structure_marks || 'N/A';
-        console.log('🔍 DEBUG: Content Structure marks:', value);
       } else if (metric === 'STYLE_ACCURACY') {
         value = evaluation.style_accuracy_marks || 'N/A';
-        console.log('🔍 DEBUG: Style Accuracy marks:', value);
+      } else if (metric === 'AO1') {
+        value = evaluation.ao1_marks || 'N/A';
       } else if (metric === 'AO2') {
         value = evaluation.ao2_marks || 'N/A';
-        console.log('🔍 DEBUG: AO2 marks:', value);
       } else if (metric === 'AO3') {
         value = evaluation.ao3_marks || 'N/A';
-        console.log('🔍 DEBUG: AO3 marks:', value);
       } else {
         const fieldName = `${metric.toLowerCase()}_marks`;
         value = evaluation[fieldName] || 'N/A';
-        console.log('🔍 DEBUG: Field name:', fieldName, 'Value:', value);
       }
       
-      // Clean the value - remove pipes and extra text
+      // Clean the value - remove pipes
       if (value !== 'N/A') {
-        value = value.replace(/\|/g, '').replace(/AO\d+_MARKS:\s*/g, '').trim();
-        console.log('🔍 DEBUG: Cleaned value for', metric, ':', value);
+        value = value.replace(/\|/g, '').trim();
       }
       
-      const result = {
+      return {
         label: metric.replace('_', ' '),
         value: value
       };
-      console.log('🔍 DEBUG: Final submark result for', metric, ':', result);
-      return result;
     }).filter(submark => {
-      const isValid = submark.value !== 'N/A' && submark.value !== null && submark.value !== undefined;
-      console.log('🔍 DEBUG: Submark validation:', submark.label, submark.value, 'Valid:', isValid);
-      return isValid;
+      return submark.value !== 'N/A' && submark.value !== null && submark.value !== undefined;
     });
 
-    console.log('🔍 DEBUG: Final submarks:', submarks);
     return submarks;
   };
   // Parse grade to get score
   const parseGrade = (gradeString) => {
-    console.log('🔍 DEBUG: parseGrade called with:', gradeString);
-    console.log('🔍 DEBUG: evaluation object:', evaluation);
-    console.log('🔍 DEBUG: evaluation.question_type:', evaluation?.question_type);
-    console.log('🔍 DEBUG: evaluation.ao1_marks:', evaluation?.ao1_marks);
-    console.log('🔍 DEBUG: evaluation.ao2_marks:', evaluation?.ao2_marks);
-    console.log('🔍 DEBUG: evaluation.ao3_marks:', evaluation?.ao3_marks);
     
     // Always try to calculate from submarks first, as they're more accurate
     const submarks = getSubmarks(evaluation);
-    console.log('🔍 DEBUG: Submarks found:', submarks);
     
     if (submarks.length > 0) {
       let totalScore = 0;
       let maxScore = 0;
-        console.log('🔍 DEBUG: Processing', submarks.length, 'submarks for total calculation');
-      submarks.forEach((submark, index) => {
-        console.log('🔍 DEBUG: Processing submark', index + 1, ':', submark);
+      submarks.forEach(submark => {
         // Handle different formats: "5/16 |", "6/24", etc.
         const cleanValue = submark.value.replace(/\|/g, '').trim();
         const [score, max] = cleanValue.split('/').map(Number);
-        console.log('🔍 DEBUG: Parsed submark - cleanValue:', cleanValue, 'score:', score, 'max:', max);
         if (!isNaN(score) && !isNaN(max)) {
           totalScore += score;
           maxScore += max;
-          console.log('🔍 DEBUG: Running totals - totalScore:', totalScore, 'maxScore:', maxScore);
-        } else {
-          console.log('🔍 DEBUG: Invalid submark values - score:', score, 'max:', max);
         }
       });
-      console.log('🔍 DEBUG: Final calculated from submarks - totalScore:', totalScore, 'maxScore:', maxScore);
       
       if (maxScore > 0) {
         return { 
@@ -313,7 +274,6 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
     
     // Fallback to parsing grade string if no submarks available
     if (gradeString) {
-      console.log('🔍 DEBUG: Falling back to grade string parsing');
       const matches = gradeString.match(/(\d+)\/(\d+)/g);
       if (matches) {
         let totalScore = 0;
@@ -323,12 +283,10 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
           totalScore += score;
           maxScore += max;
         });
-        console.log('🔍 DEBUG: Parsed from grade string - score:', totalScore, 'maxScore:', maxScore);
         return { score: totalScore, maxScore, percentage: (totalScore / maxScore * 100).toFixed(1) };
       }
     }
     
-    console.log('🔍 DEBUG: No valid grade format found, using defaults');
     return { score: 0, maxScore: 40, percentage: 0 };
   };
   
@@ -383,8 +341,6 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
           <div className="flex flex-wrap justify-center gap-6 mt-4">
             {(() => {
               const submarks = getSubmarks(evaluation);
-              console.log('🔍 DEBUG: Rendering submarks:', submarks);
-              console.log('🔍 DEBUG: Submarks length:', submarks.length);
               
               if (submarks.length === 0) {
                 console.log('⚠️ No submarks to display');
@@ -396,7 +352,6 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
               }
               
               return submarks.map((submark, idx) => {
-                console.log('🔍 DEBUG: Rendering submark:', submark, 'index:', idx);
                 // Remove "|" character from submark value for display
                 const cleanValue = submark.value.replace(/\|/g, '').trim();
                 return (
