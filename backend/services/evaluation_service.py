@@ -369,15 +369,17 @@ Student Response: {sanitized_response}
                 
                 if "AO2_MARKS:" in ai_response:
                     ao2_part = ai_response.split("AO2_MARKS:")[1]
-                    next_sections = ["AO3_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                    ao2_marks = ao2_part.strip()
-                    for section in next_sections:
-                        if section in ao2_part:
-                            ao2_marks = ao2_part.split(section)[0].strip()
-                            break
-                    # Clean up any malformed data that might have AO3_MARKS concatenated
-                    if "AO3_MARKS:" in ao2_marks:
-                        ao2_marks = ao2_marks.split("AO3_MARKS:")[0].strip()
+                    # For GP essays, AO2_MARKS should be followed by AO3_MARKS, so split on that
+                    if "AO3_MARKS:" in ao2_part:
+                        ao2_marks = ao2_part.split("AO3_MARKS:")[0].strip()
+                    else:
+                        # If no AO3_MARKS found, look for other sections
+                        next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
+                        ao2_marks = ao2_part.strip()
+                        for section in next_sections:
+                            if section in ao2_part:
+                                ao2_marks = ao2_part.split(section)[0].strip()
+                                break
                 
                 if "AO3_MARKS:" in ai_response:
                     ao3_part = ai_response.split("AO3_MARKS:")[1]

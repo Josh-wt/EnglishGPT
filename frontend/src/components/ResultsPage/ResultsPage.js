@@ -176,6 +176,26 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       return [];
     }
 
+    const questionType = evaluation.question_type;
+    
+    // For GP essays, just show the raw database values
+    if (questionType === 'gp_essay') {
+      const submarks = [];
+      
+      if (evaluation.ao1_marks) {
+        submarks.push({ label: 'AO1', value: evaluation.ao1_marks });
+      }
+      if (evaluation.ao2_marks) {
+        submarks.push({ label: 'AO2', value: evaluation.ao2_marks });
+      }
+      if (evaluation.ao3_marks) {
+        submarks.push({ label: 'AO3', value: evaluation.ao3_marks });
+      }
+      
+      return submarks;
+    }
+
+    // For other question types, use existing logic
     const metricsByType = {
       igcse_writers_effect: ['READING'],
       igcse_descriptive: ['CONTENT_STRUCTURE', 'STYLE_ACCURACY'],
@@ -187,7 +207,6 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       alevel_text_analysis: ['AO1', 'AO2'], // AO3 is stored in ao2_marks field
       alevel_reflective_commentary: ['AO2'], // AO3 is stored in ao2_marks field, out of 10
       alevel_language_change: ['AO2', 'AO1', 'READING'], // AO4 stored in ao1_marks, AO5 stored in reading_marks
-      gp_essay: ['AO1', 'AO2', 'AO3'],
       sat_essay: ['READING', 'WRITING']
     };
 
@@ -203,11 +222,9 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       alevel_text_analysis: { AO1: 5, AO2: 20 },
       alevel_reflective_commentary: { AO2: 10 }, // AO3 out of 10
       alevel_language_change: { AO2: 5, AO1: 5, READING: 15 },
-      gp_essay: { AO1: 6, AO2: 12, AO3: 12 },
       sat_essay: { READING: 8, WRITING: 16 }
     };
 
-    const questionType = evaluation.question_type;
     const metrics = metricsByType[questionType] || [];
     const maxMarks = maxMarksByType[questionType] || {};
 
@@ -234,41 +251,47 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         value = value.replace(/\|/g, '').trim();
       }
       
-      console.log('🔍 DEBUG: Processing metric:', metric, 'value:', value, 'questionType:', questionType);
-      
       return {
         label: metric.replace('_', ' '),
         value: value
       };
     }).filter(submark => {
-      const isValid = submark.value !== 'N/A' && submark.value !== null && submark.value !== undefined;
-      console.log('🔍 DEBUG: Submark validation:', submark.label, submark.value, 'Valid:', isValid);
-      return isValid;
+      return submark.value !== 'N/A' && submark.value !== null && submark.value !== undefined;
     });
 
     return submarks;
   };
-  // Parse grade to get score
+  // Parse grade to get score - just use what's in the database
   const parseGrade = (gradeString) => {
+    // For GP essays, just use the grade from database directly
+    if (evaluation.question_type === 'gp_essay') {
+      if (gradeString) {
+        const match = gradeString.match(/(\d+)\/(\d+)/);
+        if (match) {
+          const totalScore = parseInt(match[1]);
+          const maxScore = parseInt(match[2]);
+          return { 
+            score: totalScore, 
+            maxScore, 
+            percentage: (totalScore / maxScore * 100).toFixed(1) 
+          };
+        }
+      }
+    }
     
-    // Always try to calculate from submarks first, as they're more accurate
+    // For other question types, use existing logic
     const submarks = getSubmarks(evaluation);
-    console.log('🔍 DEBUG: parseGrade - submarks for total calculation:', submarks);
-    
     if (submarks.length > 0) {
       let totalScore = 0;
       let maxScore = 0;
       submarks.forEach(submark => {
-        // Handle different formats: "5/16 |", "6/24", etc.
         const cleanValue = submark.value.replace(/\|/g, '').trim();
         const [score, max] = cleanValue.split('/').map(Number);
-        console.log('🔍 DEBUG: parseGrade - processing submark:', submark.label, 'cleanValue:', cleanValue, 'score:', score, 'max:', max);
         if (!isNaN(score) && !isNaN(max)) {
           totalScore += score;
           maxScore += max;
         }
       });
-      console.log('🔍 DEBUG: parseGrade - calculated total:', totalScore, '/', maxScore);
       
       if (maxScore > 0) {
         return { 
@@ -276,21 +299,6 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
           maxScore, 
           percentage: (totalScore / maxScore * 100).toFixed(1) 
         };
-      }
-    }
-    
-    // Fallback to parsing grade string if no submarks available
-    if (gradeString) {
-      const matches = gradeString.match(/(\d+)\/(\d+)/g);
-      if (matches) {
-        let totalScore = 0;
-        let maxScore = 0;
-        matches.forEach(match => {
-          const [score, max] = match.split('/').map(Number);
-          totalScore += score;
-          maxScore += max;
-        });
-        return { score: totalScore, maxScore, percentage: (totalScore / maxScore * 100).toFixed(1) };
       }
     }
     
