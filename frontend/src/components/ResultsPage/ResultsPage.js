@@ -222,6 +222,10 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         value = evaluation.ao1_marks || 'N/A';
       } else if (metric === 'AO2') {
         value = evaluation.ao2_marks || 'N/A';
+        // Clean malformed data that has AO3_MARKS concatenated
+        if (value !== 'N/A' && value.includes('AO3_MARKS:')) {
+          value = value.split('AO3_MARKS:')[0].trim();
+        }
       } else if (metric === 'AO3') {
         value = evaluation.ao3_marks || 'N/A';
       } else {
@@ -229,9 +233,9 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         value = evaluation[fieldName] || 'N/A';
       }
       
-      // Clean the value - remove pipes
+      // Clean the value - remove pipes and extra text
       if (value !== 'N/A') {
-        value = value.replace(/\|/g, '').trim();
+        value = value.replace(/\|/g, '').replace(/AO\d+_MARKS:\s*/g, '').trim();
       }
       
       return {
