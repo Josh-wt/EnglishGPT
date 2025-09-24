@@ -234,12 +234,16 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         value = value.replace(/\|/g, '').trim();
       }
       
+      console.log('🔍 DEBUG: Processing metric:', metric, 'value:', value, 'questionType:', questionType);
+      
       return {
         label: metric.replace('_', ' '),
         value: value
       };
     }).filter(submark => {
-      return submark.value !== 'N/A' && submark.value !== null && submark.value !== undefined;
+      const isValid = submark.value !== 'N/A' && submark.value !== null && submark.value !== undefined;
+      console.log('🔍 DEBUG: Submark validation:', submark.label, submark.value, 'Valid:', isValid);
+      return isValid;
     });
 
     return submarks;
@@ -249,6 +253,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
     
     // Always try to calculate from submarks first, as they're more accurate
     const submarks = getSubmarks(evaluation);
+    console.log('🔍 DEBUG: parseGrade - submarks for total calculation:', submarks);
     
     if (submarks.length > 0) {
       let totalScore = 0;
@@ -257,11 +262,13 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         // Handle different formats: "5/16 |", "6/24", etc.
         const cleanValue = submark.value.replace(/\|/g, '').trim();
         const [score, max] = cleanValue.split('/').map(Number);
+        console.log('🔍 DEBUG: parseGrade - processing submark:', submark.label, 'cleanValue:', cleanValue, 'score:', score, 'max:', max);
         if (!isNaN(score) && !isNaN(max)) {
           totalScore += score;
           maxScore += max;
         }
       });
+      console.log('🔍 DEBUG: parseGrade - calculated total:', totalScore, '/', maxScore);
       
       if (maxScore > 0) {
         return { 
