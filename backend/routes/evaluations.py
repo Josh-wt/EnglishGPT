@@ -245,6 +245,9 @@ async def evaluate_submission(submission: SubmissionRequest):
                         if section in ao2_part:
                             ao2_marks = ao2_part.split(section)[0].strip()
                             break
+                    # Clean up any malformed data that might have AO3_MARKS concatenated
+                    if "AO3_MARKS:" in ao2_marks:
+                        ao2_marks = ao2_marks.split("AO3_MARKS:")[0].strip()
                 
                 if "AO3_MARKS:" in ai_response:
                     ao3_part = ai_response.split("AO3_MARKS:")[1]
