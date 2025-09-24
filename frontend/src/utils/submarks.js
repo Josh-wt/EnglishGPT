@@ -57,6 +57,12 @@ export const getSubmarks = (evaluation) => {
       value = evaluation.reading_marks || 'N/A';
     }
     
+    // Clean the value to remove any malformed content
+    if (value !== 'N/A') {
+      // Remove any extra text like "AO3_MARKS:" that might be concatenated
+      value = value.replace(/AO\d+_MARKS:\s*/g, '').replace(/\|/g, '').trim();
+    }
+    
     return {
       label: metric,
       value: value

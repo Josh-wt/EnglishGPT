@@ -251,13 +251,17 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         console.log('🔍 DEBUG: Field name:', fieldName, 'Value:', value);
       }
       
-      // Ensure value includes total marks if not already present
-      if (value !== 'N/A' && maxMarks[metric]) {
-        const cleanValue = value.replace(/\|/g, '').trim();
-        // If value doesn't already contain "/", add the total
-        if (!cleanValue.includes('/')) {
-          value = `${cleanValue}/${maxMarks[metric]}`;
+      // Clean the value first to remove any malformed content
+      if (value !== 'N/A') {
+        // Remove any extra text like "AO3_MARKS:" that might be concatenated
+        value = value.replace(/AO\d+_MARKS:\s*/g, '').replace(/\|/g, '').trim();
+        
+        // If value doesn't contain "/", add the total marks
+        if (maxMarks[metric] && !value.includes('/')) {
+          value = `${value}/${maxMarks[metric]}`;
           console.log('🔍 DEBUG: Added total to value:', value);
+        } else {
+          console.log('🔍 DEBUG: Using cleaned value:', value);
         }
       }
       
