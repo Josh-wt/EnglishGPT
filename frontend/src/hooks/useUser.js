@@ -165,25 +165,68 @@ export const useUser = () => {
                 timestamp: new Date().toISOString()
               });
               
-              // Use fallback data when API calls fail - use free plan as default
-              profileData = {
-                id: session.user.id,
-                email: session.user.email,
-                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                current_plan: 'free',
-                credits: 3,
-                questions_marked: 0,
-                academic_level: 'N/A'
-              };
-              statsData = {
-                id: session.user.id,
-                email: session.user.email,
-                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                current_plan: 'free',
-                credits: 3,
-                questions_marked: 0,
-                academic_level: 'N/A'
-              };
+              // Try to use cached data if API fails, instead of hardcoding free plan
+              const cachedUserData = localStorage.getItem('userData');
+              if (cachedUserData) {
+                try {
+                  const parsedCachedData = JSON.parse(cachedUserData);
+                  console.log('📦 Using cached user data due to API failure:', parsedCachedData);
+                  
+                  // Use cached data for both profile and stats
+                  profileData = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                    current_plan: parsedCachedData.current_plan || parsedCachedData.currentPlan || 'free',
+                    credits: parsedCachedData.credits || 3,
+                    questions_marked: parsedCachedData.questions_marked || parsedCachedData.questionsMarked || 0,
+                    academic_level: parsedCachedData.academic_level || parsedCachedData.academicLevel || 'N/A'
+                  };
+                  statsData = parsedCachedData;
+                } catch (cacheError) {
+                  console.error('❌ Failed to parse cached user data:', cacheError);
+                  // Only use fallback if cache is invalid AND API fails
+                  profileData = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                    current_plan: 'free',
+                    credits: 3,
+                    questions_marked: 0,
+                    academic_level: 'N/A'
+                  };
+                  statsData = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                    current_plan: 'free',
+                    credits: 3,
+                    questions_marked: 0,
+                    academic_level: 'N/A'
+                  };
+                }
+              } else {
+                console.log('⚠️ No cached data available, using basic fallback');
+                // Only use fallback as last resort
+                profileData = {
+                  id: session.user.id,
+                  email: session.user.email,
+                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                  current_plan: 'free',
+                  credits: 3,
+                  questions_marked: 0,
+                  academic_level: 'N/A'
+                };
+                statsData = {
+                  id: session.user.id,
+                  email: session.user.email,
+                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                  current_plan: 'free',
+                  credits: 3,
+                  questions_marked: 0,
+                  academic_level: 'N/A'
+                };
+              }
             }
             
             const apiTime = Date.now() - apiStartTime;
@@ -470,25 +513,68 @@ export const useUser = () => {
                 timestamp: new Date().toISOString()
               });
               
-              // Use fallback data when API calls fail - use free plan as default
-              profileData = {
-                id: session.user.id,
-                email: session.user.email,
-                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                current_plan: 'free',
-                credits: 3,
-                questions_marked: 0,
-                academic_level: 'N/A'
-              };
-              statsData = {
-                id: session.user.id,
-                email: session.user.email,
-                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                current_plan: 'free',
-                credits: 3,
-                questions_marked: 0,
-                academic_level: 'N/A'
-              };
+              // Try to use cached data if API fails, instead of hardcoding free plan
+              const cachedUserData = localStorage.getItem('userData');
+              if (cachedUserData) {
+                try {
+                  const parsedCachedData = JSON.parse(cachedUserData);
+                  console.log('📦 Using cached user data due to API failure:', parsedCachedData);
+                  
+                  // Use cached data for both profile and stats
+                  profileData = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                    current_plan: parsedCachedData.current_plan || parsedCachedData.currentPlan || 'free',
+                    credits: parsedCachedData.credits || 3,
+                    questions_marked: parsedCachedData.questions_marked || parsedCachedData.questionsMarked || 0,
+                    academic_level: parsedCachedData.academic_level || parsedCachedData.academicLevel || 'N/A'
+                  };
+                  statsData = parsedCachedData;
+                } catch (cacheError) {
+                  console.error('❌ Failed to parse cached user data:', cacheError);
+                  // Only use fallback if cache is invalid AND API fails
+                  profileData = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                    current_plan: 'free',
+                    credits: 3,
+                    questions_marked: 0,
+                    academic_level: 'N/A'
+                  };
+                  statsData = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                    current_plan: 'free',
+                    credits: 3,
+                    questions_marked: 0,
+                    academic_level: 'N/A'
+                  };
+                }
+              } else {
+                console.log('⚠️ No cached data available, using basic fallback');
+                // Only use fallback as last resort
+                profileData = {
+                  id: session.user.id,
+                  email: session.user.email,
+                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                  current_plan: 'free',
+                  credits: 3,
+                  questions_marked: 0,
+                  academic_level: 'N/A'
+                };
+                statsData = {
+                  id: session.user.id,
+                  email: session.user.email,
+                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                  current_plan: 'free',
+                  credits: 3,
+                  questions_marked: 0,
+                  academic_level: 'N/A'
+                };
+              }
             }
             
             const apiTime = Date.now() - apiStartTime;
