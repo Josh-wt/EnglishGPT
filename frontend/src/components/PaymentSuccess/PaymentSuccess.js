@@ -13,12 +13,24 @@ import {
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-const PaymentSuccess = ({ user, darkMode }) => {
+const PaymentSuccess = ({ user, darkMode, forceRefreshUserData }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [paymentData, setPaymentData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [licenseKey, setLicenseKey] = useState(null);
+
+  // Refresh user data when component mounts (after successful payment)
+  useEffect(() => {
+    if (forceRefreshUserData) {
+      console.log('🔄 PaymentSuccess: Refreshing user data after successful payment...');
+      forceRefreshUserData().then(() => {
+        console.log('✅ PaymentSuccess: User data refreshed successfully');
+      }).catch((error) => {
+        console.error('❌ PaymentSuccess: Failed to refresh user data:', error);
+      });
+    }
+  }, [forceRefreshUserData]);
 
   useEffect(() => {
     const paymentId = searchParams.get('payment_id');
@@ -334,12 +346,12 @@ const PaymentSuccess = ({ user, darkMode }) => {
           </div>
           
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Questions? Contact our support team at{' '}
+            Questions? Contact our support team at{'support@everythingenglish.xyz'}
             <a 
-              href="mailto:support@englishgpt.com" 
+              href="mailto:support@englishgpt.co" 
               className="text-blue-600 dark:text-blue-400 hover:underline"
             >
-              support@englishgpt.com
+              support@everythingenglish.xyz
             </a>
           </p>
         </div>

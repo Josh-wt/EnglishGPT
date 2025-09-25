@@ -882,6 +882,7 @@ const App = () => {
                 <PaymentSuccess
                   user={user}
                   darkMode={darkMode}
+                  forceRefreshUserData={forceRefreshUserData}
                 />
               </LazyWrapper>
             } />
