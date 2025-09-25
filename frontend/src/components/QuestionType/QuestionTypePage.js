@@ -243,12 +243,25 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
 
   const handleProceed = () => {
     if (!selectedQuestionType || !studentResponse.trim()) {
+      console.log('🔍 DEBUG: handleProceed - Missing required data:', {
+        hasSelectedQuestionType: !!selectedQuestionType,
+        hasStudentResponse: !!studentResponse,
+        studentResponseLength: studentResponse?.length,
+        studentResponseTrimmed: studentResponse?.trim()?.length
+      });
       return;
     }
 
     // Check if question type requires marking scheme
     const requiresMarkingScheme = selectedQuestionType.requires_marking_scheme === true;
     const isWritersEffect = selectedQuestionType.id === 'igcse_writers_effect';
+    
+    console.log('🔍 DEBUG: handleProceed - Question type analysis:', {
+      questionTypeId: selectedQuestionType.id,
+      requiresMarkingScheme,
+      isWritersEffect,
+      willShowModal: requiresMarkingScheme || isWritersEffect
+    });
     
     if (requiresMarkingScheme || isWritersEffect) {
       // Show marking scheme modal
@@ -264,18 +277,49 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       user_id: user?.id,
     };
     
+    console.log('🔍 DEBUG: handleProceed - Sending evaluation data:', {
+      evaluationData,
+      dataTypes: {
+        question_type: typeof evaluationData.question_type,
+        student_response: typeof evaluationData.student_response,
+        marking_scheme: typeof evaluationData.marking_scheme,
+        user_id: typeof evaluationData.user_id
+      },
+      studentResponsePreview: studentResponse.substring(0, 100) + '...'
+    });
+    
     onEvaluate(evaluationData);
   };
 
   const handleMarkingSchemeProceed = async (data) => {
     
     if (!selectedQuestionType || !studentResponse.trim()) {
+      console.log('🔍 DEBUG: handleMarkingSchemeProceed - Missing required data:', {
+        hasSelectedQuestionType: !!selectedQuestionType,
+        hasStudentResponse: !!studentResponse,
+        studentResponseLength: studentResponse?.length,
+        studentResponseTrimmed: studentResponse?.trim()?.length
+      });
       return;
     }
+
+    console.log('🔍 DEBUG: handleMarkingSchemeProceed - Received data:', {
+      data,
+      dataType: typeof data,
+      isString: typeof data === 'string',
+      isObject: typeof data === 'object'
+    });
 
     // Handle both old format (string) and new format (object)
     const markingScheme = typeof data === 'string' ? data : data.markingScheme;
     const commandWord = typeof data === 'object' ? data.commandWord : null;
+
+    console.log('🔍 DEBUG: handleMarkingSchemeProceed - Extracted values:', {
+      markingScheme,
+      commandWord,
+      markingSchemeType: typeof markingScheme,
+      commandWordType: typeof commandWord
+    });
 
     // Create evaluation data with marking scheme and command word
     const evaluationData = {
@@ -286,7 +330,18 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       user_id: user?.id,
     };
     
-    console.log('🔍 DEBUG: Created evaluationData with marking scheme and command word:', evaluationData);
+    console.log('🔍 DEBUG: handleMarkingSchemeProceed - Final evaluation data:', {
+      evaluationData,
+      dataTypes: {
+        question_type: typeof evaluationData.question_type,
+        student_response: typeof evaluationData.student_response,
+        marking_scheme: typeof evaluationData.marking_scheme,
+        command_word: typeof evaluationData.command_word,
+        user_id: typeof evaluationData.user_id
+      },
+      studentResponsePreview: studentResponse.substring(0, 100) + '...',
+      markingSchemePreview: markingScheme ? markingScheme.substring(0, 100) + '...' : 'null'
+    });
     
     // Close the modal
     setShowMarkingSchemeModal(false);
@@ -294,7 +349,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     // Call onEvaluate with the marking scheme and command word
     onEvaluate(evaluationData);
     
-    console.log('🔍 DEBUG: onEvaluate called with marking scheme and command word successfully');
+    console.log('🔍 DEBUG: handleMarkingSchemeProceed - onEvaluate called successfully');
   };
 
   // Filter questions based on selected level

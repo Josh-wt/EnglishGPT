@@ -24,36 +24,80 @@ evaluation_service = EvaluationService()
 async def evaluate_submission(submission: SubmissionRequest):
     """Evaluate student submission using AI"""
     try:
+        # Enhanced debugging for 422 errors
+        logger.info("🚨 EVALUATION REQUEST RECEIVED - Detailed Debug Info:")
+        logger.info(f"📊 Request Details: {submission}")
+        logger.info(f"📝 Request Data Analysis:")
+        logger.info(f"  - user_id: {submission.user_id} (type: {type(submission.user_id)})")
+        logger.info(f"  - question_type: {submission.question_type} (type: {type(submission.question_type)})")
+        logger.info(f"  - student_response length: {len(submission.student_response) if submission.student_response else 0}")
+        logger.info(f"  - student_response type: {type(submission.student_response)}")
+        logger.info(f"  - marking_scheme: {submission.marking_scheme} (type: {type(submission.marking_scheme)})")
+        logger.info(f"  - command_word: {getattr(submission, 'command_word', 'NOT_PROVIDED')} (type: {type(getattr(submission, 'command_word', None))})")
+        
+        # Validate required fields
+        if not submission.user_id:
+            logger.error("❌ VALIDATION ERROR: user_id is missing or empty")
+            raise HTTPException(status_code=422, detail="user_id is required")
+        
+        if not submission.question_type:
+            logger.error("❌ VALIDATION ERROR: question_type is missing or empty")
+            raise HTTPException(status_code=422, detail="question_type is required")
+        
+        if not submission.student_response or not submission.student_response.strip():
+            logger.error("❌ VALIDATION ERROR: student_response is missing or empty")
+            raise HTTPException(status_code=422, detail="student_response is required and cannot be empty")
+        
+        logger.info(f"✅ All required fields validated successfully")
         logger.info(f"Starting evaluation for user {submission.user_id}, question type: {submission.question_type}")
         
         # Get user data using the user management service
         if not user_management_service:
+            logger.error("❌ SERVICE ERROR: User management service not available")
             raise HTTPException(status_code=500, detail="User management service not available")
         
+        logger.info(f"🔍 Fetching user data for user_id: {submission.user_id}")
         user_data = await user_management_service.get_user_by_id(submission.user_id)
         if not user_data:
+            logger.error(f"❌ USER ERROR: User not found for user_id: {submission.user_id}")
             raise HTTPException(status_code=404, detail="User not found")
+        
         current_plan = user_data.get('current_plan', 'free')
         credits = user_data.get('credits', 3)
         questions_marked = user_data.get('questions_marked', 0)
         
-        logger.info(f"User plan: {current_plan}, credits: {credits}")
+        logger.info(f"✅ User data retrieved successfully - plan: {current_plan}, credits: {credits}, questions_marked: {questions_marked}")
         
         # Check if question type requires marking scheme
         requires_marking_scheme = submission.question_type in ['igcse_summary', 'alevel_comparative', 'alevel_text_analysis', 'alevel_language_change']
         has_optional_marking_scheme = submission.question_type in ['igcse_writers_effect']
         
+        logger.info(f"🔍 Marking scheme validation:")
+        logger.info(f"  - question_type: {submission.question_type}")
+        logger.info(f"  - requires_marking_scheme: {requires_marking_scheme}")
+        logger.info(f"  - has_optional_marking_scheme: {has_optional_marking_scheme}")
+        logger.info(f"  - marking_scheme provided: {bool(submission.marking_scheme)}")
+        logger.info(f"  - marking_scheme value: {submission.marking_scheme}")
+        
         if requires_marking_scheme and not submission.marking_scheme:
-            raise HTTPException(status_code=400, detail="This question type requires a marking scheme")
+            logger.error(f"❌ MARKING SCHEME ERROR: Question type {submission.question_type} requires a marking scheme but none was provided")
+            raise HTTPException(status_code=422, detail="This question type requires a marking scheme")
         
         # Build evaluation prompt using the evaluation service
         try:
-            logger.info("Building evaluation prompt...")
+            logger.info("🔧 Building evaluation prompt...")
+            logger.info(f"🔧 Evaluation service input: {submission}")
             full_prompt = evaluation_service.build_evaluation_prompt(submission)
-            logger.info(f"Prompt built successfully, length: {len(full_prompt)}")
+            logger.info(f"✅ Prompt built successfully, length: {len(full_prompt)}")
+            logger.info(f"🔧 Prompt preview (first 200 chars): {full_prompt[:200]}...")
         except ValueError as e:
-            logger.error(f"Error building prompt: {str(e)}")
-            raise HTTPException(status_code=400, detail=str(e))
+            logger.error(f"❌ PROMPT BUILDING ERROR: {str(e)}")
+            raise HTTPException(status_code=422, detail=f"Error building evaluation prompt: {str(e)}")
+        except Exception as e:
+            logger.error(f"❌ UNEXPECTED PROMPT BUILDING ERROR: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            raise HTTPException(status_code=422, detail=f"Unexpected error building evaluation prompt: {str(e)}")
         
         # Sanitize input to prevent prompt injection
         def sanitize_input(text):

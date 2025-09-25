@@ -355,6 +355,26 @@ const App = () => {
         user_id: userId
       };
       
+      // Pre-request debugging
+      console.log('🔍 Pre-request validation:', {
+        originalEvaluationResult: evaluationResult,
+        userId: userId,
+        finalEvaluationData: evaluationWithUser,
+        dataTypes: {
+          student_response: typeof evaluationWithUser.student_response,
+          question_type: typeof evaluationWithUser.question_type,
+          user_id: typeof evaluationWithUser.user_id,
+          academic_level: typeof evaluationWithUser.academic_level
+        },
+        dataValidation: {
+          hasStudentResponse: !!evaluationWithUser.student_response,
+          studentResponseNotEmpty: evaluationWithUser.student_response?.trim().length > 0,
+          hasQuestionType: !!evaluationWithUser.question_type,
+          hasUserId: !!evaluationWithUser.user_id,
+          hasAcademicLevel: !!evaluationWithUser.academic_level
+        }
+      });
+      
       const API = getApiUrl();
       const startTime = Date.now();
       console.log(`🔄 Starting evaluation for ${evaluationResult.question_type}...`);
@@ -399,6 +419,45 @@ const App = () => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('❌ Evaluation request failed:', response.status, errorText);
+        
+        // Enhanced debugging for 422 errors
+        if (response.status === 422) {
+          console.error('🚨 422 UNPROCESSABLE ENTITY - Detailed Debug Info:');
+          console.error('📊 Request Details:', {
+            url: `${API}/evaluate`,
+            method: 'POST',
+            headers: authHeaders,
+            body: evaluationWithUser
+          });
+          console.error('📝 Request Body Analysis:', {
+            hasStudentResponse: !!evaluationWithUser.student_response,
+            studentResponseLength: evaluationWithUser.student_response?.length,
+            studentResponsePreview: evaluationWithUser.student_response?.substring(0, 100) + '...',
+            hasQuestionType: !!evaluationWithUser.question_type,
+            questionType: evaluationWithUser.question_type,
+            hasUserId: !!evaluationWithUser.user_id,
+            userId: evaluationWithUser.user_id,
+            hasAcademicLevel: !!evaluationWithUser.academic_level,
+            academicLevel: evaluationWithUser.academic_level,
+            allKeys: Object.keys(evaluationWithUser),
+            fullBody: evaluationWithUser
+          });
+          console.error('🔍 Response Analysis:', {
+            status: response.status,
+            statusText: response.statusText,
+            headers: Object.fromEntries(response.headers.entries()),
+            body: errorText
+          });
+          
+          // Try to parse error response as JSON for more details
+          try {
+            const errorData = JSON.parse(errorText);
+            console.error('📋 Parsed Error Response:', errorData);
+          } catch (parseError) {
+            console.error('⚠️ Could not parse error response as JSON:', parseError);
+          }
+        }
+        
         throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
       }
       
