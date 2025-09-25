@@ -84,16 +84,18 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
         phone_number: user.user_metadata?.phone || null
       };
 
-      // Prepare payment data for one-time purchase
-      const paymentData = {
+      // Prepare checkout session data for one-time purchase
+      const checkoutData = {
         customer: customerData,
+        // billing_address is optional - Dodo will collect it during checkout
         product_cart: [{
           product_id: plan.dodoProductId,
           quantity: 1
         }],
         billing_currency: 'USD',
-        payment_link: true,
         return_url: `${window.location.origin}/payment-success`,
+        show_saved_payment_methods: true,
+        allowed_payment_method_types: ['credit', 'debit'],
         metadata: {
           user_id: user.id,
           plan_type: plan.id,
@@ -103,17 +105,17 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
       };
 
       if (appliedDiscount) {
-        paymentData.discount_code = appliedDiscount.code;
+        checkoutData.discount_code = appliedDiscount.code;
       }
 
-      // Create one-time payment using payment service
-      const payment = await paymentService.createPayment(paymentData);
+      // Create checkout session using payment service
+      const checkout = await paymentService.createPayment(checkoutData);
       
       // Redirect to Dodo Payments checkout
-      if (payment.payment_link) {
-        window.location.href = payment.payment_link;
+      if (checkout.checkout_url) {
+        window.location.href = checkout.checkout_url;
       } else {
-        toast.success('Payment created successfully!');
+        toast.success('Checkout session created successfully!');
       }
 
     } catch (error) {

@@ -76,7 +76,8 @@ class DodoPaymentsService:
             raise
 
     async def create_payment(self, payment_data: Dict) -> Dict:
-        return await self._request("POST", "/payments", payment_data)
+        # Use the new Checkout Session API instead of direct payments
+        return await self._request("POST", "/checkouts", payment_data)
 
     async def create_subscription(self, subscription_data: Dict) -> Dict:
         return await self._request("POST", "/subscriptions", subscription_data)

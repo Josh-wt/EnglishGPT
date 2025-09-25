@@ -222,33 +222,36 @@ async def create_subscription(subscription_data: Dict):
         logger.debug(f"[PAYMENT_DEBUG] Using product_id: {product_id} for plan: {plan_type}")
         logger.info(f"[PAYMENT_CREATE] 🆔 Product ID cleaned: '{product_id}' (length: {len(product_id)})")
         
-        # Prepare payment creation payload for one-time purchase
-        payment_payload = {
+        # Prepare checkout session payload for one-time purchase
+        checkout_payload = {
             "product_cart": product_cart if product_cart else [{
                 "product_id": product_id,
                 "quantity": 1
             }],
             "customer": customer_info,
-            "billing": billing_info,
             "billing_currency": "USD",
-            "payment_link": True,
             "return_url": SUCCESS_REDIRECT_URL,
-            "show_saved_payment_methods": True
+            "show_saved_payment_methods": True,
+            "allowed_payment_method_types": ["credit", "debit"]
         }
+        
+        # Only add billing_address if provided (it's optional)
+        if billing_info:
+            checkout_payload["billing_address"] = billing_info
         
         # Add discount code if provided
         if discount_code:
             logger.debug(f"[PAYMENT_DEBUG] Applying discount code: {discount_code}")
-            payment_payload["discount_code"] = discount_code
+            checkout_payload["discount_code"] = discount_code
         
-        logger.info(f"[PAYMENT_CREATE] 📋 Final payment payload prepared:")
-        logger.info(f"[PAYMENT_CREATE] Payload: {json.dumps(payment_payload, indent=2, default=str)}")
+        logger.info(f"[PAYMENT_CREATE] 📋 Final checkout payload prepared:")
+        logger.info(f"[PAYMENT_CREATE] Payload: {json.dumps(checkout_payload, indent=2, default=str)}")
         
-        # Use Dodo service to create one-time payment
+        # Use Dodo service to create checkout session
         logger.info(f"[PAYMENT_CREATE] 🎯 Calling dodo_service.create_payment...")
         logger.info(f"[PAYMENT_CREATE] Service base URL: {dodo_service.base_url}")
         
-        result = await dodo_service.create_payment(payment_payload)
+        result = await dodo_service.create_payment(checkout_payload)
         
         duration = time.time() - start_time
         logger.info(f"[SUBSCRIPTION_CREATE] ✅ Subscription creation successful in {duration:.2f}s!")
