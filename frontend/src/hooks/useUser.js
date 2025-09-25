@@ -244,18 +244,34 @@ export const useUser = () => {
             const benefitsTime = Date.now() - benefitsStartTime;
             console.log(`📊 Launch period benefits processing: ${benefitsTime}ms`);
             
-            // Use the actual user data from backend, properly map field names
-            const userStats = {
-              ...finalStats,
-              // Map backend field names to frontend field names
-              currentPlan: finalStats.current_plan || finalStats.currentPlan || 'free',
-              questionsMarked: finalStats.questions_marked || finalStats.questionsMarked || 0,
-              credits: finalStats.credits || 3,
-              academicLevel: finalStats.academic_level || finalStats.academicLevel || cachedAcademicLevel || 'N/A',
-              showWelcomeMessage: false
-            };
-            
-            console.log('🔄 Setting user stats from backend:', userStats);
+                 // Use the actual user data from backend, properly map field names
+                 const userStats = {
+                   ...finalStats,
+                   // Map backend field names to frontend field names
+                   currentPlan: finalStats.current_plan || finalStats.currentPlan || 'free',
+                   questionsMarked: finalStats.questions_marked || finalStats.questionsMarked || 0,
+                   credits: finalStats.credits || 3,
+                   academicLevel: finalStats.academic_level || finalStats.academicLevel || cachedAcademicLevel || 'N/A',
+                   showWelcomeMessage: false
+                 };
+
+                 console.log('🔍 DEBUG useUser - Raw backend data:', {
+                   profileData,
+                   statsData,
+                   finalStats,
+                   userStats
+                 });
+                 console.log('🔍 DEBUG useUser - Field mapping:', {
+                   'finalStats.current_plan': finalStats.current_plan,
+                   'finalStats.currentPlan': finalStats.currentPlan,
+                   'mapped currentPlan': userStats.currentPlan,
+                   'finalStats.credits': finalStats.credits,
+                   'mapped credits': userStats.credits,
+                   'finalStats.questions_marked': finalStats.questions_marked,
+                   'finalStats.questionsMarked': finalStats.questionsMarked,
+                   'mapped questionsMarked': userStats.questionsMarked
+                 });
+                 console.log('🔄 Setting user stats from backend:', userStats);
             setUserStats(userStats);
             
             // Cache the user data
@@ -1008,18 +1024,34 @@ export const useUser = () => {
         profile: profileData,
       });
       
-      // Map backend field names to frontend field names
-      const userStats = {
-        ...finalStats,
-        // Map backend field names to frontend field names
-        currentPlan: finalStats.current_plan || finalStats.currentPlan || 'free',
-        questionsMarked: finalStats.questions_marked || finalStats.questionsMarked || 0,
-        credits: finalStats.credits || 3,
-        academicLevel: finalStats.academic_level || finalStats.academicLevel || 'N/A',
-        showWelcomeMessage: false
-      };
-      
-      console.log('🔄 Setting user stats from fresh backend data:', userStats);
+             // Map backend field names to frontend field names
+             const userStats = {
+               ...finalStats,
+               // Map backend field names to frontend field names
+               currentPlan: finalStats.current_plan || finalStats.currentPlan || 'free',
+               questionsMarked: finalStats.questions_marked || finalStats.questionsMarked || 0,
+               credits: finalStats.credits || 3,
+               academicLevel: finalStats.academic_level || finalStats.academicLevel || 'N/A',
+               showWelcomeMessage: false
+             };
+
+             console.log('🔍 DEBUG forceRefreshUserData - Fresh backend data:', {
+               profileData,
+               statsData,
+               finalStats,
+               userStats
+             });
+             console.log('🔍 DEBUG forceRefreshUserData - Field mapping:', {
+               'finalStats.current_plan': finalStats.current_plan,
+               'finalStats.currentPlan': finalStats.currentPlan,
+               'mapped currentPlan': userStats.currentPlan,
+               'finalStats.credits': finalStats.credits,
+               'mapped credits': userStats.credits,
+               'finalStats.questions_marked': finalStats.questions_marked,
+               'finalStats.questionsMarked': finalStats.questionsMarked,
+               'mapped questionsMarked': userStats.questionsMarked
+             });
+             console.log('🔄 Setting user stats from fresh backend data:', userStats);
       setUserStats(userStats);
       
       // Update localStorage with fresh data

@@ -2,22 +2,60 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Footer from '../ui/Footer';
 
-const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAnalytics, onAccountSettings, onSubscription, userStats, user, darkMode, onSignOut, onRefreshUserData }) => {
+const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAnalytics, onAccountSettings, onSubscription, userStats, user, darkMode, onSignOut }) => {
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   
+  // Debug userStats prop
+  console.log('🔍 DEBUG Dashboard - Received userStats:', userStats);
+  console.log('🔍 DEBUG Dashboard - userStats type:', typeof userStats);
+  console.log('🔍 DEBUG Dashboard - userStats keys:', userStats ? Object.keys(userStats) : 'null/undefined');
+  
+  // Check if backend is having issues
+  const hasBackendError = useMemo(() => {
+    return userStats?.backend_error === true;
+  }, [userStats?.backend_error]);
+
   // Memoized helper function to check if user has unlimited access
   const hasUnlimitedAccess = useMemo(() => {
+    // If backend has errors, don't show unlimited access
+    if (hasBackendError) {
+      console.log('🔍 DEBUG Dashboard - Backend error detected, not showing unlimited access');
+      return false;
+    }
+    
     const plan = userStats?.currentPlan?.toLowerCase();
     const credits = userStats?.credits;
-    return plan === 'unlimited' || credits >= 99999;
-  }, [userStats?.currentPlan, userStats?.credits]);
+    const result = plan === 'unlimited' || credits >= 99999;
+    
+    console.log('🔍 DEBUG Dashboard - hasUnlimitedAccess calculation:', {
+      plan,
+      credits,
+      'plan === "unlimited"': plan === 'unlimited',
+      'credits >= 99999': credits >= 99999,
+      result
+    });
+    
+    return result;
+  }, [userStats?.currentPlan, userStats?.credits, hasBackendError]);
 
   // Memoized user stats to prevent unnecessary recalculations
-  const memoizedUserStats = useMemo(() => ({
-    questionsMarked: userStats?.questionsMarked || 0,
-    credits: userStats?.credits || 3,
-    currentPlan: userStats?.currentPlan || 'Free'
-  }), [userStats?.questionsMarked, userStats?.credits, userStats?.currentPlan]);
+  const memoizedUserStats = useMemo(() => {
+    const stats = {
+      questionsMarked: userStats?.questionsMarked || 0,
+      credits: userStats?.credits || 3,
+      currentPlan: hasBackendError ? 'Backend Error' : (userStats?.currentPlan || 'Free')
+    };
+    
+    console.log('🔍 DEBUG Dashboard - memoizedUserStats calculation:', {
+      'userStats?.questionsMarked': userStats?.questionsMarked,
+      'userStats?.credits': userStats?.credits,
+      'userStats?.currentPlan': userStats?.currentPlan,
+      'hasBackendError': hasBackendError,
+      'final stats': stats
+    });
+    
+    return stats;
+  }, [userStats?.questionsMarked, userStats?.credits, userStats?.currentPlan, hasBackendError]);
 
   // Memoized callback functions to prevent unnecessary re-renders
   const handleAccountDropdown = useCallback(() => {
@@ -49,12 +87,6 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
     setShowAccountDropdown(false);
   }, [onSignOut]);
 
-  const handleRefreshUserData = useCallback(async () => {
-    if (onRefreshUserData) {
-      console.log('🔄 Refreshing user data from Dashboard...');
-      await onRefreshUserData();
-    }
-  }, [onRefreshUserData]);
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-main'}`}>
@@ -111,18 +143,6 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
               )}
               </div>
               
-              {/* Refresh Button */}
-              <button
-                onClick={handleRefreshUserData}
-                className={`ml-4 px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-200 ${
-                  darkMode 
-                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 border border-gray-600' 
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
-                }`}
-                title="Refresh user data"
-              >
-                🔄 Refresh
-              </button>
             </div>
             
             {/* New User Welcome Message - Separate from stats */}
@@ -376,8 +396,17 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                 <div className="text-sm text-gray-600 font-fredoka">Essays Marked</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600 font-fredoka capitalize">{memoizedUserStats.currentPlan}</div>
+                <div className={`text-3xl font-bold font-fredoka capitalize ${
+                  hasBackendError ? 'text-red-600' : 'text-blue-600'
+                }`}>
+                  {memoizedUserStats.currentPlan}
+                </div>
                 <div className="text-sm text-gray-600 font-fredoka">Plan</div>
+                {hasBackendError && (
+                  <div className="text-xs text-red-500 font-fredoka mt-1">
+                    ⚠️ Backend Error
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>

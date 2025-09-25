@@ -695,20 +695,26 @@ const App = () => {
         <Route path="/dashboard" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
             <LazyWrapper fallback={<PageSkeleton />}>
-              <Dashboard 
-                questionTypes={questionTypes}
-                onStartQuestion={handleStartQuestion}
-                onPricing={() => navigate('/pricing')}
-                onHistory={() => navigate('/history')}
-                onAnalytics={() => navigate('/analytics')}
-                onAccountSettings={() => navigate('/account')}
-                onSubscription={() => navigate('/subscription')}
-                userStats={userStats || {}}
-                user={user}
-                darkMode={darkMode}
-                onSignOut={signOut}
-                onRefreshUserData={forceRefreshUserData}
-              />
+              {(() => {
+                console.log('🔍 DEBUG App.js - Passing userStats to Dashboard:', userStats);
+                console.log('🔍 DEBUG App.js - userStats type:', typeof userStats);
+                console.log('🔍 DEBUG App.js - userStats keys:', userStats ? Object.keys(userStats) : 'null/undefined');
+                return (
+                  <Dashboard 
+                    questionTypes={questionTypes}
+                    onStartQuestion={handleStartQuestion}
+                    onPricing={() => navigate('/pricing')}
+                    onHistory={() => navigate('/history')}
+                    onAnalytics={() => navigate('/analytics')}
+                    onAccountSettings={() => navigate('/account')}
+                    onSubscription={() => navigate('/subscription')}
+                    userStats={userStats || {}}
+                    user={user}
+                    darkMode={darkMode}
+                    onSignOut={signOut}
+                  />
+                );
+              })()}
             </LazyWrapper>
           </AuthRequired>
         } />

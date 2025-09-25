@@ -687,6 +687,23 @@ Your examiner will assess you for writing by identifying the following features:
 Candidate writes with consistent accuracy and ambition in both vocabulary choices and sentence structures. A sophisticated style with flair, capable of expressing abstract ideas. Paragraphs are structured by argument and build to a conclusion. Register is effective for a school magazine article.""",
     "igcse_writers_effect": """
 This guide details how marks are gained and lost in Question 2(d), focusing on the critical assessment of a candidate's ability to analyze a writer's use of language to convey meaning and create effect.
+
+CRITICAL MARKING REQUIREMENT - THREE EXAMPLES FRAMEWORK:
+The student is ONLY required to give exactly THREE examples of writers' effect (firstly, secondly, finally). This is the mandatory framework.
+
+❌ INCORRECT FEEDBACK TO AVOID:
+"The analysis could be more precise by exploring additional layers of meaning in each selected phrase."
+→ WRONG: The task only requires explanation + connotations + effect for each of the three examples, not extra depth or more layers.
+
+"The response would benefit from analyzing more than three examples to demonstrate a wider range of techniques."
+→ WRONG: The instructions are clearly capped at three examples (no more, no less).
+
+✅ CORRECT MARKING LOGIC:
+- Student must provide exactly 3 examples
+- Each example must include: Image/word identified + Meaning explained + Connotations explored + Effect suggested
+- Additional layers or more examples should NOT be required or penalised
+- This structure is acceptable: "The overall effect of the paragraph is to suggest… Firstly, the image of "…" means that… (explain/definition) The word "…" has connotations of…, …, and …, which suggests that (effect). Secondly, the image of "…" means that… (explain/definition) The word "…" has connotations of…, …, and …, which suggests that (effect). Finally, the image of "…" means that… (explain/definition) The word "…" has connotations of…, …, and …, which suggests that (effect)."
+
 Core Principles:
 Holistic Marking: The overall quality of the response, particularly the analysis of effect, is paramount.
 Quality over Quantity: Depth and precision in analysis are valued more than the sheer number of points or words chosen.

@@ -80,33 +80,56 @@ CORS_ORIGINS = [
 # Initialize Supabase client
 def get_supabase_client() -> Client:
     """Initialize and return Supabase client."""
+    print(f"🔍 DEBUG settings.py - get_supabase_client called")
+    print(f"🔍 DEBUG settings.py - SUPABASE_URL: {SUPABASE_URL}")
+    print(f"🔍 DEBUG settings.py - SUPABASE_KEY present: {bool(SUPABASE_KEY)}")
+    print(f"🔍 DEBUG settings.py - SUPABASE_KEY first 10 chars: {SUPABASE_KEY[:10] if SUPABASE_KEY else 'None'}")
+    
     if not SUPABASE_KEY:
         logging.warning(
             "SUPABASE_SERVICE_ROLE_KEY is not set. Ensure backend/.env exists and python-dotenv loads it."
         )
+        print("❌ DEBUG settings.py - SUPABASE_KEY is None or empty")
         return None
     
     try:
+        print(f"🔍 DEBUG settings.py - Creating Supabase client with URL: {SUPABASE_URL}")
         supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
         logging.info("Supabase client initialized successfully")
+        print("✅ DEBUG settings.py - Supabase client created successfully")
         return supabase
     except Exception as e:
         logging.error(f"Error initializing Supabase: {e}")
+        print(f"❌ DEBUG settings.py - Error creating Supabase client: {e}")
+        print(f"❌ DEBUG settings.py - Exception type: {type(e)}")
+        import traceback
+        print(f"❌ DEBUG settings.py - Traceback: {traceback.format_exc()}")
         return None
 
 # Initialize user management service
 def get_user_management_service(supabase_client: Client) -> UserManagementService:
     """Initialize and return user management service."""
+    print(f"🔍 DEBUG settings.py - get_user_management_service called")
+    print(f"🔍 DEBUG settings.py - supabase_client provided: {supabase_client is not None}")
+    print(f"🔍 DEBUG settings.py - supabase_client type: {type(supabase_client)}")
+    
     if not supabase_client:
         logging.warning("Cannot initialize user management service - Supabase client not available")
+        print("❌ DEBUG settings.py - Cannot initialize user management service - Supabase client not available")
         return None
     
     try:
+        print(f"🔍 DEBUG settings.py - Creating UserManagementService instance")
         user_management_service = UserManagementService(supabase_client)
         logging.info("User management service initialized successfully")
+        print("✅ DEBUG settings.py - UserManagementService created successfully")
         return user_management_service
     except Exception as e:
         logging.error(f"Error initializing user management service: {e}")
+        print(f"❌ DEBUG settings.py - Error creating UserManagementService: {e}")
+        print(f"❌ DEBUG settings.py - Exception type: {type(e)}")
+        import traceback
+        print(f"❌ DEBUG settings.py - Traceback: {traceback.format_exc()}")
         return None
 
 # Initialize auth recovery middleware

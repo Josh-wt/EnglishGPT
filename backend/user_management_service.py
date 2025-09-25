@@ -236,22 +236,42 @@ class UserManagementService:
             User data dict or None if not found
         """
         try:
+            print(f"🔍 DEBUG user_management_service.py - get_user_by_id called with user_id: {user_id}")
+            print(f"🔍 DEBUG user_management_service.py - supabase client available: {self.supabase is not None}")
+            
             if not user_id or user_id == "undefined":
+                print(f"❌ DEBUG user_management_service.py - Invalid user_id: {user_id}")
                 return None
                 
             # Use the active_assessment_users view to only get non-deleted users
+            print(f"🔍 DEBUG user_management_service.py - Querying active_assessment_users table for uid: {user_id}")
             response = self.supabase.table('active_assessment_users').select('*').eq('uid', user_id).execute()
+            
+            print(f"🔍 DEBUG user_management_service.py - Supabase response: {response}")
+            print(f"🔍 DEBUG user_management_service.py - Response data: {response.data}")
+            print(f"🔍 DEBUG user_management_service.py - Response data length: {len(response.data) if response.data else 0}")
             
             if response.data:
                 user_data = response.data[0]
+                print(f"🔍 DEBUG user_management_service.py - Raw user data from DB: {user_data}")
+                print(f"🔍 DEBUG user_management_service.py - current_plan: {user_data.get('current_plan', 'NOT_FOUND')}")
+                print(f"🔍 DEBUG user_management_service.py - credits: {user_data.get('credits', 'NOT_FOUND')}")
+                print(f"🔍 DEBUG user_management_service.py - questions_marked: {user_data.get('questions_marked', 'NOT_FOUND')}")
+                
                 # Add compatibility field
                 user_data['id'] = user_data['uid']
+                print(f"✅ DEBUG user_management_service.py - Returning user data: {user_data}")
                 return user_data
             else:
+                print(f"⚠️ DEBUG user_management_service.py - No user found for user_id: {user_id}")
                 return None
                 
         except Exception as e:
             logger.error(f"Error retrieving user {user_id}: {str(e)}")
+            print(f"❌ DEBUG user_management_service.py - Exception in get_user_by_id: {str(e)}")
+            print(f"❌ DEBUG user_management_service.py - Exception type: {type(e)}")
+            import traceback
+            print(f"❌ DEBUG user_management_service.py - Traceback: {traceback.format_exc()}")
             return None
     
     async def get_user_by_email(self, email: str, include_deleted: bool = False) -> Optional[Dict[str, Any]]:

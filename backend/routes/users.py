@@ -76,52 +76,81 @@ async def create_or_get_user(user_data: dict):
 async def get_user(user_id: str, request: Request):
     """Get user by ID using the user management service with automatic recovery"""
     try:
+        print(f"🔍 DEBUG users.py - get_user called with user_id: {user_id}")
+        print(f"🔍 DEBUG users.py - user_management_service available: {user_management_service is not None}")
+        print(f"🔍 DEBUG users.py - supabase client available: {supabase is not None}")
+        
         if not user_management_service:
+            print("❌ DEBUG users.py - user_management_service is None!")
             raise HTTPException(status_code=500, detail="User management service not available")
         
         if not user_id or user_id == "undefined":
+            print(f"❌ DEBUG users.py - Invalid user_id: {user_id}")
             raise HTTPException(status_code=400, detail="Invalid user ID provided")
         
         logger.info(f"Getting user with ID: {user_id}")
+        print(f"🔍 DEBUG users.py - Calling user_management_service.get_user_by_id({user_id})")
         
         # Use the user management service to get user
         user_data = await user_management_service.get_user_by_id(user_id)
         
+        print(f"🔍 DEBUG users.py - get_user_by_id result: {user_data}")
+        print(f"🔍 DEBUG users.py - user_data type: {type(user_data)}")
+        if user_data:
+            print(f"🔍 DEBUG users.py - user_data keys: {list(user_data.keys()) if isinstance(user_data, dict) else 'Not a dict'}")
+            print(f"🔍 DEBUG users.py - current_plan: {user_data.get('current_plan', 'NOT_FOUND')}")
+            print(f"🔍 DEBUG users.py - credits: {user_data.get('credits', 'NOT_FOUND')}")
+            print(f"🔍 DEBUG users.py - questions_marked: {user_data.get('questions_marked', 'NOT_FOUND')}")
+        
         if user_data:
             logger.info(f"Successfully retrieved user: {user_id}")
+            print(f"✅ DEBUG users.py - Returning user data: {user_data}")
             return {"user": user_data}
         else:
             # User not found - try to recover from auth data
             logger.warning(f"User not found for ID: {user_id}, attempting recovery")
+            print(f"⚠️ DEBUG users.py - User not found, attempting recovery for: {user_id}")
             
             # Try to extract user info from auth headers
             auth_header = request.headers.get('authorization', '')
+            print(f"🔍 DEBUG users.py - Auth header present: {bool(auth_header)}")
+            print(f"🔍 DEBUG users.py - Auth header starts with Bearer: {auth_header.startswith('Bearer ') if auth_header else False}")
+            
             if auth_header.startswith('Bearer '):
                 token = auth_header.split(' ')[1]
+                print(f"🔍 DEBUG users.py - JWT token extracted (first 20 chars): {token[:20]}...")
                 try:
                     # Decode the JWT token to get user info
                     import jwt
                     # Note: This is a simplified approach - in production you'd verify the token
                     decoded = jwt.decode(token, options={"verify_signature": False})
+                    print(f"🔍 DEBUG users.py - JWT decoded successfully: {decoded}")
                     email = decoded.get('email', f"{user_id}@recovered.user")
                     name = decoded.get('name', 'Recovered User')
                     
+                    print(f"🔍 DEBUG users.py - Extracted from JWT - email: {email}, name: {name}")
                     logger.info(f"Attempting recovery with email: {email}")
                     
                     # Use the more robust handle_auth_database_mismatch method first
+                    print(f"🔍 DEBUG users.py - Calling handle_auth_database_mismatch with user_id: {user_id}, email: {email}")
                     mismatch_result = await user_management_service.handle_auth_database_mismatch(
                         auth_user_id=user_id,
                         email=email,
                         metadata={'name': name}
                     )
                     
+                    print(f"🔍 DEBUG users.py - handle_auth_database_mismatch result: {mismatch_result}")
+                    
                     if mismatch_result['success']:
                         logger.info(f"Successfully recovered user via mismatch handler: {user_id}")
+                        print(f"✅ DEBUG users.py - Recovery successful via mismatch handler: {mismatch_result['user']}")
                         return {"user": mismatch_result['user']}
                     else:
                         logger.warning(f"Mismatch handler failed, trying direct creation: {mismatch_result.get('error')}")
+                        print(f"⚠️ DEBUG users.py - Mismatch handler failed: {mismatch_result.get('error')}")
                         
                         # Fallback to direct creation/restoration
+                        print(f"🔍 DEBUG users.py - Trying direct create_or_restore_user with user_id: {user_id}, email: {email}")
                         recovery_result = await user_management_service.create_or_restore_user(
                             user_id=user_id,
                             email=email,
@@ -132,11 +161,15 @@ async def get_user(user_id: str, request: Request):
                             is_launch_user=False
                         )
                         
+                        print(f"🔍 DEBUG users.py - create_or_restore_user result: {recovery_result}")
+                        
                         if recovery_result['success']:
                             logger.info(f"Successfully recovered user via direct creation: {user_id}")
+                            print(f"✅ DEBUG users.py - Recovery successful via direct creation: {recovery_result['user']}")
                             return {"user": recovery_result['user']}
                         else:
                             logger.error(f"Direct creation also failed: {recovery_result.get('error')}")
+                            print(f"❌ DEBUG users.py - Direct creation failed: {recovery_result.get('error')}")
                             raise HTTPException(
                                 status_code=400, 
                                 detail=f"Cannot recover user - {recovery_result.get('error')}"
@@ -144,8 +177,10 @@ async def get_user(user_id: str, request: Request):
                         
                 except Exception as jwt_error:
                     logger.error(f"JWT decode failed for user {user_id}: {str(jwt_error)}")
+                    print(f"❌ DEBUG users.py - JWT decode failed: {str(jwt_error)}")
                     # Fallback to basic recovery with better error handling
                     try:
+                        print(f"🔍 DEBUG users.py - Trying fallback recovery with generated email: {user_id}@recovered.user")
                         recovery_result = await user_management_service.create_or_restore_user(
                             user_id=user_id,
                             email=f"{user_id}@recovered.user",
@@ -155,6 +190,8 @@ async def get_user(user_id: str, request: Request):
                             credits=3,
                             is_launch_user=False
                         )
+                        
+                        print(f"🔍 DEBUG users.py - Fallback recovery result: {recovery_result}")
                         
                         if recovery_result['success']:
                             logger.info(f"Successfully recovered user with fallback: {user_id}")
@@ -201,6 +238,10 @@ async def get_user(user_id: str, request: Request):
         raise
     except Exception as e:
         logger.error(f"Exception in get_user: {str(e)}")
+        print(f"❌ DEBUG users.py - Exception in get_user: {str(e)}")
+        print(f"❌ DEBUG users.py - Exception type: {type(e)}")
+        import traceback
+        print(f"❌ DEBUG users.py - Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"User retrieval error: {str(e)}")
 
 @router.put("/users/{user_id}")

@@ -104,6 +104,29 @@ export const getUserProfile = async (userId, options = {}) => {
       }
     }
     
+    // If backend is having issues (400, 500, etc.), return fallback data
+    if (error.response?.status >= 400) {
+      console.warn('⚠️ Backend error detected, returning fallback user data');
+      console.warn('⚠️ Error details:', {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data
+      });
+      
+      // Return fallback data that indicates backend issues
+      return {
+        id: userId,
+        email: 'backend-error@fallback.user',
+        name: 'Backend Error',
+        current_plan: 'backend_error',
+        credits: 0,
+        questions_marked: 0,
+        academic_level: 'N/A',
+        backend_error: true,
+        error_message: `Backend error: ${error.response.status} ${error.response.statusText}`
+      };
+    }
+    
     throw error;
   }
 };
@@ -184,11 +207,20 @@ export const getUserStats = async (userId, options = {}) => {
     const apiCallTime = Date.now() - apiCallStartTime;
     console.log(`📊 User stats API call completed in ${apiCallTime}ms`);
     
-    const duration = Date.now() - startTime;
-    console.log(`📈 User stats received in ${duration}ms:`, response.data);
-    
-    // Handle both response structures: {user: {...}} and direct user data
-    const userData = response.data.user || response.data;
+           const duration = Date.now() - startTime;
+           console.log(`📈 User stats received in ${duration}ms:`, response.data);
+
+           // Handle both response structures: {user: {...}} and direct user data
+           const userData = response.data.user || response.data;
+           
+           console.log('🔍 DEBUG user.js - getUserStats response analysis:', {
+             'response.data': response.data,
+             'response.data.user': response.data.user,
+             'final userData': userData,
+             'userData.current_plan': userData?.current_plan,
+             'userData.credits': userData?.credits,
+             'userData.questions_marked': userData?.questions_marked
+           });
     
     // Note: Launch period benefits are applied in applyLaunchPeriodBenefits function
     // Don't modify data here to avoid conflicts
@@ -224,6 +256,27 @@ export const getUserStats = async (userId, options = {}) => {
         console.error('❌ Failed to create user:', createError);
         throw createError;
       }
+    }
+    
+    // If backend is having issues (400, 500, etc.), return fallback data
+    if (error.response?.status >= 400) {
+      console.warn('⚠️ Backend error detected, returning fallback user stats');
+      console.warn('⚠️ Error details:', {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data
+      });
+      
+      // Return fallback data that indicates backend issues
+      return {
+        id: userId,
+        current_plan: 'backend_error',
+        credits: 0,
+        questions_marked: 0,
+        academic_level: 'N/A',
+        backend_error: true,
+        error_message: `Backend error: ${error.response.status} ${error.response.statusText}`
+      };
     }
     
     throw error;
