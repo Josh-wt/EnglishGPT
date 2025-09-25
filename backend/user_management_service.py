@@ -820,69 +820,6 @@ class UserManagementService:
                 user_id=auth_user_id,
                 email=email,
                 display_name=metadata.get('name') if metadata else None,
-    async def fix_unlimited_plan_status(self, user_id: str) -> Dict[str, Any]:
-        """
-        Fix users who should have unlimited plan based on their usage but are showing as free
-        
-        Args:
-            user_id: User ID to fix
-            
-        Returns:
-            Dict containing fix result
-        """
-        try:
-            logger.info(f"Fixing unlimited plan status for user: {user_id}")
-            
-            # Get user data including usage statistics
-            user_data = await self.get_user_by_id(user_id)
-            if not user_data:
-                return {
-                    'success': False,
-                    'error': 'User not found'
-                }
-            
-            current_plan = user_data.get('current_plan', 'free')
-            questions_marked = user_data.get('questions_marked', 0)
-            credits = user_data.get('credits', 3)
-            
-            logger.info(f"User {user_id} current status: plan={current_plan}, questions_marked={questions_marked}, credits={credits}")
-            
-            # If user has marked more than 10 questions but is on free plan, fix it
-            if questions_marked > 10 and current_plan != 'unlimited':
-                logger.info(f"User {user_id} should have unlimited access based on {questions_marked} questions marked")
-                
-                # Update user to unlimited plan
-                update_result = self.supabase.table('assessment_users').update({
-                    'current_plan': 'unlimited',
-                    'credits': 99999,
-                    'updated_at': datetime.utcnow().isoformat()
-                }).eq('uid', user_id).execute()
-                
-                if update_result.data:
-                    logger.info(f"Successfully updated user {user_id} to unlimited plan")
-                    return {
-                        'success': True,
-                        'message': f'Fixed plan status: {current_plan} -> unlimited (based on {questions_marked} questions marked)',
-                        'user': update_result.data[0]
-                    }
-                else:
-                    logger.error(f"Failed to update user {user_id} plan status")
-                    return {
-                        'success': False,
-                        'error': 'Database update failed'
-                    }
-            else:
-                return {
-                    'success': False,
-                    'error': f'User does not need plan fix: plan={current_plan}, questions_marked={questions_marked}'
-                }
-                
-        except Exception as e:
-            logger.error(f"Error fixing unlimited plan status for user {user_id}: {str(e)}")
-            return {
-                'success': False,
-                'error': f"Plan fix error: {str(e)}"
-            }
                 photo_url=metadata.get('avatar_url') if metadata else None,
                 academic_level='igcse',
                 current_plan='free',
