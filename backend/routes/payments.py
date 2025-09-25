@@ -229,15 +229,12 @@ async def create_subscription(subscription_data: Dict):
                 "quantity": 1
             }],
             "customer": customer_info,
+            "billing_address": billing_info,
             "billing_currency": "USD",
             "return_url": SUCCESS_REDIRECT_URL,
             "show_saved_payment_methods": True,
             "allowed_payment_method_types": ["credit", "debit"]
         }
-        
-        # Only add billing_address if provided (it's optional)
-        if billing_info:
-            checkout_payload["billing_address"] = billing_info
         
         # Add discount code if provided
         if discount_code:

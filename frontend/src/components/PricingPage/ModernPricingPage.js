@@ -57,7 +57,7 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
       ctaText: 'Get Lifetime Access',
       ctaVariant: 'default',
       popular: true,
-      dodoProductId: 'pdt_8lkWiOxSJLP8x4bq1Ow0'
+      dodoProductId: 'pdt_8lkWiOxSJLP8x4bq1Ow0W'
     }
   ];
 

@@ -49,7 +49,7 @@ CANCEL_REDIRECT_URL = os.environ.get('CANCEL_REDIRECT_URL', 'https://englishgpt.
 # Dodo Payments Configuration loaded
 
 # Product Configuration - Lifetime Plan ($4.99/lifetime)
-DODO_LIFETIME_PRODUCT_ID = os.environ.get('DODO_MONTHLY_PRODUCT_ID', 'pdt_8lkWiOxSJLP8x4bq1Ow0')  # Lifetime $4.99
+DODO_LIFETIME_PRODUCT_ID = os.environ.get('DODO_MONTHLY_PRODUCT_ID', 'pdt_8lkWiOxSJLP8x4bq1Ow0W')  # Lifetime $4.99
 
 # Product aliases for clarity (keeping for backward compatibility)
 DODO_MONTHLY_PRODUCT_ID = DODO_LIFETIME_PRODUCT_ID
