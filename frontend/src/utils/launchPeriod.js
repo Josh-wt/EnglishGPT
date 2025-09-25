@@ -8,9 +8,8 @@
  * @returns {boolean} - True if in launch period, false otherwise
  */
 export const isLaunchPeriod = () => {
-  // Launch period: Extended until March 1st, 2025
-  const launchEndDate = new Date('2025-03-01');
-  return new Date() < launchEndDate;
+  // Launch period has ended - no more automatic unlimited access
+  return false;
 };
 
 /**

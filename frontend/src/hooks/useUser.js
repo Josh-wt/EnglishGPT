@@ -273,8 +273,8 @@ export const useUser = () => {
               console.error('❌ Failed to fetch academic level:', levelError);
             }
             
-            // Check if user needs launch period modal
-            checkLaunchPeriodEligibility();
+            // Launch period has ended - no modal needed
+            // checkLaunchPeriodEligibility();
             
             const totalInitTime = Date.now() - initStartTime.current;
             console.log(`✅ User initialization completed in ${totalInitTime}ms`);
@@ -337,16 +337,9 @@ export const useUser = () => {
                       profile: profileData,
                     });
                     
-                    // Set to unlimited by default like the backup file
-                    const unlimitedStats = {
-                      ...finalStats,
-                      currentPlan: 'unlimited',
-                      credits: 999999, // Unlimited credits
-                      showWelcomeMessage: false
-                    };
-                    
-                    setUserStats(unlimitedStats);
-                    localStorage.setItem('userData', JSON.stringify(unlimitedStats));
+                    // Use the stats from backend (free plan with 3 credits by default)
+                    setUserStats(finalStats);
+                    localStorage.setItem('userData', JSON.stringify(finalStats));
                     localStorage.setItem('userDataTimestamp', Date.now().toString());
                     
                     // Fetch academic level from backend like the backup file
@@ -586,18 +579,11 @@ export const useUser = () => {
               profile: profileData,
             });
             
-            // Set to unlimited by default like the backup file
-            const unlimitedStats = {
-              ...finalStats,
-              currentPlan: 'unlimited',
-              credits: 999999, // Unlimited credits
-              showWelcomeMessage: false
-            };
-            
-            setUserStats(unlimitedStats);
+            // Use the stats from backend (free plan with 3 credits by default)
+            setUserStats(finalStats);
             
             // Cache the user data
-            localStorage.setItem('userData', JSON.stringify(unlimitedStats));
+            localStorage.setItem('userData', JSON.stringify(finalStats));
             localStorage.setItem('userDataTimestamp', Date.now().toString());
             
             // Fetch academic level from backend like the backup file
@@ -608,8 +594,8 @@ export const useUser = () => {
               console.error('❌ Failed to fetch academic level:', levelError);
             }
             
-            // Check if user needs launch period modal
-            checkLaunchPeriodEligibility();
+            // Launch period has ended - no modal needed
+            // checkLaunchPeriodEligibility();
             
             const totalAuthChangeTime = Date.now() - authChangeStartTime;
             console.log(`✅ Sign-in processing completed in ${totalAuthChangeTime}ms`);
@@ -672,16 +658,9 @@ export const useUser = () => {
                       profile: profileData,
                     });
                     
-                    // Set to unlimited by default like the backup file
-                    const unlimitedStats = {
-                      ...finalStats,
-                      currentPlan: 'unlimited',
-                      credits: 999999, // Unlimited credits
-                      showWelcomeMessage: false
-                    };
-                    
-                    setUserStats(unlimitedStats);
-                    localStorage.setItem('userData', JSON.stringify(unlimitedStats));
+                    // Use the stats from backend (free plan with 3 credits by default)
+                    setUserStats(finalStats);
+                    localStorage.setItem('userData', JSON.stringify(finalStats));
                     localStorage.setItem('userDataTimestamp', Date.now().toString());
                     
                     // Fetch academic level from backend like the backup file
@@ -1022,18 +1001,11 @@ export const useUser = () => {
         profile: profileData,
       });
       
-      // Set to unlimited by default like the backup file
-      const unlimitedStats = {
-        ...finalStats,
-        currentPlan: 'unlimited',
-        credits: 999999, // Unlimited credits
-        showWelcomeMessage: false
-      };
-      
-      setUserStats(unlimitedStats);
+      // Use the stats from backend (free plan with 3 credits by default)
+      setUserStats(finalStats);
       
       // Update localStorage
-      localStorage.setItem('userData', JSON.stringify(unlimitedStats));
+      localStorage.setItem('userData', JSON.stringify(finalStats));
       localStorage.setItem('userDataTimestamp', Date.now().toString());
       
       // Fetch academic level

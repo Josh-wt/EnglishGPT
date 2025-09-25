@@ -52,11 +52,6 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
         'Advanced progress tracking & analytics',
         'Access to complete question bank',
         'Priority email support',
-        'Custom writing templates',
-        'Export reports & certificates',
-        'Writing style recommendations',
-        'Plagiarism detection',
-        'Academic level assessment'
       ],
       limitations: [],
       ctaText: 'Get Lifetime Access',

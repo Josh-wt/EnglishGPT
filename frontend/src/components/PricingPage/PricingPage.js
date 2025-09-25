@@ -7,7 +7,7 @@ import Footer from '../ui/Footer';
 // Enhanced Pricing Page Component with Launch Offer
 const PricingPage = ({ onBack, user }) => {
 
-  const [showLaunchModal, setShowLaunchModal] = useState(true);
+  const [showLaunchModal, setShowLaunchModal] = useState(false); // Launch period ended
 
 
 
@@ -111,27 +111,7 @@ const PricingPage = ({ onBack, user }) => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Launch Period Banner */}
-        {isLaunchPeriod() && (
-          <motion.div 
-            className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-8 mb-8 text-white text-center"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <div className="text-4xl mb-4">🎉</div>
-            <h3 className="text-2xl font-bold mb-2">Launch Period - Unlimited Access for Everyone!</h3>
-            <p className="text-lg opacity-90 mb-4">
-              {getLaunchPeriodMessage()}
-            </p>
-            <div className="flex flex-wrap justify-center gap-4 text-sm">
-              <span className="bg-white/20 px-3 py-1 rounded-full">✅ Unlimited Essays</span>
-              <span className="bg-white/20 px-3 py-1 rounded-full">✅ Advanced Analytics</span>
-              <span className="bg-white/20 px-3 py-1 rounded-full">✅ AI Recommendations</span>
-              <span className="bg-white/20 px-3 py-1 rounded-full">✅ Priority Support</span>
-            </div>
-          </motion.div>
-        )}
+        {/* Launch period has ended */}
 
         {/* Header Section */}
         <motion.div 
@@ -141,21 +121,18 @@ const PricingPage = ({ onBack, user }) => {
           transition={{ delay: 0.2 }}
         >
           <h2 className="text-4xl font-bold text-gray-900 mb-4 font-fredoka">
-            {isLaunchPeriod() ? 'Launch Period Pricing' : 'Simple, Transparent Pricing'}
+            Simple, Transparent Pricing
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            {isLaunchPeriod() 
-              ? 'During our launch period, all users get unlimited access. After launch, choose the plan that fits your needs.'
-              : 'Choose the plan that fits your needs. All plans include unlimited essay marking and detailed feedback.'
-            }
+            Choose the plan that fits your needs. All plans include unlimited essay marking and detailed feedback.
           </p>
         </motion.div>
 
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-3 gap-8 mb-12">
-          {/* Free Plan (Launch Period - Coming Soon) */}
+          {/* Free Plan */}
           <motion.div 
-            className="bg-white rounded-2xl p-8 border-2 border-gray-200 shadow-lg opacity-60"
+            className="bg-white rounded-2xl p-8 border-2 border-gray-200 shadow-lg"
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -163,7 +140,7 @@ const PricingPage = ({ onBack, user }) => {
             <div className="text-center mb-6">
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Free</h3>
               <div className="text-4xl font-bold text-gray-900 mb-2">$0</div>
-              <p className="text-gray-600">After Launch</p>
+              <p className="text-gray-600">Forever</p>
             </div>
             
             <ul className="space-y-3 mb-8">
@@ -191,11 +168,11 @@ const PricingPage = ({ onBack, user }) => {
               className="w-full bg-gray-100 text-gray-500 py-3 rounded-xl font-semibold cursor-not-allowed"
               disabled
             >
-              Available After Launch
+              Current Plan
             </button>
           </motion.div>
 
-          {/* Unlimited Plan (Launch Period) */}
+          {/* Unlimited Plan */}
           <motion.div 
             className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-8 text-white relative overflow-hidden"
             initial={{ opacity: 0, y: 50 }}
@@ -203,15 +180,15 @@ const PricingPage = ({ onBack, user }) => {
             transition={{ delay: 0.4 }}
             whileHover={{ y: -5 }}
           >
-            {/* Launch Badge */}
+            {/* Popular Badge */}
             <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-sm font-semibold">
-              🚀 Launch Offer
+              ⭐ Popular
             </div>
             
             <div className="text-center mb-6">
               <h3 className="text-2xl font-bold mb-2">Unlimited</h3>
-              <div className="text-4xl font-bold mb-2">FREE</div>
-              <p className="text-green-100">During Launch Period</p>
+              <div className="text-4xl font-bold mb-2">$4.99</div>
+              <p className="text-green-100">per month</p>
             </div>
             
             <ul className="space-y-3 mb-8">
