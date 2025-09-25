@@ -261,6 +261,29 @@ export const exportUserData = async (userId) => {
   }
 };
 
+/**
+ * Fix user plan status based on usage history
+ * @param {string} userId - The user ID
+ * @returns {Promise} - API response
+ */
+export const fixUserPlan = async (userId) => {
+  const startTime = Date.now();
+  try {
+    console.log('🔧 Fixing plan status for user:', userId, {
+      timestamp: new Date().toISOString()
+    });
+    
+    const response = await apiHelpers.post(`${API_ENDPOINTS.USERS}/${userId}/fix-plan`);
+    const duration = Date.now() - startTime;
+    console.log('✅ User plan fixed successfully in', duration, 'ms:', response.data);
+    return response.data;
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    console.error('❌ Error fixing user plan after', duration, 'ms:', error);
+    throw error;
+  }
+};
+
 export default {
   createUser,
   getUserProfile,
@@ -269,4 +292,5 @@ export default {
   getUserStats,
   deleteUserAccount,
   exportUserData,
+  fixUserPlan,
 };
