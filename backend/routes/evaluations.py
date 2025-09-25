@@ -23,6 +23,10 @@ evaluation_service = EvaluationService()
 @router.post("/evaluate", response_model=FeedbackResponse)
 async def evaluate_submission(submission: SubmissionRequest):
     """Evaluate student submission using AI"""
+    import time
+    total_start_time = time.time()
+    logger.info("🚀 PERFORMANCE: Starting total evaluation process...")
+    
     try:
         # Enhanced debugging for 422 errors
         logger.info("🚨 EVALUATION REQUEST RECEIVED - Detailed Debug Info:")
@@ -142,16 +146,27 @@ async def evaluate_submission(submission: SubmissionRequest):
         
         logger.info("Calling AI API for evaluation...")
         
-        # Call AI API
+        # Call AI API with performance timing
+        ai_start_time = time.time()
         try:
+            logger.info("🚀 PERFORMANCE: Starting AI API call...")
             ai_response, _ = await call_deepseek_api(full_prompt)
-            logger.info(f"AI API response received, length: {len(ai_response)}")
+            ai_end_time = time.time()
+            ai_duration = ai_end_time - ai_start_time
+            logger.info(f"🚀 PERFORMANCE: AI API call completed in {ai_duration:.2f}s")
+            logger.info(f"🚀 PERFORMANCE: AI response length: {len(ai_response)} characters")
         except Exception as e:
-            logger.error(f"AI API call failed: {str(e)}")
+            ai_end_time = time.time()
+            ai_duration = ai_end_time - ai_start_time
+            logger.error(f"🚀 PERFORMANCE: AI API call failed after {ai_duration:.2f}s: {str(e)}")
             raise HTTPException(status_code=500, detail=f"AI evaluation failed: {str(e)}")
         
         # Remove any bolding from the response
         ai_response = ai_response.replace('**', '')
+        
+        # Start result processing timing
+        processing_start_time = time.time()
+        logger.info("🚀 PERFORMANCE: Starting result processing...")
         
         feedback_parts = ai_response.split("FEEDBACK:")
         if len(feedback_parts) > 1:
@@ -503,13 +518,24 @@ async def evaluate_submission(submission: SubmissionRequest):
             eval_copy = {k: v for k, v in evaluation_data.items() if k != 'short_id'}
             supabase.table('assessment_evaluations').insert(eval_copy).execute()
         
+        # Final timing - total evaluation process
+        total_end_time = time.time()
+        total_duration = total_end_time - total_start_time
+        logger.info(f"🚀 PERFORMANCE: Total evaluation process finished in {total_duration:.2f}s")
+        
         logger.info("Evaluation completed successfully")
         return feedback_response
         
     except HTTPException as http_exc:
         # Preserve intended HTTP error codes (e.g., 400, 404)
+        total_end_time = time.time()
+        total_duration = total_end_time - total_start_time
+        logger.error(f"🚀 PERFORMANCE: Total evaluation process failed after {total_duration:.2f}s with HTTP error: {http_exc.detail}")
         raise http_exc
     except Exception as e:
+        total_end_time = time.time()
+        total_duration = total_end_time - total_start_time
+        logger.error(f"🚀 PERFORMANCE: Total evaluation process failed after {total_duration:.2f}s with unexpected error: {str(e)}")
         logger.error("ERROR in evaluate_submission", extra={"error": str(e)})
         import traceback
         traceback.print_exc()

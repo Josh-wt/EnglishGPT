@@ -651,7 +651,15 @@ async def process_payment_succeeded(payment_data: Dict):
             try:
                 # Import user management service
                 from user_management_service import UserManagementService
-                user_service = UserManagementService()
+                from config.settings import get_supabase_client
+                
+                # Get supabase client
+                supabase_client = get_supabase_client()
+                if not supabase_client:
+                    logger.error(f"[WEBHOOK_ERROR] Cannot update user - Supabase client not available")
+                    return
+                    
+                user_service = UserManagementService(supabase_client)
                 
                 # Update user's plan to unlimited
                 logger.info(f"[WEBHOOK_PROCESS] Updating user {user_id} to unlimited plan")

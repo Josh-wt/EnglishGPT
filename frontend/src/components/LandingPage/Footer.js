@@ -43,7 +43,7 @@ const Footer = () => {
   ];
 
   const socialLinks = [
-    { name: 'Discord', href: 'https://discord.gg/englishgpt', icon: '💬' },
+    { name: 'Discord', href: 'https://discord.gg/xRqB4BWCcJ', icon: '💬' },
     { name: 'Twitter', href: 'https://twitter.com/englishgpt', icon: '🐦' },
     { name: 'GitHub', href: 'https://github.com/englishgpt', icon: '🐙' }
   ];
