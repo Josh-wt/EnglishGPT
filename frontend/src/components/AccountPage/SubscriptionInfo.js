@@ -58,30 +58,16 @@ const SubscriptionInfo = ({ userStats, onPricing, darkMode, toggleDarkMode }) =>
     >
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-900">Subscription Details</h2>
-        <div className="flex space-x-2">
-          {/* Show fix button if user has high usage but free plan */}
-          {!hasUnlimitedAccess() && userStats?.questionsMarked > 10 && (
-            <motion.button
-              onClick={() => window.fixUserPlan && window.fixUserPlan()}
-              className="bg-gradient-to-r from-red-500 to-pink-600 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition-shadow text-sm"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              title={`You have marked ${userStats?.questionsMarked} essays but showing as Free plan. Click to fix.`}
-            >
-              Fix Plan Status
-            </motion.button>
-          )}
-          {!hasUnlimitedAccess() && (
-            <motion.button
-              onClick={onPricing}
-              className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition-shadow text-sm"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Upgrade Plan
-            </motion.button>
-          )}
-        </div>
+        {!hasUnlimitedAccess() && (
+          <motion.button
+            onClick={onPricing}
+            className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition-shadow text-sm"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Upgrade Plan
+          </motion.button>
+        )}
       </div>
       
       {/* Current Plan Card */}
