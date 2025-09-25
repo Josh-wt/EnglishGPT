@@ -241,37 +241,7 @@ async def update_user(user_id: str, updates: dict):
         logger.error(f"User update error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"User update error: {str(e)}")
 
-@router.post("/users/{user_id}/fix-plan")
-async def fix_user_plan(user_id: str):
-    """Fix user plan status based on usage history"""
-    try:
-        if not user_management_service:
-            raise HTTPException(status_code=500, detail="User management service not available")
-        
-        if not user_id or user_id == "undefined":
-            raise HTTPException(status_code=400, detail="Invalid user ID provided")
-        
-        logger.info(f"Fixing plan status for user: {user_id}")
-        
-        # Use the user management service to fix plan status
-        result = await user_management_service.fix_unlimited_plan_status(user_id)
-        
-        if result['success']:
-            logger.info(f"Successfully fixed plan for user: {user_id}")
-            return {
-                "success": True,
-                "message": result['message'],
-                "user": result.get('user')
-            }
-        else:
-            logger.warning(f"Plan fix not needed or failed for user: {user_id} - {result.get('error')}")
-            raise HTTPException(status_code=400, detail=result.get('error'))
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Plan fix error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Plan fix error: {str(e)}")
+# Removed fix-plan route
 @router.post("/users/recover")
 async def recover_user(user_data: dict, request: Request):
     """Recover a user with auth/database mismatch"""
