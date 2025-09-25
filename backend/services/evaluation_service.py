@@ -601,11 +601,19 @@ Student Response: {sanitized_response}
             
             # Call AI API
             ai_start = time.time()
-            logger.debug("Calling DeepSeek API...")
+            logger.info(f"🚀 PERFORMANCE: Starting AI API call...")
+            logger.info(f"🚀 PERFORMANCE: Prompt length: {len(full_prompt)} characters")
             ai_response, _ = await call_deepseek_api(full_prompt)
             ai_time = time.time() - ai_start
             
-            logger.debug(f"AI API call took {ai_time:.2f}s, response length: {len(ai_response)}")
+            logger.info(f"🚀 PERFORMANCE: AI API call completed in {ai_time:.2f}s")
+            logger.info(f"🚀 PERFORMANCE: Response length: {len(ai_response)} characters")
+            
+            # Log slow AI calls
+            if ai_time > 15:
+                logger.warning(f"⚠️ PERFORMANCE: Slow AI call detected: {ai_time:.2f}s")
+            elif ai_time > 30:
+                logger.error(f"❌ PERFORMANCE: Very slow AI call: {ai_time:.2f}s")
             
             # Store full chat data for admin view
             full_chat_data = {

@@ -38,9 +38,29 @@ async def call_deepseek_api(prompt: str) -> tuple[str, str]:
         }
         
         try:
+            import time
+            request_start = time.time()
+            logger.info(f"🚀 PERFORMANCE: Making HTTP request to DeepSeek API...")
+            logger.info(f"🚀 PERFORMANCE: Request payload size: {len(str(payload))} characters")
+            
             response = await client.post(DEEPSEEK_ENDPOINT, headers=headers, json=payload, timeout=60.0)
+            request_time = time.time() - request_start
+            
+            logger.info(f"🚀 PERFORMANCE: HTTP request completed in {request_time:.2f}s")
+            logger.info(f"🚀 PERFORMANCE: Response status: {response.status_code}")
+            
+            # Log slow requests
+            if request_time > 15:
+                logger.warning(f"⚠️ PERFORMANCE: Slow HTTP request: {request_time:.2f}s")
+            elif request_time > 30:
+                logger.error(f"❌ PERFORMANCE: Very slow HTTP request: {request_time:.2f}s")
+            
             response.raise_for_status()
+            
+            parse_start = time.time()
             result = response.json()
+            parse_time = time.time() - parse_start
+            logger.info(f"🚀 PERFORMANCE: JSON parsing took {parse_time:.2f}s")
             
             if 'choices' not in result or not result['choices']:
                 error_msg = "Invalid response from DeepSeek API: No choices in response"

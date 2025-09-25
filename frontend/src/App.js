@@ -348,6 +348,8 @@ const App = () => {
     }
     
     setEvaluationLoading(true);
+    const evaluationStartTime = Date.now();
+    console.log('🚀 PERFORMANCE: Starting evaluation process...');
     
     try {
       const evaluationWithUser = {
@@ -409,11 +411,16 @@ const App = () => {
       console.log(`📊 Evaluation API call: ${fetchTime}ms`);
       
       const duration = Date.now() - startTime;
-      console.log(`✅ Evaluation completed in ${duration}ms`);
+      const totalDuration = Date.now() - evaluationStartTime;
+      console.log(`🚀 PERFORMANCE: API call completed in ${duration}ms`);
+      console.log(`🚀 PERFORMANCE: Total evaluation time: ${totalDuration}ms`);
       
       // Performance monitoring - log slow evaluations
       if (duration > 10000) {
-        console.warn(`⚠️ Slow evaluation request: ${duration}ms`);
+        console.warn(`⚠️ PERFORMANCE: Slow API request: ${duration}ms`);
+      }
+      if (totalDuration > 30000) {
+        console.warn(`⚠️ PERFORMANCE: Slow total evaluation: ${totalDuration}ms`);
       }
       
       if (!response.ok) {
@@ -489,6 +496,9 @@ const App = () => {
         navigate(`/dashboard`);
       }
       
+      const finalDuration = Date.now() - evaluationStartTime;
+      console.log(`🚀 PERFORMANCE: Evaluation process completed in ${finalDuration}ms`);
+      console.log(`🚀 PERFORMANCE: Loading animation duration: ${finalDuration}ms`);
       setEvaluationLoading(false);
       
     } catch (error) {
@@ -647,11 +657,19 @@ const App = () => {
   // Rotate loading messages
   useEffect(() => {
     if (evaluationLoading) {
+      console.log('🚀 PERFORMANCE: Loading animation started');
       const interval = setInterval(() => {
-        setLoadingMessageIndex((prev) => (prev + 1) % loadingMessages.length);
+        setLoadingMessageIndex((prev) => {
+          const newIndex = (prev + 1) % loadingMessages.length;
+          console.log(`🚀 PERFORMANCE: Loading message changed to index ${newIndex}: "${loadingMessages[newIndex]}"`);
+          return newIndex;
+        });
       }, 2000);
       
-      return () => clearInterval(interval);
+      return () => {
+        console.log('🚀 PERFORMANCE: Loading animation stopped');
+        clearInterval(interval);
+      };
     } else {
       setLoadingMessageIndex(0);
     }
