@@ -122,7 +122,7 @@ const App = () => {
   }, [location]);
 
   // Use custom hooks for state management
-  const { user, userStats, loading: userLoading, signInWithGoogle, signInWithDiscord, signOut, updateLevel, refreshUserData } = useUser();
+  const { user, userStats, loading: userLoading, signInWithGoogle, signInWithDiscord, signOut, updateLevel, refreshUserData, forceRefreshUserData } = useUser();
   const { questionTypes } = useQuestionTypes();
 
   // Debug user state changes - only log errors
@@ -707,6 +707,7 @@ const App = () => {
                 user={user}
                 darkMode={darkMode}
                 onSignOut={signOut}
+                onRefreshUserData={forceRefreshUserData}
               />
             </LazyWrapper>
           </AuthRequired>

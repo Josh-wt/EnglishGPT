@@ -989,11 +989,18 @@ export const useUser = () => {
     try {
       console.log('🔄 Force refreshing user data from backend...');
       
-      // Fetch fresh data
+      // Clear cache first
+      localStorage.removeItem('userData');
+      localStorage.removeItem('userDataTimestamp');
+      console.log('🗑️ Cleared user data cache');
+      
+      // Fetch fresh data with no cache
       const [profileData, statsData] = await Promise.all([
-        getUserProfile(user.id),
-        getUserStats(user.id),
+        getUserProfile(user.id, { cache: false }),
+        getUserStats(user.id, { cache: false }),
       ]);
+      
+      console.log('📊 Fresh data from backend:', { profile: profileData, stats: statsData });
       
       // Apply launch period benefits
       const finalStats = applyLaunchPeriodBenefits({
@@ -1001,11 +1008,22 @@ export const useUser = () => {
         profile: profileData,
       });
       
-      // Use the stats from backend (free plan with 3 credits by default)
-      setUserStats(finalStats);
+      // Map backend field names to frontend field names
+      const userStats = {
+        ...finalStats,
+        // Map backend field names to frontend field names
+        currentPlan: finalStats.current_plan || finalStats.currentPlan || 'free',
+        questionsMarked: finalStats.questions_marked || finalStats.questionsMarked || 0,
+        credits: finalStats.credits || 3,
+        academicLevel: finalStats.academic_level || finalStats.academicLevel || 'N/A',
+        showWelcomeMessage: false
+      };
       
-      // Update localStorage
-      localStorage.setItem('userData', JSON.stringify(finalStats));
+      console.log('🔄 Setting user stats from fresh backend data:', userStats);
+      setUserStats(userStats);
+      
+      // Update localStorage with fresh data
+      localStorage.setItem('userData', JSON.stringify(userStats));
       localStorage.setItem('userDataTimestamp', Date.now().toString());
       
       // Fetch academic level

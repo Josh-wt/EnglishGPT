@@ -758,7 +758,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
           <div className={`${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'} rounded-2xl max-w-md w-full p-6 border shadow-xl`}>
             <div className="text-center">
               <div className="text-4xl mb-4">🎉</div>
-              <h3 className="text-xl font-bold mb-3">Welcome to EEnglishGPT!</h3>
+              <h3 className="text-xl font-bold mb-3">Welcome to EnglishGPT!</h3>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
                 Great! Your essay has been loaded. Now click the <strong>"GET AI FEEDBACK"</strong> button below to get your AI-powered evaluation.
               </p>

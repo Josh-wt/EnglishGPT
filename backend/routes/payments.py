@@ -639,13 +639,49 @@ async def process_payment_succeeded(payment_data: Dict):
         customer = payment_data.get("customer", {})
         customer_email = customer.get("email")
         total_amount = payment_data.get("total_amount")
+        metadata = payment_data.get("metadata", {})
+        user_id = metadata.get("user_id")
+        plan_type = metadata.get("plan_type", "unlimited")
         
         logger.info(f"[WEBHOOK_PROCESS] Payment {payment_id} succeeded for {customer_email}, amount: {total_amount}")
+        logger.info(f"[WEBHOOK_PROCESS] User ID: {user_id}, Plan Type: {plan_type}")
         
-        # TODO: Implement database updates
-        # - Update user's payment status
-        # - Send confirmation email
-        # - Provision access if applicable
+        # Update user's plan in the database
+        if user_id:
+            try:
+                # Import user management service
+                from user_management_service import UserManagementService
+                user_service = UserManagementService()
+                
+                # Update user's plan to unlimited
+                logger.info(f"[WEBHOOK_PROCESS] Updating user {user_id} to unlimited plan")
+                
+                # Get current user data first
+                current_user = await user_service.get_user_by_id(user_id)
+                if current_user:
+                    # Update the user's plan and credits
+                    update_data = {
+                        'current_plan': 'unlimited',
+                        'credits': 99999  # Unlimited credits
+                    }
+                    
+                    # Update user in database
+                    result = user_service.supabase.table('assessment_users').update(update_data).eq('uid', user_id).execute()
+                    
+                    if result.data:
+                        logger.info(f"[WEBHOOK_PROCESS] ✅ Successfully updated user {user_id} to unlimited plan")
+                    else:
+                        logger.error(f"[WEBHOOK_ERROR] Failed to update user {user_id} plan")
+                else:
+                    logger.error(f"[WEBHOOK_ERROR] User {user_id} not found in database")
+                    
+            except Exception as db_error:
+                logger.error(f"[WEBHOOK_ERROR] Database update failed for user {user_id}: {db_error}")
+        else:
+            logger.warning(f"[WEBHOOK_WARN] No user_id found in payment metadata")
+        
+        # TODO: Send confirmation email
+        # TODO: Provision access if applicable
         
     except Exception as e:
         logger.error(f"[WEBHOOK_ERROR] Failed to process payment succeeded: {e}")

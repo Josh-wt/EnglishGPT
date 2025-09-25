@@ -331,7 +331,7 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
 
         {/* Trust Indicators */}
         <div className="mt-16 text-center">
-          <h3 className="text-2xl font-bold mb-8">Why Choose EEnglishGPT?</h3>
+          <h3 className="text-2xl font-bold mb-8">Why Choose EnglishGPT?</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mb-4">

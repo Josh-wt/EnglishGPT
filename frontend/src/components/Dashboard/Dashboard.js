@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Footer from '../ui/Footer';
 
-const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAnalytics, onAccountSettings, onSubscription, userStats, user, darkMode, onSignOut }) => {
+const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAnalytics, onAccountSettings, onSubscription, userStats, user, darkMode, onSignOut, onRefreshUserData }) => {
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   
   // Memoized helper function to check if user has unlimited access
@@ -48,6 +48,13 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
     await onSignOut();
     setShowAccountDropdown(false);
   }, [onSignOut]);
+
+  const handleRefreshUserData = useCallback(async () => {
+    if (onRefreshUserData) {
+      console.log('🔄 Refreshing user data from Dashboard...');
+      await onRefreshUserData();
+    }
+  }, [onRefreshUserData]);
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-main'}`}>
@@ -104,6 +111,18 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
               )}
               </div>
               
+              {/* Refresh Button */}
+              <button
+                onClick={handleRefreshUserData}
+                className={`ml-4 px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-200 ${
+                  darkMode 
+                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 border border-gray-600' 
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                }`}
+                title="Refresh user data"
+              >
+                🔄 Refresh
+              </button>
             </div>
             
             {/* New User Welcome Message - Separate from stats */}

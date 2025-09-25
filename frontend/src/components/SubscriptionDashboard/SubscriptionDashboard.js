@@ -295,7 +295,7 @@ const SubscriptionDashboard = ({ user, darkMode }) => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Subscription Dashboard</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Manage your EEnglishGPT subscription and account settings
+            Manage your EnglishGPT subscription and account settings
           </p>
         </div>
 

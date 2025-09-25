@@ -116,7 +116,7 @@ const PaymentSuccess = ({ user, darkMode }) => {
           </div>
           <h1 className="text-4xl font-bold mb-4">Payment Successful! 🎉</h1>
           <p className="text-xl text-gray-600 dark:text-gray-300">
-            Thank you for choosing EEnglishGPT. You now have lifetime access to all features!
+            Thank you for choosing EnglishGPT. You now have lifetime access to all features!
           </p>
         </div>
 
