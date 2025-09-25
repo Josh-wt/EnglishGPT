@@ -241,7 +241,6 @@ async def update_user(user_id: str, updates: dict):
         logger.error(f"User update error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"User update error: {str(e)}")
 
-# Removed fix-plan route
 @router.post("/users/recover")
 async def recover_user(user_data: dict, request: Request):
     """Recover a user with auth/database mismatch"""
