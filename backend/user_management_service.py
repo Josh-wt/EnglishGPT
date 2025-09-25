@@ -50,17 +50,21 @@ class UserManagementService:
             logger.info(f"Parameters: display_name={display_name}, academic_level={academic_level}, current_plan={current_plan}, credits={credits}, is_launch_user={is_launch_user}, photo_url={photo_url}, dark_mode={dark_mode}")
             
             # Check if user already exists to determine if we should preserve their plan
-            existing_user_check = self.supabase.table('assessment_users').select('current_plan, credits').eq('uid', user_id).execute()
+            existing_user_check = self.supabase.table('assessment_users').select('current_plan, credits, questions_marked').eq('uid', user_id).execute()
             
             # If user exists, preserve their current plan and credits
             if existing_user_check.data:
                 existing_user_data = existing_user_check.data[0]
                 preserved_plan = existing_user_data.get('current_plan', 'free')
                 preserved_credits = existing_user_data.get('credits', 3)
+                questions_marked = existing_user_data.get('questions_marked', 0)
                 
                 # If user had unlimited access, preserve it
-                if preserved_plan == 'unlimited' or preserved_credits >= 99999:
-                    logger.info(f"Preserving unlimited access for existing user: {user_id}")
+                # Check multiple indicators: plan status, credits, or high usage (indicating previous unlimited access)
+                if (preserved_plan == 'unlimited' or 
+                    preserved_credits >= 99999 or 
+                    questions_marked > 10):  # More than 10 essays indicates unlimited access
+                    logger.info(f"Preserving unlimited access for existing user: {user_id} (plan: {preserved_plan}, credits: {preserved_credits}, questions_marked: {questions_marked})")
                     plan_to_use = 'unlimited'
                     credits_to_use = 99999
                 else:
