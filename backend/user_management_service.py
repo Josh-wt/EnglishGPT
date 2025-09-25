@@ -142,14 +142,10 @@ class UserManagementService:
                     existing_user_data = existing_user.data[0]
                     preserved_plan = existing_user_data.get('current_plan', 'free')
                     preserved_credits = existing_user_data.get('credits', 3)
-                    questions_marked = existing_user_data.get('questions_marked', 0)
                     
                     # If user had unlimited access, preserve it
-                    # Check multiple indicators: plan status, credits, or high usage (indicating previous unlimited access)
-                    if (preserved_plan == 'unlimited' or 
-                        preserved_credits >= 99999 or 
-                        questions_marked > 10):  # More than 10 essays indicates unlimited access
-                        logger.info(f"Preserving unlimited access for user: {user_id} (plan: {preserved_plan}, credits: {preserved_credits}, questions_marked: {questions_marked})")
+                    if preserved_plan == 'unlimited' or preserved_credits >= 99999:
+                        logger.info(f"Preserving unlimited access for user: {user_id}")
                         final_plan = 'unlimited'
                         final_credits = 99999
                     else:
