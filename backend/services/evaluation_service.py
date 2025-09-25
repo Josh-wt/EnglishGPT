@@ -113,10 +113,17 @@ class EvaluationService:
     
     def build_evaluation_prompt(self, submission: SubmissionRequest) -> str:
         """Build the complete evaluation prompt."""
+        logger.info(f"🔧 Building evaluation prompt for submission:")
+        logger.info(f"🔧 Submission data: {submission}")
+        logger.info(f"🔧 Submission type: {type(submission)}")
+        logger.info(f"🔧 Submission attributes: {dir(submission)}")
+        
         # Get marking criteria
         marking_criteria = self.marking_criteria.get(submission.question_type, "")
         if not marking_criteria:
-            raise ValueError("Invalid question type")
+            logger.error(f"❌ Invalid question type: {submission.question_type}")
+            logger.error(f"❌ Available question types: {list(self.marking_criteria.keys())}")
+            raise ValueError(f"Invalid question type: {submission.question_type}")
         
         # For IGCSE directed writing, combine general criteria with text-type-specific criteria
         if submission.question_type == 'igcse_directed' and submission.text_type:
@@ -566,9 +573,16 @@ Student Response: {sanitized_response}
         start_time = time.time()
         
         try:
+            logger.info(f"🔧 Starting evaluation for submission:")
+            logger.info(f"🔧 Submission object: {submission}")
+            logger.info(f"🔧 Submission dict: {submission.__dict__ if hasattr(submission, '__dict__') else 'No __dict__'}")
+            logger.info(f"🔧 Submission type: {type(submission)}")
+            
             # Validate question type
             if submission.question_type not in self.marking_criteria:
-                raise ValueError("Invalid question type")
+                logger.error(f"❌ Invalid question type: {submission.question_type}")
+                logger.error(f"❌ Available question types: {list(self.marking_criteria.keys())}")
+                raise ValueError(f"Invalid question type: {submission.question_type}")
             
             # Check if question type requires marking scheme
             requires_marking_scheme = submission.question_type in [
