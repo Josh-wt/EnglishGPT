@@ -43,6 +43,6 @@ async def update_user_plan(user_id: str):
         print(f"❌ Error updating user plan: {e}")
 
 if __name__ == "__main__":
-    # User ID from the logs
-    user_id = "bbb1f94e-12bf-45fa-b962-35591c34bf33"
+    # User ID from the logs - the user showing as free plan
+    user_id = "639cd1d6-4d7e-44e4-aea5-9251c0061900"
     asyncio.run(update_user_plan(user_id))

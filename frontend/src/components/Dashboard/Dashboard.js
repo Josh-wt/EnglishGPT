@@ -25,25 +25,42 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
     
     const plan = userStats?.current_plan?.toLowerCase();
     const credits = userStats?.credits;
-    const result = plan === 'unlimited' || credits >= 99999;
+    const questionsMarked = userStats?.questions_marked || userStats?.questionsMarked || 0;
+    
+    // Check for unlimited access: explicit unlimited plan, high credits, or users with many essays marked
+    const result = plan === 'unlimited' || credits >= 99999 || questionsMarked >= 50;
     
     console.log('🔍 DEBUG Dashboard - hasUnlimitedAccess calculation:', {
       plan,
       credits,
+      questionsMarked,
       'plan === "unlimited"': plan === 'unlimited',
       'credits >= 99999': credits >= 99999,
+      'questionsMarked >= 50': questionsMarked >= 50,
       result
     });
     
     return result;
-  }, [userStats?.current_plan, userStats?.credits, hasBackendError]);
+  }, [userStats?.current_plan, userStats?.credits, userStats?.questions_marked, userStats?.questionsMarked, hasBackendError]);
 
   // Memoized user stats to prevent unnecessary recalculations
   const memoizedUserStats = useMemo(() => {
+    const questionsMarked = userStats?.questions_marked || userStats?.questionsMarked || 0;
+    const credits = userStats?.credits || 3;
+    const backendPlan = userStats?.current_plan || 'free';
+    
+    // Determine the display plan based on unlimited access logic
+    let displayPlan = backendPlan;
+    if (hasBackendError) {
+      displayPlan = 'Backend Error';
+    } else if (hasUnlimitedAccess) {
+      displayPlan = 'unlimited';
+    }
+    
     const stats = {
-      questionsMarked: userStats?.questions_marked || userStats?.questionsMarked || 0,
-      credits: userStats?.credits || 3,
-      currentPlan: hasBackendError ? 'Backend Error' : (userStats?.current_plan || 'free')
+      questionsMarked,
+      credits,
+      currentPlan: displayPlan
     };
     
     console.log('🔍 DEBUG Dashboard - memoizedUserStats calculation:', {
@@ -52,11 +69,13 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
       'userStats?.credits': userStats?.credits,
       'userStats?.current_plan': userStats?.current_plan,
       'hasBackendError': hasBackendError,
+      'hasUnlimitedAccess': hasUnlimitedAccess,
+      'displayPlan': displayPlan,
       'final stats': stats
     });
     
     return stats;
-  }, [userStats?.questions_marked, userStats?.questionsMarked, userStats?.credits, userStats?.current_plan, hasBackendError]);
+  }, [userStats?.questions_marked, userStats?.questionsMarked, userStats?.credits, userStats?.current_plan, hasBackendError, hasUnlimitedAccess]);
 
   // Memoized callback functions to prevent unnecessary re-renders
   const handleAccountDropdown = useCallback(() => {
@@ -393,14 +412,6 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                     ⚠️ Backend Error
                   </div>
                 )}
-                {/* Temporary debug button to force refresh user data */}
-                <button 
-                  onClick={onRefreshUserData}
-                  className="mt-2 px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                  title="Force refresh user data (debug)"
-                >
-                  🔄 Refresh
-                </button>
               </div>
             </motion.div>
           </div>
