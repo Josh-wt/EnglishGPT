@@ -35,8 +35,8 @@ RECOMMENDATIONS_MODEL = os.environ.get('RECOMMENDATIONS_MODEL', 'openai/gpt-oss-
 
 # Dodo Payments Configuration
 DODO_PAYMENTS_API_KEY = os.environ.get('DODO_PAYMENTS_API_KEY')
-DODO_PAYMENTS_ENVIRONMENT = os.environ.get('DODO_PAYMENTS_ENVIRONMENT', 'test')
-DODO_PAYMENTS_BASE_URL = os.environ.get('DODO_PAYMENTS_BASE_URL', 'https://test.dodopayments.com')
+DODO_PAYMENTS_ENVIRONMENT = os.environ.get('DODO_PAYMENTS_ENVIRONMENT', 'production')
+DODO_PAYMENTS_BASE_URL = os.environ.get('DODO_PAYMENTS_BASE_URL', 'https://api.dodopayments.com')
 DODO_WEBHOOK_SECRET = os.environ.get('DODO_PAYMENTS_WEBHOOK_KEY')
 INTERNAL_API_KEY = os.environ.get('INTERNAL_API_KEY')
 
@@ -49,7 +49,7 @@ CANCEL_REDIRECT_URL = os.environ.get('CANCEL_REDIRECT_URL', 'https://englishgpt.
 # Dodo Payments Configuration loaded
 
 # Product Configuration - Lifetime Plan ($4.99/lifetime)
-DODO_LIFETIME_PRODUCT_ID = os.environ.get('DODO_MONTHLY_PRODUCT_ID', 'pdt_8lkWiOxSJLP8x4bq1Ow0W')  # Lifetime $4.99
+DODO_LIFETIME_PRODUCT_ID = os.environ.get('DODO_MONTHLY_PRODUCT_ID', 'pdt_76jQTmk8aelYgmHpqsv1i')  # Lifetime $4.99
 
 # Product aliases for clarity (keeping for backward compatibility)
 DODO_MONTHLY_PRODUCT_ID = DODO_LIFETIME_PRODUCT_ID

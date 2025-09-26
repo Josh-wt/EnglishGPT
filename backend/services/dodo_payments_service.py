@@ -17,13 +17,13 @@ logger = logging.getLogger(__name__)
 class DodoPaymentsService:
     """Service for integrating with Dodo Payments API."""
 
-    def __init__(self, api_key: str, environment: str = 'sandbox', base_url: str = None):
+    def __init__(self, api_key: str, environment: str = 'production', base_url: str = None):
         """
         Initialize Dodo Payments service.
         
         Args:
             api_key: Dodo Payments API key
-            environment: Environment (sandbox/production)
+            environment: Environment (production/sandbox)
             base_url: Base URL for Dodo Payments API
         """
         self.api_key = api_key

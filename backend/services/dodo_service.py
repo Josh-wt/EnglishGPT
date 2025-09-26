@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class DodoPaymentsService:
     def __init__(self):
         self.api_key = DODO_PAYMENTS_API_KEY
-        # Use the correct API base URL - test.dodopayments.com is the correct domain
+        # Use the correct API base URL - api.dodopayments.com is the production domain
         self.base_url = DODO_PAYMENTS_BASE_URL
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
