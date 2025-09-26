@@ -689,6 +689,10 @@ Candidate writes with consistent accuracy and ambition in both vocabulary choice
 This guide details how marks are gained and lost in Question 2(d), focusing on the critical assessment of a candidate's ability to analyze a writer's use of language to convey meaning and create effect.
 
 CRITICAL MARKING REQUIREMENT - THREE EXAMPLES FRAMEWORK:
+
+Mark holistically for the overall quality of the response, not for the number of
+words chosen
+
 The student is ONLY required to give exactly THREE examples of writers' effect (firstly, secondly, finally). This is the mandatory framework.
 
 ❌ INCORRECT FEEDBACK TO AVOID:
