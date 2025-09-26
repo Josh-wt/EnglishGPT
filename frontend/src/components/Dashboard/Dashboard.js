@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Footer from '../ui/Footer';
 
-const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAnalytics, onAccountSettings, onSubscription, userStats, user, darkMode, onSignOut, onRefreshUserData }) => {
+const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAnalytics, onAccountSettings, onSubscription, userStats, user, darkMode, onSignOut }) => {
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   
   // Debug userStats prop
@@ -25,42 +25,25 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
     
     const plan = userStats?.current_plan?.toLowerCase();
     const credits = userStats?.credits;
-    const questionsMarked = userStats?.questions_marked || userStats?.questionsMarked || 0;
-    
-    // Check for unlimited access: explicit unlimited plan, high credits, or users with many essays marked
-    const result = plan === 'unlimited' || credits >= 99999 || questionsMarked >= 50;
+    const result = plan === 'unlimited' || credits >= 99999;
     
     console.log('🔍 DEBUG Dashboard - hasUnlimitedAccess calculation:', {
       plan,
       credits,
-      questionsMarked,
       'plan === "unlimited"': plan === 'unlimited',
       'credits >= 99999': credits >= 99999,
-      'questionsMarked >= 50': questionsMarked >= 50,
       result
     });
     
     return result;
-  }, [userStats?.current_plan, userStats?.credits, userStats?.questions_marked, userStats?.questionsMarked, hasBackendError]);
+  }, [userStats?.current_plan, userStats?.credits, hasBackendError]);
 
   // Memoized user stats to prevent unnecessary recalculations
   const memoizedUserStats = useMemo(() => {
-    const questionsMarked = userStats?.questions_marked || userStats?.questionsMarked || 0;
-    const credits = userStats?.credits || 3;
-    const backendPlan = userStats?.current_plan || 'free';
-    
-    // Determine the display plan based on unlimited access logic
-    let displayPlan = backendPlan;
-    if (hasBackendError) {
-      displayPlan = 'Backend Error';
-    } else if (hasUnlimitedAccess) {
-      displayPlan = 'unlimited';
-    }
-    
     const stats = {
-      questionsMarked,
-      credits,
-      currentPlan: displayPlan
+      questionsMarked: userStats?.questions_marked || userStats?.questionsMarked || 0,
+      credits: userStats?.credits || 3,
+      currentPlan: hasBackendError ? 'Backend Error' : (userStats?.current_plan || 'free')
     };
     
     console.log('🔍 DEBUG Dashboard - memoizedUserStats calculation:', {
@@ -69,13 +52,11 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
       'userStats?.credits': userStats?.credits,
       'userStats?.current_plan': userStats?.current_plan,
       'hasBackendError': hasBackendError,
-      'hasUnlimitedAccess': hasUnlimitedAccess,
-      'displayPlan': displayPlan,
       'final stats': stats
     });
     
     return stats;
-  }, [userStats?.questions_marked, userStats?.questionsMarked, userStats?.credits, userStats?.current_plan, hasBackendError, hasUnlimitedAccess]);
+  }, [userStats?.questions_marked, userStats?.questionsMarked, userStats?.credits, userStats?.current_plan, hasBackendError]);
 
   // Memoized callback functions to prevent unnecessary re-renders
   const handleAccountDropdown = useCallback(() => {

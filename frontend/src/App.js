@@ -730,7 +730,6 @@ const App = () => {
                     user={user}
                     darkMode={darkMode}
                     onSignOut={signOut}
-                    onRefreshUserData={refreshUserData}
                   />
                 );
               })()}
