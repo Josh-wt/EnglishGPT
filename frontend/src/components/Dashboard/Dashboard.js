@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Footer from '../ui/Footer';
 
-const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAnalytics, onAccountSettings, onSubscription, userStats, user, darkMode, onSignOut }) => {
+const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAnalytics, onAccountSettings, onSubscription, userStats, user, darkMode, onSignOut, onRefreshUserData }) => {
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   
   // Debug userStats prop
@@ -393,6 +393,14 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                     ⚠️ Backend Error
                   </div>
                 )}
+                {/* Temporary debug button to force refresh user data */}
+                <button 
+                  onClick={onRefreshUserData}
+                  className="mt-2 px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                  title="Force refresh user data (debug)"
+                >
+                  🔄 Refresh
+                </button>
               </div>
             </motion.div>
           </div>
