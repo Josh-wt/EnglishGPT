@@ -2,40 +2,14 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const ImprovementsTab = ({ evaluation, darkMode, onFeedback }) => {
-  // Extract improvements (1st, 2nd, 3rd bullet points from AI response)
+  // Extract improvements directly from improvement_suggestions
   const getImprovements = () => {
-    // Combine all points into one array: improvements + strengths + next_steps
-    const allPoints = [
-      ...(evaluation.improvement_suggestions || []),
-      ...(evaluation.strengths || []),
-      ...(evaluation.next_steps || [])
-    ];
-    
-    // Debug logging (remove in production)
-    // console.log('🔍 ImprovementsTab Debug:', {
-    //   improvement_suggestions: evaluation.improvement_suggestions,
-    //   strengths: evaluation.strengths,
-    //   next_steps: evaluation.next_steps,
-    //   allPoints: allPoints,
-    //   improvementsSlice: allPoints.slice(0, 3),
-    //   nextStepsSlice: allPoints.slice(6, 9)
-    // });
-    
-    // AI provides 9 points: 1-3 improvements, 4-6 strengths, 7-9 next steps
-    return allPoints.slice(0, 3); // Get points 1, 2, 3 (improvements)
+    return evaluation.improvement_suggestions || [];
   };
 
-  // Extract next steps (7th, 8th, 9th bullet points from AI response)
+  // Extract next steps directly from next_steps
   const getNextSteps = () => {
-    // Combine all points into one array: improvements + strengths + next_steps
-    const allPoints = [
-      ...(evaluation.improvement_suggestions || []),
-      ...(evaluation.strengths || []),
-      ...(evaluation.next_steps || [])
-    ];
-    
-    // AI provides 9 points: 1-3 improvements, 4-6 strengths, 7-9 next steps
-    return allPoints.slice(6, 9); // Get points 7, 8, 9 (next steps)
+    return evaluation.next_steps || [];
   };
 
   const improvements = getImprovements();

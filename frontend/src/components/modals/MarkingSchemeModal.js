@@ -267,7 +267,7 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
                 Processing...
               </>
             ) : (
-              'Proceed to Evaluation'
+              'Get AI Feedback'
             )}
           </button>
         </div>

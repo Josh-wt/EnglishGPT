@@ -102,15 +102,7 @@ const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBul
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Strengths</h3>
                 <div className="bg-green-50 rounded-lg p-4">
                   <ul className="space-y-2">
-                    {(() => {
-                      // Combine all points into one array: improvements + strengths + next_steps
-                      const allPoints = [
-                        ...(evaluation.improvement_suggestions || []),
-                        ...(evaluation.strengths || []),
-                        ...(evaluation.next_steps || [])
-                      ];
-                      return allPoints.slice(3, 6); // Get points 4, 5, 6 (strengths)
-                    })().map((strength, idx) => (
+                    {(evaluation.strengths || []).map((strength, idx) => (
                         <li key={idx} className="flex items-start gap-2">
                           <span className="text-green-600 mt-1">✓</span>
                           <span className="text-gray-800">{strength}</span>
@@ -126,15 +118,7 @@ const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBul
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">💡 Areas for Improvement</h3>
                 <div className="space-y-4">
-                  {(() => {
-                    // Combine all points into one array: improvements + strengths + next_steps
-                    const allPoints = [
-                      ...(evaluation.improvement_suggestions || []),
-                      ...(evaluation.strengths || []),
-                      ...(evaluation.next_steps || [])
-                    ];
-                    return allPoints.slice(0, 3); // Get points 1, 2, 3 (improvements)
-                  })().map((improvement, idx) => (
+                  {(evaluation.improvement_suggestions || []).map((improvement, idx) => (
                     <div 
                       key={idx}
                       className="bg-yellow-50 rounded-xl border border-yellow-200 p-4"
@@ -159,15 +143,7 @@ const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBul
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">🎯 Next Steps</h3>
                   <div className="bg-indigo-50 rounded-lg p-4">
                     <ul className="space-y-2">
-                      {(() => {
-                        // Combine all points into one array: improvements + strengths + next_steps
-                        const allPoints = [
-                          ...(evaluation.improvement_suggestions || []),
-                          ...(evaluation.strengths || []),
-                          ...(evaluation.next_steps || [])
-                        ];
-                        return allPoints.slice(6, 9); // Get points 7, 8, 9 (next steps)
-                      })().map((step, idx) => (
+                      {(evaluation.next_steps || []).map((step, idx) => (
                         <li key={idx} className="flex items-start gap-2">
                           <span className="text-indigo-600 mt-1 font-bold">{idx + 1}.</span>
                           <span className="text-gray-800">{step}</span>
