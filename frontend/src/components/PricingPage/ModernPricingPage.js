@@ -426,7 +426,7 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
               },
               {
                 question: "Do you offer refunds?",
-                answer: "We offer a 30-day money-back guarantee. If you're not satisfied with your purchase, contact us for a full refund."
+                answer: <>Please refer to our <a href="/refund" className="text-blue-600 underline hover:text-blue-800" target="_blank" rel="noopener noreferrer">refund policy</a></>
               },
               {
                 question: "How does the AI feedback work?",
