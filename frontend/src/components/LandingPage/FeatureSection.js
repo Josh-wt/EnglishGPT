@@ -30,10 +30,10 @@ const FeatureSection = () => {
     },
     {
       title: "Simple pricing, built for students",
-      description: "Unlimited marking with monthly or yearly options. Cancel anytime — no hidden fees.",
+      description: "One-time payment of $4.99 for unlimited lifetime access. No monthly fees, no hidden costs.",
       image: IMAGE_URLS.PRICING,
       imageAlt: "Pricing",
-      benefits: ['Unlimited submissions','Priority support on yearly','Secure payments'],
+      benefits: ['Unlimited submissions','Lifetime access','Secure payments'],
       imageFirst: true
     }
   ];

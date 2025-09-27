@@ -17,6 +17,7 @@ import { supabase } from './supabaseClient';
 import LevelSelectionModal from './components/modals/LevelSelectionModal';
 import SignInModal from './components/modals/SignInModal';
 import ErrorModal from './components/modals/ErrorModal';
+import WelcomeModal from './components/modals/WelcomeModal';
 import AuthRequired from './components/auth/AuthRequired';
 import PublicResultPageWrapper from './components/results/PublicResultPageWrapper';
 import KeyboardShortcutsHelp from './components/help/KeyboardShortcutsHelp';
@@ -142,6 +143,7 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const [showLevelSelectionModal, setShowLevelSelectionModal] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [selectedQuestionType, setSelectedQuestionType] = useState(null);
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [feedbackModal, setFeedbackModal] = useState({ open: false, category: 'overall' });
@@ -158,6 +160,20 @@ const App = () => {
   useEffect(() => {
     if (user && !userStats && !userLoading) {
       console.warn('⚠️ User exists but no userStats available');
+    }
+  }, [user, userStats, userLoading]);
+
+  // Show welcome modal for new users
+  useEffect(() => {
+    if (user && userStats && !userLoading) {
+      // Check if user is new (has 3 credits and no evaluations)
+      const isNewUser = userStats.credits === 3 && userStats.total_evaluations === 0;
+      const hasSeenWelcome = localStorage.getItem('hasSeenWelcomeModal');
+      
+      if (isNewUser && !hasSeenWelcome) {
+        setShowWelcomeModal(true);
+        localStorage.setItem('hasSeenWelcomeModal', 'true');
+      }
     }
   }, [user, userStats, userLoading]);
 
@@ -336,6 +352,13 @@ const App = () => {
     // Ensure user_id is set
     if (!evaluationResult.user_id && user?.id) {
       evaluationResult.user_id = user.id;
+    }
+    
+    // Check user credits before allowing evaluation
+    if (userStats && userStats.current_plan === 'free' && userStats.credits <= 0) {
+      setErrorMessage('No credits remaining. Please upgrade to unlimited for unlimited marking.');
+      setShowErrorModal(true);
+      return;
     }
     
     // Validate essay content before sending to API
@@ -939,6 +962,14 @@ const App = () => {
               onClose={() => setShowErrorModal(false)}
               message={errorMessage}
               darkMode={darkMode}
+            />
+            <WelcomeModal
+              isOpen={showWelcomeModal}
+              onClose={() => setShowWelcomeModal(false)}
+              onGetStarted={() => {
+                setShowWelcomeModal(false);
+                navigate('/write');
+              }}
             />
             <LaunchPeriodModal 
               darkMode={darkMode}

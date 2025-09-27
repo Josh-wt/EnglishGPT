@@ -72,6 +72,13 @@ async def evaluate_submission(submission: SubmissionRequest):
         
         logger.info(f"✅ User data retrieved successfully - plan: {current_plan}, credits: {credits}, questions_marked: {questions_marked}")
         
+        # Check if user has credits for free plan users
+        if current_plan == 'free' and credits <= 0:
+            logger.warning(f"❌ CREDIT ERROR: User {submission.user_id} has no credits remaining (current: {credits})")
+            raise HTTPException(status_code=402, detail="No credits remaining. Please upgrade to unlimited for unlimited marking.")
+        
+        logger.info(f"✅ Credit check passed - user has {credits} credits remaining")
+        
         # Check if question type requires marking scheme
         requires_marking_scheme = submission.question_type in ['igcse_summary', 'alevel_comparative', 'alevel_text_analysis', 'alevel_language_change']
         has_optional_marking_scheme = submission.question_type in ['igcse_writers_effect']
@@ -495,11 +502,19 @@ async def evaluate_submission(submission: SubmissionRequest):
         
         logger.info("Processing evaluation response and saving to database...")
         
-        # Update user stats
+        # Update user stats and decrement credits for free plan users
         new_questions_marked = questions_marked + 1
-        await user_management_service.update_user(submission.user_id, {
+        update_data = {
             "questions_marked": new_questions_marked
-        })
+        }
+        
+        # Decrement credits for free plan users
+        if current_plan == 'free':
+            new_credits = max(0, credits - 1)  # Ensure credits don't go below 0
+            update_data["credits"] = new_credits
+            logger.info(f"✅ Credits decremented for free plan user: {credits} -> {new_credits}")
+        
+        await user_management_service.update_user(submission.user_id, update_data)
         
         # Save to database
         # Generate a short, URL-safe id (5 chars) for shareable URLs

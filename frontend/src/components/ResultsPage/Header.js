@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { formatQuestionTypeName } from '../../utils/questionTypeFormatter';
 
 const Header = ({ evaluation, gradeInfo, letterGrade, onNewEvaluation, darkMode }) => {
   return (
@@ -22,7 +23,7 @@ const Header = ({ evaluation, gradeInfo, letterGrade, onNewEvaluation, darkMode 
             
             <div>
               <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                {evaluation.question_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                {formatQuestionTypeName(evaluation.question_type)}
               </h1>
               <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
                 Score: {gradeInfo.score}/{gradeInfo.maxScore} ({gradeInfo.percentage}%)

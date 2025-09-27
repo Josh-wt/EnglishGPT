@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DocumentTextIcon, BookOpenIcon, PhotoIcon, BoltIcon, PencilIcon, ChartBarIcon, MagnifyingGlassIcon, PencilSquareIcon, CheckIcon, AcademicCapIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { useSpring, animated } from '@react-spring/web';
 import { supabase } from '../../supabaseClient';
 import AuthModal from './AuthModal';
@@ -78,31 +79,31 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
         id: 'igcse_summary',
         name: 'Summary',
         description: 'Summarize the key points from a given text',
-        icon: '📄'
+        icon: <DocumentTextIcon className="w-6 h-6 text-blue-500" />
       },
       {
         id: 'igcse_narrative',
         name: 'Narrative',
         description: 'Create an engaging narrative story',
-        icon: '📚'
+        icon: <BookOpenIcon className="w-6 h-6 text-green-500" />
       },
       {
         id: 'igcse_descriptive',
         name: 'Descriptive',
         description: 'Write a vivid descriptive piece',
-        icon: '🖼️'
+        icon: <PhotoIcon className="w-6 h-6 text-purple-500" />
       },
       {
         id: 'igcse_writers_effect',
         name: "Writer's Effect",
         description: 'Analyze the writer\'s use of language and its effects',
-        icon: '⚡'
+        icon: <BoltIcon className="w-6 h-6 text-yellow-500" />
       },
       {
         id: 'igcse_directed',
         name: 'Directed Writing',
         description: 'Transform text into specific formats for different audiences',
-        icon: '✍️'
+        icon: <PencilIcon className="w-6 h-6 text-indigo-500" />
       }
     ],
     'A Level': [
@@ -110,25 +111,25 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
         id: 'alevel_comparative',
         name: 'Comparative Analysis 1(b)',
         description: 'Compare and analyze different texts',
-        icon: '📊'
+        icon: <ChartBarIcon className="w-6 h-6 text-blue-500" />
       },
       {
         id: 'alevel_directed',
         name: 'Directed Writing 1(a)',
         description: 'Transform text into a specific format for audience',
-        icon: '✍️'
+        icon: <PencilIcon className="w-6 h-6 text-indigo-500" />
       },
       {
         id: 'alevel_text_analysis',
         name: 'Text Analysis Q2',
         description: 'Analyze form, structure, and language in texts',
-        icon: '🔍'
+        icon: <MagnifyingGlassIcon className="w-6 h-6 text-green-500" />
       },
       {
         id: 'alevel_language_change',
         name: 'Language Change Analysis (P3, Section A)',
         description: 'Analyze historical prose extract demonstrating English language change using quantitative data',
-        icon: '🔍'
+        icon: <MagnifyingGlassIcon className="w-6 h-6 text-green-500" />
       }
     ],
     'English General Paper (8021)': [
@@ -136,7 +137,7 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
         id: 'gp_essay',
         name: 'Essay (Paper 1)',
         description: 'Write a well-structured essay on a given topic with clear argumentation and evidence',
-        icon: '📝'
+        icon: <PencilSquareIcon className="w-6 h-6 text-purple-500" />
       },
       {
         id: 'gp_comprehension',
@@ -474,7 +475,7 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
                 /* Placeholder when no question type selected */
                 <div className="flex flex-col items-center justify-center h-64 sm:h-80 text-center">
                   <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-green-100 rounded-full flex items-center justify-center mb-4">
-                    <span className="text-2xl">✍️</span>
+                    <PencilIcon className="w-8 h-8 text-blue-500" />
                   </div>
                   <h4 className="text-lg font-semibold text-gray-900 mb-2">Ready to Write?</h4>
                   <p className="text-gray-600">Select a question type from the left to start your essay</p>
@@ -484,33 +485,64 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
           </div>
         </motion.div>
 
-        {/* Stats Section */}
+        {/* Testimonials Section */}
         <motion.div 
-          className="mt-8 sm:mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6"
+          className="mt-8 sm:mt-12"
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.2, duration: 0.6 }}
         >
-          {[
-            {label:'Avg. improvement', value:'+57%'},
-            {label:'Marking speed', value:'< 20s'},
-            {label:'Simple Pricing', value:'Just $4.99/m (Free for launch period!)'}
-          ].map((s,i)=> (
-            <motion.div 
-              key={i} 
-              className="rounded-2xl p-4 sm:p-6 bg-white border border-purple-200/60 backdrop-blur-md text-center"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 1.4 + i * 0.1, duration: 0.4 }}
-              whileHover={{ 
-                scale: 1.05,
-                boxShadow: "0 10px 25px rgba(147, 51, 234, 0.15)",
-              }}
-            >
-              <div className="text-xs sm:text-sm text-gray-600">{s.label}</div>
-              <div className="text-lg sm:text-2xl font-bold text-gray-900 mt-1">{s.value}</div>
-            </motion.div>
-          ))}
+          <motion.h3 
+            className="text-2xl font-fredoka font-bold text-center text-gray-900 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.4, duration: 0.6 }}
+          >
+            What our users say
+          </motion.h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+            {[
+              {
+                quote: "I tried it out on a high level writers effect and it turned out to be really accurate",
+                name: "Student, IGCSE",
+                rating: 5
+              },
+              {
+                quote: "It can definitely mark low level essays accurately. This is good, something I've seen other AI's struggle with",
+                name: "Teacher, A‑Level", 
+                rating: 5
+              },
+              {
+                quote: "Turned out to be really accurate, better than ChatGPT",
+                name: "Student, IGCSE",
+                rating: 5
+              }
+            ].map((testimonial, i) => (
+              <motion.div 
+                key={i} 
+                className="rounded-2xl p-4 sm:p-6 bg-white border border-purple-200/60 backdrop-blur-md"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 1.6 + i * 0.1, duration: 0.4 }}
+                whileHover={{ 
+                  scale: 1.05,
+                  boxShadow: "0 10px 25px rgba(147, 51, 234, 0.15)",
+                }}
+              >
+                <div className="flex items-center gap-1 text-yellow-500 mb-3">
+                  {Array.from({length: testimonial.rating}).map((_, s) => (
+                    <span key={s} className="text-sm">★</span>
+                  ))}
+                </div>
+                <p className="text-gray-800 text-sm sm:text-base mb-3 leading-relaxed">
+                  "{testimonial.quote}"
+                </p>
+                <div className="text-xs text-gray-500 font-medium">
+                  {testimonial.name}
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
       </motion.div>
 
@@ -543,14 +575,17 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 border shadow-xl">
             <div className="text-center">
-              <div className="text-4xl mb-4">🎯</div>
+              <div className="flex justify-center mb-4">
+                <AcademicCapIcon className="w-16 h-16 text-blue-500" />
+              </div>
               <h3 className="text-xl font-bold mb-3">Ready to Get AI Feedback?</h3>
               <p className="text-gray-600 mb-4">
                 You're already logged in! Click below to start marking your essay and get detailed AI feedback.
               </p>
               <div className="bg-green-50 rounded-lg p-3 mb-4">
                 <p className="text-sm text-green-800">
-                  ✨ <strong>You're all set!</strong> Your essay will be analyzed with our advanced AI system.
+                  <SparklesIcon className="w-4 h-4 inline mr-1" />
+                  <strong>You're all set!</strong> Your essay will be analyzed with our advanced AI system.
                 </p>
               </div>
               <div className="flex gap-3">

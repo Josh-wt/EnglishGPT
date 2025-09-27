@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSubmarks } from '../../utils/submarks';
+import { formatQuestionTypeName } from '../../utils/questionTypeFormatter';
 
 const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBullets }) => {
   if (!isOpen || !evaluation) return null;
@@ -25,7 +26,7 @@ const EvaluationDetailModal = ({ evaluation, isOpen, onClose, parseFeedbackToBul
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
-                  {evaluation.questionType || evaluation.question_type || 'Essay Evaluation'}
+                  {formatQuestionTypeName(evaluation.questionType || evaluation.question_type)}
                 </h2>
                 <p className="text-gray-600">
                   {new Date(evaluation.timestamp || evaluation.created_at).toLocaleDateString()}
@@ -188,7 +189,7 @@ Essay Evaluation Report
 ======================
 
 Date: ${new Date(evaluation.timestamp || evaluation.created_at).toLocaleDateString()}
-Question Type: ${evaluation.questionType || 'Essay'}
+Question Type: ${formatQuestionTypeName(evaluation.questionType || evaluation.question_type)}
 Grade: ${evaluation.grade || 'N/A'}
 
 Your Essay:

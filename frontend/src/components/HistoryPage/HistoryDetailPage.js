@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import EvaluationDetailModal from './EvaluationDetailModal';
+import { formatQuestionTypeName } from '../../utils/questionTypeFormatter';
 
 const HistoryDetailPage = ({ evaluations, onBack, userPlan }) => {
   const { shortId } = useParams();
@@ -102,7 +103,7 @@ const HistoryDetailPage = ({ evaluations, onBack, userPlan }) => {
                 </svg>
               </button>
               <h1 className="text-xl font-semibold text-gray-900">
-                {evaluation.questionType || evaluation.question_type || 'Essay Evaluation'}
+                {formatQuestionTypeName(evaluation.questionType || evaluation.question_type)}
               </h1>
             </div>
             <div className="flex items-center space-x-4">

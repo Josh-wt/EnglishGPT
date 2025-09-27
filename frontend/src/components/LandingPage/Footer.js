@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { LOGO_URL } from '../../constants/uiConstants';
+import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -43,9 +44,9 @@ const Footer = () => {
   ];
 
   const socialLinks = [
-    { name: 'Discord', href: 'https://discord.gg/xRqB4BWCcJ', icon: '💬' },
-    { name: 'Twitter', href: 'https://twitter.com/englishgpt', icon: '🐦' },
-    { name: 'GitHub', href: 'https://github.com/englishgpt', icon: '🐙' }
+    { name: 'Discord', href: 'https://discord.gg/xRqB4BWCcJ', icon: <ChatBubbleLeftRightIcon className="w-5 h-5" /> },
+    { name: 'Twitter', href: 'https://twitter.com/englishgpt', icon: 'X' },
+    { name: 'GitHub', href: 'https://github.com/englishgpt', icon: 'GH' }
   ];
 
   return (
@@ -103,7 +104,11 @@ const Footer = () => {
                   transition={{ duration: 0.2 }}
                 >
                   <span className="sr-only">{social.name}</span>
-                  <span className="text-lg">{social.icon}</span>
+                  {typeof social.icon === 'string' ? (
+                    <span className="text-lg font-bold">{social.icon}</span>
+                  ) : (
+                    social.icon
+                  )}
                 </motion.a>
               ))}
             </motion.div>
@@ -149,7 +154,7 @@ const Footer = () => {
               © {currentYear} EnglishGPT. All rights reserved.
             </p>
             <p className="text-sm text-gray-600 mt-2 md:mt-0">
-              Made with ❤️ for students and educators
+              Made with care for students and educators
             </p>
           </div>
         </motion.div>

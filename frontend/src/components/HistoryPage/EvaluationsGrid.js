@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { formatQuestionTypeName } from '../../utils/questionTypeFormatter';
 
 const EvaluationsGrid = ({ evaluations, viewMode, onSelectEvaluation, onSelectForCompare, selectedForCompare, parseFeedbackToBullets, getSubmarks }) => {
   const isSelected = (evaluation) => {
@@ -29,7 +30,7 @@ const EvaluationsGrid = ({ evaluations, viewMode, onSelectEvaluation, onSelectFo
           >
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="font-semibold text-gray-900">{evaluation.questionType || 'Essay'}</h3>
+                <h3 className="font-semibold text-gray-900">{formatQuestionTypeName(evaluation.questionType || evaluation.question_type)}</h3>
                 <p className="text-sm text-gray-600">
                   {new Date(evaluation.timestamp || evaluation.created_at).toLocaleDateString()}
                 </p>
@@ -76,7 +77,7 @@ const EvaluationsGrid = ({ evaluations, viewMode, onSelectEvaluation, onSelectFo
         >
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-semibold text-gray-900">{evaluation.questionType || 'Essay'}</h3>
+              <h3 className="font-semibold text-gray-900">{formatQuestionTypeName(evaluation.questionType || evaluation.question_type)}</h3>
               <p className="text-sm text-gray-600">
                 {new Date(evaluation.timestamp || evaluation.created_at).toLocaleDateString()}
               </p>

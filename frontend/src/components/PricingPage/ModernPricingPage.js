@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { CheckIcon, XMarkIcon, StarIcon, SparklesIcon } from '@heroicons/react/24/solid';
-import { ArrowRightIcon, CreditCardIcon, ShieldCheckIcon, TrophyIcon } from '@heroicons/react/24/outline';
+import { CheckIcon, XMarkIcon, StarIcon, SparklesIcon, GiftIcon, RocketLaunchIcon, BoltIcon } from '@heroicons/react/24/solid';
+import { ArrowRightIcon, CreditCardIcon, ShieldCheckIcon, TrophyIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import paymentService from '../../services/paymentService';
 
@@ -25,7 +25,6 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
       features: [
         '3 essay evaluations to get started',
         'Basic AI feedback',
-        'Grammar and spelling check',
         'Access to question bank'
       ],
       limitations: [
@@ -47,10 +46,8 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
       features: [
         'Unlimited essay evaluations',
         'Advanced AI feedback with detailed analysis',
-        'Grammar, spelling, style & tone analysis',
-        'Personalized writing improvement suggestions',
-        'Advanced progress tracking & analytics',
-        'Access to complete question bank',
+        'Advanced analytics',
+        'Access to your Essay History',
         'Priority email support',
       ],
       limitations: [],
@@ -207,6 +204,67 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
               Unlock the power of AI-driven English learning. Get personalized feedback, track your progress, and achieve your writing goals with lifetime access.
             </p>
 
+            {/* Discord Offer Banner */}
+            <div className="max-w-5xl mx-auto mb-12">
+              <div className="bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 rounded-3xl p-8 text-center text-white shadow-2xl border-4 border-green-300 relative overflow-hidden">
+                {/* Background decoration */}
+                <div className="absolute top-0 left-0 w-full h-full opacity-10">
+                  <GiftIcon className="absolute top-4 left-4 w-16 h-16 text-white" />
+                  <RocketLaunchIcon className="absolute top-4 right-4 w-16 h-16 text-white" />
+                  <ChatBubbleLeftRightIcon className="absolute bottom-4 left-4 w-16 h-16 text-white" />
+                  <SparklesIcon className="absolute bottom-4 right-4 w-16 h-16 text-white" />
+                </div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-center justify-center gap-4 mb-4">
+                    <GiftIcon className="w-12 h-12 animate-bounce text-yellow-300" />
+                    <h2 className="text-4xl font-black">GET UNLIMITED ACCESS</h2>
+                    <RocketLaunchIcon className="w-12 h-12 animate-bounce text-yellow-300" style={{animationDelay: '0.5s'}} />
+                  </div>
+                  
+                  <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 mb-6">
+                    <h3 className="text-3xl font-bold mb-3 text-yellow-200">100% FREE FOREVER!</h3>
+                    <p className="text-xl mb-4 text-green-100">
+                      Join our Discord community and get <strong className="text-yellow-200">lifetime unlimited access</strong> to all features!
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-4 text-green-100">
+                      <div className="flex items-center gap-2">
+                        <CheckIcon className="w-5 h-5 text-green-300" />
+                        <span>Unlimited essay evaluations</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckIcon className="w-5 h-5 text-green-300" />
+                        <span>Advanced analytics</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckIcon className="w-5 h-5 text-green-300" />
+                        <span>Essay history access</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={() => window.open('https://discord.gg/xRqB4BWCcJ', '_blank')}
+                    className="bg-white text-green-600 hover:bg-yellow-50 px-12 py-5 rounded-2xl font-black text-2xl transition-all duration-300 shadow-2xl hover:shadow-3xl transform hover:scale-110 flex items-center justify-center mx-auto gap-4 border-4 border-yellow-300"
+                  >
+                    <ChatBubbleLeftRightIcon className="w-8 h-8" />
+                    JOIN DISCORD NOW - IT'S FREE!
+                    <SparklesIcon className="w-8 h-8" />
+                  </button>
+                  
+                  <div className="mt-6 space-y-2">
+                    <p className="text-green-100 text-lg font-semibold flex items-center justify-center gap-2">
+                      <BoltIcon className="w-5 h-5 text-yellow-300" />
+                      Limited time offer - Join now to claim your free unlimited plan!
+                    </p>
+                    <p className="text-green-200 text-sm">
+                      No payment required • No credit card needed • Instant access
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Discount Code Section */}
             <div className="max-w-md mx-auto mb-8">
               <div className="flex gap-2">
@@ -314,7 +372,7 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
                     {loading && selectedPlan === plan.id ? (
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        Processing...
+                        Wonderful...
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
