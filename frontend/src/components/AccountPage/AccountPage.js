@@ -7,6 +7,32 @@ import SubscriptionInfo from './SubscriptionInfo';
 import TransactionHistory from './TransactionHistory';
 import AcademicLevelSelector from './AcademicLevelSelector';
 import Footer from '../ui/Footer';
+import { 
+  BellIcon, 
+  EnvelopeIcon, 
+  ChartBarIcon, 
+  ShieldCheckIcon,
+  DocumentTextIcon,
+  LightBulbIcon,
+  SpeakerWaveIcon,
+  Cog6ToothIcon,
+  GlobeAltIcon,
+  ClockIcon,
+  EyeIcon,
+  PaletteIcon,
+  AdjustmentsHorizontalIcon,
+  CommandLineIcon,
+  ArrowRightIcon,
+  DocumentCheckIcon,
+  EyeSlashIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  CloudIcon,
+  LockClosedIcon,
+  CalendarIcon,
+  DocumentArrowDownIcon,
+  ArchiveBoxIcon
+} from '@heroicons/react/24/outline';
 
 const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt = false, darkMode, toggleDarkMode, onPricing, defaultTab = 'profile' }) => {
   const [academicLevel, setAcademicLevel] = useState(userStats?.academicLevel || '');
@@ -16,15 +42,48 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
   const [transactionsLoading, setTransactionsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [preferences, setPreferences] = useState({
-    emailNotifications: true,
-    marketingEmails: false,
-    showProgress: true
+    email_notifications: true,
+    marketing_emails: false,
+    show_progress: true,
+    use_data_for_training: true,
+    auto_save_drafts: true,
+    show_tips: true,
+    sound_effects: true,
+    compact_mode: false,
+    language_preference: 'en',
+    timezone: 'UTC',
+    notification_frequency: 'immediate',
+    feedback_detail_level: 'detailed',
+    theme_color: 'blue',
+    font_size: 'medium',
+    accessibility_mode: false,
+    keyboard_shortcuts: true,
+    auto_advance: false,
+    show_word_count: true,
+    show_character_count: false,
+    spell_check: true,
+    grammar_suggestions: true,
+    writing_style: 'academic',
+    focus_mode: false,
+    distraction_free: false,
+    auto_backup: true,
+    cloud_sync: true,
+    privacy_mode: false,
+    data_retention_days: 365,
+    export_format: 'pdf',
+    backup_frequency: 'daily'
   });
+  const [preferencesLoading, setPreferencesLoading] = useState(false);
   
   useEffect(() => {
     let mounted = true;
     setError('');
     const userId = user?.uid || user?.id;
+    
+    // Load user preferences when component mounts
+    if (userId) {
+      loadUserPreferences();
+    }
     if (user && userId) {
       // Use academic level from userStats if available, otherwise fetch from API
       if (userStats?.academicLevel) {
@@ -117,8 +176,40 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
 
   const handlePreferenceChange = async (key, value) => {
     setPreferences(prev => ({ ...prev, [key]: value }));
-    setSuccess('Preference updated successfully!');
-    setTimeout(() => setSuccess(''), 3000);
+    
+    // Auto-save preferences to backend
+    try {
+      setPreferencesLoading(true);
+      await api.put(`/users/${user?.uid || user?.id}/preferences`, {
+        [key]: value
+      });
+      setSuccess('Preference updated successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      console.error('Error saving preference:', error);
+      setError('Failed to save preference. Please try again.');
+    } finally {
+      setPreferencesLoading(false);
+    }
+  };
+
+  const loadUserPreferences = async () => {
+    if (!user?.uid && !user?.id) return;
+    
+    try {
+      setPreferencesLoading(true);
+      const response = await api.get(`/users/${user?.uid || user?.id}/preferences`);
+      if (response.data) {
+        setPreferences(prev => ({
+          ...prev,
+          ...response.data
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading preferences:', error);
+    } finally {
+      setPreferencesLoading(false);
+    }
   };
 
   return (
@@ -198,82 +289,391 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
 
           {activeTab === 'preferences' && (
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4">Preferences</h2>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Email Notifications</h3>
-                    <p className="text-sm text-gray-500">Receive email updates about your evaluations</p>
+              <h2 className="text-lg font-semibold mb-6">Preferences</h2>
+              {preferencesLoading && (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700">
+                  Saving preferences...
+                </div>
+              )}
+              
+              <div className="space-y-8">
+                {/* Notifications Section */}
+                <div>
+                  <h4 className="text-lg font-semibold mb-4 flex items-center">
+                    <BellIcon className="w-5 h-5 mr-2" />
+                    Notifications
+                  </h4>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Email Notifications</h3>
+                        <p className="text-sm text-gray-500">Receive email updates about your evaluations</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('email_notifications', !preferences.email_notifications)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.email_notifications ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.email_notifications ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Marketing Emails</h3>
+                        <p className="text-sm text-gray-500">Receive updates about new features and offers</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('marketing_emails', !preferences.marketing_emails)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.marketing_emails ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.marketing_emails ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Show Progress Stats</h3>
+                        <p className="text-sm text-gray-500">Display your learning progress on the dashboard</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('show_progress', !preferences.show_progress)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.show_progress ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.show_progress ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    onClick={() => handlePreferenceChange('emailNotifications', !preferences.emailNotifications)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      preferences.emailNotifications ? 'bg-indigo-600' : 'bg-gray-200'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        preferences.emailNotifications ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Marketing Emails</h3>
-                    <p className="text-sm text-gray-500">Receive updates about new features and offers</p>
+                {/* Privacy & Data Section */}
+                <div>
+                  <h4 className="text-lg font-semibold mb-4 flex items-center">
+                    <ShieldCheckIcon className="w-5 h-5 mr-2" />
+                    Privacy & Data
+                  </h4>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Use Data for AI Training</h3>
+                        <p className="text-sm text-gray-500">Allow your essays and feedback to improve our AI models (anonymized)</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('use_data_for_training', !preferences.use_data_for_training)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.use_data_for_training ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.use_data_for_training ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Privacy Mode</h3>
+                        <p className="text-sm text-gray-500">Hide sensitive information and limit data collection</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('privacy_mode', !preferences.privacy_mode)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.privacy_mode ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.privacy_mode ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    onClick={() => handlePreferenceChange('marketingEmails', !preferences.marketingEmails)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      preferences.marketingEmails ? 'bg-indigo-600' : 'bg-gray-200'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        preferences.marketingEmails ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Show Progress Stats</h3>
-                    <p className="text-sm text-gray-500">Display your learning progress on the dashboard</p>
+                {/* Writing Experience Section */}
+                <div>
+                  <h4 className="text-lg font-semibold mb-4 flex items-center">
+                    <PencilIcon className="w-5 h-5 mr-2" />
+                    Writing Experience
+                  </h4>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Auto-save Drafts</h3>
+                        <p className="text-sm text-gray-500">Automatically save your work as you type</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('auto_save_drafts', !preferences.auto_save_drafts)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.auto_save_drafts ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.auto_save_drafts ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Show Tips</h3>
+                        <p className="text-sm text-gray-500">Display helpful writing tips and suggestions</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('show_tips', !preferences.show_tips)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.show_tips ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.show_tips ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Spell Check</h3>
+                        <p className="text-sm text-gray-500">Enable automatic spell checking</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('spell_check', !preferences.spell_check)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.spell_check ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.spell_check ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Grammar Suggestions</h3>
+                        <p className="text-sm text-gray-500">Get real-time grammar improvement suggestions</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('grammar_suggestions', !preferences.grammar_suggestions)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.grammar_suggestions ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.grammar_suggestions ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Show Word Count</h3>
+                        <p className="text-sm text-gray-500">Display word count while writing</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('show_word_count', !preferences.show_word_count)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.show_word_count ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.show_word_count ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    onClick={() => handlePreferenceChange('showProgress', !preferences.showProgress)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      preferences.showProgress ? 'bg-indigo-600' : 'bg-gray-200'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        preferences.showProgress ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <div>
-                    <h3 className="font-medium">Dark Mode</h3>
-                    <p className="text-sm text-gray-500">Toggle dark mode theme</p>
+                {/* Interface & Accessibility Section */}
+                <div>
+                  <h4 className="text-lg font-semibold mb-4 flex items-center">
+                    <CogIcon className="w-5 h-5 mr-2" />
+                    Interface & Accessibility
+                  </h4>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Dark Mode</h3>
+                        <p className="text-sm text-gray-500">Toggle dark mode theme</p>
+                      </div>
+                      <button
+                        onClick={toggleDarkMode}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          darkMode ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            darkMode ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Compact Mode</h3>
+                        <p className="text-sm text-gray-500">Use a more compact interface layout</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('compact_mode', !preferences.compact_mode)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.compact_mode ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.compact_mode ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Accessibility Mode</h3>
+                        <p className="text-sm text-gray-500">Enhanced accessibility features</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('accessibility_mode', !preferences.accessibility_mode)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.accessibility_mode ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.accessibility_mode ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Sound Effects</h3>
+                        <p className="text-sm text-gray-500">Play sound effects for interactions</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('sound_effects', !preferences.sound_effects)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.sound_effects ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.sound_effects ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    onClick={toggleDarkMode}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      darkMode ? 'bg-indigo-600' : 'bg-gray-200'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        darkMode ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
+                </div>
+
+                {/* Advanced Settings Section */}
+                <div>
+                  <h4 className="text-lg font-semibold mb-4 flex items-center">
+                    <WrenchScrewdriverIcon className="w-5 h-5 mr-2" />
+                    Advanced Settings
+                  </h4>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Notification Frequency
+                      </label>
+                      <select
+                        value={preferences.notification_frequency}
+                        onChange={(e) => handlePreferenceChange('notification_frequency', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="immediate">Immediate</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="never">Never</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Feedback Detail Level
+                      </label>
+                      <select
+                        value={preferences.feedback_detail_level}
+                        onChange={(e) => handlePreferenceChange('feedback_detail_level', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="basic">Basic</option>
+                        <option value="detailed">Detailed</option>
+                        <option value="comprehensive">Comprehensive</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Writing Style
+                      </label>
+                      <select
+                        value={preferences.writing_style}
+                        onChange={(e) => handlePreferenceChange('writing_style', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="academic">Academic</option>
+                        <option value="creative">Creative</option>
+                        <option value="professional">Professional</option>
+                        <option value="casual">Casual</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Font Size
+                      </label>
+                      <select
+                        value={preferences.font_size}
+                        onChange={(e) => handlePreferenceChange('font_size', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="small">Small</option>
+                        <option value="medium">Medium</option>
+                        <option value="large">Large</option>
+                        <option value="extra-large">Extra Large</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
               </div>
 

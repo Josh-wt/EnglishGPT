@@ -121,7 +121,7 @@ const TermsOfService = () => {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">6. Data Usage and Training</h2>
               <p className="text-gray-700 leading-relaxed">
-                <strong>Privacy Protection:</strong> Your essays and content are used for AI training purposes. However, we do not sell your personal data. We maintain strict privacy standards and protect your intellectual property and personal data.
+                <strong>Privacy Protection:</strong> Your essays and content are used for AI training purposes. However, we do not sell your personal data. We maintain strict privacy standards and protect your intellectual property and personal data. For more information, please refer to our <Link to="/privacy" className="text-blue-600 hover:text-blue-800">Privacy Policy</Link>.
               </p>
             </section>
 

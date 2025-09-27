@@ -1,10 +1,11 @@
 """
 User management routes.
 """
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 import logging
 import jwt
 from datetime import datetime
+from typing import Dict, Any
 from config.settings import get_user_management_service, get_supabase_client
 
 router = APIRouter()
@@ -22,6 +23,63 @@ async def get_all_users():
         return {"users": response.data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving users: {str(e)}")
+
+@router.get("/users/{user_id}/preferences")
+async def get_user_preferences(user_id: str):
+    """Get user preferences"""
+    try:
+        response = supabase.table('assessment_users').select(
+            'email_notifications, marketing_emails, show_progress, use_data_for_training, '
+            'auto_save_drafts, show_tips, sound_effects, compact_mode, language_preference, '
+            'timezone, notification_frequency, feedback_detail_level, theme_color, font_size, '
+            'accessibility_mode, keyboard_shortcuts, auto_advance, show_word_count, '
+            'show_character_count, spell_check, grammar_suggestions, writing_style, '
+            'focus_mode, distraction_free, auto_backup, cloud_sync, privacy_mode, '
+            'data_retention_days, export_format, backup_frequency'
+        ).eq('uid', user_id).execute()
+        
+        if not response.data:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return {"preferences": response.data[0]}
+    except Exception as e:
+        logger.error(f"Error getting user preferences: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving preferences: {str(e)}")
+
+@router.put("/users/{user_id}/preferences")
+async def update_user_preferences(user_id: str, preferences: Dict[str, Any]):
+    """Update user preferences"""
+    try:
+        # Validate preference keys
+        valid_keys = {
+            'email_notifications', 'marketing_emails', 'show_progress', 'use_data_for_training',
+            'auto_save_drafts', 'show_tips', 'sound_effects', 'compact_mode', 'language_preference',
+            'timezone', 'notification_frequency', 'feedback_detail_level', 'theme_color', 'font_size',
+            'accessibility_mode', 'keyboard_shortcuts', 'auto_advance', 'show_word_count',
+            'show_character_count', 'spell_check', 'grammar_suggestions', 'writing_style',
+            'focus_mode', 'distraction_free', 'auto_backup', 'cloud_sync', 'privacy_mode',
+            'data_retention_days', 'export_format', 'backup_frequency'
+        }
+        
+        # Filter to only valid keys
+        filtered_preferences = {k: v for k, v in preferences.items() if k in valid_keys}
+        
+        if not filtered_preferences:
+            raise HTTPException(status_code=400, detail="No valid preferences provided")
+        
+        # Add updated_at timestamp
+        filtered_preferences['updated_at'] = datetime.utcnow().isoformat()
+        
+        response = supabase.table('assessment_users').update(filtered_preferences).eq('uid', user_id).execute()
+        
+        if not response.data:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        logger.info(f"Updated preferences for user {user_id}: {list(filtered_preferences.keys())}")
+        return {"message": "Preferences updated successfully", "preferences": response.data[0]}
+    except Exception as e:
+        logger.error(f"Error updating user preferences: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error updating preferences: {str(e)}")
 
 @router.post("/users")
 async def create_or_get_user(user_data: dict):

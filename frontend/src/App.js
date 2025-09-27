@@ -166,13 +166,29 @@ const App = () => {
   // Show welcome modal for new users
   useEffect(() => {
     if (user && userStats && !userLoading) {
-      // Check if user is new (has 3 credits and no evaluations)
+      // Check if user is new (has 3 credits and no evaluations) OR if they just signed up
       const isNewUser = userStats.credits === 3 && userStats.total_evaluations === 0;
-      const hasSeenWelcome = localStorage.getItem('hasSeenWelcomeModal');
+      const hasSeenWelcome = localStorage.getItem(`hasSeenWelcomeModal_${user.id}`);
       
-      if (isNewUser && !hasSeenWelcome) {
+      // Also check if user was created recently (within last 5 minutes) - indicates fresh signup
+      const userCreatedAt = new Date(user.created_at);
+      const now = new Date();
+      const isRecentSignup = (now - userCreatedAt) < 5 * 60 * 1000; // 5 minutes
+      
+      console.log('🔍 Welcome modal check:', {
+        userId: user.id,
+        isNewUser,
+        isRecentSignup,
+        hasSeenWelcome: !!hasSeenWelcome,
+        userCreatedAt: userCreatedAt.toISOString(),
+        credits: userStats.credits,
+        totalEvaluations: userStats.total_evaluations
+      });
+      
+      if ((isNewUser || isRecentSignup) && !hasSeenWelcome) {
+        console.log('🎉 Showing welcome modal for new user');
         setShowWelcomeModal(true);
-        localStorage.setItem('hasSeenWelcomeModal', 'true');
+        localStorage.setItem(`hasSeenWelcomeModal_${user.id}`, 'true');
       }
     }
   }, [user, userStats, userLoading]);
