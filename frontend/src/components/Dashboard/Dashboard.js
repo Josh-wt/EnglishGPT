@@ -74,14 +74,26 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
   }, [onSubscription]);
 
   const handleAnalytics = useCallback(() => {
+    if (!hasUnlimitedAccess) {
+      // Show upgrade prompt for free users
+      onPricing();
+      setShowAccountDropdown(false);
+      return;
+    }
     onAnalytics();
     setShowAccountDropdown(false);
-  }, [onAnalytics]);
+  }, [onAnalytics, onPricing, hasUnlimitedAccess]);
 
   const handleHistory = useCallback(() => {
+    if (!hasUnlimitedAccess) {
+      // Show upgrade prompt for free users
+      onPricing();
+      setShowAccountDropdown(false);
+      return;
+    }
     onHistory();
     setShowAccountDropdown(false);
-  }, [onHistory]);
+  }, [onHistory, onPricing, hasUnlimitedAccess]);
 
   const handleSignOut = useCallback(async () => {
     await onSignOut();
@@ -278,22 +290,44 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                       
                       <button 
                         onClick={handleAnalytics}
-                        className="w-full px-4 py-2 text-left font-fredoka text-gray-700 hover:bg-gray-100 flex items-center"
+                        className={`w-full px-4 py-2 text-left font-fredoka flex items-center justify-between ${
+                          hasUnlimitedAccess 
+                            ? 'text-gray-700 hover:bg-gray-100' 
+                            : 'text-gray-500 hover:bg-gray-50'
+                        }`}
                       >
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
-                        Analytics
+                        <div className="flex items-center">
+                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                          </svg>
+                          Analytics
+                        </div>
+                        {!hasUnlimitedAccess && (
+                          <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                            Upgrade
+                          </span>
+                        )}
                       </button>
                       
                       <button 
                         onClick={handleHistory}
-                        className="w-full px-4 py-2 text-left font-fredoka text-gray-700 hover:bg-gray-100 flex items-center"
+                        className={`w-full px-4 py-2 text-left font-fredoka flex items-center justify-between ${
+                          hasUnlimitedAccess 
+                            ? 'text-gray-700 hover:bg-gray-100' 
+                            : 'text-gray-500 hover:bg-gray-50'
+                        }`}
                       >
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        History
+                        <div className="flex items-center">
+                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          History
+                        </div>
+                        {!hasUnlimitedAccess && (
+                          <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                            Upgrade
+                          </span>
+                        )}
                       </button>
                       
                       <div className="border-t border-gray-100"></div>
