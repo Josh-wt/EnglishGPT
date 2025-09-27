@@ -816,11 +816,24 @@ const App = () => {
         <Route path="/history" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
             <LazyWrapper fallback={<PageSkeleton />}>
-              <HistoryPage 
-                evaluations={evaluations}
-                onBack={handleBack}
-                userPlan={userStats?.currentPlan || 'free'}
-              />
+              {(() => {
+                // Check if user has unlimited access
+                const hasUnlimitedAccess = userStats?.current_plan === 'unlimited' || userStats?.credits >= 99999;
+                
+                if (!hasUnlimitedAccess) {
+                  // Redirect to pricing page for free users
+                  navigate('/pricing');
+                  return null;
+                }
+                
+                return (
+                  <HistoryPage 
+                    evaluations={evaluations}
+                    onBack={handleBack}
+                    userPlan={userStats?.currentPlan || 'free'}
+                  />
+                );
+              })()}
             </LazyWrapper>
           </AuthRequired>
         } />
@@ -838,13 +851,26 @@ const App = () => {
         <Route path="/analytics" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
             <LazyWrapper fallback={<PageSkeleton />}>
-              <AnalyticsDashboard 
-                userStats={userStats || {}}
-                user={user}
-                evaluations={evaluations}
-                onBack={handleBack}
-                onUpgrade={() => navigate('/pricing')}
-              />
+              {(() => {
+                // Check if user has unlimited access
+                const hasUnlimitedAccess = userStats?.current_plan === 'unlimited' || userStats?.credits >= 99999;
+                
+                if (!hasUnlimitedAccess) {
+                  // Redirect to pricing page for free users
+                  navigate('/pricing');
+                  return null;
+                }
+                
+                return (
+                  <AnalyticsDashboard 
+                    userStats={userStats || {}}
+                    user={user}
+                    evaluations={evaluations}
+                    onBack={handleBack}
+                    onUpgrade={() => navigate('/pricing')}
+                  />
+                );
+              })()}
             </LazyWrapper>
           </AuthRequired>
         } />

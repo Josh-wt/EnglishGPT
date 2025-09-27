@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import HeroSection from './HeroSection';
 import FeatureSection from './FeatureSection';
@@ -11,12 +12,23 @@ import AuthModal from './AuthModal';
 
 const LandingPage = ({ onDiscord, onGoogle, user }) => {
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const navigate = useNavigate();
 
   const handleGetStarted = () => {
+    // If user is already authenticated, redirect to dashboard
+    if (user) {
+      navigate('/dashboard');
+      return;
+    }
     setShowAuthModal(true);
   };
 
   const handleStartMarking = () => {
+    // If user is already authenticated, redirect to dashboard
+    if (user) {
+      navigate('/dashboard');
+      return;
+    }
     setShowAuthModal(true);
   };
 
