@@ -762,15 +762,6 @@ const App = () => {
                     onStartQuestion={handleStartQuestion}
                     onPricing={() => navigate('/pricing')}
                     onHistory={() => {
-                      // Check if user has unlimited access
-                      const hasUnlimitedAccess = userStats?.current_plan === 'unlimited' || userStats?.credits >= 99999;
-                      
-                      if (!hasUnlimitedAccess) {
-                        // Redirect to pricing page for free users
-                        navigate('/pricing');
-                        return;
-                      }
-                      
                       navigate('/history');
                     }}
                     onAnalytics={() => {
