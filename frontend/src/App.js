@@ -829,27 +829,25 @@ const App = () => {
           </AuthRequired>
         } />
         <Route path="/results" element={
-          <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
-            <LazyWrapper fallback={<PageSkeleton />}>
-              <ResultsPage 
-                evaluation={evaluation}
-                onNewEvaluation={handleNewEvaluation}
-                onBack={handleBack}
-                feedbackModal={feedbackModal}
-                setFeedbackModal={setFeedbackModal}
-                feedbackAccurate={feedbackAccurate}
-                setFeedbackAccurate={setFeedbackAccurate}
-                feedbackComments={feedbackComments}
-                setFeedbackComments={setFeedbackComments}
-                feedbackSubmitting={feedbackSubmitting}
-                onSubmitFeedback={handleSubmitFeedback}
-                user={user}
-                signInWithGoogle={signInWithGoogle}
-                signInWithDiscord={signInWithDiscord}
-                navigate={navigate}
-              />
-            </LazyWrapper>
-          </AuthRequired>
+          <LazyWrapper fallback={<PageSkeleton />}>
+            <ResultsPage 
+              evaluation={evaluation}
+              onNewEvaluation={handleNewEvaluation}
+              onBack={handleBack}
+              feedbackModal={feedbackModal}
+              setFeedbackModal={setFeedbackModal}
+              feedbackAccurate={feedbackAccurate}
+              setFeedbackAccurate={setFeedbackAccurate}
+              feedbackComments={feedbackComments}
+              setFeedbackComments={setFeedbackComments}
+              feedbackSubmitting={feedbackSubmitting}
+              onSubmitFeedback={handleSubmitFeedback}
+              user={user}
+              signInWithGoogle={signInWithGoogle}
+              signInWithDiscord={signInWithDiscord}
+              navigate={navigate}
+            />
+          </LazyWrapper>
         } />
         <Route path="/history" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
