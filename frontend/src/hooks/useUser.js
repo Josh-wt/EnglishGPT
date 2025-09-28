@@ -84,7 +84,7 @@ export const useUser = () => {
               // Map backend field names to frontend field names
               currentPlan: parsedData.current_plan || parsedData.currentPlan || 'free',
               questionsMarked: parsedData.questions_marked || parsedData.questionsMarked || 0,
-              credits: parsedData.credits || 3,
+              credits: parsedData.credits ?? 3,
               // Include academic level from separate cache if available
               academicLevel: cachedAcademicLevel || parsedData.academic_level || parsedData.academicLevel || 'N/A',
             };
@@ -178,7 +178,7 @@ export const useUser = () => {
                     email: session.user.email,
                     name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
                     current_plan: parsedCachedData.current_plan || parsedCachedData.currentPlan || 'free',
-                    credits: parsedCachedData.credits || 3,
+                    credits: parsedCachedData.credits ?? 3,
                     questions_marked: parsedCachedData.questions_marked || parsedCachedData.questionsMarked || 0,
                     academic_level: parsedCachedData.academic_level || parsedCachedData.academicLevel || 'N/A'
                   };
@@ -250,7 +250,7 @@ export const useUser = () => {
                    // Map backend field names to frontend field names
                    currentPlan: finalStats.current_plan || finalStats.currentPlan || 'free',
                    questionsMarked: finalStats.questions_marked || finalStats.questionsMarked || 0,
-                   credits: finalStats.credits || 3,
+                   credits: finalStats.credits ?? 3,
                    academicLevel: finalStats.academic_level || finalStats.academicLevel || cachedAcademicLevel || 'N/A',
                    showWelcomeMessage: false
                  };
@@ -535,7 +535,7 @@ export const useUser = () => {
                     email: session.user.email,
                     name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
                     current_plan: parsedCachedData.current_plan || parsedCachedData.currentPlan || 'free',
-                    credits: parsedCachedData.credits || 3,
+                    credits: parsedCachedData.credits ?? 3,
                     questions_marked: parsedCachedData.questions_marked || parsedCachedData.questionsMarked || 0,
                     academic_level: parsedCachedData.academic_level || parsedCachedData.academicLevel || 'N/A'
                   };
@@ -1030,7 +1030,7 @@ export const useUser = () => {
                // Map backend field names to frontend field names
                currentPlan: finalStats.current_plan || finalStats.currentPlan || 'free',
                questionsMarked: finalStats.questions_marked || finalStats.questionsMarked || 0,
-               credits: finalStats.credits || 3,
+               credits: finalStats.credits ?? 3,
                academicLevel: finalStats.academic_level || finalStats.academicLevel || 'N/A',
                showWelcomeMessage: false
              };

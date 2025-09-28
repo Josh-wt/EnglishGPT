@@ -761,8 +761,30 @@ const App = () => {
                     questionTypes={questionTypes}
                     onStartQuestion={handleStartQuestion}
                     onPricing={() => navigate('/pricing')}
-                    onHistory={() => navigate('/history')}
-                    onAnalytics={() => navigate('/analytics')}
+                    onHistory={() => {
+                      // Check if user has unlimited access
+                      const hasUnlimitedAccess = userStats?.current_plan === 'unlimited' || userStats?.credits >= 99999;
+                      
+                      if (!hasUnlimitedAccess) {
+                        // Redirect to pricing page for free users
+                        navigate('/pricing');
+                        return;
+                      }
+                      
+                      navigate('/history');
+                    }}
+                    onAnalytics={() => {
+                      // Check if user has unlimited access
+                      const hasUnlimitedAccess = userStats?.current_plan === 'unlimited' || userStats?.credits >= 99999;
+                      
+                      if (!hasUnlimitedAccess) {
+                        // Redirect to pricing page for free users
+                        navigate('/pricing');
+                        return;
+                      }
+                      
+                      navigate('/analytics');
+                    }}
                     onAccountSettings={() => navigate('/account')}
                     onSubscription={() => navigate('/subscription')}
                     userStats={userStats || {}}
