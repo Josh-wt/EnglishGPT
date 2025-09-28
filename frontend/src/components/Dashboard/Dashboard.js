@@ -74,26 +74,14 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
   }, [onSubscription]);
 
   const handleAnalytics = useCallback(() => {
-    if (!hasUnlimitedAccess) {
-      // Show upgrade prompt for free users
-      onPricing();
-      setShowAccountDropdown(false);
-      return;
-    }
     onAnalytics();
     setShowAccountDropdown(false);
-  }, [onAnalytics, onPricing, hasUnlimitedAccess]);
+  }, [onAnalytics]);
 
   const handleHistory = useCallback(() => {
-    if (!hasUnlimitedAccess) {
-      // Show upgrade prompt for free users
-      onPricing();
-      setShowAccountDropdown(false);
-      return;
-    }
     onHistory();
     setShowAccountDropdown(false);
-  }, [onHistory, onPricing, hasUnlimitedAccess]);
+  }, [onHistory]);
 
   const handleSignOut = useCallback(async () => {
     await onSignOut();

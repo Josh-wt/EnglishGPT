@@ -161,9 +161,10 @@ const LockedAnalyticsPage = ({ onBack, upgradeType, page = 'analytics' }) => {
 const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade }) => {
   const [selectedTimeRange, setSelectedTimeRange] = useState('month');
   const [activeTab, setActiveTab] = useState('overview');
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
-  // Analytics is now available to all users regardless of plan
-  // (Removed plan restrictions - all users can view their analytics)
+  // Check if user has unlimited access
+  const hasUnlimitedAccess = userStats?.current_plan === 'unlimited' || userStats?.credits >= 99999;
 
   // Handle loading and empty states
   const hasEvaluations = evaluations && evaluations.length > 0;
@@ -320,6 +321,106 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
       </div>
     );
   };
+
+  // Show locked state for free users
+  if (!hasUnlimitedAccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        {/* Header */}
+        <div className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <button
+                onClick={onBack}
+                className="text-blue-600 hover:text-blue-800 flex items-center font-fredoka"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Dashboard
+              </button>
+              <h1 className="text-xl font-bold text-gray-900 font-fredoka">📊 Analytics Dashboard</h1>
+              <div className="flex items-center gap-2">
+                <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">🔒 Locked</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Locked Content */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center">
+            <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+              <span className="text-4xl">📊</span>
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Advanced Analytics</h2>
+            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+              Unlock detailed insights into your writing performance with comprehensive analytics, progress tracking, and personalized recommendations.
+            </p>
+            
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 mb-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-6">What you'll get with Unlimited:</h3>
+              <div className="grid md:grid-cols-2 gap-6 text-left">
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-green-500 text-xl">✓</span>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Performance Trends</h4>
+                      <p className="text-sm text-gray-600">Track your improvement over time</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="text-green-500 text-xl">✓</span>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Detailed Breakdowns</h4>
+                      <p className="text-sm text-gray-600">See strengths and weaknesses by category</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="text-green-500 text-xl">✓</span>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Progress Tracking</h4>
+                      <p className="text-sm text-gray-600">Monitor your writing journey</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-green-500 text-xl">✓</span>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Question Type Analysis</h4>
+                      <p className="text-sm text-gray-600">Compare performance across different types</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="text-green-500 text-xl">✓</span>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Export Reports</h4>
+                      <p className="text-sm text-gray-600">Download your analytics data</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="text-green-500 text-xl">✓</span>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Personalized Insights</h4>
+                      <p className="text-sm text-gray-600">AI-powered recommendations for improvement</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={onUpgrade}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              Upgrade to Unlimited - $9.99
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
