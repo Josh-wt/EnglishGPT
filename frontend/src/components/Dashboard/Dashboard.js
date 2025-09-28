@@ -74,30 +74,32 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
   }, [onSubscription]);
 
   const handleAnalytics = useCallback(() => {
-    console.log('🔍 DEBUG Dashboard handleAnalytics called');
-    console.log('🔍 DEBUG Dashboard onAnalytics function:', onAnalytics);
+    if (!hasUnlimitedAccess) {
+      // Show upgrade prompt for free users
+      onPricing();
+      setShowAccountDropdown(false);
+      return;
+    }
     onAnalytics();
     setShowAccountDropdown(false);
-  }, [onAnalytics]);
+  }, [onAnalytics, onPricing, hasUnlimitedAccess]);
 
   const handleHistory = useCallback(() => {
-    console.log('🔍 DEBUG Dashboard handleHistory called');
-    console.log('🔍 DEBUG Dashboard onHistory function:', onHistory);
+    if (!hasUnlimitedAccess) {
+      // Show upgrade prompt for free users
+      onPricing();
+      setShowAccountDropdown(false);
+      return;
+    }
     onHistory();
     setShowAccountDropdown(false);
-  }, [onHistory]);
+  }, [onHistory, onPricing, hasUnlimitedAccess]);
 
   const handleSignOut = useCallback(async () => {
     await onSignOut();
     setShowAccountDropdown(false);
   }, [onSignOut]);
 
-
-  console.log('🔍 DEBUG Dashboard component rendering with props:');
-  console.log('🔍 DEBUG userStats:', userStats);
-  console.log('🔍 DEBUG hasUnlimitedAccess:', hasUnlimitedAccess);
-  console.log('🔍 DEBUG onHistory:', onHistory);
-  console.log('🔍 DEBUG onAnalytics:', onAnalytics);
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-main'}`}>

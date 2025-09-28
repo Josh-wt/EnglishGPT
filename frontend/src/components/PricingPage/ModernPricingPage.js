@@ -327,18 +327,22 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
           })}
         </div>
 
-        {/* Discreet Discord Offer */}
-        <div className="mt-12 text-center">
-          <div className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-full border border-green-200 dark:border-green-800">
-            <ChatBubbleLeftRightIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
-            <span className="text-green-700 dark:text-green-300 font-medium">
-              Join the Discord to claim unlimited for free
-            </span>
+        {/* Discord Free Access Banner */}
+        <div className="max-w-2xl mx-auto mt-12 mb-8">
+          <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-6 text-center text-white shadow-lg">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <ChatBubbleLeftRightIcon className="w-6 h-6" />
+              <h3 className="text-lg font-semibold">Join the Discord to claim unlimited for free</h3>
+            </div>
+            <p className="text-green-100 text-sm mb-4">
+              Get lifetime unlimited access to all features by joining our Discord community
+            </p>
             <button
               onClick={() => window.open('https://discord.gg/xRqB4BWCcJ', '_blank')}
-              className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 font-semibold underline"
+              className="bg-white text-green-600 hover:bg-green-50 px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 mx-auto"
             >
-              Join Now
+              <ChatBubbleLeftRightIcon className="w-4 h-4" />
+              Join Discord
             </button>
           </div>
         </div>
