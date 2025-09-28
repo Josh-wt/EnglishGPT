@@ -74,11 +74,15 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
   }, [onSubscription]);
 
   const handleAnalytics = useCallback(() => {
+    console.log('🔍 DEBUG Dashboard handleAnalytics called');
+    console.log('🔍 DEBUG Dashboard onAnalytics function:', onAnalytics);
     onAnalytics();
     setShowAccountDropdown(false);
   }, [onAnalytics]);
 
   const handleHistory = useCallback(() => {
+    console.log('🔍 DEBUG Dashboard handleHistory called');
+    console.log('🔍 DEBUG Dashboard onHistory function:', onHistory);
     onHistory();
     setShowAccountDropdown(false);
   }, [onHistory]);
@@ -88,6 +92,12 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
     setShowAccountDropdown(false);
   }, [onSignOut]);
 
+
+  console.log('🔍 DEBUG Dashboard component rendering with props:');
+  console.log('🔍 DEBUG userStats:', userStats);
+  console.log('🔍 DEBUG hasUnlimitedAccess:', hasUnlimitedAccess);
+  console.log('🔍 DEBUG onHistory:', onHistory);
+  console.log('🔍 DEBUG onAnalytics:', onAnalytics);
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-main'}`}>

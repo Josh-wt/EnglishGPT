@@ -762,9 +762,13 @@ const App = () => {
                     onStartQuestion={handleStartQuestion}
                     onPricing={() => navigate('/pricing')}
                     onHistory={() => {
+                      console.log('🔍 DEBUG App.js onHistory called');
+                      console.log('🔍 DEBUG App.js navigating to /history');
                       navigate('/history');
                     }}
                     onAnalytics={() => {
+                      console.log('🔍 DEBUG App.js onAnalytics called');
+                      console.log('🔍 DEBUG App.js navigating to /analytics');
                       navigate('/analytics');
                     }}
                     onAccountSettings={() => navigate('/account')}
@@ -838,12 +842,20 @@ const App = () => {
                 // Check if user has unlimited access
                 const hasUnlimitedAccess = userStats?.current_plan === 'unlimited' || userStats?.credits >= 99999;
                 
+                console.log('🔍 DEBUG /history route - hasUnlimitedAccess check:');
+                console.log('🔍 DEBUG userStats:', userStats);
+                console.log('🔍 DEBUG current_plan:', userStats?.current_plan);
+                console.log('🔍 DEBUG credits:', userStats?.credits);
+                console.log('🔍 DEBUG hasUnlimitedAccess:', hasUnlimitedAccess);
+                
                 if (!hasUnlimitedAccess) {
                   // Redirect to pricing page for free users
+                  console.log('🔍 DEBUG REDIRECTING TO PRICING - user does not have unlimited access');
                   navigate('/pricing');
                   return null;
                 }
                 
+                console.log('🔍 DEBUG RENDERING HistoryPage - user has unlimited access');
                 return (
                   <HistoryPage 
                     evaluations={evaluations}
