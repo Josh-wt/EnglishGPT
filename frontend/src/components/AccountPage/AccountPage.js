@@ -517,6 +517,25 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
                         />
                       </button>
                     </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Show Character Count</h3>
+                        <p className="text-sm text-gray-500">Display character count while writing</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('show_character_count', !preferences.show_character_count)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.show_character_count ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.show_character_count ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -603,6 +622,82 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
                         />
                       </button>
                     </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Keyboard Shortcuts</h3>
+                        <p className="text-sm text-gray-500">Enable keyboard shortcuts for faster navigation</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('keyboard_shortcuts', !preferences.keyboard_shortcuts)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.keyboard_shortcuts ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.keyboard_shortcuts ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Auto Advance</h3>
+                        <p className="text-sm text-gray-500">Automatically advance to next question after evaluation</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('auto_advance', !preferences.auto_advance)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.auto_advance ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.auto_advance ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Focus Mode</h3>
+                        <p className="text-sm text-gray-500">Enable focus mode to minimize distractions</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('focus_mode', !preferences.focus_mode)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.focus_mode ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.focus_mode ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Distraction Free</h3>
+                        <p className="text-sm text-gray-500">Enable distraction-free writing mode</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('distraction_free', !preferences.distraction_free)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.distraction_free ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.distraction_free ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -675,6 +770,44 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
                         <option value="large">Large</option>
                         <option value="extra-large">Extra Large</option>
                       </select>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Auto Backup</h3>
+                        <p className="text-sm text-gray-500">Automatically backup your data</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('auto_backup', !preferences.auto_backup)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.auto_backup ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.auto_backup ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">Cloud Sync</h3>
+                        <p className="text-sm text-gray-500">Sync your data across devices</p>
+                      </div>
+                      <button
+                        onClick={() => handlePreferenceChange('cloud_sync', !preferences.cloud_sync)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          preferences.cloud_sync ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            preferences.cloud_sync ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
                     </div>
                   </div>
                 </div>

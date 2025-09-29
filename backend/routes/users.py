@@ -41,7 +41,7 @@ async def get_user_preferences(user_id: str):
         if not response.data:
             raise HTTPException(status_code=404, detail="User not found")
         
-        return {"preferences": response.data[0]}
+        return response.data[0]
     except Exception as e:
         logger.error(f"Error getting user preferences: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error retrieving preferences: {str(e)}")
