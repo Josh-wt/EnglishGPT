@@ -28,7 +28,7 @@ async def call_deepseek_api(prompt: str) -> tuple[str, str]:
         }
         
         payload = {
-            "model": "z-ai/glm-4.5-air:free",
+            "model": "grok-4-fast:free",
             "messages": [
                 {"role": "system", "content": "You are an expert English language examiner with extensive experience in marking IGCSE and A-Level English papers. Provide detailed, constructive feedback following the specific marking criteria provided."},
                 {"role": "user", "content": prompt}
