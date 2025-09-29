@@ -66,6 +66,15 @@ const App = () => {
       supabase: supabase,
       api: api
     };
+    
+    // Debug user state changes
+    console.log('🔍 DEBUG App.js - User state changed:', {
+      user: user ? { id: user.id, email: user.email } : null,
+      userStats: userStats,
+      userLoading: userLoading,
+      pathname: location.pathname,
+      timestamp: new Date().toISOString()
+    });
 
     // Cleanup function
     return () => {
@@ -155,6 +164,17 @@ const App = () => {
   const [evaluations, setEvaluations] = useState([]);
 
   const navigate = useNavigate();
+  
+  // Debug navigation
+  const debugNavigate = (path, reason) => {
+    console.log('🔍 DEBUG App.js - Navigation:', {
+      from: location.pathname,
+      to: path,
+      reason: reason,
+      timestamp: new Date().toISOString()
+    });
+    navigate(path);
+  };
 
   // Track user state changes - only log critical issues
   useEffect(() => {
@@ -760,30 +780,18 @@ const App = () => {
                   <Dashboard 
                     questionTypes={questionTypes}
                     onStartQuestion={handleStartQuestion}
-                    onPricing={() => navigate('/pricing')}
+                    onPricing={() => debugNavigate('/pricing', 'Dashboard pricing button clicked')}
                     onHistory={() => {
-                      // Check if user has unlimited access
-                      const hasUnlimitedAccess = userStats?.current_plan === 'unlimited' || userStats?.credits >= 99999;
-                      
-                      if (!hasUnlimitedAccess) {
-                        // Redirect to pricing page for free users
-                        navigate('/pricing');
-                        return;
-                      }
-                      
-                      navigate('/history');
+                      console.log('🔍 DEBUG App.js - onHistory called, userStats:', userStats);
+                      console.log('🔍 DEBUG App.js - current_plan:', userStats?.current_plan);
+                      console.log('🔍 DEBUG App.js - credits:', userStats?.credits);
+                      debugNavigate('/history', 'Dashboard history button clicked');
                     }}
                     onAnalytics={() => {
-                      // Check if user has unlimited access
-                      const hasUnlimitedAccess = userStats?.current_plan === 'unlimited' || userStats?.credits >= 99999;
-                      
-                      if (!hasUnlimitedAccess) {
-                        // Redirect to pricing page for free users
-                        navigate('/pricing');
-                        return;
-                      }
-                      
-                      navigate('/analytics');
+                      console.log('🔍 DEBUG App.js - onAnalytics called, userStats:', userStats);
+                      console.log('🔍 DEBUG App.js - current_plan:', userStats?.current_plan);
+                      console.log('🔍 DEBUG App.js - credits:', userStats?.credits);
+                      debugNavigate('/analytics', 'Dashboard analytics button clicked');
                     }}
                     onAccountSettings={() => navigate('/account')}
                     onSubscription={() => navigate('/subscription')}
@@ -858,9 +866,17 @@ const App = () => {
                 // Check if user has unlimited access
                 const hasUnlimitedAccess = userStats?.current_plan === 'unlimited' || userStats?.credits >= 99999;
                 
+                console.log('🔍 DEBUG App.js - History route check:', {
+                  userStats,
+                  current_plan: userStats?.current_plan,
+                  credits: userStats?.credits,
+                  hasUnlimitedAccess
+                });
+                
                 if (!hasUnlimitedAccess) {
                   // Redirect to pricing page for free users
-                  navigate('/pricing');
+                  console.log('🔍 DEBUG App.js - Redirecting to pricing from History route');
+                  debugNavigate('/pricing', 'History route - free user redirect');
                   return null;
                 }
                 
@@ -893,9 +909,17 @@ const App = () => {
                 // Check if user has unlimited access
                 const hasUnlimitedAccess = userStats?.current_plan === 'unlimited' || userStats?.credits >= 99999;
                 
+                console.log('🔍 DEBUG App.js - Analytics route check:', {
+                  userStats,
+                  current_plan: userStats?.current_plan,
+                  credits: userStats?.credits,
+                  hasUnlimitedAccess
+                });
+                
                 if (!hasUnlimitedAccess) {
                   // Redirect to pricing page for free users
-                  navigate('/pricing');
+                  console.log('🔍 DEBUG App.js - Redirecting to pricing from Analytics route');
+                  debugNavigate('/pricing', 'Analytics route - free user redirect');
                   return null;
                 }
                 
