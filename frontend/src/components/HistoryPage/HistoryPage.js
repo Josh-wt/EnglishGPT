@@ -10,7 +10,6 @@ import CompareModal from './CompareModal';
 // Enhanced Locked Analytics Page
 const LockedAnalyticsPage = ({ onBack, upgradeType, page = 'analytics' }) => {
   const isAnalytics = page === 'analytics';
-  const isHistory = page === 'history';
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">

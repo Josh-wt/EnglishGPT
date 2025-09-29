@@ -33,7 +33,6 @@ const HistoryPage = lazy(() => import('./components/HistoryPage'));
 const HistoryDetailPage = lazy(() => import('./components/HistoryPage/HistoryDetailPage'));
 const AnalyticsDashboard = lazy(() => import('./components/AnalyticsDashboard'));
 const AccountPage = lazy(() => import('./components/AccountPage'));
-const PricingPage = lazy(() => import('./components/PricingPage'));
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const LaunchPeriodModal = lazy(() => import('./components/LaunchPeriodModal/LaunchPeriodModal'));
 const ModernPricingPage = lazy(() => import('./components/PricingPage/ModernPricingPage'));
@@ -55,32 +54,6 @@ const App = () => {
   const navigationHistory = useRef([]);
   const location = useLocation();
 
-  // Add global debugging functions to window for console access
-  useEffect(() => {
-    // Make debugging functions available globally
-    window.debugAPI = {
-      pendingRequests: debugPendingRequests,
-      allRequests: debugAllRequests,
-      backendUrl: getApiUrl,
-      userState: () => ({ user, userStats, loading: userLoading }),
-      supabase: supabase,
-      api: api
-    };
-    
-    // Debug user state changes
-    console.log('🔍 DEBUG App.js - User state changed:', {
-      user: user ? { id: user.id, email: user.email } : null,
-      userStats: userStats,
-      userLoading: userLoading,
-      pathname: location.pathname,
-      timestamp: new Date().toISOString()
-    });
-
-    // Cleanup function
-    return () => {
-      delete window.debugAPI;
-    };
-  }, []); // Remove complex dependencies
 
   // Debug panel state
   const [showDebugPanel, setShowDebugPanel] = useState(false);
@@ -97,7 +70,7 @@ const App = () => {
     return () => {
       delete window.toggleDebugPanel;
     };
-  }, []); // Remove dependency
+  }, [toggleDebugPanel]); // Include dependency
 
   // Track app renders and performance
   useEffect(() => {
@@ -135,6 +108,33 @@ const App = () => {
   const { user, userStats, loading: userLoading, signInWithGoogle, signInWithDiscord, signOut, updateLevel, refreshUserData, forceRefreshUserData } = useUser();
   const { questionTypes } = useQuestionTypes();
 
+  // Add global debugging functions to window for console access
+  useEffect(() => {
+    // Make debugging functions available globally
+    window.debugAPI = {
+      pendingRequests: debugPendingRequests,
+      allRequests: debugAllRequests,
+      backendUrl: getApiUrl,
+      userState: () => ({ user, userStats, loading: userLoading }),
+      supabase: supabase,
+      api: api
+    };
+    
+    // Debug user state changes
+    console.log('🔍 DEBUG App.js - User state changed:', {
+      user: user ? { id: user.id, email: user.email } : null,
+      userStats: userStats,
+      userLoading: userLoading,
+      pathname: location.pathname,
+      timestamp: new Date().toISOString()
+    });
+
+    // Cleanup function
+    return () => {
+      delete window.debugAPI;
+    };
+  }, [location.pathname, user, userLoading, userStats]); // Include all dependencies
+
   // Debug user state changes - only log errors
   useEffect(() => {
     if (userLoading && user) {
@@ -160,7 +160,6 @@ const App = () => {
   const [feedbackAccurate, setFeedbackAccurate] = useState(null);
   const [feedbackComments, setFeedbackComments] = useState('');
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
-  const [currentPage, setCurrentPage] = useState('dashboard');
   const [evaluations, setEvaluations] = useState([]);
 
   const navigate = useNavigate();
@@ -281,7 +280,6 @@ const App = () => {
   // Navigation handlers
   const handleStartQuestion = () => {
     if (selectedLevel) {
-      setCurrentPage('questionTypes');
       navigate('/write');
     } else {
       // Show level selection modal for first-time users
@@ -303,7 +301,6 @@ const App = () => {
     }
     
     // Navigate to write page
-    setCurrentPage('questionTypes');
     navigate('/write');
   };
 
@@ -311,11 +308,9 @@ const App = () => {
     setSelectedQuestionType(questionType);
     if (questionType.studentResponse) {
       // This is coming from QuestionTypePage with student response
-      setCurrentPage('assessment');
       navigate('/assessment');
     } else {
       // This is a regular question type selection
-      setCurrentPage('assessment');
       navigate('/assessment');
     }
   };
@@ -593,7 +588,6 @@ const App = () => {
       // For authenticated users, navigate to write page
       setEvaluation(null);
       setSelectedQuestionType(null);
-      setCurrentPage('questionTypes');
       navigate('/write');
     }
   };
@@ -601,7 +595,6 @@ const App = () => {
 
 
   const handleBack = () => {
-    setCurrentPage('dashboard');
     navigate('/dashboard');
   };
 
