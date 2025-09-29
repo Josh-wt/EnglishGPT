@@ -82,9 +82,14 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
   const [showCompare, setShowCompare] = useState(false);
   const [selectedEvaluation, setSelectedEvaluation] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  
-  // History is now available to all users regardless of plan
-  // (Removed plan restrictions - all users can view their evaluation history)
+
+  // Check if user has unlimited access
+  const hasUnlimitedAccess = useMemo(() => {
+    const plan = userPlan?.toLowerCase();
+    // For now, we'll allow access to history for all users
+    // You can add credit checks here if needed: || credits >= 99999
+    return plan === 'unlimited';
+  }, [userPlan]);
 
   // Handle loading and empty states
   const hasEvaluations = evaluations && evaluations.length > 0;
@@ -131,6 +136,11 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
 
     return filtered;
   }, [evaluations, searchTerm, filterType, sortBy]);
+
+  // If user doesn't have unlimited access, show locked page
+  if (!hasUnlimitedAccess) {
+    return <LockedAnalyticsPage onBack={onBack} page="history" />;
+  }
 
   // Utility functions for modals
   const parseFeedbackToBullets = (feedback) => {

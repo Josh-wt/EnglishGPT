@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Footer from '../ui/Footer';
 
@@ -162,8 +162,17 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
   const [selectedTimeRange, setSelectedTimeRange] = useState('month');
   const [activeTab, setActiveTab] = useState('overview');
   
-  // Analytics is now available to all users regardless of plan
-  // (Removed plan restrictions - all users can view their analytics)
+  // Check if user has unlimited access
+  const hasUnlimitedAccess = useMemo(() => {
+    const plan = userStats?.current_plan?.toLowerCase();
+    const credits = userStats?.credits;
+    return plan === 'unlimited' || credits >= 99999;
+  }, [userStats?.current_plan, userStats?.credits]);
+
+  // If user doesn't have unlimited access, show locked page
+  if (!hasUnlimitedAccess) {
+    return <LockedAnalyticsPage onBack={onBack} page="analytics" />;
+  }
 
   // Handle loading and empty states
   const hasEvaluations = evaluations && evaluations.length > 0;
