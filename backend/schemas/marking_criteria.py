@@ -126,6 +126,9 @@ although, inconsistencies here as well. a major one is a salient contradiction- 
 
 7-1 Marks (Very Low Level): Very limited language, serious errors.""",
     "igcse_narrative": """Primary Focus: The candidate's ability to create an imaginative and effective piece of writing, judged on Content/Structure and Style/Accuracy.
+
+CRITICAL MARKING INSTRUCTION: DO NOT deduct marks for "lack of originality and depth" in narrative plots. Instead, only assess whether the way the plot is narrated is too straightforward or lacks narrative sophistication. Focus on the storytelling technique, not the inherent originality of the plot itself.
+
 A. Content and Structure (16 Marks): The "What" and "How It's Built"
 Primary Focus: The strength of the ideas, the development of the plot/description, the creation of characters/atmosphere, and the overall organization.
 Key Discriminators & How to Award/Deduct Marks:

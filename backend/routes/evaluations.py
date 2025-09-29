@@ -578,6 +578,32 @@ async def get_evaluation_history(user_id: str):
         evaluations_response = supabase.table('assessment_evaluations').select('*').eq('user_id', user_id).order('timestamp', desc=True).limit(100).execute()
         evaluations = evaluations_response.data
         
+        # Parse improvement_suggestions, strengths, and next_steps for each evaluation
+        for evaluation in evaluations:
+            # Parse improvement_suggestions if it's a string
+            if evaluation.get('improvement_suggestions') and isinstance(evaluation['improvement_suggestions'], str):
+                improvements_str = evaluation['improvement_suggestions']
+                if '|' in improvements_str:
+                    evaluation['improvement_suggestions'] = [s.strip() for s in improvements_str.split('|') if s.strip()]
+                else:
+                    evaluation['improvement_suggestions'] = [improvements_str] if improvements_str.strip() else []
+            
+            # Parse strengths if it's a string
+            if evaluation.get('strengths') and isinstance(evaluation['strengths'], str):
+                strengths_str = evaluation['strengths']
+                if '|' in strengths_str:
+                    evaluation['strengths'] = [s.strip() for s in strengths_str.split('|') if s.strip()]
+                else:
+                    evaluation['strengths'] = [strengths_str] if strengths_str.strip() else []
+            
+            # Parse next_steps if it's a string
+            if evaluation.get('next_steps') and isinstance(evaluation['next_steps'], str):
+                next_steps_str = evaluation['next_steps']
+                if '|' in next_steps_str:
+                    evaluation['next_steps'] = [s.strip() for s in next_steps_str.split('|') if s.strip()]
+                else:
+                    evaluation['next_steps'] = [next_steps_str] if next_steps_str.strip() else []
+        
         return {"evaluations": evaluations}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"History retrieval error: {str(e)}")
@@ -588,6 +614,32 @@ async def get_user_evaluations(user_id: str):
     try:
         evaluations_response = supabase.table('assessment_evaluations').select('*').eq('user_id', user_id).order('timestamp', desc=True).execute()
         evaluations = evaluations_response.data
+        
+        # Parse improvement_suggestions, strengths, and next_steps for each evaluation
+        for evaluation in evaluations:
+            # Parse improvement_suggestions if it's a string
+            if evaluation.get('improvement_suggestions') and isinstance(evaluation['improvement_suggestions'], str):
+                improvements_str = evaluation['improvement_suggestions']
+                if '|' in improvements_str:
+                    evaluation['improvement_suggestions'] = [s.strip() for s in improvements_str.split('|') if s.strip()]
+                else:
+                    evaluation['improvement_suggestions'] = [improvements_str] if improvements_str.strip() else []
+            
+            # Parse strengths if it's a string
+            if evaluation.get('strengths') and isinstance(evaluation['strengths'], str):
+                strengths_str = evaluation['strengths']
+                if '|' in strengths_str:
+                    evaluation['strengths'] = [s.strip() for s in strengths_str.split('|') if s.strip()]
+                else:
+                    evaluation['strengths'] = [strengths_str] if strengths_str.strip() else []
+            
+            # Parse next_steps if it's a string
+            if evaluation.get('next_steps') and isinstance(evaluation['next_steps'], str):
+                next_steps_str = evaluation['next_steps']
+                if '|' in next_steps_str:
+                    evaluation['next_steps'] = [s.strip() for s in next_steps_str.split('|') if s.strip()]
+                else:
+                    evaluation['next_steps'] = [next_steps_str] if next_steps_str.strip() else []
         
         return {"evaluations": evaluations}
     except Exception as e:
@@ -620,6 +672,32 @@ async def get_evaluation_by_id(evaluation_id: str):
         if not evaluation:
             raise HTTPException(status_code=404, detail="Evaluation not found")
         
+        # Parse improvement_suggestions if it's a string
+        if evaluation.get('improvement_suggestions') and isinstance(evaluation['improvement_suggestions'], str):
+            # Split by pipe separator and clean up
+            improvements_str = evaluation['improvement_suggestions']
+            if '|' in improvements_str:
+                evaluation['improvement_suggestions'] = [s.strip() for s in improvements_str.split('|') if s.strip()]
+            else:
+                # If no pipe separator, treat as single improvement
+                evaluation['improvement_suggestions'] = [improvements_str] if improvements_str.strip() else []
+        
+        # Parse strengths if it's a string
+        if evaluation.get('strengths') and isinstance(evaluation['strengths'], str):
+            strengths_str = evaluation['strengths']
+            if '|' in strengths_str:
+                evaluation['strengths'] = [s.strip() for s in strengths_str.split('|') if s.strip()]
+            else:
+                evaluation['strengths'] = [strengths_str] if strengths_str.strip() else []
+        
+        # Parse next_steps if it's a string
+        if evaluation.get('next_steps') and isinstance(evaluation['next_steps'], str):
+            next_steps_str = evaluation['next_steps']
+            if '|' in next_steps_str:
+                evaluation['next_steps'] = [s.strip() for s in next_steps_str.split('|') if s.strip()]
+            else:
+                evaluation['next_steps'] = [next_steps_str] if next_steps_str.strip() else []
+        
         return {"evaluation": evaluation}
     except HTTPException:
         raise
@@ -645,6 +723,30 @@ async def get_evaluation_admin_view(evaluation_id: str):
         
         if not evaluation:
             raise HTTPException(status_code=404, detail="Evaluation not found")
+        
+        # Parse improvement_suggestions if it's a string
+        if evaluation.get('improvement_suggestions') and isinstance(evaluation['improvement_suggestions'], str):
+            improvements_str = evaluation['improvement_suggestions']
+            if '|' in improvements_str:
+                evaluation['improvement_suggestions'] = [s.strip() for s in improvements_str.split('|') if s.strip()]
+            else:
+                evaluation['improvement_suggestions'] = [improvements_str] if improvements_str.strip() else []
+        
+        # Parse strengths if it's a string
+        if evaluation.get('strengths') and isinstance(evaluation['strengths'], str):
+            strengths_str = evaluation['strengths']
+            if '|' in strengths_str:
+                evaluation['strengths'] = [s.strip() for s in strengths_str.split('|') if s.strip()]
+            else:
+                evaluation['strengths'] = [strengths_str] if strengths_str.strip() else []
+        
+        # Parse next_steps if it's a string
+        if evaluation.get('next_steps') and isinstance(evaluation['next_steps'], str):
+            next_steps_str = evaluation['next_steps']
+            if '|' in next_steps_str:
+                evaluation['next_steps'] = [s.strip() for s in next_steps_str.split('|') if s.strip()]
+            else:
+                evaluation['next_steps'] = [next_steps_str] if next_steps_str.strip() else []
         
         # Parse full_chat data if it exists
         full_chat_data = None
