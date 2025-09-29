@@ -71,7 +71,7 @@ const LockedAnalyticsPage = ({ onBack, upgradeType, page = 'analytics' }) => {
 };
 
 // History Page
-const HistoryPage = ({ onBack, evaluations, userPlan }) => {
+const HistoryPage = ({ onBack, evaluations, userPlan, userStats }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
@@ -82,13 +82,13 @@ const HistoryPage = ({ onBack, evaluations, userPlan }) => {
   const [selectedEvaluation, setSelectedEvaluation] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
-  // Check if user has unlimited access
+  // Check if user has unlimited access - consistent with other components
   const hasUnlimitedAccess = useMemo(() => {
     const plan = userPlan?.toLowerCase();
-    // For now, we'll allow access to history for all users
-    // You can add credit checks here if needed: || credits >= 99999
-    return plan === 'unlimited';
-  }, [userPlan]);
+    const credits = userStats?.credits;
+    // Allow access for unlimited, premium plans, or users with high credit counts
+    return plan === 'unlimited' || plan === 'premium' || credits >= 99999;
+  }, [userPlan, userStats?.credits]);
 
   // Handle loading and empty states
   const hasEvaluations = evaluations && evaluations.length > 0;

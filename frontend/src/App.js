@@ -859,6 +859,7 @@ const App = () => {
                 evaluations={evaluations}
                 onBack={handleBack}
                 userPlan={userStats?.currentPlan || 'free'}
+                userStats={userStats}
               />
             </LazyWrapper>
           </AuthRequired>
@@ -870,6 +871,7 @@ const App = () => {
                 evaluations={evaluations}
                 onBack={handleBack}
                 userPlan={userStats?.currentPlan || 'free'}
+                userStats={userStats}
               />
             </LazyWrapper>
           </AuthRequired>
