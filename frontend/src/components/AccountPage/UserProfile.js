@@ -1,7 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { usePrivacy } from '../../hooks/usePrivacy';
 
 const UserProfile = ({ user, userStats }) => {
+  const { maskSensitiveInfo, shouldShowProgress } = usePrivacy();
+  
   // Calculate member since date
   const memberSince = user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', {
     month: 'long',
@@ -37,7 +40,7 @@ const UserProfile = ({ user, userStats }) => {
           </div>
           <div>
             <h2 className="text-xl font-bold text-gray-900">
-              {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}
+              {maskSensitiveInfo(user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User', 'name')}
             </h2>
             <p className="text-sm text-gray-500">Member since {memberSince}</p>
           </div>
@@ -55,7 +58,7 @@ const UserProfile = ({ user, userStats }) => {
       <div className="grid md:grid-cols-3 gap-6">
         <div className="bg-gray-50 rounded-lg p-4">
           <label className="block text-xs font-medium text-gray-500 mb-1">Email Address</label>
-          <p className="text-gray-900 font-medium">{user?.email || 'Not provided'}</p>
+          <p className="text-gray-900 font-medium">{maskSensitiveInfo(user?.email || 'Not provided', 'email')}</p>
         </div>
         <div className="bg-gray-50 rounded-lg p-4">
           <label className="block text-xs font-medium text-gray-500 mb-1">Essays Marked</label>
@@ -63,31 +66,33 @@ const UserProfile = ({ user, userStats }) => {
         </div>
         <div className="bg-gray-50 rounded-lg p-4">
           <label className="block text-xs font-medium text-gray-500 mb-1">Account ID</label>
-          <p className="text-gray-900 font-mono text-xs">{user?.id?.substring(0, 8) || 'N/A'}...</p>
+          <p className="text-gray-900 font-mono text-xs">{maskSensitiveInfo(user?.id || 'N/A', 'id')}</p>
         </div>
       </div>
 
-      {/* Stats Bar */}
-      <div className="mt-6 pt-6 border-t border-gray-200">
-        <div className="flex justify-around text-center">
-          <div>
-            <p className="text-2xl font-bold text-gray-900">{userStats?.questionsMarked || 0}</p>
-            <p className="text-xs text-gray-500">Total Essays</p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900">{userStats?.streak || 0}</p>
-            <p className="text-xs text-gray-500">Day Streak</p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900">{userStats?.badges?.length || 0}</p>
-            <p className="text-xs text-gray-500">Badges Earned</p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900">{userStats?.averageScore || 'N/A'}</p>
-            <p className="text-xs text-gray-500">Avg Score</p>
+      {/* Stats Bar - only show if progress is enabled */}
+      {shouldShowProgress() && (
+        <div className="mt-6 pt-6 border-t border-gray-200">
+          <div className="flex justify-around text-center">
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{userStats?.questionsMarked || 0}</p>
+              <p className="text-xs text-gray-500">Total Essays</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{userStats?.streak || 0}</p>
+              <p className="text-xs text-gray-500">Day Streak</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{userStats?.badges?.length || 0}</p>
+              <p className="text-xs text-gray-500">Badges Earned</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{userStats?.averageScore || 'N/A'}</p>
+              <p className="text-xs text-gray-500">Avg Score</p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </motion.div>
   );
 };

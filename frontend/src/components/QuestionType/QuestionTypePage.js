@@ -3,9 +3,10 @@ import { motion } from 'framer-motion';
 import ExampleModal from './ExampleModal';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import MarkingSchemeModal from '../modals/MarkingSchemeModal';
+import { usePreferences } from '../../hooks/usePreferences';
 
 const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvaluate, selectedLevel, darkMode, user, evaluationLoading, loadingMessage }) => {
-
+  const { preferences } = usePreferences();
   const [selectedQuestionType, setSelectedQuestionType] = useState(null);
   const [studentResponse, setStudentResponse] = useState('');
   const [restoredDraft, setRestoredDraft] = useState(false);
@@ -28,9 +29,9 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       .replace(/\n/g, '<br>');
   }, []);
 
-  // Restore draft on mount - linked to question type
+  // Restore draft on mount - linked to question type and user preference
   useEffect(() => {
-    if (selectedQuestionType?.id) {
+    if (selectedQuestionType?.id && preferences.auto_save_drafts) {
       const key = `draft_student_response_${selectedQuestionType.id}`;
       const saved = localStorage.getItem(key);
       if (saved && !studentResponse) {
@@ -41,7 +42,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
         setTimeout(() => setRestoredDraft(false), 3000);
       }
     }
-  }, [selectedQuestionType, convertMarkdownToHtml]);
+  }, [selectedQuestionType, convertMarkdownToHtml, preferences.auto_save_drafts]);
 
   // Check for landing page essay and restore it
   useEffect(() => {
@@ -119,9 +120,9 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   }, [studentResponse, isUserTyping]);
 
 
-  // Autosave on change (debounced) - linked to question type
+  // Autosave on change (debounced) - linked to question type and user preference
   useEffect(() => {
-    if (selectedQuestionType?.id) {
+    if (selectedQuestionType?.id && preferences.auto_save_drafts) {
       const key = `draft_student_response_${selectedQuestionType.id}`;
       const handle = setTimeout(() => {
         if (studentResponse && studentResponse.trim().length > 0) {
@@ -133,7 +134,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       }, 400);
       return () => clearTimeout(handle);
     }
-  }, [studentResponse, selectedQuestionType]);
+  }, [studentResponse, selectedQuestionType, preferences.auto_save_drafts]);
 
   // Show loading screen when evaluation is in progress
   if (evaluationLoading) {
@@ -619,9 +620,13 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                       ¶
                     </button>
                     <div className="flex-1"></div>
-                    <div className="text-xs sm:text-sm text-gray-500 font-fredoka">
-                      {wordCount} words
-                    </div>
+                    {(preferences.show_word_count || preferences.show_character_count) && (
+                      <div className="text-xs sm:text-sm text-gray-500 font-fredoka">
+                        {preferences.show_word_count && `${wordCount} words`}
+                        {preferences.show_word_count && preferences.show_character_count && ' • '}
+                        {preferences.show_character_count && `${studentResponse.length} characters`}
+                      </div>
+                    )}
                   </div>
 
                   {/* Text Editor with Live Markdown Formatting */}

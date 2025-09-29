@@ -1,6 +1,9 @@
 import React from 'react';
+import { usePreferences } from '../../hooks/usePreferences';
 
 const QuestionSelection = ({ levelData, selectedQuestionType, onQuestionSelect, onShowExample, onGeneratePrompt }) => {
+  const { preferences } = usePreferences();
+  
   return (
     <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
       <div className="flex items-center justify-between mb-6">
@@ -60,43 +63,45 @@ const QuestionSelection = ({ levelData, selectedQuestionType, onQuestionSelect, 
           </div>
         )}
       </div>
-      <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200 mt-6">
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-            <span className="text-white text-lg">💡</span>
-          </div>
-          <div>
-            <h3 className="font-bold text-purple-900 text-lg">Writing Tips</h3>
-            <p className="text-purple-700 text-sm">Maximize your {selectedQuestionType?.name || levelData.levelName} performance</p>
-          </div>
-        </div>
-        <div className="space-y-3">
-          {[
-            { icon: '📋', tip: 'Plan briefly: outline intro, key points, and conclusion' },
-            { icon: '📚', tip: 'Use precise vocabulary and vary sentence structure' },
-            { icon: '🎯', tip: 'Keep a consistent tone and answer the prompt directly' }
-          ].map((item, index) => (
-            <div key={index} className="flex items-start space-x-3">
-              <span className="text-lg mt-0.5">{item.icon}</span>
-              <span className="text-gray-700 text-sm leading-relaxed">{item.tip}</span>
+      {preferences.show_tips && (
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200 mt-6">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+              <span className="text-white text-lg">💡</span>
             </div>
-          ))}
+            <div>
+              <h3 className="font-bold text-purple-900 text-lg">Writing Tips</h3>
+              <p className="text-purple-700 text-sm">Maximize your {selectedQuestionType?.name || levelData.levelName} performance</p>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {[
+              { icon: '📋', tip: 'Plan briefly: outline intro, key points, and conclusion' },
+              { icon: '📚', tip: 'Use precise vocabulary and vary sentence structure' },
+              { icon: '🎯', tip: 'Keep a consistent tone and answer the prompt directly' }
+            ].map((item, index) => (
+              <div key={index} className="flex items-start space-x-3">
+                <span className="text-lg mt-0.5">{item.icon}</span>
+                <span className="text-gray-700 text-sm leading-relaxed">{item.tip}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 flex gap-3">
+            <button 
+              onClick={onShowExample} 
+              className="flex-1 px-4 py-2.5 rounded-xl border-2 border-purple-300 text-purple-700 font-medium hover:bg-purple-50 hover:border-purple-400 transition-all duration-200"
+            >
+              View Example
+            </button>
+            <button 
+              onClick={onGeneratePrompt} 
+              className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium hover:shadow-lg transition-all duration-200"
+            >
+              Generate Prompt
+            </button>
+          </div>
         </div>
-        <div className="mt-6 flex gap-3">
-          <button 
-            onClick={onShowExample} 
-            className="flex-1 px-4 py-2.5 rounded-xl border-2 border-purple-300 text-purple-700 font-medium hover:bg-purple-50 hover:border-purple-400 transition-all duration-200"
-          >
-            View Example
-          </button>
-          <button 
-            onClick={onGeneratePrompt} 
-            className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium hover:shadow-lg transition-all duration-200"
-          >
-            Generate Prompt
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

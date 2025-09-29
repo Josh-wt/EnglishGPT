@@ -6,6 +6,7 @@ import { Toaster } from 'react-hot-toast';
 // Import hooks
 import { useUser } from './hooks/useUser';
 import { useQuestionTypes } from './hooks/useQuestionTypes';
+import { usePreferences } from './hooks/usePreferences';
 
 // Import services
 import { submitFeedback } from './services/feedback';
@@ -107,6 +108,7 @@ const App = () => {
   // Use custom hooks for state management
   const { user, userStats, loading: userLoading, signInWithGoogle, signInWithDiscord, signOut, updateLevel, refreshUserData, forceRefreshUserData } = useUser();
   const { questionTypes } = useQuestionTypes();
+  const { preferences } = usePreferences();
 
   // Add global debugging functions to window for console access
   useEffect(() => {
@@ -408,7 +410,8 @@ const App = () => {
     try {
       const evaluationWithUser = {
         ...evaluationResult,
-        user_id: userId
+        user_id: userId,
+        use_data_for_training: preferences.use_data_for_training
       };
       
       // Pre-request debugging

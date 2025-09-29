@@ -7,6 +7,7 @@ import SubscriptionInfo from './SubscriptionInfo';
 import TransactionHistory from './TransactionHistory';
 import AcademicLevelSelector from './AcademicLevelSelector';
 import Footer from '../ui/Footer';
+import { usePreferences } from '../../hooks/usePreferences';
 import { 
   BellIcon, 
   EnvelopeIcon, 
@@ -44,49 +45,14 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
   const [transactions, setTransactions] = useState([]);
   const [transactionsLoading, setTransactionsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(defaultTab);
-  const [preferences, setPreferences] = useState({
-    email_notifications: true,
-    marketing_emails: false,
-    show_progress: true,
-    use_data_for_training: true,
-    auto_save_drafts: true,
-    show_tips: true,
-    sound_effects: true,
-    compact_mode: false,
-    language_preference: 'en',
-    timezone: 'UTC',
-    notification_frequency: 'immediate',
-    feedback_detail_level: 'detailed',
-    theme_color: 'blue',
-    font_size: 'medium',
-    accessibility_mode: false,
-    keyboard_shortcuts: true,
-    auto_advance: false,
-    show_word_count: true,
-    show_character_count: false,
-    spell_check: true,
-    grammar_suggestions: true,
-    writing_style: 'academic',
-    focus_mode: false,
-    distraction_free: false,
-    auto_backup: true,
-    cloud_sync: true,
-    privacy_mode: false,
-    data_retention_days: 365,
-    export_format: 'pdf',
-    backup_frequency: 'daily'
-  });
-  const [preferencesLoading, setPreferencesLoading] = useState(false);
+  const { preferences, updatePreference, loading: preferencesLoading } = usePreferences();
   
   useEffect(() => {
     let mounted = true;
     setError('');
     const userId = user?.uid || user?.id;
     
-    // Load user preferences when component mounts
-    if (userId) {
-      loadUserPreferences();
-    }
+    // Preferences are now loaded via the usePreferences hook
     if (user && userId) {
       // Use academic level from userStats if available, otherwise fetch from API
       if (userStats?.academicLevel) {
@@ -178,40 +144,13 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
   ];
 
   const handlePreferenceChange = async (key, value) => {
-    setPreferences(prev => ({ ...prev, [key]: value }));
-    
-    // Auto-save preferences to backend
     try {
-      setPreferencesLoading(true);
-      await api.put(`/users/${user?.uid || user?.id}/preferences`, {
-        [key]: value
-      });
+      await updatePreference(key, value);
       setSuccess('Preference updated successfully!');
       setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
       console.error('Error saving preference:', error);
       setError('Failed to save preference. Please try again.');
-    } finally {
-      setPreferencesLoading(false);
-    }
-  };
-
-  const loadUserPreferences = async () => {
-    if (!user?.uid && !user?.id) return;
-    
-    try {
-      setPreferencesLoading(true);
-      const response = await api.get(`/users/${user?.uid || user?.id}/preferences`);
-      if (response.data) {
-        setPreferences(prev => ({
-          ...prev,
-          ...response.data
-        }));
-      }
-    } catch (error) {
-      console.error('Error loading preferences:', error);
-    } finally {
-      setPreferencesLoading(false);
     }
   };
 
@@ -461,43 +400,6 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
                       </button>
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">Spell Check</h3>
-                        <p className="text-sm text-gray-500">Enable automatic spell checking</p>
-                      </div>
-                      <button
-                        onClick={() => handlePreferenceChange('spell_check', !preferences.spell_check)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          preferences.spell_check ? 'bg-indigo-600' : 'bg-gray-200'
-                        }`}
-                      >
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            preferences.spell_check ? 'translate-x-6' : 'translate-x-1'
-                          }`}
-                        />
-                      </button>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">Grammar Suggestions</h3>
-                        <p className="text-sm text-gray-500">Get real-time grammar improvement suggestions</p>
-                      </div>
-                      <button
-                        onClick={() => handlePreferenceChange('grammar_suggestions', !preferences.grammar_suggestions)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          preferences.grammar_suggestions ? 'bg-indigo-600' : 'bg-gray-200'
-                        }`}
-                      >
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            preferences.grammar_suggestions ? 'translate-x-6' : 'translate-x-1'
-                          }`}
-                        />
-                      </button>
-                    </div>
 
                     <div className="flex items-center justify-between">
                       <div>

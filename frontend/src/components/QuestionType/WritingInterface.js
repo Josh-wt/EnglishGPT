@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { usePreferences } from '../../hooks/usePreferences';
 
 const WritingInterface = ({
   studentResponse,
@@ -16,6 +17,7 @@ const WritingInterface = ({
   lastSavedAt,
   restoredDraft
 }) => {
+  const { preferences } = usePreferences();
   return (
     <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-4 sm:p-6 shadow-sm border`}>
       <div className="flex items-center justify-between mb-4 sm:mb-6">
@@ -61,9 +63,18 @@ const WritingInterface = ({
       {/* Word Count and Save Status */}
       <div className="flex items-center justify-between mb-4">
         <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-          <span className="font-semibold">{wordCount} words</span>
+          {preferences.show_word_count && (
+            <span className="font-semibold">{wordCount} words</span>
+          )}
+          {preferences.show_character_count && (
+            <span className={`font-semibold ${preferences.show_word_count ? 'ml-2' : ''}`}>
+              {preferences.show_word_count ? '• ' : ''}{studentResponse.length} characters
+            </span>
+          )}
           {lastSavedAt && (
-            <span className="ml-2">• Saved {Math.max(0, Math.floor((Date.now() - lastSavedAt) / 60000))} min ago</span>
+            <span className={`${preferences.show_word_count || preferences.show_character_count ? 'ml-2' : ''}`}>
+              {(preferences.show_word_count || preferences.show_character_count) ? '• ' : ''}Saved {Math.max(0, Math.floor((Date.now() - lastSavedAt) / 60000))} min ago
+            </span>
           )}
         </div>
         {restoredDraft && (
