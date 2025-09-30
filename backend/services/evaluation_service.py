@@ -161,8 +161,9 @@ class EvaluationService:
 
 {"🚨 CRITICAL NARRATIVE MARKING INSTRUCTION - MUST READ BEFORE MARKING 🚨" if submission.question_type == 'igcse_narrative' else ""}
 {"GIVE EXTRA MARKS AND LENIENCY to plots you think are predictable BUT demonstrate good vocabulary and descriptive abilities. Focus on rewarding sophisticated storytelling technique, rich vocabulary, and vivid descriptive language rather than plot originality. A predictable plot with excellent vocabulary should receive HIGHER marks than an original plot with poor vocabulary." if submission.question_type == 'igcse_narrative' else ""}
-{"GIVE LENIENCY to essays with poor characterization - DO NOT deduct marks heavily for weak character development. Focus on vocabulary, descriptive abilities, and narrative techniques instead of character depth." if submission.question_type == 'igcse_narrative' else ""}
-
+{"🚨 CHARACTERIZATION LENIENCY - CRITICAL INSTRUCTION 🚨" if submission.question_type == 'igcse_narrative' else ""}
+{"DO NOT DEDUCT MARKS FOR POOR CHARACTERIZATION. Give FULL LENIENCY to essays with weak character development. Focus ONLY on vocabulary, descriptive abilities, and narrative techniques. Poor characterization should NOT affect the mark - ignore it completely." if submission.question_type == 'igcse_narrative' else ""}
+I DO NOT WANT TO SEE ANY MARKS DEDUCTED FOR POOR CHARACTERIZATION. I DO NOT WANT TO SEE POOR CHARACTERIZATION BEING MENTIONED IN THE IMPROVEMENTS SUGGESTIONSFEEDBACK
 CRITICAL MARKING INSTRUCTIONS 
 That being said, PLEASE give the student the highest marks possible if the user's vocabulary is good.
 Please evaluate the following response and provide:

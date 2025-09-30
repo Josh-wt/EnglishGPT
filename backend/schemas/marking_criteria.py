@@ -271,6 +271,8 @@ WHERE YOU, THE AI, GOES WRONG IN MARKING:
 
 🚨 CRITICAL ERROR #1: Deducting marks for "lack of originality and depth" in narrative plots. This is WRONG. Focus on vocabulary, descriptive abilities, and storytelling technique instead of plot originality. A predictable plot can still be excellently written.
 
+🚨 CRITICAL ERROR #2: Deducting marks for poor characterization. This is WRONG. Give FULL LENIENCY to essays with weak character development. Focus ONLY on vocabulary, descriptive abilities, and narrative techniques. Poor characterization should NOT affect the mark - ignore it completely.
+
 1. Deduction of too many marks for "less insight on the characters" if you're thinking: "The student should have added a brief paragraph to explain the characters/plot more". Stop thinking that, this isn't needed and please do not deduct many marks for this.
 2. You tend to be a little harsh in marking narratives, please bear that in mind, if the essay has good narrative qualities and sophisticated vocabulary, consider marking it higher than 30. PROBLEM IS now you think that all essays deserve 30+, no this is not the case. You have to think if the essay is good or not. Just pointing out you harsh does not mean you always should be lenient. 
 2. Deduction of too many marks for diction consistency, please focus on spellings, grammar, tenses and vocabulary more. Do not deduct for "Verify Diction"
