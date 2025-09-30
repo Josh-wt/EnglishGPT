@@ -209,7 +209,15 @@ STRENGTHS:
 NEXT STEPS: 
 [specific action 1] | [specific action 2] | [specific action 3]
 
-CRITICAL: Keep STRENGTHS, IMPROVEMENTS, and NEXT STEPS completely separate. Do NOT mix them up or put next steps content in the strengths section. Keep the format, first three bullet points should be improvements, then three bullet points should be strengths, then three bullet points should be next steps. 
+🚨 CRITICAL FORMATTING INSTRUCTION 🚨
+Keep STRENGTHS, IMPROVEMENTS, and NEXT STEPS completely separate. Do NOT mix them up or put next steps content in the strengths section. Do NOT put improvements or strengths content in the next steps section. Each section must contain ONLY its own content.
+
+FORMAT REQUIREMENTS:
+- IMPROVEMENTS: Only areas that need work in THIS specific essay
+- STRENGTHS: Only what the student did well in THIS specific essay  
+- NEXT STEPS: Only actionable future actions for the student
+
+DO NOT put "IMPROVEMENTS:" or "STRENGTHS:" labels inside the NEXT STEPS section. Each section must be completely independent. 
 
 PLEASE DO NOT GIVE MORE THAN 3 STRENGTHS AND 3 IMPROVEMENTS AND 3 NEXT STEPS. PLEASE DO NOT GIVE LESS THAN 3 STRENGTHS AND 3 IMPROVEMENTS AND 3 NEXT STEPS.
 
@@ -218,6 +226,12 @@ STRENGTHS should ONLY contain what the student did well in THIS specific essay (
 IMPROVEMENTS should ONLY contain areas that need work in THIS specific essay (e.g., "Some sentences were too long and complex", "Missing specific examples to support claims").
 
 NEXT STEPS should ONLY contain actionable future actions (e.g., "Practice writing shorter, clearer sentences", "Read 3 sample essays to see how evidence is used").
+
+🚨 NEXT STEPS SECTION RULES 🚨
+- Do NOT include "IMPROVEMENTS:" or "STRENGTHS:" labels in the NEXT STEPS section
+- Do NOT include improvement suggestions in the NEXT STEPS section
+- Do NOT include strength observations in the NEXT STEPS section
+- NEXT STEPS should be completely independent and contain only future actions
 
 CRITICAL: For the FEEDBACK section, format it as bullet points where each bu
 
@@ -531,16 +545,24 @@ Student Response: {sanitized_response}
                 next_steps_part = ai_response.split("NEXT STEPS:")[1].strip()
                 logger.debug(f"DEBUG: Raw next steps part: {next_steps_part}")
                 
+                # Clean up any mixed content - remove IMPROVEMENTS and STRENGTHS labels
+                next_steps_part = next_steps_part.replace("IMPROVEMENTS:", "").replace("STRENGTHS:", "")
+                
                 # Try multiple parsing methods
                 if "|" in next_steps_part:
-                    # Split by pipe
-                    next_steps = [s.strip() for s in next_steps_part.split("|") if s.strip()]
+                    # Split by pipe and filter out any items that contain improvement/strength labels
+                    raw_steps = [s.strip() for s in next_steps_part.split("|") if s.strip()]
+                    next_steps = [step for step in raw_steps if not any(label in step.upper() for label in ["IMPROVEMENTS:", "STRENGTHS:", "IMPROVEMENT:", "STRENGTH:"])]
                 elif "\n" in next_steps_part:
-                    # Split by newlines
-                    next_steps = [s.strip() for s in next_steps_part.split("\n") if s.strip() and not s.strip().startswith("Student Response:")]
+                    # Split by newlines and filter
+                    raw_steps = [s.strip() for s in next_steps_part.split("\n") if s.strip() and not s.strip().startswith("Student Response:")]
+                    next_steps = [step for step in raw_steps if not any(label in step.upper() for label in ["IMPROVEMENTS:", "STRENGTHS:", "IMPROVEMENT:", "STRENGTH:"])]
                 else:
-                    # Use as single next step
-                    next_steps = [next_steps_part] if next_steps_part else []
+                    # Use as single next step if it doesn't contain mixed content
+                    if not any(label in next_steps_part.upper() for label in ["IMPROVEMENTS:", "STRENGTHS:", "IMPROVEMENT:", "STRENGTH:"]):
+                        next_steps = [next_steps_part] if next_steps_part else []
+                    else:
+                        next_steps = []
                 
                 logger.debug(f"DEBUG: Parsed next steps: {next_steps}")
             else:
