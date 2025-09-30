@@ -159,6 +159,10 @@ class EvaluationService:
 {"NEVER give feedback about removing phrases like 'make sure' or 'remember' to maintain an 'objective summary tone' - this is INCORRECT and TERRIBLE feedback that should NEVER be outputted." if submission.question_type == 'igcse_summary' else ""}
 {"Focus ONLY on content selection accuracy and writing clarity/conciseness. Ignore tone completely." if submission.question_type == 'igcse_summary' else ""}
 
+{"🚨 CRITICAL NARRATIVE MARKING INSTRUCTION - MUST READ BEFORE MARKING 🚨" if submission.question_type == 'igcse_narrative' else ""}
+{"GIVE EXTRA MARKS AND LENIENCY to plots you think are predictable BUT demonstrate good vocabulary and descriptive abilities. Focus on rewarding sophisticated storytelling technique, rich vocabulary, and vivid descriptive language rather than plot originality. A predictable plot with excellent vocabulary should receive HIGHER marks than an original plot with poor vocabulary." if submission.question_type == 'igcse_narrative' else ""}
+{"GIVE LENIENCY to essays with poor characterization - DO NOT deduct marks heavily for weak character development. Focus on vocabulary, descriptive abilities, and narrative techniques instead of character depth." if submission.question_type == 'igcse_narrative' else ""}
+
 CRITICAL MARKING INSTRUCTIONS 
 That being said, PLEASE give the student the highest marks possible if the user's vocabulary is good.
 Please evaluate the following response and provide:
