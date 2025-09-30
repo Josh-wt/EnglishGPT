@@ -127,7 +127,8 @@ although, inconsistencies here as well. a major one is a salient contradiction- 
 7-1 Marks (Very Low Level): Very limited language, serious errors.""",
     "igcse_narrative": """Primary Focus: The candidate's ability to create an imaginative and effective piece of writing, judged on Content/Structure and Style/Accuracy.
 
-CRITICAL MARKING INSTRUCTION: DO NOT deduct marks for "lack of originality and depth" in narrative plots. Instead, only assess whether the way the plot is narrated is too straightforward or lacks narrative sophistication. Focus on the storytelling technique, not the inherent originality of the plot itself.
+🚨 CRITICAL MARKING INSTRUCTION - MUST READ BEFORE MARKING ANY NARRATIVE 🚨
+DO NOT deduct marks for "lack of originality and depth" in narrative plots. Instead, focus on the candidate's vocabulary and descriptive abilities to narrate even "predictable" plots effectively. Assess whether the way the plot is narrated demonstrates sophisticated storytelling technique, rich vocabulary, and vivid descriptive language - NOT the inherent originality of the plot itself. A student can write an excellent narrative about a common theme (friendship, overcoming challenges, etc.) if they demonstrate strong vocabulary, descriptive skills, and narrative techniques.    
 
 A. Content and Structure (16 Marks): The "What" and "How It's Built"
 Primary Focus: The strength of the ideas, the development of the plot/description, the creation of characters/atmosphere, and the overall organization.
@@ -268,6 +269,8 @@ Increasing levels of unintelligibility and grammatical breakdown.
 
 WHERE YOU, THE AI, GOES WRONG IN MARKING:
 
+🚨 CRITICAL ERROR #1: Deducting marks for "lack of originality and depth" in narrative plots. This is WRONG. Focus on vocabulary, descriptive abilities, and storytelling technique instead of plot originality. A predictable plot can still be excellently written.
+
 1. Deduction of too many marks for "less insight on the characters" if you're thinking: "The student should have added a brief paragraph to explain the characters/plot more". Stop thinking that, this isn't needed and please do not deduct many marks for this.
 2. You tend to be a little harsh in marking narratives, please bear that in mind, if the essay has good narrative qualities and sophisticated vocabulary, consider marking it higher than 30. PROBLEM IS now you think that all essays deserve 30+, no this is not the case. You have to think if the essay is good or not. Just pointing out you harsh does not mean you always should be lenient. 
 2. Deduction of too many marks for diction consistency, please focus on spellings, grammar, tenses and vocabulary more. Do not deduct for "Verify Diction"
@@ -323,7 +326,11 @@ for writing out of 24, this is a 15.
 IV. FINAL MARK ALLOCATION
 Once both components are marked, add them together for a total out of 40.
 The final assessment should justify the total mark by summarizing the strengths and weaknesses for each component, making direct reference to specific examples from the candidate's work and linking them to the level descriptors.
-Mark this text based on the above criteria: Do not over-scrutinize, marks can be awarded positively and negatively. Heavily limit marks when endings are rushed/not good. Please don't call every essay a rushed ending, do remember there is a word limit, however, rushed endings will cause heavy deduction of marks.""",
+Mark this text based on the above criteria: Do not over-scrutinize, marks can be awarded positively and negatively. Heavily limit marks when endings are rushed/not good. Please don't call every essay a rushed ending, do remember there is a word limit, however, rushed endings will cause heavy deduction of marks.
+
+
+🚨 CRITICAL MARKING INSTRUCTION - MUST READ BEFORE MARKING ANY NARRATIVE 🚨
+DO NOT deduct marks for "lack of originality and depth" in narrative plots. Instead, focus on the candidate's vocabulary and descriptive abilities to narrate even "predictable" plots effectively. Assess whether the way the plot is narrated demonstrates sophisticated storytelling technique, rich vocabulary, and vivid descriptive language - NOT the inherent originality of the plot itself. A student can write an excellent narrative about a common theme (friendship, overcoming challenges, etc.) if they demonstrate strong vocabulary, descriptive skills, and narrative techniques.""",
     "igcse_directed": """
 Task Overview
 
