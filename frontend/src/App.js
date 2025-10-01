@@ -162,7 +162,8 @@ const App = () => {
   const [feedbackAccurate, setFeedbackAccurate] = useState(null);
   const [feedbackComments, setFeedbackComments] = useState('');
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
-  const [evaluations, setEvaluations] = useState([]);
+  const [evaluations, setEvaluations] = useState(null);  // Changed from [] to null to detect loading state
+  const [evaluationsLoading, setEvaluationsLoading] = useState(true);
 
   const navigate = useNavigate();
   
@@ -218,6 +219,7 @@ const App = () => {
   useEffect(() => {
     const fetchEvaluations = async () => {
       if (user?.id) {
+        setEvaluationsLoading(true);
         try {
           const startTime = Date.now();
           console.log(`🔄 Loading evaluations for user ${user.id}...`);
@@ -252,8 +254,10 @@ const App = () => {
           
           if (evalResponse.data?.evaluations) {
             setEvaluations(evalResponse.data.evaluations);
+            console.log(`✅ Set ${evalResponse.data.evaluations.length} evaluations in state`);
           } else {
             setEvaluations([]);
+            console.log(`⚠️ No evaluations in response, set to empty array`);
           }
         } catch (error) {
           if (error.name === 'AbortError') {
@@ -263,7 +267,11 @@ const App = () => {
             console.error('❌ Error fetching evaluations:', error);
             setEvaluations([]);
           }
+        } finally {
+          setEvaluationsLoading(false);
         }
+      } else {
+        setEvaluationsLoading(false);
       }
     };
 

@@ -614,8 +614,16 @@ async def get_evaluation_history(user_id: str):
 async def get_user_evaluations(user_id: str):
     """Get all evaluations for a specific user"""
     try:
+        logger.info(f"📊 Fetching evaluations for user: {user_id}")
+        
+        if not supabase:
+            logger.error("❌ Supabase client not available")
+            raise HTTPException(status_code=500, detail="Database connection not available")
+        
         evaluations_response = supabase.table('assessment_evaluations').select('*').eq('user_id', user_id).order('timestamp', desc=True).execute()
         evaluations = evaluations_response.data
+        
+        logger.info(f"✅ Retrieved {len(evaluations)} evaluations for user: {user_id}")
         
         # Parse improvement_suggestions, strengths, and next_steps for each evaluation
         for evaluation in evaluations:
@@ -643,8 +651,14 @@ async def get_user_evaluations(user_id: str):
                 else:
                     evaluation['next_steps'] = [next_steps_str] if next_steps_str.strip() else []
         
+        logger.info(f"📦 Returning {len(evaluations)} evaluations for user: {user_id}")
         return {"evaluations": evaluations}
+    except HTTPException as he:
+        logger.error(f"❌ HTTP Exception in user evaluations: {he.status_code} - {he.detail}")
+        raise he
     except Exception as e:
+        logger.error(f"❌ User evaluations retrieval error for user {user_id}: {str(e)}")
+        logger.exception("Full traceback:")
         raise HTTPException(status_code=500, detail=f"User evaluations retrieval error: {str(e)}")
 
 @router.get("/evaluations/{evaluation_id}")

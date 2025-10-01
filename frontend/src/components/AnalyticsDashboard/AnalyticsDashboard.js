@@ -221,16 +221,42 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
 
   // Manual fetch for AI insights
   const fetchAIInsights = async () => {
-    if (!user?.id || !hasUnlimitedAccess) return;
+    if (!user?.id || !hasUnlimitedAccess) {
+      console.log('❌ Cannot fetch AI insights - missing user or access');
+      return;
+    }
     
     try {
+      console.log('🚀 [Analytics] Starting AI insights fetch for user:', user.id);
+      const startTime = Date.now();
+      
       setLoadingRecommendations(true);
+      
+      console.log('🔍 [Analytics] Calling getUserAnalytics...');
       const data = await getUserAnalytics(user.id);
+      
+      const duration = Date.now() - startTime;
+      console.log(`✅ [Analytics] getUserAnalytics completed in ${duration}ms`);
+      console.log('📊 [Analytics] Response data:', {
+        hasData: !!data,
+        hasAnalytics: !!data?.analytics,
+        hasRecommendations: !!data?.analytics?.recommendations,
+        recommendationsLength: data?.analytics?.recommendations?.length,
+        totalResponses: data?.analytics?.total_responses
+      });
+      
       setAnalyticsData(data?.analytics);
       setAiRecommendations(data?.analytics?.recommendations);
       setLastFetchedCount(evaluations?.length || 0);
+      
+      console.log('✅ [Analytics] State updated successfully');
     } catch (error) {
-      console.error('Error fetching AI insights:', error);
+      console.error('❌ [Analytics] Error fetching AI insights:', error);
+      console.error('❌ [Analytics] Error details:', {
+        message: error.message,
+        status: error.status,
+        response: error.response
+      });
       setAiRecommendations(null);
     } finally {
       setLoadingRecommendations(false);
@@ -243,8 +269,18 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
   }
 
   // Handle loading and empty states
-  const hasEvaluations = evaluations && evaluations.length > 0;
+  const hasEvaluations = evaluations && Array.isArray(evaluations) && evaluations.length > 0;
   const isLoadingEvaluations = evaluations === undefined || evaluations === null;
+  
+  console.log('🔍 Analytics Dashboard State:', {
+    evaluations: evaluations,
+    evaluationsType: typeof evaluations,
+    evaluationsIsArray: Array.isArray(evaluations),
+    evaluationsLength: evaluations?.length,
+    hasEvaluations,
+    isLoadingEvaluations,
+    hasUnlimitedAccess
+  });
 
   // Show loading state
   if (isLoadingEvaluations) {
@@ -318,8 +354,8 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
     );
   }
 
-  // Prepare chart data
-  const parsedEvaluations = (evaluations || []).map((e) => {
+  // Prepare chart data (safely handle null/undefined)
+  const parsedEvaluations = (evaluations && Array.isArray(evaluations) ? evaluations : []).map((e) => {
     const scoreMatch = (e.grade || '').match(/(\d+)\s*\/\s*(\d+)/);
     const score = scoreMatch ? Number(scoreMatch[1]) : 0;
     const max = scoreMatch ? Number(scoreMatch[2]) : 0;

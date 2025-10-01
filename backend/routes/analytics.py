@@ -208,8 +208,12 @@ async def get_user_badges(user_id: str):
 @router.get("/analytics/{user_id}")
 async def get_user_analytics(user_id: str):
     """Get analytics data for a specific user"""
+    overall_start = datetime.utcnow()
     try:
-        logger.info(f"📊 Analytics request for user: {user_id}")
+        logger.info(f"📊 ═══════════════════════════════════════════")
+        logger.info(f"📊 Analytics request START for user: {user_id}")
+        logger.info(f"📊 Timestamp: {overall_start.isoformat()}")
+        logger.info(f"📊 ═══════════════════════════════════════════")
         
         # Get user to check if they have analytics access using the user management service
         if not user_management_service:
@@ -230,11 +234,17 @@ async def get_user_analytics(user_id: str):
         
         # Check if user has analytics access (unlimited plan)
         if user_data.get('current_plan') != 'unlimited':
+            logger.warning(f"⚠️ User {user_id} does not have unlimited plan, denying analytics access")
             raise HTTPException(status_code=403, detail="Analytics access requires Unlimited plan")
         
         # Get user's evaluations
+        logger.info(f"🔍 Fetching evaluations from Supabase for user: {user_id}")
+        eval_start = datetime.utcnow()
         evaluations_response = supabase.table('assessment_evaluations').select('*').eq('user_id', user_id).execute()
+        eval_duration = (datetime.utcnow() - eval_start).total_seconds()
         evaluations = evaluations_response.data
+        
+        logger.info(f"✅ Retrieved {len(evaluations)} evaluations in {eval_duration:.2f}s")
         
         # Calculate analytics data
         analytics_data = {
@@ -247,16 +257,30 @@ async def get_user_analytics(user_id: str):
 
         # Recommendations: only after first 5 submissions and update every 5
         recommendations = None
+        logger.info(f"🧠 Recommendations check: {len(evaluations)} evaluations")
+        
         if len(evaluations) >= 5:
             try:
+                logger.info(f"✅ User has {len(evaluations)} evaluations, checking for recommendations...")
+                
                 # Determine if we need to refresh: every 5 submissions
                 refresh_needed = (len(evaluations) % 5 == 0)
+                logger.info(f"🔄 Refresh needed? {refresh_needed} (evaluations % 5 == 0)")
+                
                 # Fetch last cached recommendations if present
                 rec_key = f"recos_{user_id}"
+                logger.info(f"🔍 Looking for cached recommendations with key: {rec_key}")
+                
+                cache_start = datetime.utcnow()
                 rec_resp = supabase.table('assessment_meta').select('*').eq('key', rec_key).execute()
+                cache_duration = (datetime.utcnow() - cache_start).total_seconds()
                 cached = rec_resp.data[0] if rec_resp.data else None
+                
+                logger.info(f"📦 Cache lookup completed in {cache_duration:.2f}s, found: {bool(cached)}")
 
                 if refresh_needed or not cached:
+                    logger.info(f"🚀 Generating new AI recommendations...")
+                    ai_start = datetime.utcnow()
                     # Aggregate per question type: average score and improvement suggestions
                     type_to_scores = defaultdict(list)
                     type_to_improvements = defaultdict(list)
@@ -340,7 +364,11 @@ Format your response in clear bullet points, using "you" to address the student 
 
                     # Call OpenRouter API for recommendations using OPENROUTER_GPT_OSS_120B_KEY
                     async def call_recommendations(prompt: str) -> str:
+                        logger.info(f"🤖 Starting AI recommendations API call...")
+                        api_call_start = datetime.utcnow()
+                        
                         if not RECOMMENDATIONS_API_KEY:
+                            logger.error("❌ OPENROUTER_GPT_OSS_120B_KEY not configured")
                             raise Exception("OPENROUTER_GPT_OSS_120B_KEY not configured for recommendations")
                         
                         async with httpx.AsyncClient() as client:
@@ -367,14 +395,29 @@ Format your response in clear bullet points, using "you" to address the student 
                                 "temperature": 0.5
                             }
                             
+                            logger.info(f"📡 Calling OpenRouter API with model: {RECOMMENDATIONS_MODEL}")
                             r = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=60.0)
+                            
+                            api_call_duration = (datetime.utcnow() - api_call_start).total_seconds()
+                            logger.info(f"✅ OpenRouter API responded in {api_call_duration:.2f}s, status: {r.status_code}")
+                            
                             r.raise_for_status()
                             res = r.json()
-                            return res['choices'][0]['message']['content']
+                            
+                            response_content = res['choices'][0]['message']['content']
+                            logger.info(f"📝 AI response length: {len(response_content)} characters")
+                            return response_content
 
+                    logger.info(f"🎯 Calling AI recommendations with {len(summaries)} question type summaries")
                     rec_text = await call_recommendations(user_prompt)
+                    
+                    ai_duration = (datetime.utcnow() - ai_start).total_seconds()
+                    logger.info(f"✅ AI recommendations generated in {ai_duration:.2f}s")
 
                     # Cache recommendations
+                    logger.info(f"💾 Caching AI recommendations...")
+                    cache_save_start = datetime.utcnow()
+                    
                     record = {
                         "key": rec_key,
                         "value": rec_text,
@@ -382,19 +425,36 @@ Format your response in clear bullet points, using "you" to address the student 
                         "meta": json.dumps({"count": len(evaluations)})
                     }
                     if cached:
+                        logger.info(f"🔄 Updating existing cache entry")
                         supabase.table('assessment_meta').update(record).eq('key', rec_key).execute()
                     else:
+                        logger.info(f"➕ Creating new cache entry")
                         supabase.table('assessment_meta').insert(record).execute()
+                    
+                    cache_save_duration = (datetime.utcnow() - cache_save_start).total_seconds()
+                    logger.info(f"✅ Cache saved in {cache_save_duration:.2f}s")
+                    
                     recommendations = rec_text
+                    logger.info(f"✅ Using newly generated recommendations ({len(rec_text)} chars)")
                 else:
                     recommendations = cached.get('value')
+                    logger.info(f"♻️ Using cached recommendations ({len(recommendations)} chars)")
             except Exception as e:
-                logger.error(f"Recommendations error: {str(e)}")
+                logger.error(f"❌ Recommendations error: {str(e)}")
+                logger.exception("Full traceback:")
                 recommendations = None
+        else:
+            logger.info(f"ℹ️ User has only {len(evaluations)} evaluations, need 5+ for recommendations")
 
         analytics_data["recommendations"] = recommendations
 
-        logger.info(f"✅ Analytics data successfully generated for user: {user_id}")
+        overall_duration = (datetime.utcnow() - overall_start).total_seconds()
+        logger.info(f"📊 ═══════════════════════════════════════════")
+        logger.info(f"✅ Analytics request COMPLETE for user: {user_id}")
+        logger.info(f"⏱️ Total duration: {overall_duration:.2f}s")
+        logger.info(f"📦 Returning {len(evaluations)} evaluations + {len(recommendations) if recommendations else 0} chars of recommendations")
+        logger.info(f"📊 ═══════════════════════════════════════════")
+        
         return {"analytics": analytics_data}
         
     except HTTPException as he:

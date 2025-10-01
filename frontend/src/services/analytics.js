@@ -11,20 +11,43 @@ import { API_ENDPOINTS } from '../constants/apiEndpoints';
  */
 export const getUserAnalytics = async (userId, filters = {}) => {
   try {
+    console.log('🔍 [Analytics Service] Starting getUserAnalytics for user:', userId);
+    console.log('🔍 [Analytics Service] Filters:', filters);
+    
     const params = new URLSearchParams();
     
     if (filters.timeRange) params.append('time_range', filters.timeRange);
     if (filters.questionType) params.append('question_type', filters.questionType);
     
     const url = `${API_ENDPOINTS.ANALYTICS}/${userId}${params.toString() ? `?${params.toString()}` : ''}`;
+    console.log('🔍 [Analytics Service] Full URL:', url);
+    
+    const startTime = Date.now();
+    console.log('📡 [Analytics Service] Making API request...');
+    
     const response = await apiHelpers.get(url, {}, {
       cache: true,
       cacheTime: 120000, // 2 minutes cache for analytics
       deduplicate: true
     });
+    
+    const duration = Date.now() - startTime;
+    console.log(`✅ [Analytics Service] API request completed in ${duration}ms`);
+    console.log('📦 [Analytics Service] Response data:', {
+      status: response.status,
+      hasData: !!response.data,
+      dataKeys: response.data ? Object.keys(response.data) : []
+    });
+    
     return response.data;
   } catch (error) {
-    console.error('Error fetching user analytics:', error);
+    console.error('❌ [Analytics Service] Error fetching user analytics:', error);
+    console.error('❌ [Analytics Service] Error details:', {
+      message: error.message,
+      status: error.status,
+      code: error.code,
+      url: error.config?.url
+    });
     throw error;
   }
 };
