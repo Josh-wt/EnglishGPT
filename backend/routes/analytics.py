@@ -263,10 +263,6 @@ async def get_user_analytics(user_id: str):
             try:
                 logger.info(f"✅ User has {len(evaluations)} evaluations, checking for recommendations...")
                 
-                # Determine if we need to refresh: every 5 submissions
-                refresh_needed = (len(evaluations) % 5 == 0)
-                logger.info(f"🔄 Refresh needed? {refresh_needed} (evaluations % 5 == 0)")
-                
                 # Fetch last cached recommendations if present
                 rec_key = f"recos_{user_id}"
                 logger.info(f"🔍 Looking for cached recommendations with key: {rec_key}")
@@ -277,8 +273,14 @@ async def get_user_analytics(user_id: str):
                 cached = rec_resp.data[0] if rec_resp.data else None
                 
                 logger.info(f"📦 Cache lookup completed in {cache_duration:.2f}s, found: {bool(cached)}")
+                
+                # Determine if we need to refresh
+                # Generate if: 1) No cache exists, OR 2) Cache exists but evaluations % 5 == 0
+                refresh_needed = (len(evaluations) % 5 == 0)
+                logger.info(f"🔄 Refresh needed? {refresh_needed} (evaluations % 5 == 0)")
+                logger.info(f"💡 Will generate: {not cached or refresh_needed} (no cache OR refresh needed)")
 
-                if refresh_needed or not cached:
+                if not cached or refresh_needed:
                     logger.info(f"🚀 Generating new AI recommendations...")
                     ai_start = datetime.utcnow()
                     # Aggregate per question type: average score and improvement suggestions
