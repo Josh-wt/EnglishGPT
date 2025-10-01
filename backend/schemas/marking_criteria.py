@@ -595,7 +595,28 @@ Please follow the example marking for the speech above, do not focus on the form
     
     "As part of my preparation for this speech, I read a guide for teachers on setting up school councils, and I did wonder how realistic this guide was in terms of the amount of time and commitment a school council requires from its members" The argument acknowledges counter-arguments""",
     "igcse_directed_letter": """
-Letter Format
+🚨 CRITICAL LETTER MARKING INSTRUCTION - MUST READ BEFORE MARKING 🚨
+
+MOST IGCSE DIRECTED LETTER TASKS ARE INFORMAL/PERSONAL LETTERS TO FRIENDS OR FAMILY.
+
+✅ EXPECTED TONE: Casual, friendly, conversational - like talking to a friend
+✅ EXPECTED CONTENT: Shared memories, personal anecdotes, warm feelings, advice to a friend
+✅ APPROPRIATE LANGUAGE: Contractions (I'm, you're, don't), colloquial phrases, personal pronouns (I, you, we)
+✅ APPROPRIATE SIGN-OFF: "Best wishes," "Love," "Take care," "Your friend," - NOT "Yours faithfully" or "Yours sincerely"
+
+❌ MAJOR DEDUCTION (Deduct 4-5 marks from Writing): Letter is TOO FORMAL when it should be informal
+    - Using overly formal vocabulary ("Thus, therefore, moreover, furthermore" excessively)
+    - Stiff, artificial phrasing ("I would like to inform you that..." instead of "I wanted to tell you...")
+    - Business letter tone when writing to a friend
+    - Lack of personal warmth, shared memories, or emotional connection
+    - Using "Yours faithfully" or "Yours sincerely" when writing to a friend
+
+❌ MAJOR DEDUCTION (Deduct 1-2 marks from Writing): Inconsistent register
+    - Mixing formal and informal inappropriately
+    - Starting casual then becoming stiff and formal
+    - Not maintaining the friend-to-friend conversational tone throughout
+
+Letter Format Guidelines
 
     Purpose: Communication directed officially or personally to a reader, with intent to inform, request, complain, or express feelings.
 
@@ -603,17 +624,21 @@ Letter Format
 
     Opening: Clear and appropriate salutation (e.g., "Dear Sir/Madam," or "Dear John") that matches the relationship with the recipient.
 
-    Tone and Register: Formal letters require polite, measured language with formal vocabulary and less colloquialism; informal letters allow conversational style and personal touches.
+    Tone and Register: 
+        - INFORMAL/PERSONAL LETTERS (MOST COMMON): Should use casual, friendly language with personal touches, shared memories, contractions, and warmth. Write like you're talking to a friend.
+        - Formal letters (rare): Require polite, measured language with formal vocabulary and less colloquialism
 
     Content Organization: Purpose should be stated early, with paragraphs serving distinct points or themes; coherence and cohesion must be strong.
 
-    Conventions: Use of conventional phraseology, appropriate endings ("Yours faithfully," "Best wishes"), and correct paragraphing.
+    Conventions: Use of conventional phraseology, appropriate endings matching the relationship ("Best wishes" for friends, "Yours faithfully" for formal), and correct paragraphing.
 
-    Language Features: Politeness strategies, modal verbs for requests or suggestions, indirectness for complaints, and expressive devices for emotional content.
+    Language Features: 
+        - INFORMAL: Conversational style, personal anecdotes, shared memories, contractions, warmth, emotional expression
+        - Formal: Politeness strategies, modal verbs for requests or suggestions, indirectness for complaints
 
     Closing: Should contain an appropriate sign-off reflecting the relationship and tone.
 
-    Marking Focus: Examiners check for adherence to format, tone consistency, organization, and linguistic accuracy suited to the letter type
+    Marking Focus: Examiners check for adherence to format, tone consistency (especially avoiding over-formality in personal letters), organization, and linguistic accuracy suited to the letter type
     
     Please follow the example marking for the letter feedback and grading:
 
