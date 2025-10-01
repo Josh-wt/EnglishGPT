@@ -1,6 +1,30 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Footer from '../ui/Footer';
+import { getUserAnalytics } from '../../services/analytics';
+import { 
+  ChartBarIcon, 
+  CalendarIcon, 
+  TrophyIcon, 
+  FireIcon,
+  LightBulbIcon,
+  SparklesIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
+  ArrowRightIcon,
+  ChartPieIcon,
+  AcademicCapIcon,
+  ClockIcon,
+  BoltIcon,
+  ExclamationCircleIcon,
+  CheckCircleIcon,
+  ArrowPathIcon
+} from '@heroicons/react/24/outline';
+import { 
+  TrophyIcon as TrophySolidIcon,
+  FireIcon as FireSolidIcon,
+  SparklesIcon as SparklesSolidIcon
+} from '@heroicons/react/24/solid';
 
 // Enhanced Locked Analytics Page
 const LockedAnalyticsPage = ({ onBack, upgradeType, page = 'analytics' }) => {
@@ -160,6 +184,10 @@ const LockedAnalyticsPage = ({ onBack, upgradeType, page = 'analytics' }) => {
 const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade }) => {
   const [selectedTimeRange, setSelectedTimeRange] = useState('month');
   const [activeTab, setActiveTab] = useState('overview');
+  const [aiRecommendations, setAiRecommendations] = useState(null);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [lastFetchedCount, setLastFetchedCount] = useState(0);
   
   // Check if user has unlimited access
   const hasUnlimitedAccess = useMemo(() => {
@@ -167,6 +195,47 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
     const credits = userStats?.credits;
     return plan === 'unlimited' || credits >= 99999;
   }, [userStats?.current_plan, userStats?.credits]);
+
+  // Check if new insights are available (dynamic - 5 assessments after last fetch)
+  const shouldShowInsightsButton = useMemo(() => {
+    const currentCount = evaluations?.length || 0;
+    
+    // Always require minimum of 5 assessments for first insights
+    if (currentCount < 5) return false;
+    
+    // Show button if we haven't fetched yet
+    if (!aiRecommendations || lastFetchedCount === 0) return true;
+    
+    // Show button if 5+ new assessments since last fetch
+    // This is dynamic: if user fetched at 8, next appears at 13
+    // If they skip 13 and fetch at 17, next appears at 22
+    const assessmentsSinceLastFetch = currentCount - lastFetchedCount;
+    return assessmentsSinceLastFetch >= 5;
+  }, [evaluations?.length, lastFetchedCount, aiRecommendations]);
+
+  // Calculate when next insights will be available
+  const nextInsightCount = useMemo(() => {
+    if (!lastFetchedCount || lastFetchedCount === 0) return 5;
+    return lastFetchedCount + 5;
+  }, [lastFetchedCount]);
+
+  // Manual fetch for AI insights
+  const fetchAIInsights = async () => {
+    if (!user?.id || !hasUnlimitedAccess) return;
+    
+    try {
+      setLoadingRecommendations(true);
+      const data = await getUserAnalytics(user.id);
+      setAnalyticsData(data?.analytics);
+      setAiRecommendations(data?.analytics?.recommendations);
+      setLastFetchedCount(evaluations?.length || 0);
+    } catch (error) {
+      console.error('Error fetching AI insights:', error);
+      setAiRecommendations(null);
+    } finally {
+      setLoadingRecommendations(false);
+    }
+  };
 
   // If user doesn't have unlimited access, show locked page
   if (!hasUnlimitedAccess) {
@@ -363,20 +432,21 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
         <div className="flex justify-center mb-8">
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-1 shadow-sm border border-gray-200">
             {[
-              { id: 'overview', label: '📈 Overview', icon: '📊' },
-              { id: 'performance', label: '🎯 Performance', icon: '🏆' },
-              { id: 'progress', label: '📈 Progress', icon: '📈' },
-              { id: 'insights', label: '💡 Insights', icon: '💡' }
+              { id: 'overview', label: 'Overview', Icon: ChartBarIcon },
+              { id: 'performance', label: 'Performance', Icon: TrophyIcon },
+              { id: 'progress', label: 'Progress', Icon: ArrowTrendingUpIcon },
+              { id: 'insights', label: 'Insights', Icon: LightBulbIcon }
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 font-fredoka ${
+                className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 font-fredoka flex items-center gap-2 ${
                   activeTab === tab.id
                     ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
                 }`}
               >
+                <tab.Icon className="w-5 h-5" />
                 {tab.label}
               </button>
             ))}
@@ -401,86 +471,108 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
               </button>
             ))}
           </div>
-          <div className="text-sm text-gray-600 font-fredoka">
-            📊 Showing <span className="font-semibold text-gray-900">{totalResponses}</span> responses
+          <div className="flex items-center gap-2 text-sm text-gray-600 font-fredoka">
+            <ChartPieIcon className="w-5 h-5" />
+            <span>Showing <span className="font-semibold text-gray-900">{totalResponses}</span> responses</span>
           </div>
         </div>
         {/* Enhanced KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <motion.div 
-            className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 shadow-xl border-2 border-blue-300 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 text-white"
             whileHover={{ y: -5 }}
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-                <span className="text-white text-xl">📊</span>
+              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                <ChartBarIcon className="w-6 h-6 text-white" />
               </div>
-              <div className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
-                {viewByDate.length > 0 ? '↗️' : '→'} {viewByDate.length > 0 ? Math.round((viewByDate[viewByDate.length - 1]?.average || 0) - (viewByDate[0]?.average || 0)) : 0}%
+              <div className="flex items-center gap-1 text-xs bg-white/30 text-white px-2 py-1 rounded-full font-medium backdrop-blur-sm">
+                {viewByDate.length > 1 ? (
+                  <>
+                    {Math.round((viewByDate[viewByDate.length - 1]?.average || 0) - (viewByDate[0]?.average || 0)) > 0 ? 
+                      <ArrowTrendingUpIcon className="w-3 h-3" /> : 
+                      <ArrowTrendingDownIcon className="w-3 h-3" />
+                    }
+                    {Math.abs(Math.round((viewByDate[viewByDate.length - 1]?.average || 0) - (viewByDate[0]?.average || 0)))}%
+                  </>
+                ) : (
+                  <>
+                    <ArrowRightIcon className="w-3 h-3" />
+                    0%
+                  </>
+                )}
               </div>
             </div>
-            <div className="text-2xl font-bold text-gray-900 font-fredoka">
+            <div className="text-3xl font-bold mb-1 font-fredoka">
               {Math.round((viewByDate.reduce((s,d)=>s+d.average,0)/(viewByDate.length||1))||0)}%
             </div>
-            <div className="text-sm text-gray-600 font-fredoka">Average Score</div>
-            <div className="text-xs text-gray-500 mt-2">Across selected range</div>
+            <div className="text-sm text-blue-100 font-fredoka">Average Score</div>
+            <div className="text-xs text-blue-200 mt-2">
+              {viewEvaluations.length} assessments in range
+            </div>
           </motion.div>
 
           <motion.div 
-            className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 shadow-xl border-2 border-emerald-300 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 text-white"
             whileHover={{ y: -5 }}
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                <span className="text-white text-xl">📅</span>
+              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                <CalendarIcon className="w-6 h-6 text-white" />
               </div>
-              <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
-                {new Set(viewByDate?.map(d=>d.date)).size || 0} days
+              <div className="text-xs bg-white/30 text-white px-2 py-1 rounded-full font-medium backdrop-blur-sm">
+                {(viewEvaluations.length / (new Set(viewByDate?.map(d=>d.date)).size || 1)).toFixed(1)}/day
               </div>
             </div>
-            <div className="text-2xl font-bold text-gray-900 font-fredoka">
+            <div className="text-3xl font-bold mb-1 font-fredoka">
               {new Set(viewByDate?.map(d=>d.date)).size || 0}
             </div>
-            <div className="text-sm text-gray-600 font-fredoka">Active Days</div>
-            <div className="text-xs text-gray-500 mt-2">Days with submissions</div>
+            <div className="text-sm text-emerald-100 font-fredoka">Active Days</div>
+            <div className="text-xs text-emerald-200 mt-2">
+              {Math.round(((new Set(viewByDate?.map(d=>d.date)).size || 0) / (daysForRange || 1)) * 100)}% consistency
+            </div>
           </motion.div>
 
           <motion.div 
-            className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 shadow-xl border-2 border-purple-300 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 text-white"
             whileHover={{ y: -5 }}
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <span className="text-white text-xl">🎯</span>
+              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                <AcademicCapIcon className="w-6 h-6 text-white" />
               </div>
-              <div className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium">
-                {viewByType.length} types
+              <div className="text-xs bg-white/30 text-white px-2 py-1 rounded-full font-medium backdrop-blur-sm">
+                Explored
               </div>
             </div>
-            <div className="text-2xl font-bold text-gray-900 font-fredoka">
+            <div className="text-3xl font-bold mb-1 font-fredoka">
               {viewByType.length}
             </div>
-            <div className="text-sm text-gray-600 font-fredoka">Question Types</div>
-            <div className="text-xs text-gray-500 mt-2">Unique types attempted</div>
+            <div className="text-sm text-purple-100 font-fredoka">Question Types</div>
+            <div className="text-xs text-purple-200 mt-2">
+              {viewByType.reduce((s,t)=>s+t.count,0)} total attempts
+            </div>
           </motion.div>
 
           <motion.div 
-            className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 shadow-xl border-2 border-orange-300 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 text-white"
             whileHover={{ y: -5 }}
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
-                <span className="text-white text-xl">🏆</span>
+              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                <TrophySolidIcon className="w-6 h-6 text-white" />
               </div>
-              <div className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium">
-                Best
+              <div className="text-xs bg-white/30 text-white px-2 py-1 rounded-full font-medium backdrop-blur-sm">
+                Peak
               </div>
             </div>
-            <div className="text-2xl font-bold text-gray-900 font-fredoka">
+            <div className="text-3xl font-bold mb-1 font-fredoka">
               {Math.round(Math.max(...parsedEvaluations.map(e => (e.max>0?(e.score/e.max)*100:0)), 0))}%
             </div>
-            <div className="text-sm text-gray-600 font-fredoka">Best Score</div>
-            <div className="text-xs text-gray-500 mt-2">Highest single percentage</div>
+            <div className="text-sm text-orange-100 font-fredoka">Best Score</div>
+            <div className="text-xs text-orange-200 mt-2">
+              You can do this again!
+            </div>
           </motion.div>
         </div>
 
@@ -490,7 +582,10 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
             {/* Performance Overview Chart */}
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900 font-fredoka">📈 Performance Trend</h3>
+                <div className="flex items-center gap-2">
+                  <ArrowTrendingUpIcon className="w-6 h-6 text-blue-600" />
+                  <h3 className="text-xl font-bold text-gray-900 font-fredoka">Performance Trend</h3>
+                </div>
                 <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">Last {selectedTimeRange === 'week' ? '7' : selectedTimeRange === 'month' ? '30' : selectedTimeRange === 'quarter' ? '90' : 'All'} days</span>
               </div>
               
@@ -522,7 +617,10 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
             {/* Question Type Performance */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200">
-                <h3 className="text-xl font-bold text-gray-900 mb-6 font-fredoka">🎯 Type Performance</h3>
+                <div className="flex items-center gap-2 mb-6">
+                  <TrophyIcon className="w-6 h-6 text-blue-600" />
+                  <h3 className="text-xl font-bold text-gray-900 font-fredoka">Type Performance</h3>
+                </div>
                 <div className="space-y-4">
                   {viewByType.sort((a,b)=>b.average-a.average).slice(0,5).map((type, index) => (
                     <div key={type.type} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -545,7 +643,10 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
               </div>
 
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200">
-                <h3 className="text-xl font-bold text-gray-900 mb-6 font-fredoka">📊 Component Analysis</h3>
+                <div className="flex items-center gap-2 mb-6">
+                  <ChartPieIcon className="w-6 h-6 text-blue-600" />
+                  <h3 className="text-xl font-bold text-gray-900 font-fredoka">Component Analysis</h3>
+                </div>
                 <div className="space-y-4">
                   {['AO1','AO2','Reading','Writing'].map(key => {
                     const vals = viewAoSeries.map(v => v[key] || 0);
@@ -577,7 +678,10 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
           <div className="space-y-8">
             {/* Detailed Performance Metrics */}
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-6 font-fredoka">🏆 Performance Breakdown</h3>
+              <div className="flex items-center gap-2 mb-6">
+                <TrophySolidIcon className="w-6 h-6 text-orange-600" />
+                <h3 className="text-xl font-bold text-gray-900 font-fredoka">Performance Breakdown</h3>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {viewByType.map((type, index) => (
                   <div key={type.type} className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200">
@@ -612,7 +716,10 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
           <div className="space-y-8">
             {/* Progress Timeline */}
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-6 font-fredoka">📈 Progress Timeline</h3>
+              <div className="flex items-center gap-2 mb-6">
+                <ArrowTrendingUpIcon className="w-6 h-6 text-green-600" />
+                <h3 className="text-xl font-bold text-gray-900 font-fredoka">Progress Timeline</h3>
+              </div>
               <div className="space-y-4">
                 {viewByDate.map((data, index) => (
                   <div key={data.date} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
@@ -643,33 +750,335 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
 
         {activeTab === 'insights' && (
           <div className="space-y-8">
-            {/* AI Recommendations */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200">
+            {/* AI-Powered Personalized Recommendations */}
+            <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 rounded-2xl p-8 shadow-xl border-2 border-purple-200">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900 font-fredoka">💡 Smart Recommendations</h3>
-                <span className="text-xs bg-pink-100 text-pink-700 px-3 py-1 rounded-full font-medium">AI Powered</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+                    <LightBulbIcon className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900 font-fredoka">AI-Powered Insights</h3>
+                    <p className="text-sm text-gray-600">Personalized recommendations based on your performance</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-xs bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-full font-medium shadow-md">
+                  <SparklesSolidIcon className="w-4 h-4" />
+                  <span>Powered by Advanced AI</span>
+                </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {viewByType.sort((a,b)=>a.average-b.average).slice(0,3).map(t => (
-                  <div key={t.type} className="p-4 bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl border border-pink-200">
-                    <div className="font-bold text-gray-900 mb-2 font-fredoka capitalize">Focus on: {t.type}</div>
-                    <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                      <li>Review model answers and mark schemes</li>
-                      <li>Practice structure and clarity</li>
-                      <li>Set a word goal of +10%</li>
-                      <li>Attempt 2 new prompts this week</li>
-                    </ul>
+
+              {shouldShowInsightsButton ? (
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-12 text-center">
+                  {evaluations && evaluations.length < 5 ? (
+                    <>
+                      <ChartBarIcon className="w-16 h-16 text-purple-500 mx-auto mb-6" />
+                      <h4 className="text-2xl font-bold text-gray-900 mb-3 font-fredoka">Complete More Assessments</h4>
+                      <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                        AI insights become available after your 5th submission. Keep writing to unlock personalized recommendations!
+                      </p>
+                      <div className="flex items-center justify-center gap-2 mb-4">
+                        <div className="text-sm text-gray-500">
+                          Progress: <span className="font-bold text-purple-600">{evaluations.length} / 5</span> assessments
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-4 max-w-md mx-auto shadow-inner">
+                        <div 
+                          className="bg-gradient-to-r from-purple-500 to-pink-500 h-4 rounded-full transition-all duration-500 flex items-center justify-end pr-2"
+                          style={{ width: `${(evaluations.length / 5) * 100}%` }}
+                        >
+                          {evaluations.length > 0 && (
+                            <span className="text-white text-xs font-bold">{Math.round((evaluations.length / 5) * 100)}%</span>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+                        <BoltIcon className="w-10 h-10 text-white" />
+                      </div>
+                      <h4 className="text-2xl font-bold text-gray-900 mb-3 font-fredoka">
+                        {aiRecommendations ? 'New Insights Available!' : 'Get Your AI-Powered Insights'}
+                      </h4>
+                      <p className="text-gray-600 mb-4 max-w-lg mx-auto">
+                        {aiRecommendations 
+                          ? `You've completed ${(evaluations?.length || 0) - lastFetchedCount} new assessments since your last analysis (at ${lastFetchedCount}). Generate fresh insights now!`
+                          : `Our advanced AI will analyze your ${evaluations?.length || 0} assessments and provide personalized recommendations to help you improve.`
+                        }
+                      </p>
+                      {aiRecommendations && (
+                        <div className="mb-6 inline-block bg-purple-100 px-4 py-2 rounded-full">
+                          <p className="text-sm text-purple-700 font-medium">
+                            <span className="font-bold">{evaluations?.length}</span> total assessments | Last analyzed: <span className="font-bold">{lastFetchedCount}</span>
+                          </p>
+                        </div>
+                      )}
+                      <button
+                        onClick={fetchAIInsights}
+                        disabled={loadingRecommendations}
+                        className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-xl font-fredoka font-bold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-3 mx-auto"
+                      >
+                        <SparklesSolidIcon className="w-5 h-5" />
+                        <span>{aiRecommendations ? 'Refresh AI Insights' : 'Generate AI Insights'}</span>
+                        <SparklesSolidIcon className="w-5 h-5" />
+                      </button>
+                      <p className="text-xs text-gray-500 mt-4">
+                        This may take a few seconds while our AI analyzes your performance
+                      </p>
+                    </>
+                  )}
+                </div>
+              ) : loadingRecommendations ? (
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-12 text-center">
+                  <div className="relative inline-block mb-6">
+                    <div className="animate-spin w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <LightBulbIcon className="w-8 h-8 text-purple-600" />
+                    </div>
+                  </div>
+                  <h4 className="text-xl font-bold text-gray-900 mb-2 font-fredoka">Analyzing Your Performance</h4>
+                  <p className="text-gray-600 mb-4">Our AI is reviewing your {evaluations?.length || 0} assessments...</p>
+                  <div className="flex flex-col gap-2 text-sm text-gray-500 max-w-md mx-auto">
+                    <div className="flex items-center gap-2 justify-center">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                      <span>Identifying performance patterns</span>
+                    </div>
+                    <div className="flex items-center gap-2 justify-center" style={{animationDelay: '0.2s'}}>
+                      <div className="w-2 h-2 bg-pink-500 rounded-full animate-pulse"></div>
+                      <span>Analyzing question type strengths & weaknesses</span>
+                    </div>
+                    <div className="flex items-center gap-2 justify-center" style={{animationDelay: '0.4s'}}>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      <span>Generating personalized recommendations</span>
+                    </div>
+                  </div>
+                </div>
+              ) : aiRecommendations ? (
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg">
+                  <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+                    <div className="flex items-center gap-2">
+                      <CheckCircleIcon className="w-6 h-6 text-green-600" />
+                      <div>
+                        <h4 className="text-lg font-bold text-gray-900 font-fredoka">Your Personalized Study Plan</h4>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Based on {lastFetchedCount} assessments
+                          {!shouldShowInsightsButton && (
+                            <span className="ml-1">
+                              • Next update at {nextInsightCount} ({nextInsightCount - (evaluations?.length || 0)} more needed)
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    {shouldShowInsightsButton && (
+                      <button
+                        onClick={fetchAIInsights}
+                        disabled={loadingRecommendations}
+                        className="flex items-center gap-2 text-sm bg-purple-100 hover:bg-purple-200 text-purple-700 px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
+                      >
+                        <ArrowPathIcon className="w-4 h-4" />
+                        <span>Refresh Insights</span>
+                      </button>
+                    )}
+                  </div>
+                  <div className="prose prose-sm max-w-none">
+                    <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+                      {aiRecommendations.split('\n').map((line, idx) => {
+                        // Format bold sections
+                        const formattedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong class="text-purple-700 font-semibold">$1</strong>');
+                        
+                        // Check if it's a numbered heading
+                        if (line.match(/^\d+\.\s\*\*/)) {
+                          return (
+                            <div key={idx} className="mt-6 mb-3">
+                              <h4 
+                                className="text-lg font-bold text-purple-800 font-fredoka" 
+                                dangerouslySetInnerHTML={{ __html: formattedLine }}
+                              />
+                            </div>
+                          );
+                        }
+                        
+                        // Check if it's a bullet point
+                        if (line.trim().startsWith('-')) {
+                          return (
+                            <div key={idx} className="ml-4 mb-2 flex items-start gap-2">
+                              <span className="text-purple-500 mt-1 font-bold">•</span>
+                              <span 
+                                className="flex-1 text-gray-700 font-fredoka" 
+                                dangerouslySetInnerHTML={{ __html: formattedLine.replace(/^-\s*/, '') }}
+                              />
+                            </div>
+                          );
+                        }
+                        
+                        // Regular paragraph
+                        return line.trim() ? (
+                          <p 
+                            key={idx} 
+                            className="mb-3 text-gray-700 font-fredoka" 
+                            dangerouslySetInnerHTML={{ __html: formattedLine }}
+                          />
+                        ) : <div key={idx} className="h-2" />;
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-8 text-center">
+                  <ExclamationCircleIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                  <h4 className="text-xl font-bold text-gray-900 mb-2 font-fredoka">Unable to Generate Insights</h4>
+                  <p className="text-gray-600 mb-4">
+                    There was an issue generating your AI insights. Please try again.
+                  </p>
+                  <button
+                    onClick={fetchAIInsights}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-fredoka font-bold hover:from-purple-700 hover:to-pink-700 transition-all flex items-center gap-2 mx-auto"
+                  >
+                    <ArrowPathIcon className="w-5 h-5" />
+                    <span>Try Again</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Performance Insights Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Strongest Area */}
+              <motion.div 
+                className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200 shadow-lg"
+                whileHover={{ scale: 1.02, y: -5 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                    <TrophySolidIcon className="w-6 h-6 text-white" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 font-fredoka">Strongest Area</h4>
+                </div>
+                {viewByType.length > 0 && (
+                  <div>
+                    <p className="text-2xl font-bold text-green-700 mb-1 capitalize font-fredoka">
+                      {viewByType.sort((a,b)=>b.average-a.average)[0]?.type || 'N/A'}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Average: {viewByType.sort((a,b)=>b.average-a.average)[0]?.average || 0}%
+                    </p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {viewByType.sort((a,b)=>b.average-a.average)[0]?.count || 0} attempts
+                    </p>
+                  </div>
+                )}
+              </motion.div>
+
+              {/* Needs Improvement */}
+              <motion.div 
+                className="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-6 border-2 border-orange-200 shadow-lg"
+                whileHover={{ scale: 1.02, y: -5 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
+                    <ArrowTrendingUpIcon className="w-6 h-6 text-white" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 font-fredoka">Focus Area</h4>
+                </div>
+                {viewByType.length > 0 && (
+                  <div>
+                    <p className="text-2xl font-bold text-orange-700 mb-1 capitalize font-fredoka">
+                      {viewByType.sort((a,b)=>a.average-b.average)[0]?.type || 'N/A'}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Average: {viewByType.sort((a,b)=>a.average-b.average)[0]?.average || 0}%
+                    </p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Room for {Math.round((viewByType.sort((a,b)=>b.average-a.average)[0]?.average || 0) - (viewByType.sort((a,b)=>a.average-b.average)[0]?.average || 0))}% improvement
+                    </p>
+                  </div>
+                )}
+              </motion.div>
+
+              {/* Recent Trend */}
+              <motion.div 
+                className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200 shadow-lg"
+                whileHover={{ scale: 1.02, y: -5 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                    <ChartBarIcon className="w-6 h-6 text-white" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 font-fredoka">Recent Trend</h4>
+                </div>
+                {viewByDate.length >= 2 && (
+                  <div>
+                    {(() => {
+                      const recent = viewByDate.slice(-3);
+                      const trend = recent[recent.length - 1]?.average - recent[0]?.average;
+                      const isPositive = trend > 0;
+                      return (
+                        <>
+                          <p className={`text-2xl font-bold mb-1 font-fredoka flex items-center gap-2 ${isPositive ? 'text-blue-700' : 'text-gray-700'}`}>
+                            {isPositive ? <ArrowTrendingUpIcon className="w-6 h-6" /> : trend < 0 ? <ArrowTrendingDownIcon className="w-6 h-6" /> : <ArrowRightIcon className="w-6 h-6" />}
+                            {Math.abs(Math.round(trend))}%
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {isPositive ? 'Improving' : trend < 0 ? 'Declining' : 'Stable'} over last {recent.length} days
+                          </p>
+                          <p className="text-xs text-gray-500 mt-2">
+                            {isPositive ? 'Keep up the great work!' : 'Focus on your weak areas'}
+                          </p>
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
+              </motion.div>
+            </div>
+
+            {/* Detailed Breakdown */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200">
+              <div className="flex items-center gap-2 mb-6">
+                <ChartPieIcon className="w-6 h-6 text-blue-600" />
+                <h3 className="text-xl font-bold text-gray-900 font-fredoka">Question Type Deep Dive</h3>
+              </div>
+              <div className="space-y-4">
+                {viewByType.sort((a,b)=>b.average-a.average).map((type, index) => (
+                  <div key={type.type} className="p-4 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white ${
+                          index === 0 ? 'bg-gradient-to-br from-yellow-400 to-orange-500' :
+                          index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400' :
+                          index === 2 ? 'bg-gradient-to-br from-orange-400 to-red-500' :
+                          'bg-gradient-to-br from-blue-500 to-purple-600'
+                        }`}>
+                          {index + 1}
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900 capitalize font-fredoka">{type.type}</h4>
+                          <p className="text-xs text-gray-500">{type.count} attempts</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-gray-900 font-fredoka">{type.average}%</p>
+                        <p className="text-xs text-gray-500">Average</p>
+                      </div>
+                    </div>
+                    <div className="relative w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                      <div 
+                        className={`h-3 rounded-full transition-all duration-500 ${
+                          type.average >= 80 ? 'bg-gradient-to-r from-green-500 to-emerald-600' :
+                          type.average >= 60 ? 'bg-gradient-to-r from-blue-500 to-indigo-600' :
+                          type.average >= 40 ? 'bg-gradient-to-r from-yellow-500 to-orange-600' :
+                          'bg-gradient-to-r from-orange-500 to-red-600'
+                        }`}
+                        style={{ width: `${Math.min(type.average, 100)}%` }}
+                      ></div>
+                    </div>
                   </div>
                 ))}
-                <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-                  <div className="font-bold text-gray-900 mb-2 font-fredoka">General Tips</div>
-                  <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                    <li>Keep a personal glossary of advanced vocabulary</li>
-                    <li>Summarize feedback into 3 bullet points</li>
-                    <li>Re-attempt lowest-scoring types after 48 hours</li>
-                    <li>Track your progress weekly</li>
-                  </ul>
-                </div>
               </div>
             </div>
           </div>

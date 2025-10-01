@@ -5,6 +5,7 @@
   "proxy": "http://localhost:5000",
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@number-flow/react": "^0.5.10",
     "@radix-ui/react-slot": "^1.2.3",
     "@react-spring/web": "^10.0.1",
     "@supabase/supabase-js": "^2.39.0",
@@ -14,6 +15,7 @@
     "date-fns": "^3.0.0",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.542.0",
+    "motion": "^12.23.22",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.6.0",
