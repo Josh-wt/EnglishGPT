@@ -14,8 +14,8 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 # Get services
-user_management_service = get_user_management_service(None)  # Will be injected
 supabase = get_supabase_client()
+user_management_service = get_user_management_service(supabase)  # Pass supabase client
 
 def calculate_streak(dates):
     """Calculate current streak from sorted dates"""
@@ -58,12 +58,20 @@ def extract_numeric_grade(grade_str):
 async def check_and_award_badges(user_id: str):
     """Check user activity and award badges"""
     try:
+        logger.info(f"🏆 Badge check request for user: {user_id}")
+        
         # Get user and evaluations using the user management service
         if not user_management_service:
+            logger.error("❌ User management service not available")
             raise HTTPException(status_code=500, detail="User management service not available")
+        
+        if not supabase:
+            logger.error("❌ Supabase client not available")
+            raise HTTPException(status_code=500, detail="Database connection not available")
         
         user_data = await user_management_service.get_user_by_id(user_id)
         if not user_data:
+            logger.warning(f"⚠️ User not found: {user_id}")
             raise HTTPException(status_code=404, detail="User not found")
         
         evaluations_response = supabase.table('assessment_evaluations').select('*').eq('user_id', user_id).execute()
@@ -163,32 +171,62 @@ async def check_and_award_badges(user_id: str):
                 supabase.table('assessment_badges').insert(badge_data).execute()
                 awarded_badges.append(badge_data)
         
+        logger.info(f"✅ Badge check completed for user: {user_id}, awarded: {len(awarded_badges)}")
         return {"awarded_badges": awarded_badges}
         
+    except HTTPException as he:
+        logger.error(f"❌ HTTP Exception in badge check: {he.status_code} - {he.detail}")
+        raise he
     except Exception as e:
+        logger.error(f"❌ Badge check error for user {user_id}: {str(e)}")
+        logger.exception("Full traceback:")
         raise HTTPException(status_code=500, detail=f"Badge check error: {str(e)}")
 
 @router.get("/badges/{user_id}")
 async def get_user_badges(user_id: str):
     """Get all badges for a user"""
     try:
+        logger.info(f"🏅 Fetching badges for user: {user_id}")
+        
+        if not supabase:
+            logger.error("❌ Supabase client not available")
+            raise HTTPException(status_code=500, detail="Database connection not available")
+        
         badges_response = supabase.table('assessment_badges').select('*').eq('user_id', user_id).order('earned_at', desc=True).limit(100).execute()
         badges = badges_response.data
+        
+        logger.info(f"✅ Retrieved {len(badges)} badges for user: {user_id}")
         return {"badges": badges}
+    except HTTPException as he:
+        logger.error(f"❌ HTTP Exception in badge retrieval: {he.status_code} - {he.detail}")
+        raise he
     except Exception as e:
+        logger.error(f"❌ Badge retrieval error for user {user_id}: {str(e)}")
+        logger.exception("Full traceback:")
         raise HTTPException(status_code=500, detail=f"Badge retrieval error: {str(e)}")
 
 @router.get("/analytics/{user_id}")
 async def get_user_analytics(user_id: str):
     """Get analytics data for a specific user"""
     try:
+        logger.info(f"📊 Analytics request for user: {user_id}")
+        
         # Get user to check if they have analytics access using the user management service
         if not user_management_service:
+            logger.error("❌ User management service not available")
             raise HTTPException(status_code=500, detail="User management service not available")
         
+        if not supabase:
+            logger.error("❌ Supabase client not available")
+            raise HTTPException(status_code=500, detail="Database connection not available")
+        
+        logger.info(f"🔍 Fetching user data for: {user_id}")
         user_data = await user_management_service.get_user_by_id(user_id)
         if not user_data:
+            logger.warning(f"⚠️ User not found: {user_id}")
             raise HTTPException(status_code=404, detail="User not found")
+        
+        logger.info(f"✅ User found: {user_id}, plan: {user_data.get('current_plan')}")
         
         # Check if user has analytics access (unlimited plan)
         if user_data.get('current_plan') != 'unlimited':
@@ -356,7 +394,14 @@ Format your response in clear bullet points, using "you" to address the student 
 
         analytics_data["recommendations"] = recommendations
 
+        logger.info(f"✅ Analytics data successfully generated for user: {user_id}")
         return {"analytics": analytics_data}
         
+    except HTTPException as he:
+        # Re-raise HTTP exceptions as-is
+        logger.error(f"❌ HTTP Exception in analytics: {he.status_code} - {he.detail}")
+        raise he
     except Exception as e:
+        logger.error(f"❌ Analytics error for user {user_id}: {str(e)}")
+        logger.exception("Full traceback:")
         raise HTTPException(status_code=500, detail=f"Analytics error: {str(e)}")
