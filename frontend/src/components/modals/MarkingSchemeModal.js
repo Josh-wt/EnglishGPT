@@ -98,6 +98,14 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
         commandWord: questionType?.id === 'gp_essay' ? (commandWord === 'custom' ? customCommandWord.trim() : commandWord) : null,
         textType: questionType?.id === 'igcse_directed' ? textType : null
       };
+      
+      console.log('🎯 MarkingSchemeModal - Sending data to parent:', {
+        questionTypeId: questionType?.id,
+        textType: textType,
+        isIgcseDirected: questionType?.id === 'igcse_directed',
+        dataBeingSent: data
+      });
+      
       await onProceed(data);
       
       // Don't clear localStorage here - let the evaluation process handle it

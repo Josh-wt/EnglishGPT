@@ -36,8 +36,10 @@ async def evaluate_submission(submission: SubmissionRequest):
         logger.info(f"  - question_type: {submission.question_type} (type: {type(submission.question_type)})")
         logger.info(f"  - student_response length: {len(submission.student_response) if submission.student_response else 0}")
         logger.info(f"  - student_response type: {type(submission.student_response)}")
-        logger.info(f"  - marking_scheme: {submission.marking_scheme} (type: {type(submission.marking_scheme)})")
-        logger.info(f"  - command_word: {getattr(submission, 'command_word', 'NOT_PROVIDED')} (type: {type(getattr(submission, 'command_word', None))})")
+        logger.info(f"  - marking_scheme: {'PROVIDED' if submission.marking_scheme else 'NOT_PROVIDED'} (type: {type(submission.marking_scheme)})")
+        logger.info(f"  - command_word: {getattr(submission, 'command_word', 'NOT_PROVIDED')}")
+        logger.info(f"  - text_type: {getattr(submission, 'text_type', 'NOT_PROVIDED')}")
+        logger.info(f"  🎯 IGCSE DIRECTED CHECK: Is igcse_directed? {submission.question_type == 'igcse_directed'}, Has text_type? {bool(getattr(submission, 'text_type', None))}")
         
         # Validate required fields
         if not submission.user_id:
