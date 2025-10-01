@@ -314,20 +314,24 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
     // Handle both old format (string) and new format (object)
     const markingScheme = typeof data === 'string' ? data : data.markingScheme;
     const commandWord = typeof data === 'object' ? data.commandWord : null;
+    const textType = typeof data === 'object' ? data.textType : null;
 
     console.log('🔍 DEBUG: handleMarkingSchemeProceed - Extracted values:', {
       markingScheme,
       commandWord,
+      textType,
       markingSchemeType: typeof markingScheme,
-      commandWordType: typeof commandWord
+      commandWordType: typeof commandWord,
+      textTypeType: typeof textType
     });
 
-    // Create evaluation data with marking scheme and command word
+    // Create evaluation data with marking scheme, command word, and text type
     const evaluationData = {
       question_type: selectedQuestionType.id,
       student_response: studentResponse,
       marking_scheme: markingScheme,
       command_word: commandWord,
+      text_type: textType,  // Add text_type for igcse_directed
       user_id: user?.id,
     };
     
@@ -338,10 +342,12 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
         student_response: typeof evaluationData.student_response,
         marking_scheme: typeof evaluationData.marking_scheme,
         command_word: typeof evaluationData.command_word,
+        text_type: typeof evaluationData.text_type,
         user_id: typeof evaluationData.user_id
       },
       studentResponsePreview: studentResponse.substring(0, 100) + '...',
-      markingSchemePreview: markingScheme ? markingScheme.substring(0, 100) + '...' : 'null'
+      markingSchemePreview: markingScheme ? markingScheme.substring(0, 100) + '...' : 'null',
+      textType: textType
     });
     
     // Close the modal

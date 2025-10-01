@@ -125,12 +125,25 @@ class EvaluationService:
             logger.error(f"❌ Available question types: {list(self.marking_criteria.keys())}")
             raise ValueError(f"Invalid question type: {submission.question_type}")
         
+        logger.info(f"📋 Base marking criteria loaded for: {submission.question_type}")
+        
         # For IGCSE directed writing, combine general criteria with text-type-specific criteria
-        if submission.question_type == 'igcse_directed' and submission.text_type:
-            text_type_key = f"igcse_directed_{submission.text_type}"
-            text_type_criteria = self.marking_criteria.get(text_type_key, "")
-            if text_type_criteria:
-                marking_criteria = f"{marking_criteria}\n\n{text_type_criteria}"
+        if submission.question_type == 'igcse_directed':
+            logger.info(f"🎯 IGCSE Directed detected - text_type: {submission.text_type}")
+            if submission.text_type:
+                text_type_key = f"igcse_directed_{submission.text_type}"
+                logger.info(f"🔍 Looking for text-type criteria with key: {text_type_key}")
+                text_type_criteria = self.marking_criteria.get(text_type_key, "")
+                if text_type_criteria:
+                    logger.info(f"✅ Text-type criteria found and added: {text_type_key}")
+                    logger.info(f"📏 Combined criteria length: {len(marking_criteria)} + {len(text_type_criteria)} = {len(marking_criteria) + len(text_type_criteria)}")
+                    marking_criteria = f"{marking_criteria}\n\n{text_type_criteria}"
+                else:
+                    logger.warning(f"⚠️ No text-type criteria found for key: {text_type_key}")
+                    logger.warning(f"⚠️ Available text-type keys: {[k for k in self.marking_criteria.keys() if k.startswith('igcse_directed_')]}")
+            else:
+                logger.warning(f"⚠️ IGCSE Directed but no text_type provided in submission!")
+                logger.warning(f"⚠️ This means only base criteria will be used, not letter/speech/article specific criteria")
         
         # For GP Essay, combine general criteria with command-word-specific criteria
         if submission.question_type == 'gp_essay' and submission.command_word:
@@ -601,9 +614,12 @@ Student Response: {sanitized_response}
         
         try:
             logger.info(f"🔧 Starting evaluation for submission:")
-            logger.info(f"🔧 Submission object: {submission}")
-            logger.info(f"🔧 Submission dict: {submission.__dict__ if hasattr(submission, '__dict__') else 'No __dict__'}")
-            logger.info(f"🔧 Submission type: {type(submission)}")
+            logger.info(f"🔧 Question Type: {submission.question_type}")
+            logger.info(f"🔧 Text Type: {submission.text_type}")
+            logger.info(f"🔧 Command Word: {submission.command_word}")
+            logger.info(f"🔧 Has Marking Scheme: {bool(submission.marking_scheme)}")
+            logger.info(f"🔧 User ID: {submission.user_id}")
+            logger.info(f"🔧 Response Length: {len(submission.student_response)} chars")
             
             # Validate question type
             if submission.question_type not in self.marking_criteria:

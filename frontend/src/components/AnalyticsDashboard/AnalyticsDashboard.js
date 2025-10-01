@@ -756,7 +756,7 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
                     <LightBulbIcon className="w-7 h-7 text-white" />
-                  </div>
+              </div>
                   <div>
                     <h3 className="text-2xl font-bold text-gray-900 font-fredoka">AI-Powered Insights</h3>
                     <p className="text-sm text-gray-600">Personalized recommendations based on your performance</p>
@@ -765,8 +765,8 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
                 <div className="flex items-center gap-2 text-xs bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-full font-medium shadow-md">
                   <SparklesSolidIcon className="w-4 h-4" />
                   <span>Powered by Advanced AI</span>
-                </div>
               </div>
+            </div>
 
               {shouldShowInsightsButton ? (
                 <div className="bg-white/80 backdrop-blur-sm rounded-xl p-12 text-center">
@@ -780,7 +780,7 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
                       <div className="flex items-center justify-center gap-2 mb-4">
                         <div className="text-sm text-gray-500">
                           Progress: <span className="font-bold text-purple-600">{evaluations.length} / 5</span> assessments
-                        </div>
+          </div>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-4 max-w-md mx-auto shadow-inner">
                         <div 
