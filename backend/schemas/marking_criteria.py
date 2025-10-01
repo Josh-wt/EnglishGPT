@@ -633,7 +633,31 @@ Your recently published article, entitled "Are screens scrambling our kids' brai
 
 The article writes how the American Academy of Paediatrics (AAP) recommends maximum two hours of entertainment screen time daily. This is a reasonable statement as there is a relationship between excessive screen time and obesity. However, it should be noted that the AAP's study is 25 years old and focused on nutrition in children rather than technology's impact. Thus, to reference it with regard to the negative influence technology can have on younger people is somewhat disingenuous. Ultimately, the recommendation that screen time be limited to two hours is sound with regard to younger children, yet may need to be revised by parents as their child grows. This is because older children increasingly use devices for socialising and may be more mature in handling their content consumption. 
 
-Here, readers can see a response worthy of higher markers. The format of a letter is properly adhered to in this extract. Moreover, the tone and language is far more appropriate. The writer's authorial voice is commanding and speaks to a confidence that aids in achieving higher marks.""",
+Here, readers can see a response worthy of higher markers. The format of a letter is properly adhered to in this extract. Moreover, the tone and language is far more appropriate. The writer's authorial voice is commanding and speaks to a confidence that aids in achieving higher marks.
+
+CRITICAL: You are marking the essays given a little too high. Please understand the feedback and grading below and mark the essays accordingly. This is what the feedback should look like, do not follow the format below, follow the format given in this prompt, focus on the feedback, THE FEEDBACK IS IN THE BRACKETS, JUST UNDERSTAND IT
+
+Dear William [add comma]
+
+Recently, I heard about your plan to strive for your ambition. [Too artificial] And to be honest, having an ambition is necessary to a human. [again too artificial and wrong wording, it should be “essential for human purpose etc.”] At first glance, you may think of many reasons to object this [{the questions says he has an ambition though}] But hear me out, it is what defines a person. [Again too artificial]
+
+Plotting out your dreams and planning it to make it come true is truly tempting, [repetition and wrong choice of words] and better if it actually succeeded. Despite numerous connotations of the word ‘ambition’, the only true property of it has not changed [{add colon:}] it needs to be achievable. It doesn’t need to be the minimal ‘expectation’ that you have to achieve, but the upper bound for which you set as your lifelong goal. [(does not make sense)] It must be what you want. It is an odyssey with ebb and flow of failure and success. [Good sentence] Only with true determination, you can embrace failure and using it to build your way towards success. After all, the falls you had endure will just build up your mental capacity to trailblaze(I played too much h$;r) your future. [Is it not? Connect it with some other sentence, also it sounds too poetic at this point]
+
+Putting your hands on goals that are out of reach would negatively impact you. Because knowing that it is far out of your reach, you will run faster and faster to complete and reach it. [Makes no sense] This would only narrow down your life, missing out of friendships and the wonderful experiences along the way. But without the support of friendships and the experiences that you had gained through your journey, it would be harder for you to achieve your ambitions. [Mentally, no one will be at your back motivating you to move further. Physically, you wouldn’t develop the skills, good phrasing] the mindsets that are slowly evolved. Even if you reach the end, nothing is left with you.
+
+Do you still think your ambition is rightful? If your answer is an inevitable ‘yes’, then I believe you are mentally prepared. You understand that only a few reach paradise [(the final destination, I forgot the vocab here)] You are no longer influenced by media and people around you. You have introspected yourself, [does not fit here] and know that you are worthy for this ambition. [Then please achieve it. ??]
+
+In conclusion, [sounds like an essay, please make it informal] ensure that your blueprint is not just 3 minutes motivation affected by people around you. Know that it is possible in an extent of your current ability. Compare the gain and loss of it, and know that gain is heavier. And finally, always remember that I am here to help you.
+
+Sincerely
+
+**[Language is too artificial and the tone and register is inconsistent
+Too much repetition of particular words
+No solid content or specific ambition (which would be better if mentioned explicitly)
+Some phrases are good, but less in number
+
+5/15 for content + 9/25 for quality = 14/40 total]**
+""",
     "igcse_directed_article": """
 Article Format
 
@@ -781,10 +805,39 @@ Where you, the AI, consistently make mistakes while marking:
 "Quote the complete image every time before analysing"
 "Verify that the chosen phrase actually exists in the passage"
 
-2.
+2. Here is an example of what feedback should look like, do not follow the format below, follow the format given in this prompt, focus on the feedback:
+The feedback is in the brackets, just understand it.
+
+(Mention overall effect first and paragraph number.)
+
+The writer creates a detailed imagery by utilizing adjectives (do not mention just ‘adjectives’ as it narrows your approach) that give the reader more detail about the environment and the surroundings of the story. Such as “Hair-thin wire”, this creates imagery of a nearly invisible trap that cannot be seen by an unsuspecting animal. “Hair-thin” shows that the tern had no way evading the trap and Lotta’s preparation for this project. (Link it to hair-thin specifically, and do not focus on the narrative)
+
+Next, “Small burst of defiance”, the word “small burst” may highlight fear and aggression, which means this was simply the bird defending itself naturally. This is it’s instinct to defend itself but “small” means it is quick to give up, showing weakness. (This is good but write one paragraph’s examples together, and make another para for the 2nd paragraph’s analysis)
+The writer also leads us to believe Lotta is very skilled with how she works, “deftly looping the band”. The use of the word deftly shows she did it carefully and gently to not hurt the bird. This is critical to how we see her character and it invokes the imagery of someone truly dedicated to this project (HOW is it imagery?)
+
+(Mention the ‘how’ part and link it to ‘looping’ as well)
+
+In the final paragraph (which??) the writer continues to depict imagery of the arctic, and captures the emotions that the characters feel, like “my heart breaks and then jumps”-this represents a sudden change in emotion, giving the heart an action somewhat personifies it to show the idea of excitement in the character. (You are not linking it with the specific example)
+
+The writer also immerses the reader into the scene, (by…?) “hundreds of terns smother an expanse of unspoiled ice below”. This implies that the terns completely shrouded the land, covering it. This makes the scene feel lively and ‘awesome’ in it’s scale, this guides the reader to think clearly about the scene.
+
+TOTAL MARKS: 6/15
+
+Here is another example of what feedback should look like, do not follow the format below, follow the format given in this prompt, focus on the feedback:
+
+The overall effect of paragraph 2 is to portray the thoughts going through the narratives mind while he drinks water. “My bottle crackles as I squeeze it” The word “crackles” has connotations of a sound which means it is a plastic bottle and the word “squeeze” shows the desperate need of water the writer needed. “the excess liquid splatters fatly on the greedy asphalt” the word “greedy” has connotations to portray how the solid floor soaked up the water as it fell. Which suggests the writer using personification to describe the ground. The word “splatters” explicitly means that it scattered as the water reached the ground. “one crucial drop i will be crying out” the word “crucial” has connotations to “importance” to show the significance of each sip of water has when doing this sport. the phrase “crying out” conveys that water is substantial and should not be wasted.
+The overall effect of paragraph 12 is the narrator looking ahead at the forest he has to go into. “The steep road ahead meanders lazily through the trees.” The word “meanders” has connotations of various roads scattered around in no certain direction. The explicit meaning of this sentence is for the reader to imagine the scenery ahead the narrator. “mocking gravelly promise for worse to come” the word “mocking” has connotations to portray personification and the idea that the forest is trying to deter him from his path. The word “promise” has meanings to be a secret oath the trees take to make sure Sonnys dad will suffer the consequences of choosing to go through the forest. “wisp of warm exhaust fumes tickling my nostrils” the word “exhaust” has connotations of the throbbing heat in the air and the word  “tickling” shows the discomfort of breathing in.
+
+Feedback: 'effect' does not portray things
+fix the first sentence
+develop the points more, u just state things and write their connotations, needs analysis
+it's too redundant
+explain HOW it does that too, rather that WHAT it does (for each example/word)
+
+5/15
+
 
 Based on the above criteria mark the essay below. The user should give two paragraphs separately, mark them as one not, two separate as Writer's Effect answers. In total give them a mark out of 15.  Do not over-scrutinize, only look for similes, metaphors, effect on the reader and effects in general. Do not look for other literary techniques. Marks can be awarded positively and negatively. Try to limit marks when mistakes are made. The structure is so that you don't need to over explain, so don't deduct marks for short explanations. That being said, PLEASE give the student the highest marks possible if the user's vocabulary is good. Students need honest feedback to improve.
-If you think the Sensory Details are good, the narrative must get over 30/40.
 """,
     "igcse_summary": """
 
