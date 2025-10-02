@@ -464,50 +464,111 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
           <p className="text-gray-600 font-fredoka">Track your progress, identify patterns, and optimize your performance</p>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-1 shadow-sm border border-gray-200">
-            {[
-              { id: 'overview', label: 'Overview', Icon: ChartBarIcon },
-              { id: 'performance', label: 'Performance', Icon: TrophyIcon },
-              { id: 'progress', label: 'Progress', Icon: ArrowTrendingUpIcon },
-              { id: 'insights', label: 'Insights', Icon: LightBulbIcon }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 font-fredoka flex items-center gap-2 ${
-                  activeTab === tab.id
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
-                }`}
-              >
-                <tab.Icon className="w-5 h-5" />
-                {tab.label}
-              </button>
-            ))}
+        {/* Beautiful Horizontal Menu Bar */}
+        <div className="w-full mb-8">
+          <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4">
+              {/* Left Section - Main Navigation */}
+              <div className="flex items-center space-x-1">
+                {[
+                  { id: 'overview', label: 'Overview', Icon: ChartBarIcon, color: 'from-blue-500 to-blue-600' },
+                  { id: 'performance', label: 'Performance', Icon: TrophyIcon, color: 'from-yellow-500 to-orange-500' },
+                  { id: 'progress', label: 'Progress', Icon: ArrowTrendingUpIcon, color: 'from-green-500 to-emerald-600' },
+                  { id: 'insights', label: 'Insights', Icon: LightBulbIcon, color: 'from-purple-500 to-pink-500' }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`relative px-6 py-3 rounded-xl font-medium transition-all duration-300 font-fredoka flex items-center gap-3 group ${
+                      activeTab === tab.id
+                        ? `bg-gradient-to-r ${tab.color} text-white shadow-lg transform scale-105`
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/80 hover:shadow-md'
+                    }`}
+                  >
+                    <tab.Icon className={`w-5 h-5 transition-transform duration-200 ${
+                      activeTab === tab.id ? 'scale-110' : 'group-hover:scale-105'
+                    }`} />
+                    <span className="font-semibold">{tab.label}</span>
+                    {activeTab === tab.id && (
+                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full shadow-lg"></div>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Center Section - Time Range Selector */}
+              <div className="flex items-center space-x-2 bg-gray-50/80 rounded-xl p-1">
+                <span className="text-sm font-medium text-gray-600 px-3">Time Range:</span>
+                {['week', 'month', 'quarter', 'year'].map((range) => (
+                  <button
+                    key={range}
+                    onClick={() => setSelectedTimeRange(range)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 capitalize ${
+                      selectedTimeRange === range
+                        ? 'bg-white text-blue-600 shadow-md font-semibold'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+                    }`}
+                  >
+                    {range}
+                  </button>
+                ))}
+              </div>
+
+              {/* Right Section - Action Buttons */}
+              <div className="flex items-center space-x-3">
+                {/* AI Insights Button */}
+                {shouldShowInsightsButton && (
+                  <button
+                    onClick={fetchAIInsights}
+                    disabled={loadingRecommendations}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loadingRecommendations ? (
+                      <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <SparklesIcon className="w-4 h-4" />
+                    )}
+                    <span className="font-medium">
+                      {loadingRecommendations ? 'Analyzing...' : 'Get AI Insights'}
+                    </span>
+                  </button>
+                )}
+
+                {/* Export Button */}
+                <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span className="font-medium">Export</span>
+                </button>
+
+                {/* Settings Button */}
+                <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Progress Indicator */}
+            <div className="h-1 bg-gray-100">
+              <div 
+                className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 transition-all duration-500 ease-out"
+                style={{ 
+                  width: activeTab === 'overview' ? '25%' : 
+                         activeTab === 'performance' ? '50%' : 
+                         activeTab === 'progress' ? '75%' : '100%' 
+                }}
+              ></div>
+            </div>
           </div>
         </div>
 
-        {/* Time Range Filters */}
-        <div className="flex flex-wrap items-center justify-between gap-4 bg-white/70 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-gray-200">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-700 font-fredoka">Time Range:</span>
-            {['week','month','quarter','all'].map(r => (
-              <button 
-                key={r} 
-                onClick={()=>setSelectedTimeRange(r)} 
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  selectedTimeRange===r 
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' 
-                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:shadow-md'
-                }`}
-              >
-                {r==='week'?'7 Days':r==='month'?'30 Days':r==='quarter'?'90 Days':'All Time'}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600 font-fredoka">
+        {/* Response Count Display */}
+        <div className="flex justify-center mb-6">
+          <div className="flex items-center gap-2 text-sm text-gray-600 font-fredoka bg-white/70 backdrop-blur-sm rounded-xl px-4 py-2 shadow-sm border border-gray-200">
             <ChartPieIcon className="w-5 h-5" />
             <span>Showing <span className="font-semibold text-gray-900">{totalResponses}</span> responses</span>
           </div>
