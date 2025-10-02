@@ -268,11 +268,18 @@ async def get_user_analytics(user_id: str):
                 logger.info(f"🔍 Looking for cached recommendations with key: {rec_key}")
                 
                 cache_start = datetime.utcnow()
-                rec_resp = supabase.table('assessment_meta').select('*').eq('key', rec_key).execute()
-                cache_duration = (datetime.utcnow() - cache_start).total_seconds()
-                cached = rec_resp.data[0] if rec_resp.data else None
-                
-                logger.info(f"📦 Cache lookup completed in {cache_duration:.2f}s, found: {bool(cached)}")
+                try:
+                    rec_resp = supabase.table('assessment_meta').select('*').eq('key', rec_key).execute()
+                    cache_duration = (datetime.utcnow() - cache_start).total_seconds()
+                    cached = rec_resp.data[0] if rec_resp.data else None
+                    
+                    logger.info(f"📦 Cache lookup completed in {cache_duration:.2f}s, found: {bool(cached)}")
+                    if cached:
+                        logger.info(f"📦 Cached data: {cached.get('value', {}).keys() if cached.get('value') else 'No value'}")
+                except Exception as e:
+                    logger.error(f"❌ Cache lookup failed: {e}")
+                    cached = None
+                    cache_duration = (datetime.utcnow() - cache_start).total_seconds()
                 
                 # Determine if we need to refresh
                 # Generate if: 1) No cache exists, OR 2) Cache exists but evaluations % 5 == 0
@@ -426,15 +433,20 @@ Format your response in clear bullet points, using "you" to address the student 
                         "updated_at": datetime.utcnow().isoformat(),
                         "meta": json.dumps({"count": len(evaluations)})
                     }
-                    if cached:
-                        logger.info(f"🔄 Updating existing cache entry")
-                        supabase.table('assessment_meta').update(record).eq('key', rec_key).execute()
-                    else:
-                        logger.info(f"➕ Creating new cache entry")
-                        supabase.table('assessment_meta').insert(record).execute()
-                    
-                    cache_save_duration = (datetime.utcnow() - cache_save_start).total_seconds()
-                    logger.info(f"✅ Cache saved in {cache_save_duration:.2f}s")
+                    try:
+                        if cached:
+                            logger.info(f"🔄 Updating existing cache entry")
+                            supabase.table('assessment_meta').update(record).eq('key', rec_key).execute()
+                        else:
+                            logger.info(f"➕ Creating new cache entry")
+                            supabase.table('assessment_meta').insert(record).execute()
+                        
+                        cache_save_duration = (datetime.utcnow() - cache_save_start).total_seconds()
+                        logger.info(f"✅ Cache saved in {cache_save_duration:.2f}s")
+                    except Exception as e:
+                        logger.error(f"❌ Failed to save cache: {e}")
+                        cache_save_duration = (datetime.utcnow() - cache_save_start).total_seconds()
+                        logger.info(f"⚠️ Cache save failed after {cache_save_duration:.2f}s, but recommendations generated successfully")
                     
                     recommendations = rec_text
                     logger.info(f"✅ Using newly generated recommendations ({len(rec_text)} chars)")
