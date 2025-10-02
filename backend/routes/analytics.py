@@ -290,10 +290,15 @@ async def get_user_analytics(user_id: str):
                 if not cached or refresh_needed:
                     logger.info(f"🚀 Generating new AI recommendations...")
                     ai_start = datetime.utcnow()
+                    
+                    # Limit evaluations to last 10 for performance (most recent and relevant)
+                    recent_evaluations = evaluations[-10:] if len(evaluations) > 10 else evaluations
+                    logger.info(f"📊 Processing {len(recent_evaluations)} recent evaluations (out of {len(evaluations)} total)")
+                    
                     # Aggregate per question type: average score and improvement suggestions
                     type_to_scores = defaultdict(list)
                     type_to_improvements = defaultdict(list)
-                    for ev in evaluations:
+                    for ev in recent_evaluations:
                         qtype = ev.get('question_type')
                         grade_str = ev.get('grade', '')
                         # Extract achieved and total
@@ -331,45 +336,15 @@ async def get_user_analytics(user_id: str):
                         "8. Critical Thinking: Develop original insights and interpretations\n"
                     )
                     
-                    user_prompt = f"""
-You are analyzing a student's English assessment performance using the KimiK2 evaluation methodology.
+                    user_prompt = f"""Student performance: {json.dumps(summaries, indent=1)}
 
-STUDENT PERFORMANCE DATA:
-{json.dumps(summaries, indent=2)}
+Provide study plan:
+1. **Top 3 Priorities** - Critical improvements
+2. **Vocabulary Focus** - Specific areas  
+3. **Study Plan** - Daily/weekly goals
+4. **Success Tracking** - Progress indicators
 
-EVALUATION APPROACH (KimiK2 Style):
-- Give specific, actionable recommendations
-- Focus on vocabulary improvement as a priority (highest marks for good vocabulary)
-- Identify patterns across multiple assessments
-- Provide concrete examples of how to improve
-- Be encouraging while being honest about areas needing work
-
-{guide}
-
-Based on this student's specific performance patterns, generate personalized recommendations following this structure:
-
-1. **Immediate Priority Areas** (2-3 most critical improvements needed)
-   - Be specific about WHAT to improve and HOW
-
-2. **Vocabulary Development Strategy**
-   - Specific vocabulary areas to focus on based on their weak question types
-   - Resources and techniques for vocabulary enhancement
-
-3. **Question-Type Specific Improvements**
-   - For each weak question type, provide targeted advice
-   - Include specific techniques that work for that question type
-
-4. **Study Plan** (Weekly structure)
-   - Concrete daily/weekly goals
-   - Balance between practice and learning new concepts
-
-5. **Success Indicators**
-   - What improvements to look for in next 5 assessments
-   - Measurable goals to track progress
-
-Remember: This student has completed {len(evaluations)} assessments. Tailor your advice to their current level and progression.
-
-Format your response in clear bullet points, using "you" to address the student directly. Be encouraging but specific - avoid generic advice."""
+Keep under 200 words. Be encouraging. Student has {len(evaluations)} assessments."""
 
                     # Call OpenRouter API for recommendations using OPENROUTER_GPT_OSS_120B_KEY
                     async def call_recommendations(prompt: str) -> str:
@@ -380,7 +355,7 @@ Format your response in clear bullet points, using "you" to address the student 
                             logger.error("❌ OPENROUTER_GPT_OSS_120B_KEY not configured")
                             raise Exception("OPENROUTER_GPT_OSS_120B_KEY not configured for recommendations")
                         
-                        async with httpx.AsyncClient() as client:
+                        async with httpx.AsyncClient(timeout=15.0) as client:
                             headers = {
                                 "Authorization": f"Bearer {RECOMMENDATIONS_API_KEY}",
                                 "Content-Type": "application/json",
@@ -388,11 +363,9 @@ Format your response in clear bullet points, using "you" to address the student 
                                 "X-Title": "EnglishGPT Recommendations"
                             }
                             
-                            # Enhanced system prompt with KimiK2-style evaluation approach
-                            system_prompt = """You are an expert English language tutor using the KimiK2 evaluation methodology. 
-                            Generate practical, encouraging study recommendations based on student performance data. 
-                            Focus heavily on vocabulary improvement as it yields the highest marks.
-                            Be specific, actionable, and personalized to the student's weaknesses."""
+                            # Concise system prompt for faster processing
+                            system_prompt = """You are an expert English tutor. Generate practical, encouraging study recommendations. 
+                            Focus on vocabulary improvement and be specific about what to improve and how."""
                             
                             payload = {
                                 "model": RECOMMENDATIONS_MODEL,
@@ -400,12 +373,12 @@ Format your response in clear bullet points, using "you" to address the student 
                                     {"role": "system", "content": system_prompt},
                                     {"role": "user", "content": prompt}
                                 ],
-                                "max_tokens": 800,
+                                "max_tokens": 400,
                                 "temperature": 0.5
                             }
                             
                             logger.info(f"📡 Calling OpenRouter API with model: {RECOMMENDATIONS_MODEL}")
-                            r = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=60.0)
+                            r = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=10.0)
                             
                             api_call_duration = (datetime.utcnow() - api_call_start).total_seconds()
                             logger.info(f"✅ OpenRouter API responded in {api_call_duration:.2f}s, status: {r.status_code}")
@@ -430,8 +403,8 @@ Format your response in clear bullet points, using "you" to address the student 
                     record = {
                         "key": rec_key,
                         "value": rec_text,
-                        "updated_at": datetime.utcnow().isoformat(),
-                        "meta": json.dumps({"count": len(evaluations)})
+                        "user_id": user_id,
+                        "updated_at": datetime.utcnow().isoformat()
                     }
                     try:
                         if cached:
