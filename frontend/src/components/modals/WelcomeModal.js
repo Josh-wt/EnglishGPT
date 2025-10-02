@@ -87,10 +87,10 @@ const WelcomeModal = ({ isOpen, onClose, onGetStarted }) => {
                 <GiftIcon className="w-12 h-12 text-green-600" />
               </div>
               <h2 className="text-2xl font-bold text-green-800 mb-2">
-                Get Unlimited Access FREE!
+                Join Discord for Discount Code!
               </h2>
               <p className="text-green-700 mb-4 text-lg">
-                Join our Discord community and get <strong>lifetime unlimited access</strong> to all features!
+                Join our Discord community and get a <strong>discount code</strong> for unlimited access!
               </p>
               <button
                 onClick={handleDiscordClick}
@@ -101,7 +101,7 @@ const WelcomeModal = ({ isOpen, onClose, onGetStarted }) => {
                 <RocketLaunchIcon className="w-6 h-6" />
               </button>
               <p className="text-green-600 text-sm mt-3">
-                Limited time offer - Join now to claim your free unlimited plan!
+                Limited time offer - Join now to get your discount code!
               </p>
             </motion.div>
 
@@ -151,7 +151,7 @@ const WelcomeModal = ({ isOpen, onClose, onGetStarted }) => {
                 <p>• <strong>3 Free Credits:</strong> Start with 3 essay evaluations</p>
                 <p>• <strong>1 Credit = 1 Essay:</strong> Each evaluation uses one credit</p>
                 <p>• <strong>Unlimited Plan:</strong> Get unlimited credits for $4.99 (one-time payment)</p>
-                <p>• <strong>Or Join Discord:</strong> Get unlimited access completely free!</p>
+                <p>• <strong>Or Join Discord:</strong> Get a discount code for unlimited access!</p>
               </div>
             </motion.div>
 
@@ -202,7 +202,7 @@ const WelcomeModal = ({ isOpen, onClose, onGetStarted }) => {
                 className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 <ChatBubbleLeftRightIcon className="w-5 h-5" />
-                Join Discord (Free Unlimited)
+                Join Discord (Get Discount)
               </button>
               <button
                 onClick={onGetStarted}

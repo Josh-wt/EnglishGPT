@@ -46,11 +46,11 @@ export const getLaunchPeriodMessage = () => {
   
   const daysRemaining = getDaysRemaining();
   if (daysRemaining === 0) {
-    return 'Last day of launch period! Get unlimited access today!';
+    return 'Last day of launch period! Join Discord for discount code today!';
   } else if (daysRemaining === 1) {
-    return 'Only 1 day left in launch period! Get unlimited access now!';
+    return 'Only 1 day left in launch period! Join Discord for discount code now!';
   } else {
-    return `${daysRemaining} days left in launch period! Get unlimited access now!`;
+    return `${daysRemaining} days left in launch period! Join Discord for discount code now!`;
   }
 };
 

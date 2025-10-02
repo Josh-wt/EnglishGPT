@@ -458,8 +458,8 @@ const SubscriptionDashboard = ({ user, darkMode }) => {
                       </Button>
                     </>
                   ) : (
-                    <Button className="w-full">
-                      Get Unlimited Access
+                    <Button className="w-full" onClick={() => window.open('https://discord.gg/xRqB4BWCcJ', '_blank')}>
+                      Join Discord for Discount
                     </Button>
                   )}
                 </CardContent>
