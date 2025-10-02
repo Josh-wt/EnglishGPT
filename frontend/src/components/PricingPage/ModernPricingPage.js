@@ -332,10 +332,10 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
           <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-6 text-center text-white shadow-lg">
             <div className="flex items-center justify-center gap-3 mb-3">
               <ChatBubbleLeftRightIcon className="w-6 h-6" />
-              <h3 className="text-lg font-semibold">Join the Discord to claim unlimited for free</h3>
+              <h3 className="text-lg font-semibold">Join Discord for discount code</h3>
             </div>
             <p className="text-green-100 text-sm mb-4">
-              Get lifetime unlimited access to all features by joining our Discord community
+              Get a discount code for unlimited access by joining our Discord community
             </p>
             <button
               onClick={() => window.open('https://discord.gg/xRqB4BWCcJ', '_blank')}
@@ -382,7 +382,7 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
             {[
               {
                 question: "What does lifetime access mean?",
-                answer: "Lifetime access means you pay once and get unlimited access to all features forever. No recurring charges, no expiration date."
+                answer: "Lifetime access means you pay once and get unlimited access to all features forever. No recurring charges, no expiration date. Join our Discord to get a discount code!"
               },
               {
                 question: "Do you offer refunds?",
