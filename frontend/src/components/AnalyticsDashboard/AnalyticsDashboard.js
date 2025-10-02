@@ -182,84 +182,195 @@ const LockedAnalyticsPage = ({ onBack, upgradeType, page = 'analytics' }) => {
 
 // Analytics Dashboard
 const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade }) => {
+  console.log('🚀 [AnalyticsDashboard] Component initialized with props:', {
+    userStats,
+    user: user ? { id: user.id, email: user.email } : null,
+    evaluationsCount: evaluations?.length || 0,
+    onBack: typeof onBack,
+    onUpgrade: typeof onUpgrade
+  });
+
   const [selectedTimeRange, setSelectedTimeRange] = useState('month');
   const [activeTab, setActiveTab] = useState('overview');
   const [aiRecommendations, setAiRecommendations] = useState(null);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [analyticsData, setAnalyticsData] = useState(null);
   const [lastFetchedCount, setLastFetchedCount] = useState(0);
+
+  console.log('📊 [AnalyticsDashboard] State initialized:', {
+    selectedTimeRange,
+    activeTab,
+    hasAiRecommendations: !!aiRecommendations,
+    loadingRecommendations,
+    hasAnalyticsData: !!analyticsData,
+    lastFetchedCount
+  });
   
   // Check if user has unlimited access
   const hasUnlimitedAccess = useMemo(() => {
     const plan = userStats?.current_plan?.toLowerCase();
     const credits = userStats?.credits;
-    return plan === 'unlimited' || credits >= 99999;
+    const hasAccess = plan === 'unlimited' || credits >= 99999;
+    
+    console.log('🔐 [AnalyticsDashboard] Access check:', {
+      plan,
+      credits,
+      hasAccess,
+      userStats
+    });
+    
+    return hasAccess;
   }, [userStats?.current_plan, userStats?.credits]);
 
   // Check if new insights are available (dynamic - 5 assessments after last fetch)
   const shouldShowInsightsButton = useMemo(() => {
     const currentCount = evaluations?.length || 0;
     
+    console.log('💡 [AnalyticsDashboard] Insights button calculation:', {
+      currentCount,
+      lastFetchedCount,
+      hasAiRecommendations: !!aiRecommendations,
+      evaluationsLength: evaluations?.length
+    });
+    
     // Always require minimum of 5 assessments for first insights
-    if (currentCount < 5) return false;
+    if (currentCount < 5) {
+      console.log('💡 [AnalyticsDashboard] Insights button hidden - insufficient assessments:', {
+        currentCount,
+        required: 5
+      });
+      return false;
+    }
     
     // Show button if we haven't fetched yet
-    if (!aiRecommendations || lastFetchedCount === 0) return true;
+    if (!aiRecommendations || lastFetchedCount === 0) {
+      console.log('💡 [AnalyticsDashboard] Insights button shown - first time fetch:', {
+        currentCount,
+        hasAiRecommendations: !!aiRecommendations,
+        lastFetchedCount
+      });
+      return true;
+    }
     
     // Show button if 5+ new assessments since last fetch
     // This is dynamic: if user fetched at 8, next appears at 13
     // If they skip 13 and fetch at 17, next appears at 22
     const assessmentsSinceLastFetch = currentCount - lastFetchedCount;
-    return assessmentsSinceLastFetch >= 5;
+    const shouldShow = assessmentsSinceLastFetch >= 5;
+    
+    console.log('💡 [AnalyticsDashboard] Insights button calculation:', {
+      currentCount,
+      lastFetchedCount,
+      assessmentsSinceLastFetch,
+      shouldShow,
+      required: 5
+    });
+    
+    return shouldShow;
   }, [evaluations?.length, lastFetchedCount, aiRecommendations]);
 
   // Calculate when next insights will be available
   const nextInsightCount = useMemo(() => {
-    if (!lastFetchedCount || lastFetchedCount === 0) return 5;
-    return lastFetchedCount + 5;
+    const nextCount = !lastFetchedCount || lastFetchedCount === 0 ? 5 : lastFetchedCount + 5;
+    console.log('🔮 [AnalyticsDashboard] Next insight count calculated:', {
+      lastFetchedCount,
+      nextCount
+    });
+    return nextCount;
   }, [lastFetchedCount]);
 
   // Manual fetch for AI insights
   const fetchAIInsights = async () => {
+    console.log('🚀 [AI Insights] fetchAIInsights called');
+    console.log('🔍 [AI Insights] Pre-flight checks:', {
+      hasUser: !!user,
+      userId: user?.id,
+      hasUnlimitedAccess,
+      userStats,
+      currentPlan: userStats?.current_plan,
+      credits: userStats?.credits
+    });
+
     if (!user?.id || !hasUnlimitedAccess) {
-      console.log('❌ Cannot fetch AI insights - missing user or access');
+      console.log('❌ [AI Insights] Cannot fetch - missing user or access:', {
+        hasUser: !!user,
+        hasUserId: !!user?.id,
+        hasUnlimitedAccess,
+        reason: !user?.id ? 'No user ID' : 'No unlimited access'
+      });
       return;
     }
     
     try {
-      console.log('🚀 [Analytics] Starting AI insights fetch for user:', user.id);
+      console.log('🚀 [AI Insights] Starting AI insights fetch for user:', user.id);
+      console.log('📊 [AI Insights] Current evaluations count:', evaluations?.length || 0);
+      console.log('📊 [AI Insights] Last fetched count:', lastFetchedCount);
+      
       const startTime = Date.now();
       
       setLoadingRecommendations(true);
+      console.log('⏳ [AI Insights] Loading state set to true');
       
-      console.log('🔍 [Analytics] Calling getUserAnalytics...');
+      console.log('🔍 [AI Insights] Calling getUserAnalytics with user ID:', user.id);
       const data = await getUserAnalytics(user.id);
       
       const duration = Date.now() - startTime;
-      console.log(`✅ [Analytics] getUserAnalytics completed in ${duration}ms`);
-      console.log('📊 [Analytics] Response data:', {
+      console.log(`✅ [AI Insights] getUserAnalytics completed in ${duration}ms`);
+      
+      console.log('📊 [AI Insights] Raw response data:', data);
+      console.log('📊 [AI Insights] Response structure analysis:', {
         hasData: !!data,
+        dataType: typeof data,
         hasAnalytics: !!data?.analytics,
+        analyticsType: typeof data?.analytics,
         hasRecommendations: !!data?.analytics?.recommendations,
+        recommendationsType: typeof data?.analytics?.recommendations,
         recommendationsLength: data?.analytics?.recommendations?.length,
-        totalResponses: data?.analytics?.total_responses
+        totalResponses: data?.analytics?.total_responses,
+        analyticsKeys: data?.analytics ? Object.keys(data.analytics) : 'No analytics object'
       });
       
+      if (data?.analytics?.recommendations) {
+        console.log('💡 [AI Insights] Recommendations content:', data.analytics.recommendations);
+        console.log('💡 [AI Insights] First recommendation:', data.analytics.recommendations[0]);
+      }
+      
+      console.log('🔄 [AI Insights] Updating state with new data...');
       setAnalyticsData(data?.analytics);
       setAiRecommendations(data?.analytics?.recommendations);
       setLastFetchedCount(evaluations?.length || 0);
       
-      console.log('✅ [Analytics] State updated successfully');
+      console.log('✅ [AI Insights] State updated successfully:', {
+        newAnalyticsData: !!data?.analytics,
+        newRecommendations: !!data?.analytics?.recommendations,
+        newLastFetchedCount: evaluations?.length || 0,
+        recommendationsCount: data?.analytics?.recommendations?.length || 0
+      });
+      
     } catch (error) {
-      console.error('❌ [Analytics] Error fetching AI insights:', error);
-      console.error('❌ [Analytics] Error details:', {
+      console.error('❌ [AI Insights] Error fetching AI insights:', error);
+      console.error('❌ [AI Insights] Error details:', {
         message: error.message,
         status: error.status,
-        response: error.response
+        response: error.response,
+        stack: error.stack,
+        name: error.name
       });
+      
+      if (error.response) {
+        console.error('❌ [AI Insights] HTTP Response details:', {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data,
+          headers: error.response.headers
+        });
+      }
+      
       setAiRecommendations(null);
+      console.log('🔄 [AI Insights] Recommendations cleared due to error');
     } finally {
       setLoadingRecommendations(false);
+      console.log('⏳ [AI Insights] Loading state set to false');
     }
   };
 
@@ -476,15 +587,22 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
                   { id: 'progress', label: 'Progress', Icon: ArrowTrendingUpIcon, color: 'from-green-500 to-emerald-600' },
                   { id: 'insights', label: 'Insights', Icon: LightBulbIcon, color: 'from-purple-500 to-pink-500' }
                 ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`relative px-6 py-3 rounded-xl font-medium transition-all duration-300 font-fredoka flex items-center gap-3 group ${
-                      activeTab === tab.id
-                        ? `bg-gradient-to-r ${tab.color} text-white shadow-lg transform scale-105`
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/80 hover:shadow-md'
-                    }`}
-                  >
+                   <button
+                     key={tab.id}
+                     onClick={() => {
+                       console.log('🔄 [AnalyticsDashboard] Tab changed:', {
+                         from: activeTab,
+                         to: tab.id,
+                         tabLabel: tab.label
+                       });
+                       setActiveTab(tab.id);
+                     }}
+                     className={`relative px-6 py-3 rounded-xl font-medium transition-all duration-300 font-fredoka flex items-center gap-3 group ${
+                       activeTab === tab.id
+                         ? `bg-gradient-to-r ${tab.color} text-white shadow-lg transform scale-105`
+                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/80 hover:shadow-md'
+                     }`}
+                   >
                     <tab.Icon className={`w-5 h-5 transition-transform duration-200 ${
                       activeTab === tab.id ? 'scale-110' : 'group-hover:scale-105'
                     }`} />
@@ -500,49 +618,28 @@ const AnalyticsDashboard = ({ onBack, userStats, user, evaluations, onUpgrade })
               <div className="flex items-center space-x-2 bg-gray-50/80 rounded-xl p-1">
                 <span className="text-sm font-medium text-gray-600 px-3">Time Range:</span>
                 {['week', 'month', 'quarter', 'year'].map((range) => (
-                  <button
-                    key={range}
-                    onClick={() => setSelectedTimeRange(range)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 capitalize ${
-                      selectedTimeRange === range
-                        ? 'bg-white text-blue-600 shadow-md font-semibold'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
-                    }`}
-                  >
+                   <button
+                     key={range}
+                     onClick={() => {
+                       console.log('📅 [AnalyticsDashboard] Time range changed:', {
+                         from: selectedTimeRange,
+                         to: range
+                       });
+                       setSelectedTimeRange(range);
+                     }}
+                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 capitalize ${
+                       selectedTimeRange === range
+                         ? 'bg-white text-blue-600 shadow-md font-semibold'
+                         : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+                     }`}
+                   >
                     {range}
                   </button>
                 ))}
               </div>
 
-              {/* Right Section - Action Buttons */}
-              <div className="flex items-center space-x-3">
-                {/* AI Insights Button */}
-                {shouldShowInsightsButton && (
-                  <button
-                    onClick={fetchAIInsights}
-                    disabled={loadingRecommendations}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loadingRecommendations ? (
-                      <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <SparklesIcon className="w-4 h-4" />
-                    )}
-                    <span className="font-medium">
-                      {loadingRecommendations ? 'Analyzing...' : 'Get AI Insights'}
-                    </span>
-                  </button>
-                )}
-
-                {/* Export Button */}
-                <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <span className="font-medium">Export</span>
-                </button>
-
-                {/* Settings Button */}
+              {/* Right Section - Settings Button */}
+              <div className="flex items-center">
                 <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
