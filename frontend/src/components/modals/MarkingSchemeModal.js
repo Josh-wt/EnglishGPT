@@ -36,6 +36,16 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
           console.log('💾 Restored text type from localStorage:', savedTextType);
         }
       }
+
+      // For igcse_extended_q3, also restore text type
+      if (questionType.id === 'igcse_extended_q3') {
+        const textTypeKey = `draft_text_type_${questionType.id}`;
+        const savedTextType = localStorage.getItem(textTypeKey);
+        if (savedTextType) {
+          setTextType(savedTextType);
+          console.log('💾 Restored text type from localStorage:', savedTextType);
+        }
+      }
     }
   }, [isOpen, questionType?.id]);
 
@@ -57,9 +67,9 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
     }
   }, [commandWord, questionType?.id]);
 
-  // Save text type to localStorage whenever it changes (for igcse_directed)
+  // Save text type to localStorage whenever it changes (for igcse_directed and igcse_extended_q3)
   useEffect(() => {
-    if (textType && questionType?.id === 'igcse_directed') {
+    if (textType && (questionType?.id === 'igcse_directed' || questionType?.id === 'igcse_extended_q3')) {
       const key = `draft_text_type_${questionType.id}`;
       localStorage.setItem(key, textType);
       console.log('💾 Saved text type to localStorage:', textType);
@@ -83,8 +93,8 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
       }
     }
 
-    // For igcse_directed, also require text type
-    if (questionType?.id === 'igcse_directed') {
+    // For igcse_directed and igcse_extended_q3, also require text type
+    if (questionType?.id === 'igcse_directed' || questionType?.id === 'igcse_extended_q3') {
       if (!textType) {
         alert('Please select a text type before proceeding.');
         return;
@@ -96,13 +106,14 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
       const data = {
         markingScheme: markingScheme.trim(),
         commandWord: questionType?.id === 'gp_essay' ? (commandWord === 'custom' ? customCommandWord.trim() : commandWord) : null,
-        textType: questionType?.id === 'igcse_directed' ? textType : null
+        textType: (questionType?.id === 'igcse_directed' || questionType?.id === 'igcse_extended_q3') ? textType : null
       };
       
       console.log('🎯 MarkingSchemeModal - Sending data to parent:', {
         questionTypeId: questionType?.id,
         textType: textType,
         isIgcseDirected: questionType?.id === 'igcse_directed',
+        isIgcseExtendedQ3: questionType?.id === 'igcse_extended_q3',
         dataBeingSent: data
       });
       
@@ -146,6 +157,14 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
     { value: 'speech', label: 'Speech' },
     { value: 'letter', label: 'Letter' },
     { value: 'article', label: 'Article' }
+  ];
+
+  const extendedTextTypeOptions = [
+    { value: 'speech', label: 'Speech' },
+    { value: 'journal', label: 'Journal' },
+    { value: 'interview', label: 'Interview' },
+    { value: 'article', label: 'Article' },
+    { value: 'report', label: 'Report' }
   ];
 
   return (
@@ -208,6 +227,30 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
             </select>
             <p className="text-sm text-gray-500 mt-2">
               Choose the specific text type for your IGCSE directed writing response.
+            </p>
+          </div>
+        )}
+
+        {questionType?.id === 'igcse_extended_q3' && (
+          <div className="mb-6">
+            <label htmlFor="text-type" className="block text-sm font-medium text-gray-700 mb-2">
+              Text Type
+            </label>
+            <select
+              id="text-type"
+              value={textType}
+              onChange={(e) => setTextType(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select text type...</option>
+              {extendedTextTypeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-sm text-gray-500 mt-2">
+              Choose the specific text type for your IGCSE Extended Writing Q3 response.
             </p>
           </div>
         )}

@@ -1666,5 +1666,385 @@ MARKING PROCESS:
 6. Fine-tune mark within identified level based on strength/weakness
 
 Q1 SUCCESS REQUIRES: Moving beyond basic comprehension to demonstrate analytical interpretation of evidence, sustained argumentation, and clear focus on key issues identified in the question.
+""",
+    "igcse_extended_q3": """
+# IGCSE 0500 Paper 1 Question 3 Extended Response Marking Guidelines
+
+## CRITICAL MARKING REQUIREMENTS:
+
+### 1. BULLET POINT COVERAGE (Essential)
+- ALL THREE bullet points MUST be covered
+- Each bullet should be given roughly equal treatment
+- Missing ANY bullet point caps the reading mark at Band 2-3 maximum
+- Uneven coverage (e.g., 2 sentences vs 2 paragraphs) reduces marks
+
+### 2. READING ASSESSMENT (15 marks)
+
+**Band 5 (13-15 marks): EXCEPTIONAL**
+- Thorough evaluation with sustained development
+- Wide range of well-integrated ideas with convincing text support
+- All three bullets comprehensively covered with deep insight
+- Consistent, convincing character voice throughout
+- Shows understanding of explicit AND implicit meanings
+- Ideas are linked and developed beyond surface level
+
+**Band 4 (10-12 marks): COMPETENT** 
+- Good range of ideas with some development
+- Frequent helpful supporting detail from text
+- All three bullets covered adequately
+- Appropriate character voice maintained
+- Shows understanding of most explicit and some implicit meanings
+- Some analysis and evaluation evident
+
+**Band 3 (7-9 marks): SATISFACTORY**
+- Range of straightforward ideas with limited development
+- Some mechanical use of text support
+- Uneven focus on bullets (some better covered than others)
+- Plain but appropriate voice
+- Understanding mainly of explicit meanings
+- Little analysis or evaluation
+
+**Band 2 (4-6 marks): WEAK**
+- General understanding but thin/unfocused content
+- Brief, minimal text reference
+- May rely on lifting phrases directly from text
+- One bullet point may be missing or barely covered
+- Limited character voice
+- Surface-level understanding only
+
+**Band 1 (1-3 marks): INADEQUATE**
+- Very general content with little text reference
+- May reproduce whole sections of original text
+- Insubstantial response
+- Weak or inconsistent character voice
+- Minimal understanding demonstrated
+
+### 3. WRITING ASSESSMENT (10 marks)
+
+**Band 5 (9-10 marks): EXCELLENT**
+- Effective register maintained throughout for text type and audience
+- Convincing, consistently appropriate language
+- Wide range of effective vocabulary
+- Sound paragraph structure and logical sequence
+- Text type conventions expertly applied
+
+**Band 4 (7-8 marks): GOOD**
+- Some awareness of appropriate register for text type
+- Mostly fluent with general clarity of expression
+- Sufficient vocabulary range for task
+- Generally well-structured with clear organization
+- Text type conventions mostly followed
+
+**Band 3 (5-6 marks): ADEQUATE**
+- Clear but plain language throughout
+- Adequate explanations and descriptions
+- Some structural problems but generally organized
+- Simple awareness of text type requirements
+- Limited but appropriate vocabulary
+
+**Band 2 (3-4 marks): LIMITED**
+- Inconsistent style with some awkward expression
+- Limited vocabulary range
+- Structural weaknesses affect clarity
+- Little awareness of text type conventions
+- Register often inappropriate
+
+**Band 1 (1-2 marks): POOR**
+- Expression frequently unclear
+- Poor sequencing and organization
+- Very limited vocabulary
+- Little to no awareness of text type requirements
+- Inappropriate register throughout
+
+## MARKING PROCESS:
+
+### Step 1: Check Bullet Point Coverage
+- Identify where each of the 3 bullets is addressed
+- Mark as A1, A2, A3 in margins
+- If ANY bullet is missing → Maximum Band 3 for reading
+
+### Step 2: Evaluate Text Understanding
+- Look for explicit details accurately used
+- Check for implicit meanings and character emotions/motivations
+- Assess whether ideas are developed beyond surface level
+- Check for evidence of analysis and evaluation
+
+### Step 3: Assess Character Voice and Register
+- Is the voice consistent throughout?
+- Does it match the character from the text?
+- Is the register appropriate for the text type?
+- Are text type conventions followed?
+
+### Step 4: Evaluate Language and Structure
+- Vocabulary range and accuracy
+- Sentence variety and effectiveness
+- Paragraph structure and transitions
+- Overall organization and flow
+
+### Step 5: Assign Marks
+- Reading: /15 (based on understanding, development, bullet coverage)
+- Writing: /10 (based on expression, structure, register, text type)
+- Total: /25
+
+## COMMON ERRORS TO PENALIZE:
+- Lifting chunks of text without development
+- Missing bullet points entirely
+- Wrong text type conventions
+- Inconsistent character voice
+- Surface-level reading without development
+- Poor paragraph structure
+- Inappropriate register for text type
+- Factual errors about text content
+
+## KEY INDICATORS OF HIGH PERFORMANCE:
+- All bullets integrated naturally, not mechanically addressed
+- Character voice convincing from first sentence
+- Text details woven throughout, not just listed
+- Ideas developed with "why" and "how" explanations
+- Text type conventions applied expertly
+- Wide vocabulary and varied sentence structures
+- Logical flow between and within paragraphs
+
+Always provide specific feedback on bullet coverage, reading depth, character voice consistency, and text type appropriateness.
+""",
+    "igcse_extended_q3_speech": """
+# TEXT TYPE: SPEECH ADDITIONAL MARKING CRITERIA
+
+### ESSENTIAL CONVENTIONS TO ASSESS:
+
+**Format Requirements:**
+- Opening greeting/acknowledgment of audience
+- Direct address throughout ("you," "we," "us")
+- Clear structure with introduction, main points, conclusion
+- Strong, memorable ending
+- Closing thanks or call to action
+
+**Language Features:**
+- Rhetorical questions to engage audience
+- Repetition for emphasis and memorability
+- Inclusive pronouns (we, us, our)
+- Emotive language and powerful adjectives
+- Varied sentence lengths for rhythm and impact
+
+**Register Assessment:**
+- Band 5: Powerful, engaging delivery appropriate to audience
+- Band 4: Generally effective with good audience awareness
+- Band 3: Clear delivery but limited engagement techniques
+- Band 2: Basic speech structure with minimal audience connection
+- Band 1: No awareness of speech conventions
+
+### MARKING CHECKLIST:
+□ Does it open with appropriate greeting/acknowledgment?
+□ Is the audience directly addressed throughout?
+□ Are rhetorical questions used effectively?
+□ Is there repetition for emphasis?
+□ Does it end with strong conclusion and thanks?
+□ Are all three bullets integrated into the speech structure?
+
+### COMMON ERRORS:
+- No opening greeting or closing thanks
+- Writing like an essay instead of spoken delivery
+- No direct address to audience
+- Missing rhetorical questions or persuasive techniques
+- Weak or abrupt conclusion
+
+### HIGH PERFORMANCE INDICATORS:
+- Compelling opening that grabs attention
+- Natural integration of persuasive techniques
+- Strong personal voice appropriate to character
+- Powerful conclusion with lasting impact
+- Seamless weaving of bullet points into speech flow
+""",
+    "igcse_extended_q3_journal": """
+# TEXT TYPE: JOURNAL ENTRY ADDITIONAL MARKING CRITERIA
+
+### ESSENTIAL CONVENTIONS TO ASSESS:
+
+**Format Requirements:**
+- Date at the top
+- First person perspective throughout
+- Personal, reflective tone
+- Chronological or thematic organization
+- Introspective conclusion or reflection
+
+**Language Features:**
+- Informal register with personal voice
+- Emotional vocabulary and descriptive language
+- Stream of consciousness acceptable
+- Personal pronouns (I, me, my) dominant
+- Contractions and casual language appropriate
+
+**Register Assessment:**
+- Band 5: Deeply personal and reflective with authentic emotions
+- Band 4: Good personal tone with some emotional insight
+- Band 3: Clear personal voice but somewhat superficial
+- Band 2: Limited personal reflection, basic emotions
+- Band 1: Impersonal or artificial voice
+
+### MARKING CHECKLIST:
+□ Is there a date at the beginning?
+□ Is it written in first person throughout?
+□ Does it sound like authentic personal reflection?
+□ Are emotions and feelings explored, not just events?
+□ Do all three bullets emerge naturally from personal reflection?
+□ Is the language appropriately informal and personal?
+
+### COMMON ERRORS:
+- Missing date
+- Too formal register (sounds like essay, not journal)
+- Just listing events without emotional reflection
+- Inconsistent first person voice
+- Artificial or forced personal thoughts
+
+### HIGH PERFORMANCE INDICATORS:
+- Authentic personal voice from opening line
+- Deep emotional reflection on events
+- Natural integration of all bullet points
+- Descriptive, sensory language
+- Genuine introspection about experiences and feelings
+""",
+    "igcse_extended_q3_interview": """
+# TEXT TYPE: INTERVIEW ADDITIONAL MARKING CRITERIA
+
+### ESSENTIAL CONVENTIONS TO ASSESS:
+
+**Format Requirements:**
+- Q: and A: structure OR narrative interview style
+- Clear introduction establishing context
+- Natural, conversational tone throughout
+- Appropriate question progression (logical flow)
+- Questions that follow up on answers naturally
+
+**Language Features:**
+- Conversational register (not too formal, not too casual)
+- Natural speech patterns and interruptions
+- Varied question types (open, closed, follow-up)
+- Realistic dialogue that sounds believable
+- Appropriate vocabulary for both interviewer and interviewee
+
+**Register Assessment:**
+- Band 5: Natural, engaging conversation that flows seamlessly
+- Band 4: Mostly natural with good question variety
+- Band 3: Adequate conversation but some stilted moments
+- Band 2: Basic questions with limited natural flow
+- Band 1: Artificial or unrealistic dialogue
+
+### MARKING CHECKLIST:
+□ Are there clear questions and answers?
+□ Do questions logically follow from previous answers?
+□ Does the conversation sound natural and believable?
+□ Is the register appropriately conversational?
+□ Are all three bullet points covered through the interview?
+□ Does the character's voice come through authentically?
+
+### COMMON ERRORS:
+- Questions that don't relate to previous answers
+- Overly formal or artificially casual register
+- Missing Q:/A: labels in structured format
+- Interviewer asking questions that don't make sense
+- Character giving unrealistic responses
+
+### HIGH PERFORMANCE INDICATORS:
+- Questions that naturally lead to bullet point coverage
+- Authentic character voice in responses
+- Good balance of question types
+- Natural conversational flow
+- Subtle integration of text details through dialogue
+""",
+    "igcse_extended_q3_article": """
+# TEXT TYPE: MAGAZINE ARTICLE ADDITIONAL MARKING CRITERIA
+
+### ESSENTIAL CONVENTIONS TO ASSESS:
+
+**Format Requirements:**
+- Engaging headline that captures main idea
+- Strong opening paragraph that hooks reader
+- Subheadings acceptable but not required
+- Clear paragraph structure
+- Engaging conclusion
+
+**Language Features:**
+- Semi-formal register (engaging but appropriate)
+- Direct address to reader acceptable
+- Rhetorical questions for engagement
+- Varied sentence structures
+- Personal opinions and experiences allowed
+
+**Register Assessment:**
+- Band 5: Engaging, magazine-style writing with strong reader appeal
+- Band 4: Good balance of information and engagement
+- Band 3: Clear article structure but limited reader engagement
+- Band 2: Basic article format with minimal engaging features
+- Band 1: Generic writing with no article awareness
+
+### MARKING CHECKLIST:
+□ Is there an engaging headline?
+□ Does the opening hook the reader effectively?
+□ Is the register semi-formal and engaging?
+□ Are there varied paragraph lengths for effect?
+□ Are all three bullets covered in article format?
+□ Is the conclusion satisfying and memorable?
+
+### COMMON ERRORS:
+- Generic or boring headline
+- Too formal (like a report) or too casual
+- No reader engagement techniques
+- Poor paragraph structure
+- Abrupt or weak conclusion
+
+### HIGH PERFORMANCE INDICATORS:
+- Creative, attention-grabbing headline
+- Strong opening that makes reader want to continue
+- Good use of rhetorical questions and direct address
+- Smooth integration of bullet points
+- Memorable conclusion that leaves lasting impression
+""",
+    "igcse_extended_q3_report": """
+# TEXT TYPE: FORMAL REPORT ADDITIONAL MARKING CRITERIA
+
+### ESSENTIAL CONVENTIONS TO ASSESS:
+
+**Format Requirements:**
+- Clear title indicating report purpose
+- Formal, objective language throughout
+- Structured sections (optional headings)
+- Third person perspective
+- Professional conclusion with recommendations/summary
+
+**Language Features:**
+- Formal register with objective tone
+- Passive voice where appropriate
+- Technical vocabulary suitable to topic
+- Complex sentence structures
+- No personal opinions or casual language
+
+**Register Assessment:**
+- Band 5: Professional, objective tone maintained throughout
+- Band 4: Generally formal with good professional language
+- Band 3: Clear formal tone but some inconsistencies
+- Band 2: Attempts formal register but limited success
+- Band 1: Inappropriate casual tone throughout
+
+### MARKING CHECKLIST:
+□ Is there a clear, professional title?
+□ Is third person maintained throughout?
+□ Is the language appropriately formal and objective?
+□ Are there clear, logical sections?
+□ Is the conclusion professional and comprehensive?
+□ Are all three bullets covered in report format?
+
+### COMMON ERRORS:
+- Too casual or personal tone
+- First person perspective
+- Emotional or subjective language
+- Poor structure without clear sections
+- Informal conclusion
+
+### HIGH PERFORMANCE INDICATORS:
+- Professional title and structure
+- Consistent objective tone
+- Sophisticated formal vocabulary
+- Clear logical progression
+- Authoritative conclusion with clear outcomes
 """
 }

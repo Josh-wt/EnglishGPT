@@ -39,6 +39,13 @@ QUESTION_TYPES = [
         "description": "Transform text into specific formats for different audiences"
     },
     {
+        "id": "igcse_extended_q3",
+        "name": "Extended Writing Q3",
+        "category": "IGCSE",
+        "requires_marking_scheme": True,
+        "description": "Extended writing task with specific text type requirements"
+    },
+    {
         "id": "alevel_comparative",
         "name": "Comparative Analysis 1(b)",
         "category": "A-Level English (9093)",

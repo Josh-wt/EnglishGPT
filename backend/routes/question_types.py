@@ -45,6 +45,13 @@ QUESTION_TYPES = [
         "requires_marking_scheme": True
     },
     {
+        "id": "igcse_extended_q3",
+        "name": "Extended Writing Q3",
+        "category": "IGCSE",
+        "description": "Extended writing task with specific text type requirements",
+        "requires_marking_scheme": True
+    },
+    {
         "id": "alevel_comparative",
         "name": "Comparative Analysis 1(b)",
         "category": "A-Level English (9093)",

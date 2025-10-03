@@ -145,6 +145,24 @@ class EvaluationService:
                 logger.warning(f"⚠️ IGCSE Directed but no text_type provided in submission!")
                 logger.warning(f"⚠️ This means only base criteria will be used, not letter/speech/article specific criteria")
         
+        # For IGCSE Extended Q3, combine general criteria with text-type-specific criteria
+        if submission.question_type == 'igcse_extended_q3':
+            logger.info(f"🎯 IGCSE Extended Q3 detected - text_type: {submission.text_type}")
+            if submission.text_type:
+                text_type_key = f"igcse_extended_q3_{submission.text_type}"
+                logger.info(f"🔍 Looking for text-type criteria with key: {text_type_key}")
+                text_type_criteria = self.marking_criteria.get(text_type_key, "")
+                if text_type_criteria:
+                    logger.info(f"✅ Text-type criteria found and added: {text_type_key}")
+                    logger.info(f"📏 Combined criteria length: {len(marking_criteria)} + {len(text_type_criteria)} = {len(marking_criteria) + len(text_type_criteria)}")
+                    marking_criteria = f"{marking_criteria}\n\n{text_type_criteria}"
+                else:
+                    logger.warning(f"⚠️ No text-type criteria found for key: {text_type_key}")
+                    logger.warning(f"⚠️ Available text-type keys: {[k for k in self.marking_criteria.keys() if k.startswith('igcse_extended_q3_')]}")
+            else:
+                logger.warning(f"⚠️ IGCSE Extended Q3 but no text_type provided in submission!")
+                logger.warning(f"⚠️ This means only base criteria will be used, not speech/journal/interview/article/report specific criteria")
+        
         # For GP Essay, combine general criteria with command-word-specific criteria
         if submission.question_type == 'gp_essay' and submission.command_word:
             command_word_criteria = self.get_gp_essay_command_word_criteria(submission.command_word)

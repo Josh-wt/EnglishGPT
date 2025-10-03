@@ -332,7 +332,7 @@ const ModernPricingPage = ({ user, onBack, darkMode }) => {
           <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-6 text-center text-white shadow-lg">
             <div className="flex items-center justify-center gap-3 mb-3">
               <ChatBubbleLeftRightIcon className="w-6 h-6" />
-              <h3 className="text-lg font-semibold">Join Discord for adiscount code</h3>
+              <h3 className="text-lg font-semibold">Join Discord for a discount code</h3>
             </div>
             <p className="text-green-100 text-sm mb-4">
               Get a discount code for unlimited access by joining our Discord community
