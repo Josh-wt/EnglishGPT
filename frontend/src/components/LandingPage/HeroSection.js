@@ -104,6 +104,12 @@ const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }
         name: 'Directed Writing',
         description: 'Transform text into specific formats for different audiences',
         icon: <PencilIcon className="w-6 h-6 text-indigo-500" />
+      },
+      {
+        id: 'igcse_extended_q3',
+        name: 'Extended Writing Q3',
+        description: 'Extended writing task with specific text type requirements',
+        icon: <PencilSquareIcon className="w-6 h-6 text-orange-500" />
       }
     ],
     'A Level': [
