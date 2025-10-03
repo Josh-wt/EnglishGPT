@@ -105,8 +105,8 @@ QUESTION_TOTALS = {
     "igcse_summary": {"total": 40, "components": {"reading": 15, "writing": 25}},
     # Directed writing in IGCSE typically 15 + 25 = 40
     "igcse_directed": {"total": 40, "components": {"reading": 15, "writing": 25}},
-    # Extended Q3 in IGCSE typically 15 + 25 = 40
-    "igcse_extended_q3": {"total": 40, "components": {"reading": 15, "writing": 25}},
+    # Extended Q3 in IGCSE typically 15 + 10 = 25
+    "igcse_extended_q3": {"total": 25, "components": {"reading": 15, "writing": 10}},
     # A-Level
     "alevel_directed": {"total": 10, "components": {"ao1": 5, "ao2": 5}},
     "alevel_directed_writing": {"total": 10, "components": {"ao1": 5, "ao2": 5}},
