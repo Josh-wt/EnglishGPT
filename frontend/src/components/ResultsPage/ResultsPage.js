@@ -202,6 +202,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       igcse_narrative: ['CONTENT_STRUCTURE', 'STYLE_ACCURACY'],
       igcse_summary: ['READING', 'WRITING'],
       igcse_directed: ['READING', 'WRITING'],
+      igcse_extended_q3: ['READING', 'WRITING'],
       alevel_directed: ['AO1', 'AO2'],
       alevel_comparative: ['AO1', 'AO2'], // AO3 is stored in ao2_marks field
       alevel_text_analysis: ['AO1', 'AO2'], // AO3 is stored in ao2_marks field
@@ -217,6 +218,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       igcse_narrative: { CONTENT_STRUCTURE: 16, STYLE_ACCURACY: 24 },
       igcse_summary: { READING: 15, WRITING: 25 },
       igcse_directed: { READING: 15, WRITING: 25 },
+      igcse_extended_q3: { READING: 15, WRITING: 25 },
       alevel_directed: { AO1: 5, AO2: 5 },
       alevel_comparative: { AO1: 5, AO2: 10 },
       alevel_text_analysis: { AO1: 5, AO2: 20 },
