@@ -63,6 +63,7 @@ class EvaluationService:
             'igcse_summary': 'READING_MARKS: [Reading marks out of 15 - must be in format like "10/15"] | WRITING_MARKS: [Writing marks out of 25 - must be in format like "17/25"]',
             'igcse_writers_effect': 'READING_MARKS: [Reading marks out of 15]',
             'igcse_directed': 'READING_MARKS: [Reading marks out of 15 - must be in format like "10/15"] | WRITING_MARKS: [Writing marks out of 25 - must be in format like "17/25"]',
+            'igcse_extended_q3': 'READING_MARKS: [Reading marks out of 15 - must be in format like "10/15"] | WRITING_MARKS: [Writing marks out of 25 - must be in format like "17/25"]',
             'alevel_directed': 'AO1_MARKS: [AO1 marks out of 5] | AO2_MARKS: [AO2 marks out of 5]',
             'igcse_narrative': 'READING_MARKS: [Content and Structure marks out of 16] | WRITING_MARKS: [Style and Accuracy marks out of 24]',
             'igcse_descriptive': 'READING_MARKS: [Content and Structure marks out of 16] | WRITING_MARKS: [Style and Accuracy marks out of 24]',
@@ -356,6 +357,38 @@ Student Response: {sanitized_response}
                 # Set reading_marks and writing_marks to N/A for these question types
                 reading_marks = "N/A"
                 writing_marks = "N/A"
+            elif question_type in ['igcse_directed', 'igcse_extended_q3']:
+                # IGCSE directed writing and Extended Q3 need Reading (15 marks) and Writing (25 marks)
+                # Extract Reading marks
+                if "READING_MARKS:" in ai_response:
+                    reading_part = ai_response.split("READING_MARKS:")[1]
+                    next_sections = ["WRITING_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
+                    reading_marks = reading_part.strip()
+                    for section in next_sections:
+                        if section in reading_part:
+                            reading_marks = reading_part.split(section)[0].strip()
+                            break
+                else:
+                    reading_marks = "N/A"
+                
+                # Extract Writing marks
+                if "WRITING_MARKS:" in ai_response:
+                    writing_part = ai_response.split("WRITING_MARKS:")[1]
+                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
+                    writing_marks = writing_part.strip()
+                    for section in next_sections:
+                        if section in writing_part:
+                            writing_marks = writing_part.split(section)[0].strip()
+                            break
+                else:
+                    writing_marks = "N/A"
+                
+                # Set other marks to N/A for these question types
+                content_structure_marks = "N/A"
+                style_accuracy_marks = "N/A"
+                ao1_marks = "N/A"
+                ao2_marks = "N/A"
+                ao3_marks = "N/A"
             elif question_type in ['alevel_directed', 'alevel_directed_writing']:
                 # A-Level directed writing needs AO1 and AO2 marks
                 if "AO1_MARKS:" in ai_response:
@@ -482,6 +515,15 @@ Student Response: {sanitized_response}
                             break
             else:
                 # Fallback: try to extract all marks
+                # Initialize all mark variables
+                reading_marks = "N/A"
+                writing_marks = "N/A"
+                content_structure_marks = "N/A"
+                style_accuracy_marks = "N/A"
+                ao1_marks = "N/A"
+                ao2_marks = "N/A"
+                ao3_marks = "N/A"
+                
                 if "READING_MARKS:" in ai_response:
                     reading_part = ai_response.split("READING_MARKS:")[1]
                     next_sections = ["WRITING_MARKS:", "AO1_MARKS:", "AO2_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
