@@ -282,6 +282,7 @@ Student Response: {sanitized_response}
 
 {"CRITICAL IGCSE NARRATIVE/DESCRIPTIVE INSTRUCTIONS - MUST READ:" if submission.question_type in ['igcse_narrative', 'igcse_descriptive'] else ""}
 {"If your feedback and understanding of the essay concludes that the essay has consistent grammatical errors and bad sentence structures, the essay must not be given more than 21/40 and consider giving it less than 20/40. Please remember this rule ONLY applies if the essay needs CONSISTENTLY (NOT ONE OFF) to: Develop more complex sentence structures to vary the rhythm and flow of the narrative AND Fix grammatical errors, particularly with pronoun usage and awkward phrasing." if submission.question_type in ['igcse_narrative', 'igcse_descriptive'] else ""}
+{"CRITICAL FOR IGCSE DESCRIPTIVE: Do NOT cut marks for narrative elements or storytelling aspects. Descriptive writing can include narrative elements and should not be penalized for this. Focus on descriptive language, imagery, and sensory details rather than penalizing narrative structure." if submission.question_type == 'igcse_descriptive' else ""}
 """
         
         return full_prompt

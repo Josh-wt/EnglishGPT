@@ -31,7 +31,7 @@ QWEN_ENDPOINT = os.environ.get('QWEN_ENDPOINT', 'https://openrouter.ai/api/v1/ch
 
 # Recommendations AI (separate API key and model)
 RECOMMENDATIONS_API_KEY = os.environ.get('OPENROUTER_GPT_OSS_120B_KEY')
-RECOMMENDATIONS_MODEL = os.environ.get('RECOMMENDATIONS_MODEL', 'x-ai/grok-4-fast:free')
+RECOMMENDATIONS_MODEL = os.environ.get('RECOMMENDATIONS_MODEL', 'x-ai/grok-4-fast')
 
 # Dodo Payments Configuration
 DODO_PAYMENTS_API_KEY = os.environ.get('DODO_PAYMENTS_API_KEY')

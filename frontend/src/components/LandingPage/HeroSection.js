@@ -4,7 +4,7 @@ import { DocumentTextIcon, BookOpenIcon, PhotoIcon, BoltIcon, PencilIcon, ChartB
 import { useSpring, animated } from '@react-spring/web';
 import { supabase } from '../../supabaseClient';
 import AuthModal from './AuthModal';
- vimport MarkedEssayModal from '../modals/MarkedEssayModal';
+import MarkedEssayModal from '../modals/MarkedEssayModal';
 
 const HeroSection = ({ onGetStarted, onStartMarking, onDiscord, onGoogle, user }) => {
   const [selectedLevel, setSelectedLevel] = useState('IGCSE');

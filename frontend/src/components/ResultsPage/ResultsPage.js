@@ -337,25 +337,25 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
 
   
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-gray-50'} p-4`}>
+    <div className={`min-h-screen ${darkMode ? 'bg-black' : 'bg-gray-50'} p-2 sm:p-4`}>
       <div className="max-w-4xl mx-auto">
         {/* Overall Score Card */}
-        <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-8 mb-6 shadow-sm border`}>
-          <div className="flex justify-between items-start mb-6">
-            <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Overall Score</h2>
-            <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Grade {letterGrade}</div>
+        <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 shadow-sm border`}>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 sm:mb-6 gap-2">
+            <h2 className={`text-lg sm:text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Overall Score</h2>
+            <div className={`text-xl sm:text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Grade {letterGrade}</div>
           </div>
-          <div className="flex flex-col items-center justify-center py-6">
-            <div className="text-6xl font-extrabold text-blue-600 mb-2">{gradeInfo.score}/{gradeInfo.maxScore}</div>
-            <div className="text-blue-600 text-lg font-semibold">Total Score</div>
+          <div className="flex flex-col items-center justify-center py-4 sm:py-6">
+            <div className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-blue-600 mb-2">{gradeInfo.score}/{gradeInfo.maxScore}</div>
+            <div className="text-blue-600 text-base sm:text-lg font-semibold">Total Score</div>
             </div>
-          <div className={`w-full h-3 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full mt-2 mb-1`}>
+          <div className={`w-full h-2 sm:h-3 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full mt-2 mb-1`}>
             <div 
-              className="h-3 rounded-full bg-blue-500 transition-all duration-500"
+              className="h-2 sm:h-3 rounded-full bg-blue-500 transition-all duration-500"
               style={{ width: `${Math.min(gradeInfo.percentage, 100)}%` }}
             ></div>
           </div>
-          <div className="flex flex-wrap justify-center gap-6 mt-4">
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-4 lg:gap-6 mt-4">
             {(() => {
               const submarks = getSubmarks(evaluation);
               
@@ -372,9 +372,9 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
                 // Remove "|" character from submark value for display
                 const cleanValue = submark.value.replace(/\|/g, '').trim();
                 return (
-                  <div className="text-center px-4 py-2 rounded-xl bg-green-50 border border-green-200" key={submark.label + idx}>
-                    <div className="text-2xl font-extrabold text-green-700 tracking-tight">{cleanValue}</div>
-                    <div className="text-green-700 text-sm mt-0.5">{submark.label}</div>
+                  <div className="text-center px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl bg-green-50 border border-green-200 min-w-[80px] sm:min-w-[100px]" key={submark.label + idx}>
+                    <div className="text-lg sm:text-xl lg:text-2xl font-extrabold text-green-700 tracking-tight">{cleanValue}</div>
+                    <div className="text-green-700 text-xs sm:text-sm mt-0.5">{submark.label}</div>
                   </div>
                 );
               });
@@ -405,18 +405,18 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         </div>
         
         {/* Detailed Feedback Card */}
-        <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-2xl p-6 mb-6 shadow-sm border`}>
+        <div className={`${darkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-100'} rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6 shadow-sm border`}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Detailed Feedback</h2>
+            <h2 className={`text-lg sm:text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Detailed Feedback</h2>
           </div>
           
           {/* Tabs */}
-          <div className="flex border-b border-gray-200 mb-6">
+          <div className="flex border-b border-gray-200 mb-4 sm:mb-6 overflow-x-auto">
             {['Summary', 'Strengths', 'Improvements'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-6 py-3 font-medium transition-colors border-b-2 ${
+                className={`px-3 sm:px-6 py-2 sm:py-3 font-medium transition-colors border-b-2 whitespace-nowrap text-sm sm:text-base ${
                   activeTab === tab
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -428,7 +428,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
           </div>
           
           {/* Tab Content */}
-          <div className="min-h-[200px]">
+          <div className="min-h-[150px] sm:min-h-[200px]">
             {activeTab === 'Summary' && (
               <SummaryTab 
                 evaluation={evaluation}
@@ -456,10 +456,10 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         </div>
         
         {/* Action Button */}
-        <div className="text-center">
+        <div className="text-center px-4">
           <button
             onClick={onNewEvaluation}
-            className="bg-black text-white px-8 py-4 rounded-xl font-semibold hover:bg-gray-800 transition-colors"
+            className="bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-semibold hover:bg-gray-800 transition-colors w-full sm:w-auto text-sm sm:text-base"
           >
             Start New Question
           </button>
