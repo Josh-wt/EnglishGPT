@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import ExampleModal from './ExampleModal';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import MarkingSchemeModal from '../modals/MarkingSchemeModal';
+import MarkedEssayModal from '../modals/MarkedEssayModal';
 import { usePreferences } from '../../hooks/usePreferences';
 
 const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvaluate, selectedLevel, darkMode, user, evaluationLoading, loadingMessage }) => {
@@ -14,6 +15,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   const [showExample, setShowExample] = useState(false);
   const [showMarkingSchemeModal, setShowMarkingSchemeModal] = useState(false);
   const [showInstructionModal, setShowInstructionModal] = useState(false);
+  const [showMarkedEssayModal, setShowMarkedEssayModal] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [formattedText, setFormattedText] = useState('');
   const [isUserTyping, setIsUserTyping] = useState(false);
@@ -710,6 +712,13 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                         Change Question
                       </button>
                       
+                      <button
+                        onClick={() => setShowMarkedEssayModal(true)}
+                        className="px-4 sm:px-6 py-3 bg-purple-100 text-purple-700 rounded-lg font-medium hover:bg-purple-200 transition-colors duration-200 font-fredoka text-sm sm:text-base"
+                      >
+                        See Examples
+                      </button>
+                      
                       {/* Debug button to clear drafts */}
                       <button
                         onClick={clearAllDrafts}
@@ -788,6 +797,13 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
           </div>
         </div>
       )}
+
+      {/* Marked Essay Examples Modal */}
+      <MarkedEssayModal
+        isOpen={showMarkedEssayModal}
+        onClose={() => setShowMarkedEssayModal(false)}
+        questionType={selectedQuestionType?.id}
+      />
     </div>
   );
 };
