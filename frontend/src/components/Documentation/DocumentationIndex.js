@@ -15,6 +15,7 @@ import {
   AcademicCapIcon,
   RocketLaunchIcon
 } from '@heroicons/react/24/outline';
+import './Documentation.css';
 
 const DocumentationIndex = ({ darkMode }) => {
   const navigate = useNavigate();

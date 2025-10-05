@@ -16,6 +16,7 @@ import {
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import documentationService from '../../services/documentationService';
+import './Documentation.css';
 
 // Documentation pages configuration
 const docPages = {
@@ -265,11 +266,7 @@ const DocumentationPage = ({ darkMode }) => {
               {/* Documentation Content */}
               {!error && content && (
                 <div 
-                  className={`prose prose-lg max-w-none ${
-                    darkMode 
-                      ? 'prose-invert prose-headings:text-white prose-p:text-gray-300 prose-strong:text-white prose-li:text-gray-300 prose-a:text-blue-400 prose-a:hover:text-blue-300' 
-                      : 'prose-gray prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-li:text-gray-700 prose-a:text-blue-600 prose-a:hover:text-blue-800'
-                  }`}
+                  className={`documentation-content ${darkMode ? 'dark' : ''}`}
                   dangerouslySetInnerHTML={{ __html: content }}
                 />
               )}
