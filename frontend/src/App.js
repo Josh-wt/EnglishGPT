@@ -48,6 +48,10 @@ const TermsOfService = lazy(() => import('./components/legal').then(module => ({
 const RefundPolicy = lazy(() => import('./components/legal').then(module => ({ default: module.RefundPolicy })));
 const PrivacyPolicy = lazy(() => import('./components/legal').then(module => ({ default: module.PrivacyPolicy })));
 
+// Lazy load documentation components
+const DocumentationIndex = lazy(() => import('./components/Documentation/DocumentationIndex'));
+const DocumentationPage = lazy(() => import('./components/Documentation/DocumentationPage'));
+
 const App = () => {
   // Debug tracking
   const renderCount = useRef(0);
@@ -989,6 +993,18 @@ const App = () => {
         <Route path="/privacy" element={
           <LazyWrapper fallback={<PageSkeleton />}>
             <PrivacyPolicy />
+          </LazyWrapper>
+        } />
+        
+        {/* Documentation routes */}
+        <Route path="/docs" element={
+          <LazyWrapper fallback={<PageSkeleton />}>
+            <DocumentationIndex darkMode={darkMode} />
+          </LazyWrapper>
+        } />
+        <Route path="/docs/:page" element={
+          <LazyWrapper fallback={<PageSkeleton />}>
+            <DocumentationPage darkMode={darkMode} />
           </LazyWrapper>
         } />
       </Routes>

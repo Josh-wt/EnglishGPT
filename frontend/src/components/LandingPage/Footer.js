@@ -20,9 +20,10 @@ const Footer = () => {
     {
       title: 'Support',
       links: [
-        { name: 'Help Center', href: '/help' },
-        { name: 'Contact Us', href: '/contact' },
-        { name: 'FAQ', href: '/#faq' }
+        { name: 'Documentation', href: '/docs' },
+        { name: 'Getting Started', href: '/docs/getting-started' },
+        { name: 'Support Center', href: '/docs/support' },
+        { name: 'Community', href: '/docs/community' }
       ]
     },
     {

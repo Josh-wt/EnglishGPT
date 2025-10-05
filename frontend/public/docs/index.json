@@ -1,0 +1,46 @@
+{
+  "pages": [
+    {
+      "id": "getting-started",
+      "title": "Getting Started",
+      "path": "/docs/getting-started.md"
+    },
+    {
+      "id": "question-types",
+      "title": "Question Types",
+      "path": "/docs/question-types.md"
+    },
+    {
+      "id": "analytics-guide",
+      "title": "Analytics Guide",
+      "path": "/docs/analytics-guide.md"
+    },
+    {
+      "id": "pricing-plans",
+      "title": "Pricing Plans",
+      "path": "/docs/pricing-plans.md"
+    },
+    {
+      "id": "tutorials",
+      "title": "Tutorials",
+      "path": "/docs/tutorials.md"
+    },
+    {
+      "id": "community",
+      "title": "Community",
+      "path": "/docs/community.md"
+    },
+    {
+      "id": "support",
+      "title": "Support",
+      "path": "/docs/support.md"
+    },
+    {
+      "id": "index",
+      "title": "Index",
+      "path": "/docs/index.md"
+    }
+  ],
+  "lastUpdated": "2025-10-05T11:57:17.072Z",
+  "version": "1.0.0"
+}

@@ -603,7 +603,7 @@ const PaymentSuccess = ({ user, darkMode, forceRefreshUserData }) => {
                       >
                         <BookOpenIcon className="w-5 h-5 text-blue-500 flex-shrink-0" />
                       </motion.div>
-                      <span>Read our getting started guide</span>
+                      <span>Read our <a href="/docs/getting-started" className="text-blue-600 dark:text-blue-400 hover:underline">getting started guide</a></span>
                     </motion.li>
                     <motion.li 
                       className="flex items-center gap-3"
@@ -617,7 +617,7 @@ const PaymentSuccess = ({ user, darkMode, forceRefreshUserData }) => {
                       >
                         <LightBulbIcon className="w-5 h-5 text-yellow-500 flex-shrink-0" />
                       </motion.div>
-                      <span>Watch tutorial videos</span>
+                      <span>Watch <a href="/docs/tutorials" className="text-blue-600 dark:text-blue-400 hover:underline">tutorial videos</a></span>
                     </motion.li>
                     <motion.li 
                       className="flex items-center gap-3"
@@ -631,7 +631,7 @@ const PaymentSuccess = ({ user, darkMode, forceRefreshUserData }) => {
                       >
                         <AcademicCapIcon className="w-5 h-5 text-purple-500 flex-shrink-0" />
                       </motion.div>
-                      <span>Contact customer support</span>
+                      <span>Contact <a href="/docs/support" className="text-blue-600 dark:text-blue-400 hover:underline">customer support</a></span>
                     </motion.li>
                     <motion.li 
                       className="flex items-center gap-3"
@@ -645,7 +645,7 @@ const PaymentSuccess = ({ user, darkMode, forceRefreshUserData }) => {
                       >
                         <ChartBarIcon className="w-5 h-5 text-green-500 flex-shrink-0" />
                       </motion.div>
-                      <span>Join our community forum</span>
+                      <span>Join our <a href="/docs/community" className="text-blue-600 dark:text-blue-400 hover:underline">community forum</a></span>
                     </motion.li>
                   </ul>
                 </motion.div>
