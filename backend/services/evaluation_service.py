@@ -196,6 +196,9 @@ class EvaluationService:
 {"🚨 CHARACTERIZATION LENIENCY - CRITICAL INSTRUCTION 🚨" if submission.question_type == 'igcse_narrative' else ""}
 {"DO NOT DEDUCT MARKS FOR POOR CHARACTERIZATION. Give FULL LENIENCY to essays with weak character development. Focus ONLY on vocabulary, descriptive abilities, and narrative techniques. Poor characterization should NOT affect the mark - ignore it completely." if submission.question_type == 'igcse_narrative' else ""}
 I DO NOT WANT TO SEE ANY MARKS DEDUCTED FOR POOR CHARACTERIZATION. I DO NOT WANT TO SEE POOR CHARACTERIZATION BEING MENTIONED IN THE IMPROVEMENTS SUGGESTIONSFEEDBACK
+
+{"🚨 CRITICAL IGCSE EXTENDED Q3 INFORMALITY INSTRUCTION - MUST READ 🚨" if submission.question_type == 'igcse_extended_q3' else ""}
+{"BE CRITICAL OF INFORMAL LANGUAGE AND CUT MARKS FOR EXCESSIVE INFORMALITY. Extended Q3 requires formal, sophisticated writing appropriate for academic contexts. Deduct marks for: slang, contractions, casual expressions, overly conversational tone, or inappropriate informality. Provide specific feedback about formal language requirements and suggest more sophisticated alternatives." if submission.question_type == 'igcse_extended_q3' else ""}
 CRITICAL MARKING INSTRUCTIONS 
 That being said, PLEASE give the student the highest marks possible if the user's vocabulary is good.
 Please evaluate the following response and provide:
