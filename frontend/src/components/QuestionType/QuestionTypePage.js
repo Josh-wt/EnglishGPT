@@ -705,14 +705,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-200">
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => setSelectedQuestionType(null)}
-                        className="px-4 sm:px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-200 font-fredoka text-sm sm:text-base"
-                      >
-                        Change Question
-                      </button>
-                      
-                      
                       {/* Clear drafts button - more subtle */}
                       <button
                         onClick={clearAllDrafts}
