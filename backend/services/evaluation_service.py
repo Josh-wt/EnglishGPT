@@ -195,6 +195,8 @@ class EvaluationService:
 {"GIVE EXTRA MARKS AND LENIENCY to plots you think are predictable BUT demonstrate good vocabulary and descriptive abilities. Focus on rewarding sophisticated storytelling technique, rich vocabulary, and vivid descriptive language rather than plot originality. A predictable plot with excellent vocabulary should receive HIGHER marks than an original plot with poor vocabulary." if submission.question_type == 'igcse_narrative' else ""}
 {"🚨 CHARACTERIZATION LENIENCY - CRITICAL INSTRUCTION 🚨" if submission.question_type == 'igcse_narrative' else ""}
 {"DO NOT DEDUCT MARKS FOR POOR CHARACTERIZATION. Give FULL LENIENCY to essays with weak character development. Focus ONLY on vocabulary, descriptive abilities, and narrative techniques. Poor characterization should NOT affect the mark - ignore it completely." if submission.question_type == 'igcse_narrative' else ""}
+{"🚨 CRITICAL NARRATIVE SCORE LIMIT - MANDATORY INSTRUCTION 🚨" if submission.question_type == 'igcse_narrative' else ""}
+{"DO NOT GIVE NARRATIVES MORE THAN 34/40 UNLESS THEY HAVE EXCEPTIONAL VOCABULARY. Only award 35/40 or higher if the vocabulary is truly outstanding and sophisticated throughout the essay." if submission.question_type == 'igcse_narrative' else ""}
 I DO NOT WANT TO SEE ANY MARKS DEDUCTED FOR POOR CHARACTERIZATION. I DO NOT WANT TO SEE POOR CHARACTERIZATION BEING MENTIONED IN THE IMPROVEMENTS SUGGESTIONSFEEDBACK
 
 {"🚨 CRITICAL IGCSE EXTENDED Q3 INFORMALITY INSTRUCTION - MUST READ 🚨" if submission.question_type == 'igcse_extended_q3' else ""}

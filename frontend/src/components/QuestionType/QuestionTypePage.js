@@ -591,8 +591,8 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                     </div>
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 font-fredoka mb-2">Ready to Write?</h3>
-                    <p className="text-gray-600 font-fredoka text-sm sm:text-base">Select a question type from the left to start your essay</p>
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 font-fredoka mb-2">Begin Your Essay</h3>
+                    <p className="text-gray-600 font-fredoka text-sm sm:text-base">Choose a question type from the left to start writing</p>
                   </div>
                 </div>
               ) : (
@@ -712,18 +712,12 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                         Change Question
                       </button>
                       
-                      <button
-                        onClick={() => setShowMarkedEssayModal(true)}
-                        className="px-4 sm:px-6 py-3 bg-purple-100 text-purple-700 rounded-lg font-medium hover:bg-purple-200 transition-colors duration-200 font-fredoka text-sm sm:text-base"
-                      >
-                        See Examples
-                      </button>
                       
-                      {/* Debug button to clear drafts */}
+                      {/* Clear drafts button - more subtle */}
                       <button
                         onClick={clearAllDrafts}
-                        className="px-3 py-2 rounded-lg font-medium font-fredoka transition-colors text-xs bg-red-200 text-red-700 hover:bg-red-300"
-                        title="Clear all drafts (debug)"
+                        className="px-2 py-1 rounded text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors font-fredoka"
+                        title="Clear all saved drafts"
                       >
                         Clear Drafts
                       </button>
