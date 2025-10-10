@@ -703,18 +703,14 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-200">
                     <div className="flex gap-2">
-<<<<<<< HEAD
-                      {/* Clear drafts button - more subtle */}
-=======
                       <button
                         onClick={() => setSelectedQuestionType(null)}
                         className="px-4 sm:px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-200 font-fredoka text-sm sm:text-base"
                       >
-                        Change Question
+                        Change Question 
                       </button>
                       
-                      {/* Debug button to clear drafts */}
->>>>>>> 0d00c6a (Enhance admin functionality and documentation styles)
+                      {/* Clear drafts button - more subtle */}
                       <button
                         onClick={clearAllDrafts}
                         className="px-2 py-1 rounded text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors font-fredoka"
