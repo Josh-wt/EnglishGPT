@@ -56,32 +56,32 @@ async def get_dashboard_stats(request: Request):
         supabase = get_supabase_client()
         
         # Get total users
-        users_result = supabase.table('users').select('id', count='exact').execute()
+        users_result = supabase.table('assessment_users').select('uid', count='exact').execute()
         total_users = users_result.count or 0
         
         # Get total evaluations
-        evaluations_result = supabase.table('evaluations').select('id', count='exact').execute()
+        evaluations_result = supabase.table('assessment_evaluations').select('id', count='exact').execute()
         total_evaluations = evaluations_result.count or 0
         
         # Get average grade
-        grade_result = supabase.table('evaluations').select('total_score').execute()
+        grade_result = supabase.table('assessment_evaluations').select('grade').execute()
         if grade_result.data:
-            total_score = sum(eval.get('total_score', 0) for eval in grade_result.data)
+            total_score = sum(eval.get('grade', 0) for eval in grade_result.data)
             average_grade = total_score / len(grade_result.data) if grade_result.data else 0
         else:
             average_grade = 0
         
         # Get total credits used
-        credits_result = supabase.table('users').select('credits_used').execute()
-        total_credits_used = sum(user.get('credits_used', 0) for user in credits_result.data) if credits_result.data else 0
+        credits_result = supabase.table('assessment_users').select('credits').execute()
+        total_credits_used = sum(user.get('credits', 0) for user in credits_result.data) if credits_result.data else 0
         
         # Get active users today
         today = datetime.now().date()
-        active_users_result = supabase.table('users').select('id').gte('last_active', today.isoformat()).execute()
+        active_users_result = supabase.table('assessment_users').select('uid').gte('updated_at', today.isoformat()).execute()
         active_users_today = len(active_users_result.data) if active_users_result.data else 0
         
         # Calculate completion rate (users who have completed at least one evaluation)
-        completed_users_result = supabase.table('evaluations').select('user_id').execute()
+        completed_users_result = supabase.table('assessment_evaluations').select('user_id').execute()
         unique_users = len(set(eval.get('user_id') for eval in completed_users_result.data)) if completed_users_result.data else 0
         completion_rate = (unique_users / total_users * 100) if total_users > 0 else 0
         
@@ -107,12 +107,12 @@ async def get_evaluations_trend(request: Request, days: int = 30):
         
         # Get evaluations from the last N days
         start_date = (datetime.now() - timedelta(days=days)).date()
-        result = supabase.table('evaluations').select('created_at').gte('created_at', start_date.isoformat()).execute()
+        result = supabase.table('assessment_evaluations').select('timestamp').gte('timestamp', start_date.isoformat()).execute()
         
         # Group by date
         trends = {}
         for eval in result.data or []:
-            date = eval.get('created_at', '')[:10]  # Get YYYY-MM-DD
+            date = eval.get('timestamp', '')[:10]  # Get YYYY-MM-DD
             trends[date] = trends.get(date, 0) + 1
         
         # Fill in missing dates with 0
@@ -135,7 +135,7 @@ async def get_grade_distribution(request: Request):
         require_admin_access(request)
         supabase = get_supabase_client()
         
-        result = supabase.table('evaluations').select('total_score').execute()
+        result = supabase.table('assessment_evaluations').select('grade').execute()
         
         # Define grade ranges
         ranges = [
@@ -149,7 +149,7 @@ async def get_grade_distribution(request: Request):
         distribution = []
         for range_name, min_score, max_score in ranges:
             count = sum(1 for eval in result.data or [] 
-                       if min_score <= eval.get('total_score', 0) <= max_score)
+                       if min_score <= eval.get('grade', 0) <= max_score)
             distribution.append(GradeDistribution(grade_range=range_name, count=count))
         
         return distribution
@@ -165,13 +165,13 @@ async def get_question_type_stats(request: Request):
         require_admin_access(request)
         supabase = get_supabase_client()
         
-        result = supabase.table('evaluations').select('question_type', 'total_score').execute()
+        result = supabase.table('assessment_evaluations').select('question_type', 'grade').execute()
         
         # Group by question type
         type_stats = {}
         for eval in result.data or []:
             q_type = eval.get('question_type', 'Unknown')
-            score = eval.get('total_score', 0)
+            score = eval.get('grade', 0)
             
             if q_type not in type_stats:
                 type_stats[q_type] = {'count': 0, 'total_score': 0}
@@ -202,7 +202,7 @@ async def get_subscription_stats(request: Request):
         require_admin_access(request)
         supabase = get_supabase_client()
         
-        result = supabase.table('users').select('current_plan').execute()
+        result = supabase.table('assessment_users').select('current_plan').execute()
         
         # Count by plan
         plan_counts = {}
@@ -228,7 +228,7 @@ async def get_recent_activity(request: Request, limit: int = 20):
         supabase = get_supabase_client()
         
         # Get recent evaluations
-        evaluations_result = supabase.table('evaluations').select('id', 'user_id', 'question_type', 'created_at').order('created_at', desc=True).limit(limit).execute()
+        evaluations_result = supabase.table('assessment_evaluations').select('id', 'user_id', 'question_type', 'timestamp').order('timestamp', desc=True).limit(limit).execute()
         
         activities = []
         for eval in evaluations_result.data or []:
@@ -236,20 +236,20 @@ async def get_recent_activity(request: Request, limit: int = 20):
                 id=eval.get('id', ''),
                 type='evaluation',
                 description=f"New evaluation: {eval.get('question_type', 'Unknown')}",
-                timestamp=eval.get('created_at', ''),
+                timestamp=eval.get('timestamp', ''),
                 user_id=eval.get('user_id')
             ))
         
         # Get recent user registrations
-        users_result = supabase.table('users').select('id', 'email', 'created_at').order('created_at', desc=True).limit(limit).execute()
+        users_result = supabase.table('assessment_users').select('uid', 'email', 'created_at').order('created_at', desc=True).limit(limit).execute()
         
         for user in users_result.data or []:
             activities.append(RecentActivity(
-                id=user.get('id', ''),
+                id=user.get('uid', ''),
                 type='user_registration',
                 description=f"New user: {user.get('email', 'Unknown')}",
                 timestamp=user.get('created_at', ''),
-                user_id=user.get('id')
+                user_id=user.get('uid')
             ))
         
         # Sort by timestamp and limit
@@ -267,7 +267,7 @@ async def get_all_users_admin(request: Request, limit: int = 100, offset: int = 
         require_admin_access(request)
         supabase = get_supabase_client()
         
-        result = supabase.table('users').select('*').order('created_at', desc=True).range(offset, offset + limit - 1).execute()
+        result = supabase.table('assessment_users').select('*').order('created_at', desc=True).range(offset, offset + limit - 1).execute()
         
         return result.data or []
         
@@ -282,7 +282,7 @@ async def get_all_evaluations_admin(request: Request, limit: int = 100, offset: 
         require_admin_access(request)
         supabase = get_supabase_client()
         
-        result = supabase.table('evaluations').select('*').order('created_at', desc=True).range(offset, offset + limit - 1).execute()
+        result = supabase.table('assessment_evaluations').select('*').order('timestamp', desc=True).range(offset, offset + limit - 1).execute()
         
         return result.data or []
         

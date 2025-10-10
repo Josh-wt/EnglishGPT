@@ -18,7 +18,7 @@ load_dotenv(dotenv_path=ROOT_DIR / '.env', override=True)
 # Supabase Configuration
 SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://zwrwtqspeyajttnuzwkl.supabase.co')
 SUPABASE_KEY = (
-    os.environ.get('SUPABASE_SERVICE_ROLE_KEY') or os.environ.get('SUPABASE_KEY')
+    os.environ.get('SUPABASE_KEY') or os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
 )
 
 # Supabase Configuration loaded
