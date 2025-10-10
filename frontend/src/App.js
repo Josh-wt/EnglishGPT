@@ -1025,7 +1025,7 @@ const App = () => {
         <Route path="/admin" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
             <LazyWrapper fallback={<PageSkeleton />}>
-              <AdminGuard user={user}>
+              <AdminGuard user={user} darkMode={darkMode}>
                 <AdminLayout darkMode={darkMode} />
               </AdminGuard>
             </LazyWrapper>

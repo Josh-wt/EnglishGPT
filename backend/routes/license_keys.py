@@ -12,6 +12,7 @@ import uuid
 import json
 
 from config.settings import get_supabase_client, is_admin_email
+from utils.admin_auth import require_admin_access, get_admin_user_info
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/license", tags=["license-keys"])
@@ -196,10 +197,9 @@ async def get_user_license_status(user_id: str):
 async def create_license_key(request: LicenseKeyCreateRequest, http_request: Request):
     """Create a new license key (admin only)"""
     try:
-        # Check if user is admin
-        user_info = get_user_from_request(http_request)
-        if not is_admin_email(user_info['email']):
-            raise HTTPException(status_code=403, detail="Admin access required")
+        # Check if user has admin access
+        require_admin_access(http_request)
+        admin_info = get_admin_user_info(http_request)
         
         supabase = get_supabase()
         
@@ -225,14 +225,14 @@ async def create_license_key(request: LicenseKeyCreateRequest, http_request: Req
             'description': request.description,
             'notes': request.notes,
             'source': request.source,
-            'created_by': user_info['user_id']
+            'created_by': admin_info.get('session_token', 'admin')
         }
         
         result = supabase.table('license_keys').insert(license_data).execute()
         
         if result.data:
             license_record = result.data[0]
-            logger.info(f"License key created: {license_key} by user {user_info['user_id']}")
+            logger.info(f"License key created: {license_key} by admin")
             return LicenseKeyResponse(**license_record)
         else:
             raise HTTPException(status_code=500, detail="Failed to create license key")
@@ -251,10 +251,8 @@ async def list_license_keys(
 ):
     """List license keys (admin only)"""
     try:
-        # Check if user is admin
-        user_info = get_user_from_request(http_request)
-        if not is_admin_email(user_info['email']):
-            raise HTTPException(status_code=403, detail="Admin access required")
+        # Check if user has admin access
+        require_admin_access(http_request)
         
         supabase = get_supabase()
         
@@ -282,10 +280,8 @@ async def list_license_keys(
 async def get_license_key(license_key_id: str, http_request: Request):
     """Get a specific license key (admin only)"""
     try:
-        # Check if user is admin
-        user_info = get_user_from_request(http_request)
-        if not is_admin_email(user_info['email']):
-            raise HTTPException(status_code=403, detail="Admin access required")
+        # Check if user has admin access
+        require_admin_access(http_request)
         
         supabase = get_supabase()
         
