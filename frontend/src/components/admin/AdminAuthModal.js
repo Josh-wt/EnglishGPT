@@ -18,7 +18,11 @@ const AdminAuthModal = ({ isOpen, onClose, onSuccess, darkMode }) => {
     setError('');
 
     try {
-      const response = await fetch(`${getApiUrl()}/admin/authenticate`, {
+      const apiUrl = `${getApiUrl()}/admin/authenticate`;
+      console.log('🔐 Admin auth API URL:', apiUrl);
+      console.log('🔐 Admin key being sent:', adminKey);
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -26,7 +30,11 @@ const AdminAuthModal = ({ isOpen, onClose, onSuccess, darkMode }) => {
         body: JSON.stringify({ admin_key: adminKey }),
       });
 
+      console.log('🔐 Response status:', response.status);
+      console.log('🔐 Response headers:', response.headers);
+      
       const data = await response.json();
+      console.log('🔐 Response data:', data);
 
       if (data.success) {
         // Store session token in localStorage
@@ -52,6 +60,8 @@ const AdminAuthModal = ({ isOpen, onClose, onSuccess, darkMode }) => {
     onClose();
   };
 
+  console.log('🔐 AdminAuthModal render - isOpen:', isOpen);
+  
   if (!isOpen) return null;
 
   return (

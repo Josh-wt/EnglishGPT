@@ -20,7 +20,7 @@ export const getBackendUrl = () => {
     console.log('🔧 Window origin:', origin);
     
     if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-      const url = 'http://localhost:8000';
+      const url = 'http://localhost:5000';
       console.log('🔧 Localhost detected, using:', url);
       return url;
     }
@@ -31,8 +31,8 @@ export const getBackendUrl = () => {
     return url;
   }
   
-  console.log('🔧 Fallback to localhost:8000');
-  return 'http://localhost:8000';
+  console.log('🔧 Fallback to localhost:5000');
+  return 'http://localhost:5000';
 };
 
 /**

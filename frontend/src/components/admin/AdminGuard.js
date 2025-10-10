@@ -9,17 +9,25 @@ const AdminGuard = ({ user, children, darkMode }) => {
   const [loading, setLoading] = useState(true);
   const [sessionExpired, setSessionExpired] = useState(false);
 
+  console.log('🔐 AdminGuard render - user:', user, 'darkMode:', darkMode);
+
   // Check admin session on component mount
   useEffect(() => {
+    console.log('🔐 AdminGuard useEffect triggered');
     checkAdminSession();
   }, []);
 
   const checkAdminSession = async () => {
+    console.log('🔐 checkAdminSession called');
     try {
       const sessionToken = localStorage.getItem('admin_session_token');
       const sessionExpires = localStorage.getItem('admin_session_expires');
+      
+      console.log('🔐 Session token:', sessionToken);
+      console.log('🔐 Session expires:', sessionExpires);
 
       if (!sessionToken || !sessionExpires) {
+        console.log('🔐 No session found, setting loading to false');
         setLoading(false);
         return;
       }
@@ -34,13 +42,19 @@ const AdminGuard = ({ user, children, darkMode }) => {
       }
 
       // Verify session with backend
-      const response = await fetch(`${getApiUrl()}/admin/status`, {
+      const apiUrl = `${getApiUrl()}/admin/status`;
+      console.log('🔐 Admin status API URL:', apiUrl);
+      console.log('🔐 Session token:', sessionToken);
+      
+      const response = await fetch(apiUrl, {
         headers: {
           'X-Admin-Session': sessionToken,
         },
       });
 
+      console.log('🔐 Status response:', response.status);
       const data = await response.json();
+      console.log('🔐 Status data:', data);
       
       if (data.authenticated) {
         setIsAdminAuthenticated(true);
@@ -59,6 +73,7 @@ const AdminGuard = ({ user, children, darkMode }) => {
   };
 
   const handleAuthSuccess = (sessionToken) => {
+    console.log('🔐 handleAuthSuccess called with token:', sessionToken);
     setIsAdminAuthenticated(true);
     setSessionExpired(false);
   };
@@ -84,7 +99,10 @@ const AdminGuard = ({ user, children, darkMode }) => {
     }
   };
 
+  console.log('🔐 AdminGuard render state - loading:', loading, 'isAdminAuthenticated:', isAdminAuthenticated, 'showAuthModal:', showAuthModal);
+
   if (loading) {
+    console.log('🔐 Rendering loading state');
     return (
       <div className="max-w-2xl mx-auto py-16 px-4 text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
@@ -94,6 +112,7 @@ const AdminGuard = ({ user, children, darkMode }) => {
   }
 
   if (!isAdminAuthenticated) {
+    console.log('🔐 Rendering admin access required state');
     return (
       <div className="max-w-2xl mx-auto py-16 px-4 text-center">
         <div className="mb-8">
@@ -113,7 +132,14 @@ const AdminGuard = ({ user, children, darkMode }) => {
           )}
           
           <button
-            onClick={() => setShowAuthModal(true)}
+            onClick={(e) => {
+              console.log('🔐 Admin key button clicked!');
+              console.log('🔐 Event:', e);
+              console.log('🔐 Current showAuthModal state:', showAuthModal);
+              console.log('🔐 Setting showAuthModal to true');
+              setShowAuthModal(true);
+              console.log('🔐 showAuthModal should now be true');
+            }}
             className="inline-flex items-center space-x-2 bg-red-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-700 transition-colors"
           >
             <Key className="w-5 h-5" />
@@ -131,6 +157,7 @@ const AdminGuard = ({ user, children, darkMode }) => {
     );
   }
 
+  console.log('🔐 Rendering authenticated admin state');
   return (
     <>
       <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
@@ -149,7 +176,10 @@ const AdminGuard = ({ user, children, darkMode }) => {
       
       <AdminAuthModal
         isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
+        onClose={() => {
+          console.log('🔐 AdminAuthModal onClose called');
+          setShowAuthModal(false);
+        }}
         onSuccess={handleAuthSuccess}
         darkMode={darkMode}
       />
