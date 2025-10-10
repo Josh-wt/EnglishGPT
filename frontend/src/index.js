@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ErrorBoundary from "./components/ui/ErrorBoundary";
 import { logSecurityInfo } from "./utils/securityDebug";
 import * as serviceWorker from "./utils/serviceWorker";
@@ -92,12 +93,16 @@ if (window.__RECORDING__ || window.__RECORD_JS__) {
 // Run security analysis
 logSecurityInfo();
 
+const queryClient = new QueryClient();
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <ErrorBoundary>
       <BrowserRouter>
-        <App />
+        <QueryClientProvider client={queryClient}>
+          <App />
+        </QueryClientProvider>
       </BrowserRouter>
     </ErrorBoundary>
   </React.StrictMode>

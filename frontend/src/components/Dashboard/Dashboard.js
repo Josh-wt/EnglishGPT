@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Footer from '../ui/Footer';
 
-const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAnalytics, onAccountSettings, onSubscription, userStats, user, darkMode, onSignOut }) => {
+const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAnalytics, onAccountSettings, onSubscription, onLicense, userStats, user, darkMode, onSignOut }) => {
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   
   // Debug userStats prop
@@ -72,6 +72,11 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
     onSubscription();
     setShowAccountDropdown(false);
   }, [onSubscription]);
+
+  const handleLicense = useCallback(() => {
+    onLicense();
+    setShowAccountDropdown(false);
+  }, [onLicense]);
 
   const handleAnalytics = useCallback(() => {
     onAnalytics();
@@ -274,6 +279,16 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
                         Subscription
+                      </button>
+                      
+                      <button 
+                        onClick={handleLicense}
+                        className="w-full px-4 py-2 text-left font-fredoka text-gray-700 hover:bg-gray-100 flex items-center"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                        License Key
                       </button>
                       
                       <button 

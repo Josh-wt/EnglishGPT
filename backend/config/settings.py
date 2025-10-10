@@ -59,6 +59,16 @@ DODO_UNLIMITED_YEARLY_PRODUCT_ID = DODO_LIFETIME_PRODUCT_ID
 
 # Product IDs configured
 
+# Admin Configuration
+ADMIN_EMAILS = os.environ.get('ADMIN_EMAILS', '')
+
+def is_admin_email(email: str) -> bool:
+    """Check if an email is in the admin list."""
+    if not email or not ADMIN_EMAILS:
+        return False
+    admin_list = [e.strip().lower() for e in ADMIN_EMAILS.split(',')]
+    return email.lower() in admin_list
+
 # CORS Origins
 CORS_ORIGINS = [
     "http://localhost:3000",

@@ -4,4 +4,5 @@ export * from './evaluations';
 export * from './user';
 export * from './feedback';
 export * from './questionTypes';
+export { default as licenseService } from './licenseService';
 export { default as paymentService } from './paymentService';

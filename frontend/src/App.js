@@ -20,6 +20,7 @@ import SignInModal from './components/modals/SignInModal';
 import ErrorModal from './components/modals/ErrorModal';
 import WelcomeModal from './components/modals/WelcomeModal';
 import AuthRequired from './components/auth/AuthRequired';
+import LicenseAuthPage from './components/LicenseAuth/LicenseAuthPage';
 import PublicResultPageWrapper from './components/results/PublicResultPageWrapper';
 import KeyboardShortcutsHelp from './components/help/KeyboardShortcutsHelp';
 import { LazyWrapper, PageSkeleton } from './components/LazyWrapper';
@@ -49,6 +50,7 @@ const AdminOverview = lazy(() => import('./components/admin/Dashboard/AdminOverv
 const AdminUsersPage = lazy(() => import('./components/admin/Users/AdminUsersPage'));
 const AdminEvaluationsPage = lazy(() => import('./components/admin/Evaluations/AdminEvaluationsPage'));
 const AdminFeedbackPage = lazy(() => import('./components/admin/Feedback/AdminFeedbackPage'));
+const AdminLicenseKeysPage = lazy(() => import('./components/admin/LicenseKeys/AdminLicenseKeysPage'));
 const AdminAnalyticsPage = lazy(() => import('./components/admin/Analytics/AdminAnalyticsPage'));
 const AdminSearchPage = lazy(() => import('./components/admin/Search/AdminSearchPage'));
 const AdminGuard = lazy(() => import('./components/admin/AdminGuard'));
@@ -814,6 +816,7 @@ const App = () => {
                     }}
                     onAccountSettings={() => navigate('/account')}
                     onSubscription={() => navigate('/subscription')}
+                    onLicense={() => navigate('/license')}
                     userStats={userStats || {}}
                     user={user}
                     darkMode={darkMode}
@@ -957,6 +960,17 @@ const App = () => {
             </LazyWrapper>
           </AuthRequired>
         } />
+        <Route path="/license" element={
+          <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
+            <LazyWrapper fallback={<PageSkeleton />}>
+              <LicenseAuthPage 
+                user={user}
+                onBack={handleBack}
+                darkMode={darkMode}
+              />
+            </LazyWrapper>
+          </AuthRequired>
+        } />
         <Route path="/subscription" element={
           <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
             <LazyWrapper fallback={<PageSkeleton />}>
@@ -1021,6 +1035,7 @@ const App = () => {
           <Route path="users" element={<AdminUsersPage />} />
           <Route path="evaluations" element={<AdminEvaluationsPage />} />
           <Route path="feedback" element={<AdminFeedbackPage />} />
+          <Route path="license-keys" element={<AdminLicenseKeysPage />} />
           <Route path="analytics" element={<AdminAnalyticsPage />} />
           <Route path="search" element={<AdminSearchPage />} />
           <Route path="db" element={<AdminDatabaseBrowser />} />

@@ -6,6 +6,7 @@ const navItems = [
   { to: '/admin/users', label: 'Users' },
   { to: '/admin/evaluations', label: 'Evaluations' },
   { to: '/admin/feedback', label: 'Feedback' },
+  { to: '/admin/license-keys', label: 'License Keys' },
   { to: '/admin/analytics', label: 'Analytics' },
   { to: '/admin/search', label: 'Search' },
   { to: '/admin/db', label: 'Database' },
