@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Shield, Key, AlertCircle } from 'lucide-react';
+import { getApiUrl } from '../../utils/backendUrl';
 
 const AdminAuthModal = ({ isOpen, onClose, onSuccess, darkMode }) => {
   const [adminKey, setAdminKey] = useState('');
@@ -17,7 +18,7 @@ const AdminAuthModal = ({ isOpen, onClose, onSuccess, darkMode }) => {
     setError('');
 
     try {
-      const response = await fetch('/api/admin/authenticate', {
+      const response = await fetch(`${getApiUrl()}/admin/authenticate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

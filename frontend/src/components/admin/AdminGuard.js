@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Key, AlertCircle } from 'lucide-react';
 import AdminAuthModal from './AdminAuthModal';
+import { getApiUrl } from '../../utils/backendUrl';
 
 const AdminGuard = ({ user, children, darkMode }) => {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
@@ -33,7 +34,7 @@ const AdminGuard = ({ user, children, darkMode }) => {
       }
 
       // Verify session with backend
-      const response = await fetch('/api/admin/status', {
+      const response = await fetch(`${getApiUrl()}/admin/status`, {
         headers: {
           'X-Admin-Session': sessionToken,
         },
@@ -66,7 +67,7 @@ const AdminGuard = ({ user, children, darkMode }) => {
     try {
       const sessionToken = localStorage.getItem('admin_session_token');
       if (sessionToken) {
-        await fetch('/api/admin/logout', {
+        await fetch(`${getApiUrl()}/admin/logout`, {
           method: 'POST',
           headers: {
             'X-Admin-Session': sessionToken,
