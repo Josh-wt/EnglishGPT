@@ -7,9 +7,14 @@ const AdminAuthModal = ({ isOpen, onClose, onSuccess, darkMode }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  console.log('🔐 AdminAuthModal props - isOpen:', isOpen, 'darkMode:', darkMode);
+
   const handleSubmit = async (e) => {
+    console.log('🔐 AdminAuthModal handleSubmit called');
     e.preventDefault();
+    console.log('🔐 Admin key value:', adminKey);
     if (!adminKey.trim()) {
+      console.log('🔐 Admin key is empty, setting error');
       setError('Please enter the admin key');
       return;
     }
@@ -55,6 +60,7 @@ const AdminAuthModal = ({ isOpen, onClose, onSuccess, darkMode }) => {
   };
 
   const handleClose = () => {
+    console.log('🔐 AdminAuthModal handleClose called');
     setAdminKey('');
     setError('');
     onClose();
@@ -62,7 +68,12 @@ const AdminAuthModal = ({ isOpen, onClose, onSuccess, darkMode }) => {
 
   console.log('🔐 AdminAuthModal render - isOpen:', isOpen);
   
-  if (!isOpen) return null;
+  if (!isOpen) {
+    console.log('🔐 AdminAuthModal not rendering because isOpen is false');
+    return null;
+  }
+  
+  console.log('🔐 AdminAuthModal rendering modal content');
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -82,7 +93,10 @@ const AdminAuthModal = ({ isOpen, onClose, onSuccess, darkMode }) => {
             </div>
           </div>
           <button
-            onClick={handleClose}
+            onClick={(e) => {
+              console.log('🔐 Close button clicked');
+              handleClose();
+            }}
             className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
           >
             <X className="w-5 h-5" />
@@ -99,7 +113,10 @@ const AdminAuthModal = ({ isOpen, onClose, onSuccess, darkMode }) => {
               <input
                 type="password"
                 value={adminKey}
-                onChange={(e) => setAdminKey(e.target.value)}
+                onChange={(e) => {
+                  console.log('🔐 Admin key input changed:', e.target.value);
+                  setAdminKey(e.target.value);
+                }}
                 placeholder="Enter your admin key"
                 className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent ${
                   darkMode 
@@ -134,6 +151,12 @@ const AdminAuthModal = ({ isOpen, onClose, onSuccess, darkMode }) => {
             <button
               type="submit"
               disabled={loading || !adminKey.trim()}
+              onClick={(e) => {
+                console.log('🔐 Submit button clicked');
+                console.log('🔐 Loading state:', loading);
+                console.log('🔐 Admin key length:', adminKey.trim().length);
+                console.log('🔐 Button disabled:', loading || !adminKey.trim());
+              }}
               className="flex-1 py-3 px-4 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? 'Authenticating...' : 'Access Admin'}
