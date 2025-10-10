@@ -43,6 +43,17 @@ const PaymentsDashboard = lazy(() => import('./components/AdminDashboard/Payment
 const AdminResultsPage = lazy(() => import('./components/AdminResultsPage/AdminResultsPage'));
 const EmailLogin = lazy(() => import('./components/EmailLogin'));
 
+// Admin
+const AdminLayout = lazy(() => import('./components/admin/Layout/AdminLayout'));
+const AdminOverview = lazy(() => import('./components/admin/Dashboard/AdminOverview'));
+const AdminUsersPage = lazy(() => import('./components/admin/Users/AdminUsersPage'));
+const AdminEvaluationsPage = lazy(() => import('./components/admin/Evaluations/AdminEvaluationsPage'));
+const AdminFeedbackPage = lazy(() => import('./components/admin/Feedback/AdminFeedbackPage'));
+const AdminAnalyticsPage = lazy(() => import('./components/admin/Analytics/AdminAnalyticsPage'));
+const AdminSearchPage = lazy(() => import('./components/admin/Search/AdminSearchPage'));
+const AdminGuard = lazy(() => import('./components/admin/AdminGuard'));
+const AdminDatabaseBrowser = lazy(() => import('./components/admin/Database/AdminDatabaseBrowser'));
+
 // Lazy load legal components
 const TermsOfService = lazy(() => import('./components/legal').then(module => ({ default: module.TermsOfService })));
 const RefundPolicy = lazy(() => import('./components/legal').then(module => ({ default: module.RefundPolicy })));
@@ -996,6 +1007,25 @@ const App = () => {
           </LazyWrapper>
         } />
         
+        {/* Admin routes */}
+        <Route path="/admin" element={
+          <AuthRequired user={user} userLoading={userLoading} userStats={userStats} darkMode={darkMode}>
+            <LazyWrapper fallback={<PageSkeleton />}>
+              <AdminGuard user={user}>
+                <AdminLayout darkMode={darkMode} />
+              </AdminGuard>
+            </LazyWrapper>
+          </AuthRequired>
+        }>
+          <Route path="dashboard" element={<AdminOverview />} />
+          <Route path="users" element={<AdminUsersPage />} />
+          <Route path="evaluations" element={<AdminEvaluationsPage />} />
+          <Route path="feedback" element={<AdminFeedbackPage />} />
+          <Route path="analytics" element={<AdminAnalyticsPage />} />
+          <Route path="search" element={<AdminSearchPage />} />
+          <Route path="db" element={<AdminDatabaseBrowser />} />
+        </Route>
+
         {/* Documentation routes */}
         <Route path="/docs" element={
           <LazyWrapper fallback={<PageSkeleton />}>

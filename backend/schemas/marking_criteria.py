@@ -122,6 +122,70 @@ although, inconsistencies here as well. a major one is a salient contradiction- 
 
 13/16 for content + 19/24 for quality = 32/40 overall 
 
+"Write a description with the title ‘The beach by night’
+The advent of night brought a profound transformation to the beach. The full moon and the stars
+set a dim glow as the waves softly lapped on the shore. A chilly breeze passed, carrying the
+sounds of the ocean with it. The low-hanging moon cast an argent trail across the waves.
+The night sky stretched out, adorned with the gem-like stars. The ethereal patterns formed by
+the constellations were delicately etched into the quilt of the dark void of the sky. The luminous
+orb cast a fragile road extending from the shore to the horizon. The waves rhythmically
+splashed against the sandy shore. The ocean’s surface was a shimmering tapestry of
+greenish-blue hues and silvery reflections of the stars. The briny smell was overcoming, almost
+pungent as the breeze spread a chill in the air. The sweltering beach now made onlookers
+shiver as the serenity of the beach went undisturbed.
+The beach was dotted with seashells. The intricacy of the shells blurred in the dim light.
+Seaweed tangled and spread across the beach, moving with the air, their dark forms acting like
+silhouettes with the backdrop of the moon. The contours of the knolls of sand cast light
+shadows. The rolling dunes seemed never-ending, obstructed only by a large boulder. A lone
+frog on the boulder looked at the vast abyss of the sky, as it had done every night for years, as it
+will do every night for years. The cascade of iridescent stars was only disturbed by a distant
+lighthouse. The silent sentinel’s aureate beam sliced through the belt of stars and pierced the
+dark clouds.
+A group of friends sit around a vibrant bonfire, creating a warm glow as the flickering flames
+cast monstrous shadows of the cheerful pack. Laughter and conversation glide through the
+night as a couple walks with hands clasped, their footprints nothing but ephemeral marks of the
+past as the tide rushed in to fill in the space. In the distance, a man stands at the rim of the
+ocean, deep in thought. His trench coat and hat, as if colluding, attempt to escape with the wind
+but to no avail. At the end of the beach, a lone cottage stands as a couple enjoys the tranquillity
+of the evening while their children chase each other, their giggles blending in with the sounds of
+the ocean.
+The beach at night was an abode of peace. The night’s ambience caused by the moonlight and
+shadows interaction was unmatched. Each individual embraces the beach of the night. The
+couple with their nightly walks, the friends meeting after months, the philosopher wondering
+what is past the expanse and the kids, using the beach as a playground. Nature’s elements and
+human beings work harmoniously to create a nocturnal charm and a sense of amity in a chaotic
+world."
+
+Feedback:
+"The advent of night brought a profound transformation to the beach"
+The advent of the night TRANSFORMED the beach profoundly...this would ideally be a better sentence
+not saying it's wrong but transformations aren't usually 'brought'
+
+Also a bit too much of flowery language
+Try balancing it with simple phrases + words
+
+very good imagery here:
+"The night sky stretched out, adorned with the gem-like stars. The ethereal patterns formed by
+the constellations were delicately etched into the quilt of the dark void of the sky."
+Also your sentences are literally all the same length and start with the same word and end in the same way
+A bit redundant
+too flowery: 
+"Nature’s elements and
+human beings work harmoniously to create a nocturnal charm and a sense of amity in a chaotic
+world."
+it seems you're just throwing in words without valuing them
+Overall, it was good in terms of grammar
+Sentence structure needs to be more:
+varied
+simpler sometimes
+
+use some short sentences, semicolons to connect
+also this was kinda unnecessary "At the end of the beach, a lone cottage stands as a couple enjoys the tranquillity
+of the evening while their children chase each other, their giggles blending in with the sounds of
+the ocean"
+Image
+GRADE: 27/40
+
 
 
 7-1 Marks (Very Low Level): Very limited language, serious errors.""",
@@ -744,6 +808,36 @@ Your examiner will assess you for writing by identifying the following features:
     ____   Underline any SPAG errors or expression issues
     V   for impressive vocab
     R   for effective register that sounds like a student magazine
+
+    "The school recently started voting to add volunteering to the curriculum, but did you know that there are already several volunteering clubs in the school? They have been working to alleviate local crises in our environment. But should volunteering be compulsory? 
+Firstly, students are already packed with a heavy workload of academic workload. Linking volunteering to grades would cause more stress to certain students. In addition, students will be separated from other extracurricular activities that relieve stress. But if students themselves are vulnerable, would helping others still be meaningful? On the other hand, students would have to cooperate with people of different ages: adults, children, and teenagers, but the communication will be challenging because of the age gap between each generation - this would further worsen students' mental condition. This brings us to a question: could students  volunteer independently? 
+ In contrast to fundraising, where participants could sit in an office, volunteering requires people to walk around and socialize. This is challenging for students at first glance, but many have already started volunteering unknowingly, even you could be on the list! Helping family with groceries, mowing grass for neighbours; these are all acts of volunteering. Students could also develop unique abilities by being a part of a society, even further developing different views. But what does it give to pay off the mental pressure? It provides students with self-confidence. Some even offer financial support. Additionally, modern students are trapped within class, repeatedly writing words and paragraphs every year. Volunteering provides students with an opportunity to walk outside, to a broader and more colorful world.
+ Finally, volunteering comes along with benefits and drawbacks. It should be up to the  students' will to participate. Only by then, students will find the true value of it - self-fulfillment, the ability, or the financial support."
+
+Comments/feedback are in brackets
+
+It’s an article so you need to write a title [TITLE MISSING]
+
+The school recently started voting to add volunteering to the curriculum, [starting is too abrupt, introduce the topic a bit] but did you know that there are already several volunteering clubs in the school? They have been working to alleviate local crises in our environment. But should volunteering be compulsory? [too many rhetorical questions] [add paragraph, and add variation in sentence length]
+
+[paragraph break]
+
+Firstly, students are already packed with a heavy workload of academic workload. [already burdened with academic work] Linking volunteering to grades would cause more stress to certain students. In addition, students will [tenses inconsistent - write “would”] be separated from other extracurricular activities that relieve stress. But if students themselves are vulnerable, would helping others still be meaningful? [too many rhetorical questions]
+
+[paragraph break]
+
+On the other hand, students would have to cooperate with people of different ages: adults, children, and teenagers, but the communication will[tenses inconsistent - write “would”]be challenging because of the age gap between each generation - this would further worsen students' mental condition. This brings us to a question: could students volunteer independently? [too many rhetorical questions]
+
+[paragraph break]
+
+In contrast to fundraising, where participants could sit in an office, volunteering requires people to walk around and socialize. This is challenging for students at first glance, but many have already started volunteering unknowingly. [good sentence but remove “unknowingly”] even you could be on the list! Helping family with groceries, mowing grass for neighbours; these are all acts of volunteering. Students could also develop unique abilities by being a part of a society, even further developing different views. But what does it give to pay off the mental pressure? [too many rhetorical questions] It provides students with self-confidence. Some even offer financial support. Additionally, modern students are trapped within class, repeatedly writing words and paragraphs every year. Volunteering provides students with an opportunity to walk outside, to a broader and more colorful world. Finally, volunteering comes along with benefits and drawbacks. It should be up to the students' will to participate. Only by then, students will find the true value of it - self-fulfillment, the ability, or the financial support.
+
+You did not link it to the scheme, you just mentioned general volunteering
+Texts were not evaluated - mostly only one side was written, no structure
+Points well made but lacks coherence
+
+7/15 for content
+10/15 for style of writing
 
 Candidate writes with consistent accuracy and ambition in both vocabulary choices and sentence structures. A sophisticated style with flair, capable of expressing abstract ideas. Paragraphs are structured by argument and build to a conclusion. Register is effective for a school magazine article.""",
     "igcse_writers_effect": """

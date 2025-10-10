@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import ExampleModal from './ExampleModal';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import MarkingSchemeModal from '../modals/MarkingSchemeModal';
-import MarkedEssayModal from '../modals/MarkedEssayModal';
 import { usePreferences } from '../../hooks/usePreferences';
 
 const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvaluate, selectedLevel, darkMode, user, evaluationLoading, loadingMessage }) => {
@@ -15,7 +14,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   const [showExample, setShowExample] = useState(false);
   const [showMarkingSchemeModal, setShowMarkingSchemeModal] = useState(false);
   const [showInstructionModal, setShowInstructionModal] = useState(false);
-  const [showMarkedEssayModal, setShowMarkedEssayModal] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [formattedText, setFormattedText] = useState('');
   const [isUserTyping, setIsUserTyping] = useState(false);
@@ -705,7 +703,18 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-200">
                     <div className="flex gap-2">
+<<<<<<< HEAD
                       {/* Clear drafts button - more subtle */}
+=======
+                      <button
+                        onClick={() => setSelectedQuestionType(null)}
+                        className="px-4 sm:px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-200 font-fredoka text-sm sm:text-base"
+                      >
+                        Change Question
+                      </button>
+                      
+                      {/* Debug button to clear drafts */}
+>>>>>>> 0d00c6a (Enhance admin functionality and documentation styles)
                       <button
                         onClick={clearAllDrafts}
                         className="px-2 py-1 rounded text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors font-fredoka"
@@ -784,12 +793,6 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
         </div>
       )}
 
-      {/* Marked Essay Examples Modal */}
-      <MarkedEssayModal
-        isOpen={showMarkedEssayModal}
-        onClose={() => setShowMarkedEssayModal(false)}
-        questionType={selectedQuestionType?.id}
-      />
     </div>
   );
 };
