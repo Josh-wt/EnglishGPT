@@ -11,7 +11,6 @@ from pydantic import BaseModel, Field
 import uuid
 import json
 
-from services.user_management_service import user_management_service
 from config.settings import get_supabase_client, is_admin_email
 
 logger = logging.getLogger(__name__)
