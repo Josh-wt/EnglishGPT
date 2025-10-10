@@ -10,6 +10,7 @@ const AdminGuard = ({ user, children, darkMode }) => {
   const [sessionExpired, setSessionExpired] = useState(false);
 
   console.log('🔐 AdminGuard render - user:', user, 'darkMode:', darkMode);
+  console.log('🔐 AdminGuard state - loading:', loading, 'isAdminAuthenticated:', isAdminAuthenticated, 'showAuthModal:', showAuthModal, 'sessionExpired:', sessionExpired);
 
   // Check admin session on component mount
   useEffect(() => {
@@ -114,46 +115,62 @@ const AdminGuard = ({ user, children, darkMode }) => {
   if (!isAdminAuthenticated) {
     console.log('🔐 Rendering admin access required state');
     return (
-      <div className="max-w-2xl mx-auto py-16 px-4 text-center">
-        <div className="mb-8">
-          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-            <Shield className="w-8 h-8 text-red-600" />
-          </div>
-          <h1 className="text-2xl font-bold mb-2">Admin Access Required</h1>
-          <p className="text-gray-500 mb-6">
-            This section requires administrative privileges. Please authenticate with your admin key.
-          </p>
-          
-          {sessionExpired && (
-            <div className="flex items-center justify-center space-x-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg mb-6">
-              <AlertCircle className="w-5 h-5 text-yellow-600" />
-              <span className="text-yellow-700 text-sm">Your admin session has expired</span>
+      <>
+        <div className="max-w-2xl mx-auto py-16 px-4 text-center">
+          <div className="mb-8">
+            <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+              <Shield className="w-8 h-8 text-red-600" />
             </div>
-          )}
-          
-          <button
-            onClick={(e) => {
-              console.log('🔐 Admin key button clicked!');
-              console.log('🔐 Event:', e);
-              console.log('🔐 Current showAuthModal state:', showAuthModal);
-              console.log('🔐 Setting showAuthModal to true');
-              setShowAuthModal(true);
-              console.log('🔐 showAuthModal should now be true');
-            }}
-            className="inline-flex items-center space-x-2 bg-red-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-700 transition-colors"
-          >
-            <Key className="w-5 h-5" />
-            <span>Enter Admin Key</span>
-          </button>
-        </div>
+            <h1 className="text-2xl font-bold mb-2">Admin Access Required</h1>
+            <p className="text-gray-500 mb-6">
+              This section requires administrative privileges. Please authenticate with your admin key.
+            </p>
+            
+            {sessionExpired && (
+              <div className="flex items-center justify-center space-x-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg mb-6">
+                <AlertCircle className="w-5 h-5 text-yellow-600" />
+                <span className="text-yellow-700 text-sm">Your admin session has expired</span>
+              </div>
+            )}
+            
+            <button
+              onClick={(e) => {
+                console.log('🔐 Admin key button clicked!');
+                console.log('🔐 Event:', e);
+                console.log('🔐 Current showAuthModal state:', showAuthModal);
+                console.log('🔐 Setting showAuthModal to true');
+                setShowAuthModal(true);
+                console.log('🔐 showAuthModal should now be true');
+                // Force a re-render to see if state changes
+                setTimeout(() => {
+                  console.log('🔐 After timeout - showAuthModal state should be true');
+                }, 100);
+              }}
+              className="inline-flex items-center space-x-2 bg-red-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-700 transition-colors"
+            >
+              <Key className="w-5 h-5" />
+              <span>Enter Admin Key</span>
+            </button>
+          </div>
 
-        <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            <strong>Security:</strong> Admin access is protected by a secure key system. 
-            Only authorized administrators with the correct key can access this section.
-          </p>
+          <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
+            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <strong>Security:</strong> Admin access is protected by a secure key system. 
+              Only authorized administrators with the correct key can access this section.
+            </p>
+          </div>
         </div>
-      </div>
+        
+        <AdminAuthModal
+          isOpen={showAuthModal}
+          onClose={() => {
+            console.log('🔐 AdminAuthModal onClose called');
+            setShowAuthModal(false);
+          }}
+          onSuccess={handleAuthSuccess}
+          darkMode={darkMode}
+        />
+      </>
     );
   }
 

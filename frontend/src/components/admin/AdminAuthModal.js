@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Shield, Key, AlertCircle } from 'lucide-react';
 import { getApiUrl } from '../../utils/backendUrl';
 
@@ -8,6 +8,13 @@ const AdminAuthModal = ({ isOpen, onClose, onSuccess, darkMode }) => {
   const [error, setError] = useState('');
 
   console.log('🔐 AdminAuthModal props - isOpen:', isOpen, 'darkMode:', darkMode);
+
+  useEffect(() => {
+    console.log('🔐 AdminAuthModal mounted/updated - isOpen:', isOpen);
+    return () => {
+      console.log('🔐 AdminAuthModal unmounting');
+    };
+  }, [isOpen]);
 
   const handleSubmit = async (e) => {
     console.log('🔐 AdminAuthModal handleSubmit called');
@@ -138,7 +145,10 @@ const AdminAuthModal = ({ isOpen, onClose, onSuccess, darkMode }) => {
           <div className="flex space-x-3 pt-4">
             <button
               type="button"
-              onClick={handleClose}
+              onClick={(e) => {
+                console.log('🔐 Cancel button clicked');
+                handleClose();
+              }}
               className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
                 darkMode
                   ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
