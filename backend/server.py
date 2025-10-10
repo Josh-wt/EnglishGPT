@@ -27,6 +27,7 @@ from routes.payments import router as payments_router, webhook_router as payment
 from routes.question_types import router as question_types_router
 from routes.license_keys import router as license_keys_router
 from routes.admin_auth import router as admin_auth_router
+from routes.admin_dashboard import router as admin_dashboard_router
 
 # Configure logging
 logger = configure_logging()
@@ -60,6 +61,7 @@ api_router.include_router(payments_webhook_router)
 api_router.include_router(question_types_router)
 api_router.include_router(license_keys_router)
 api_router.include_router(admin_auth_router)
+api_router.include_router(admin_dashboard_router)
 
 # Include the API router
 app.include_router(api_router)
