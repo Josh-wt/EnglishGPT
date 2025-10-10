@@ -111,3 +111,4 @@ cleanup_*.py
 *_DEBUG_*.md
 *_FIX_*.md
 .cursor/ 
+EnglishGPT/
