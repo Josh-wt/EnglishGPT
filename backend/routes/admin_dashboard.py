@@ -263,16 +263,21 @@ async def get_recent_activity(request: Request, limit: int = 20):
         raise HTTPException(status_code=500, detail=f"Recent activity error: {str(e)}")
 
 @router.get("/dashboard/users")
-async def get_all_users_admin(request: Request, limit: int = 25, offset: int = 0, search: str = "", sort_by: str = "created_at", sort_dir: str = "desc", subscription: str = "", academic_level: str = "", min_credits: Optional[int] = None, max_credits: Optional[int] = None, created_from: str = "", created_to: str = ""):
+async def get_all_users_admin(request: Request, limit: int = 25, offset: int = 0, search: str = "", sort_by: str = "created_at", sort_dir: str = "desc", subscription: str = "", academic_level: str = "", min_credits: str = "", max_credits: str = "", created_from: str = "", created_to: str = ""):
     """Get all users for admin view with server-side search/sort/pagination and filters"""
     try:
         require_admin_access(request)
         supabase = get_supabase_client()
-        logger.info(f"[ADMIN_USERS] start limit={limit} offset={offset} search='{search}' sort_by={sort_by} sort_dir={sort_dir} sub={subscription} level={academic_level} minC={min_credits} maxC={max_credits} from={created_from} to={created_to}")
+
+        # Parse optional ints
+        min_credits_int = int(min_credits) if min_credits else None
+        max_credits_int = int(max_credits) if max_credits else None
 
         allowed_sort_fields = {"created_at", "updated_at", "display_name", "email", "credits", "questions_marked", "current_plan"}
         sort_column = sort_by if sort_by in allowed_sort_fields else "created_at"
         sort_desc = (sort_dir.lower() != "asc")
+
+        logger.info(f"[ADMIN_USERS] start limit={limit} offset={offset} search='{search}' sort_by={sort_by} sort_dir={sort_dir} sub={subscription} level={academic_level} minC={min_credits_int} maxC={max_credits_int} from={created_from} to={created_to}")
 
         query = supabase.table('assessment_users').select('*', count='exact')
 
@@ -280,10 +285,10 @@ async def get_all_users_admin(request: Request, limit: int = 25, offset: int = 0
             query = query.eq('current_plan', subscription)
         if academic_level:
             query = query.eq('academic_level', academic_level)
-        if min_credits is not None:
-            query = query.gte('credits', min_credits)
-        if max_credits is not None:
-            query = query.lte('credits', max_credits)
+        if min_credits_int is not None:
+            query = query.gte('credits', min_credits_int)
+        if max_credits_int is not None:
+            query = query.lte('credits', max_credits_int)
         if created_from:
             query = query.gte('created_at', created_from)
         if created_to:
@@ -313,10 +318,10 @@ async def get_all_users_admin(request: Request, limit: int = 25, offset: int = 0
                 alt_q = alt_q.eq('current_plan', subscription)
             if academic_level:
                 alt_q = alt_q.eq('academic_level', academic_level)
-            if min_credits is not None:
-                alt_q = alt_q.gte('credits', min_credits)
-            if max_credits is not None:
-                alt_q = alt_q.lte('credits', max_credits)
+            if min_credits_int is not None:
+                alt_q = alt_q.gte('credits', min_credits_int)
+            if max_credits_int is not None:
+                alt_q = alt_q.lte('credits', max_credits_int)
             if created_from:
                 alt_q = alt_q.gte('created_at', created_from)
             if created_to:
