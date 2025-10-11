@@ -1,6 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-const DataTable = ({ columns, data, footer, toolbar, emptyMessage = 'No data', loading }) => {
+const LongText = ({ text, max = 120 }) => {
+  const [expanded, setExpanded] = useState(false);
+  if (!text) return '—';
+  const content = expanded ? text : String(text).slice(0, max) + (String(text).length > max ? '…' : '');
+  return (
+    <div className="space-y-1">
+      <div className="whitespace-pre-wrap break-words">{content}</div>
+      <div className="flex gap-2 text-xs text-blue-600">
+        {String(text).length > max && (
+          <button className="underline" onClick={() => setExpanded(v => !v)}>{expanded ? 'Show less' : 'Expand'}</button>
+        )}
+        <button className="underline" onClick={() => navigator.clipboard.writeText(String(text))}>Copy</button>
+      </div>
+    </div>
+  );
+};
+
+const DataTable = ({ columns, data, footer, toolbar, emptyMessage = 'No data', loading, onSortChange, sortBy, sortDir }) => {
+  const handleSort = (col) => {
+    if (!onSortChange || !col.sortable) return;
+    const nextDir = sortBy === (col.sortKey || col.accessor) && sortDir === 'asc' ? 'desc' : 'asc';
+    onSortChange(col.sortKey || col.accessor, nextDir);
+  };
+
   return (
     <div className="rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden">
       {toolbar && <div className="p-4 border-b border-gray-200 dark:border-gray-700">{toolbar}</div>}
@@ -10,7 +33,12 @@ const DataTable = ({ columns, data, footer, toolbar, emptyMessage = 'No data', l
             <tr>
               {columns.map(col => (
                 <th key={col.id || col.accessor} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {col.header}
+                  <button className={`flex items-center gap-1 ${col.sortable ? '' : 'cursor-default'}`} onClick={() => handleSort(col)}>
+                    <span>{col.header}</span>
+                    {col.sortable && sortBy === (col.sortKey || col.accessor) && (
+                      <span>{sortDir === 'asc' ? '▲' : '▼'}</span>
+                    )}
+                  </button>
                 </th>
               ))}
             </tr>
@@ -28,7 +56,9 @@ const DataTable = ({ columns, data, footer, toolbar, emptyMessage = 'No data', l
               data.map((row, i) => (
                 <tr key={row.id || row.uid || i} className="hover:bg-gray-50 dark:hover:bg-gray-900/30">
                   {columns.map((col, j) => (
-                    <td key={j} className="px-4 py-3 text-sm">{col.cell ? col.cell(row) : row[col.accessor]}</td>
+                    <td key={j} className="px-4 py-3 text-sm">
+                      {col.longText ? <LongText text={col.cell ? col.cell(row) ?? row[col.accessor] : row[col.accessor]} max={col.max || 120} /> : (col.cell ? col.cell(row) : row[col.accessor])}
+                    </td>
                   ))}
                 </tr>
               ))
@@ -46,4 +76,5 @@ const DataTable = ({ columns, data, footer, toolbar, emptyMessage = 'No data', l
 };
 
 export default DataTable;
+export { LongText };
 

@@ -8,8 +8,14 @@ const AdminUsersPage = () => {
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState('created_at');
   const [sortDir, setSortDir] = useState('desc');
+  const [subscription, setSubscription] = useState('');
+  const [academicLevel, setAcademicLevel] = useState('');
+  const [minCredits, setMinCredits] = useState('');
+  const [maxCredits, setMaxCredits] = useState('');
+  const [createdFrom, setCreatedFrom] = useState('');
+  const [createdTo, setCreatedTo] = useState('');
   const pageSize = 25;
-  const { data, isLoading } = useUsers({ page, pageSize, search, sortBy, sortDir });
+  const { data, isLoading } = useUsers({ page, pageSize, search, sortBy, sortDir, subscription, academic_level: academicLevel, min_credits: minCredits ? Number(minCredits) : undefined, max_credits: maxCredits ? Number(maxCredits) : undefined, created_from: createdFrom, created_to: createdTo });
   const [selectedUserId, setSelectedUserId] = useState(null);
 
   const columns = useMemo(() => ([
@@ -22,28 +28,49 @@ const AdminUsersPage = () => {
     { header: 'Academic Level', accessor: 'academic_level' },
     { header: 'Questions Marked', accessor: 'questions_marked' },
     { header: 'Credits', accessor: 'credits' },
-    { header: 'Subscription', accessor: 'subscription_status' },
+    { header: 'Plan', accessor: 'current_plan' },
     { header: 'Created', accessor: 'created_at' },
   ]), []);
 
   const toolbar = (
-    <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center gap-2">
-        <input className="border rounded px-3 py-2 w-64" placeholder="Search name, email, phone" value={search} onChange={(e) => { setPage(1); setSearch(e.target.value); }} />
-        <select className="border rounded px-2 py-2" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-          <option value="created_at">Created</option>
-          <option value="updated_at">Updated</option>
-          <option value="display_name">Name</option>
-          <option value="email">Email</option>
-          <option value="credits">Credits</option>
-          <option value="questions_marked">Questions Marked</option>
-        </select>
-        <select className="border rounded px-2 py-2" value={sortDir} onChange={(e) => setSortDir(e.target.value)}>
-          <option value="desc">Desc</option>
-          <option value="asc">Asc</option>
-        </select>
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2 flex-wrap">
+          <input className="border rounded px-3 py-2 w-64" placeholder="Search name, email, phone" value={search} onChange={(e) => { setPage(1); setSearch(e.target.value); }} />
+          <select className="border rounded px-2 py-2" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            <option value="created_at">Created</option>
+            <option value="updated_at">Updated</option>
+            <option value="display_name">Name</option>
+            <option value="email">Email</option>
+            <option value="credits">Credits</option>
+            <option value="questions_marked">Questions Marked</option>
+            <option value="current_plan">Plan</option>
+          </select>
+          <select className="border rounded px-2 py-2" value={sortDir} onChange={(e) => setSortDir(e.target.value)}>
+            <option value="desc">Desc</option>
+            <option value="asc">Asc</option>
+          </select>
+          <select className="border rounded px-2 py-2" value={subscription} onChange={(e) => { setPage(1); setSubscription(e.target.value); }}>
+            <option value="">Any Plan</option>
+            <option value="free">Free</option>
+            <option value="starter">Starter</option>
+            <option value="pro">Pro</option>
+            <option value="enterprise">Enterprise</option>
+          </select>
+          <select className="border rounded px-2 py-2" value={academicLevel} onChange={(e) => { setPage(1); setAcademicLevel(e.target.value); }}>
+            <option value="">Any Level</option>
+            <option value="igcse">IGCSE</option>
+            <option value="alevel">A-Level</option>
+            <option value="gp">GP</option>
+          </select>
+          <input className="border rounded px-2 py-2 w-24" placeholder="Min credits" value={minCredits} onChange={(e)=>setMinCredits(e.target.value)} />
+          <input className="border rounded px-2 py-2 w-24" placeholder="Max credits" value={maxCredits} onChange={(e)=>setMaxCredits(e.target.value)} />
+          <input type="date" className="border rounded px-2 py-2" value={createdFrom} onChange={(e)=>setCreatedFrom(e.target.value)} />
+          <input type="date" className="border rounded px-2 py-2" value={createdTo} onChange={(e)=>setCreatedTo(e.target.value)} />
+          <button className="border rounded px-2 py-2" onClick={()=>{ setSubscription(''); setAcademicLevel(''); setMinCredits(''); setMaxCredits(''); setCreatedFrom(''); setCreatedTo(''); setSearch(''); setPage(1); }}>Clear</button>
+        </div>
+        <div className="text-sm text-gray-500">Total: {data?.count ?? '—'}</div>
       </div>
-      <div className="text-sm text-gray-500">Total: {data?.count ?? '—'}</div>
     </div>
   );
 
@@ -60,7 +87,7 @@ const AdminUsersPage = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Users</h1>
       </div>
-      <DataTable columns={columns} data={data?.data} loading={isLoading} toolbar={toolbar} footer={footer} emptyMessage="No users found" />
+      <DataTable columns={columns} data={data?.data} loading={isLoading} toolbar={toolbar} footer={footer} emptyMessage="No users found" onSortChange={(c,d)=>{setSortBy(c);setSortDir(d);setPage(1);}} sortBy={sortBy} sortDir={sortDir} />
       <UserDetailModal userId={selectedUserId} open={!!selectedUserId} onClose={() => setSelectedUserId(null)} />
     </div>
   );

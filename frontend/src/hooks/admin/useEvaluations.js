@@ -13,10 +13,11 @@ export const useEvaluations = (params = {}) => {
   return useQuery({
     queryKey: ['admin-evaluations', params],
     queryFn: async () => {
-      const { page = 1, pageSize = 25, search = '', sortBy = 'timestamp', sortDir = 'desc', include = 'basic' } = params;
+      const { page = 1, pageSize = 25, search = '', sortBy = 'timestamp', sortDir = 'desc', include = 'basic', question_types = [], user_id = '', date_from = '', date_to = '', grade_contains = '' } = params;
       const offset = (page - 1) * pageSize;
+      const typesParam = Array.isArray(question_types) ? question_types.join(',') : question_types;
       
-      const url = `${getApiUrl()}/admin/dashboard/evaluations?limit=${pageSize}&offset=${offset}&search=${encodeURIComponent(search)}&sort_by=${encodeURIComponent(sortBy)}&sort_dir=${encodeURIComponent(sortDir)}&include=${encodeURIComponent(include)}`;
+      const url = `${getApiUrl()}/admin/dashboard/evaluations?limit=${pageSize}&offset=${offset}&search=${encodeURIComponent(search)}&sort_by=${encodeURIComponent(sortBy)}&sort_dir=${encodeURIComponent(sortDir)}&include=${encodeURIComponent(include)}&question_types=${encodeURIComponent(typesParam)}&user_id=${encodeURIComponent(user_id)}&date_from=${encodeURIComponent(date_from)}&date_to=${encodeURIComponent(date_to)}&grade_contains=${encodeURIComponent(grade_contains)}`;
       const response = await fetch(url, { headers: getAdminHeaders() });
       
       if (!response.ok) {
