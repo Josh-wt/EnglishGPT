@@ -232,7 +232,7 @@ const AdminDatabaseBrowser = () => {
           onChange={(e) => runGlobalSearch(e.target.value)}
         />
         {isGlobalSearching && (
-          <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
             <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
           </div>
         )}
@@ -248,10 +248,10 @@ const AdminDatabaseBrowser = () => {
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
               className={`
-                flex-1 py-3 px-4 border-b-2 font-medium transition-all duration-200 relative
+                flex-1 py-3 px-6 border-b-2 font-medium transition-all duration-200 relative
                 ${isActive 
-                  ? 'border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 shadow-md' 
-                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 shadow-sm' 
+                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800'
                 }
               `}
             >
@@ -499,14 +499,14 @@ const AdminDatabaseBrowser = () => {
                 <h3 className="font-semibold text-gray-900 dark:text-white">Evaluations ({evaluations.length})</h3>
               </div>
               <div className="max-h-96 overflow-y-auto space-y-2">
-                {evaluations.map((eval, index) => (
+                {evaluations.map((evaluation, index) => (
                   <SearchSuggestion 
-                    key={eval.id}
+                    key={evaluation.id}
                     suggestion={{ 
                       type: 'evaluation', 
-                      text: `${eval.question_type} - ${eval.grade}%`, 
-                      highlighted: eval.question_type.toLowerCase().includes(globalSearch.toLowerCase()) ? globalSearch : null,
-                      id: eval.short_id || eval.id,
+                      text: `${evaluation.question_type} - ${evaluation.grade}%`, 
+                      highlighted: evaluation.question_type.toLowerCase().includes(globalSearch.toLowerCase()) ? globalSearch : null,
+                      id: evaluation.short_id || evaluation.id,
                       score: 85
                     }}
                     selected={false}
@@ -587,17 +587,17 @@ const AdminDatabaseBrowser = () => {
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
             <div className="relative mb-4">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
+                <Search className={`h-5 w-5 text-gray-400 ${isGlobalSearching ? 'animate-pulse' : ''}`} />
               </div>
               <input
-                className="w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white transition-all duration-200"
-                placeholder="🔍 Search everything - users, evaluations, feedback, and more..."
+                className="w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white transition-all duration-200"
+                placeholder="🔍 Search across all tables (users, evaluations, feedback)..."
                 value={globalSearch}
                 onChange={(e) => runGlobalSearch(e.target.value)}
               />
               {isGlobalSearching && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
+                  <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                 </div>
               )}
             </div>
@@ -612,7 +612,7 @@ const AdminDatabaseBrowser = () => {
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id)}
                     className={`
-                      flex-1 py-3 px-6 border-r last:border-r-0 font-medium transition-all duration-200 relative
+                      flex-1 py-3 px-4 border-r last:border-r-0 font-medium transition-all duration-200 relative
                       ${isActive 
                         ? 'bg-indigo-600 text-white shadow-lg' 
                         : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
@@ -716,18 +716,16 @@ const AdminDatabaseBrowser = () => {
                 <button 
                   disabled={page === 1}
                   onClick={() => setPage(p => Math.max(1, p - 1))}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-1"
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  <ChevronDown className="w-4 h-4 rotate-270" />
-                  <span className="hidden sm:inline">Previous</span>
+                  Previous
                 </button>
                 <button 
                   disabled={page * pageSize >= config.count}
                   onClick={() => setPage(p => Math.min(Math.ceil(config.count / pageSize), p + 1))}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-1"
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  <span className="hidden sm:inline">Next</span>
-                  <ChevronDown className="w-4 h-4" />
+                  Next
                 </button>
               </div>
             </div>
