@@ -260,32 +260,80 @@ async def get_recent_activity(request: Request, limit: int = 20):
         logger.error(f"Error getting recent activity: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Recent activity error: {str(e)}")
 
-@router.get("/dashboard/users", response_model=List[Dict[str, Any]])
-async def get_all_users_admin(request: Request, limit: int = 100, offset: int = 0):
-    """Get all users for admin view"""
+@router.get("/dashboard/users")
+async def get_all_users_admin(request: Request, limit: int = 25, offset: int = 0, search: str = "", sort_by: str = "created_at", sort_dir: str = "desc"):
+    """Get all users for admin view with server-side search/sort/pagination"""
     try:
         require_admin_access(request)
         supabase = get_supabase_client()
-        
-        result = supabase.table('assessment_users').select('*').order('created_at', desc=True).range(offset, offset + limit - 1).execute()
-        
-        return result.data or []
-        
+
+        allowed_sort_fields = {"created_at", "updated_at", "display_name", "email", "credits", "questions_marked"}
+        sort_column = sort_by if sort_by in allowed_sort_fields else "created_at"
+        sort_desc = (sort_dir.lower() != "asc")
+
+        query = supabase.table('assessment_users').select('*', count='exact')
+
+        if search:
+            search_value = search.replace('%', '').replace(' ', '%')  # basic sanitization
+            or_filter = f"email.ilike.%{search_value}%,display_name.ilike.%{search_value}%,uid.ilike.%{search_value}%"
+            query = query.or_(or_filter)
+
+        query = query.order(sort_column, desc=sort_desc).range(offset, offset + limit - 1)
+        result = query.execute()
+
+        return {
+            "data": result.data or [],
+            "count": result.count or 0,
+            "limit": limit,
+            "offset": offset
+        }
     except Exception as e:
         logger.error(f"Error getting users: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Users error: {str(e)}")
 
-@router.get("/dashboard/evaluations", response_model=List[Dict[str, Any]])
-async def get_all_evaluations_admin(request: Request, limit: int = 100, offset: int = 0):
-    """Get all evaluations for admin view"""
+@router.get("/dashboard/evaluations")
+async def get_all_evaluations_admin(
+    request: Request,
+    limit: int = 25,
+    offset: int = 0,
+    search: str = "",
+    sort_by: str = "timestamp",
+    sort_dir: str = "desc",
+    include: str = "basic"  # "basic" | "details"
+):
+    """Get all evaluations for admin view with server-side search/sort/pagination.
+    Use include=details to fetch essay/improvements/strengths/feedback fields.
+    """
     try:
         require_admin_access(request)
         supabase = get_supabase_client()
-        
-        result = supabase.table('assessment_evaluations').select('*').order('timestamp', desc=True).range(offset, offset + limit - 1).execute()
-        
-        return result.data or []
-        
+
+        allowed_sort_fields = {"timestamp", "grade", "question_type"}
+        sort_column = sort_by if sort_by in allowed_sort_fields else "timestamp"
+        sort_desc = (sort_dir.lower() != "asc")
+
+        # Select fields
+        if include == "details":
+            select_fields = "id, short_id, user_id, question_type, grade, reading_marks, writing_marks, ao1_marks, ao2_marks, ao3_marks, content_structure_marks, style_accuracy_marks, student_response, improvement_suggestions, strengths, next_steps, feedback, timestamp"
+        else:
+            select_fields = "id, short_id, user_id, question_type, grade, reading_marks, writing_marks, ao1_marks, ao2_marks, ao3_marks, timestamp"
+
+        query = supabase.table('assessment_evaluations').select(select_fields, count='exact')
+
+        if search:
+            search_value = search.replace('%', '').replace(' ', '%')
+            or_filter = f"short_id.ilike.%{search_value}%,question_type.ilike.%{search_value}%,user_id.ilike.%{search_value}%"
+            query = query.or_(or_filter)
+
+        query = query.order(sort_column, desc=sort_desc).range(offset, offset + limit - 1)
+        result = query.execute()
+
+        return {
+            "data": result.data or [],
+            "count": result.count or 0,
+            "limit": limit,
+            "offset": offset
+        }
     except Exception as e:
         logger.error(f"Error getting evaluations: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Evaluations error: {str(e)}")

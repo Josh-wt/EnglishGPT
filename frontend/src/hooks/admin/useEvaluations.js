@@ -13,34 +13,20 @@ export const useEvaluations = (params = {}) => {
   return useQuery({
     queryKey: ['admin-evaluations', params],
     queryFn: async () => {
-      const { page = 1, pageSize = 25, search = '' } = params;
+      const { page = 1, pageSize = 25, search = '', sortBy = 'timestamp', sortDir = 'desc', include = 'basic' } = params;
       const offset = (page - 1) * pageSize;
       
-      const response = await fetch(
-        `${getApiUrl()}/admin/dashboard/evaluations?limit=${pageSize}&offset=${offset}`,
-        { headers: getAdminHeaders() }
-      );
+      const url = `${getApiUrl()}/admin/dashboard/evaluations?limit=${pageSize}&offset=${offset}&search=${encodeURIComponent(search)}&sort_by=${encodeURIComponent(sortBy)}&sort_dir=${encodeURIComponent(sortDir)}&include=${encodeURIComponent(include)}`;
+      const response = await fetch(url, { headers: getAdminHeaders() });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = await response.json();
-      
-      // Filter by search if provided
-      let filteredData = data;
-      if (search) {
-        const searchLower = search.toLowerCase();
-        filteredData = data.filter(evaluation => 
-          evaluation.short_id?.toLowerCase().includes(searchLower) ||
-          evaluation.question_type?.toLowerCase().includes(searchLower) ||
-          evaluation.user_id?.toLowerCase().includes(searchLower)
-        );
-      }
-      
+      const payload = await response.json();
       return {
-        data: filteredData,
-        count: filteredData.length,
+        data: payload.data,
+        count: payload.count,
         page,
         pageSize
       };
