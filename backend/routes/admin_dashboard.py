@@ -268,6 +268,7 @@ async def get_all_users_admin(request: Request, limit: int = 25, offset: int = 0
     try:
         require_admin_access(request)
         supabase = get_supabase_client()
+        logger.info(f"[ADMIN_USERS] start limit={limit} offset={offset} search='{search}' sort_by={sort_by} sort_dir={sort_dir} sub={subscription} level={academic_level} minC={min_credits} maxC={max_credits} from={created_from} to={created_to}")
 
         allowed_sort_fields = {"created_at", "updated_at", "display_name", "email", "credits", "questions_marked", "current_plan"}
         sort_column = sort_by if sort_by in allowed_sort_fields else "created_at"
@@ -294,16 +295,47 @@ async def get_all_users_admin(request: Request, limit: int = 25, offset: int = 0
             query = query.or_(or_filter)
 
         query = query.order(sort_column, desc=sort_desc).range(offset, offset + limit - 1)
-        result = query.execute()
+        try:
+            result = query.execute()
+            logger.info(f"[ADMIN_USERS] primary rows={len(result.data or [])} count={result.count}")
+        except Exception as e:
+            logger.error(f"[ADMIN_USERS] primary query error: {e}")
+            raise
 
-        return {
-            "data": result.data or [],
-            "count": result.count or 0,
-            "limit": limit,
-            "offset": offset
-        }
+        if result.data is None:
+            logger.warning("[ADMIN_USERS] primary data is None; returning empty structure")
+            return {"data": [], "count": result.count or 0, "limit": limit, "offset": offset}
+
+        if not result.data:
+            logger.info("[ADMIN_USERS] primary returned 0 rows; trying active_assessment_users")
+            alt_q = supabase.table('active_assessment_users').select('*', count='exact')
+            if subscription:
+                alt_q = alt_q.eq('current_plan', subscription)
+            if academic_level:
+                alt_q = alt_q.eq('academic_level', academic_level)
+            if min_credits is not None:
+                alt_q = alt_q.gte('credits', min_credits)
+            if max_credits is not None:
+                alt_q = alt_q.lte('credits', max_credits)
+            if created_from:
+                alt_q = alt_q.gte('created_at', created_from)
+            if created_to:
+                alt_q = alt_q.lte('created_at', created_to)
+            if search:
+                search_value = search.replace('%', '').replace(' ', '%')
+                alt_q = alt_q.or_(f"email.ilike.%{search_value}%,display_name.ilike.%{search_value}%,uid.ilike.%{search_value}%")
+            alt_q = alt_q.order(sort_column if sort_column in {"created_at","updated_at","display_name","email","credits","questions_marked","current_plan"} else 'created_at', desc=sort_desc).range(offset, offset + limit - 1)
+            try:
+                alt_res = alt_q.execute()
+                logger.info(f"[ADMIN_USERS] fallback rows={len(alt_res.data or [])} count={alt_res.count}")
+                return {"data": alt_res.data or [], "count": alt_res.count or 0, "limit": limit, "offset": offset}
+            except Exception as e:
+                logger.error(f"[ADMIN_USERS] fallback query error: {e}")
+                raise
+
+        return {"data": result.data or [], "count": result.count or 0, "limit": limit, "offset": offset}
     except Exception as e:
-        logger.error(f"Error getting users: {str(e)}")
+        logger.error(f"[ADMIN_USERS] fatal error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Users error: {str(e)}")
 
 @router.get("/dashboard/evaluations")
