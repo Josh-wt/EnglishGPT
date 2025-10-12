@@ -19,14 +19,135 @@ import {
   ChevronUp as ChevronUpIcon,
   Copy
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+
+// Simple UI Components (replacements for shadcn/ui)
+const Badge = ({ children, variant = 'default', className = '' }) => {
+  const baseClasses = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium';
+  const variantClasses = {
+    default: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+    secondary: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
+    outline: 'bg-transparent border border-gray-300 text-gray-700 dark:border-gray-600 dark:text-gray-300',
+    ghost: 'bg-transparent text-gray-500 dark:text-gray-400'
+  };
+  
+  return (
+    <span className={`${baseClasses} ${variantClasses[variant] || variantClasses.default} ${className}`}>
+      {children}
+    </span>
+  );
+};
+
+const Input = ({ id, type = 'text', placeholder, value, onChange, className = '', ...props }) => (
+  <input
+    id={id}
+    type={type}
+    placeholder={placeholder}
+    value={value}
+    onChange={onChange}
+    className={`w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${className}`}
+    {...props}
+  />
+);
+
+const Select = ({ value, onValueChange, children, className = '' }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  return (
+    <div className={`relative ${className}`}>
+      <select
+        value={value}
+        onChange={(e) => onValueChange(e.target.value)}
+        onFocus={() => setIsOpen(true)}
+        onBlur={() => setTimeout(() => setIsOpen(false), 100)}
+        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none"
+      >
+        {children}
+      </select>
+      <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+    </div>
+  );
+};
+
+const SelectItem = ({ value, children }) => (
+  <option value={value}>{children}</option>
+);
+
+const SelectTrigger = ({ children, className = '' }) => (
+  <div className={`p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 ${className}`}>
+    {children}
+  </div>
+);
+
+const SelectValue = ({ placeholder }) => <span>{placeholder}</span>;
+
+const SelectContent = ({ children }) => (
+  <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-auto">
+    {children}
+  </div>
+);
+
+const Checkbox = ({ id, checked, onCheckedChange, className = '' }) => (
+  <input
+    id={id}
+    type="checkbox"
+    checked={checked}
+    onChange={(e) => onCheckedChange(e.target.checked)}
+    className={`w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 ${className}`}
+  />
+);
+
+const Button = ({ children, variant = 'default', size = 'default', onClick, className = '', disabled = false, ...props }) => {
+  const baseClasses = 'inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+  
+  const variants = {
+    default: 'px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700',
+    outline: 'px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
+    ghost: 'px-2 py-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400'
+  };
+  
+  const sizes = {
+    default: 'text-sm',
+    sm: 'px-3 py-1.5 text-xs'
+  };
+  
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`${baseClasses} ${variants[variant] || variants.default} ${sizes[size] || sizes.default} ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};
+
+const Label = ({ htmlFor, children, className = '' }) => (
+  <label htmlFor={htmlFor} className={`block text-sm font-medium text-gray-700 dark:text-gray-300 ${className}`}>
+    {children}
+  </label>
+);
+
+const Card = ({ children, className = '' }) => (
+  <div className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm ${className}`}>
+    {children}
+  </div>
+);
+
+const CardHeader = ({ children }) => <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">{children}</div>;
+
+const CardTitle = ({ children, className = '' }) => (
+  <h3 className={`text-lg font-semibold text-gray-900 dark:text-white ${className}`}>
+    {children}
+  </h3>
+);
+
+const CardContent = ({ children, className = '' }) => (
+  <div className={`p-6 ${className}`}>
+    {children}
+  </div>
+);
 
 // Simple LongText Component
 const LongText = ({ text, maxLength = 100, className = '' }) => {
@@ -394,7 +515,7 @@ const AdminEvaluationsPage = () => {
               <div className="space-y-2">
                 <Label htmlFor="questionType">Question Type</Label>
                 <Select value={questionTypeFilter} onValueChange={setQuestionTypeFilter}>
-                  <SelectTrigger id="questionType">
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="All types" />
                   </SelectTrigger>
                   <SelectContent>
