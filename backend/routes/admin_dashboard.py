@@ -424,16 +424,16 @@ async def admin_global_search(request: Request, q: str, limit: int = 10):
             .order('created_at', desc=True).limit(limit).execute()
         users = users_q.data or []
 
-        # Evaluations
+        # Evaluations - search by short_id, full id, user_id, question_type, and grade
         evals_q = supabase.table('assessment_evaluations').select('id, short_id, user_id, question_type, grade, timestamp') \
-            .or_(f"short_id.ilike.%{query}%,user_id.ilike.%{query}%,question_type.ilike.%{query}%,grade.ilike.%{query}%") \
+            .or_(f"short_id.ilike.%{query}%,id.ilike.%{query}%,user_id.ilike.%{query}%,question_type.ilike.%{query}%,grade.ilike.%{query}%") \
             .order('timestamp', desc=True).limit(limit).execute()
         evaluations = evals_q.data or []
 
-        # Feedback
+        # Feedback - search by comments, category, evaluation_id, and user_id
         try:
             fb_q = supabase.table('assessment_feedback').select('id, evaluation_id, user_id, category, accurate, comments, created_at') \
-                .or_(f"comments.ilike.%{query}%,category.ilike.%{query}%") \
+                .or_(f"comments.ilike.%{query}%,category.ilike.%{query}%,evaluation_id.ilike.%{query}%,user_id.ilike.%{query}%") \
                 .order('created_at', desc=True).limit(limit).execute()
             feedback = fb_q.data or []
         except Exception:
