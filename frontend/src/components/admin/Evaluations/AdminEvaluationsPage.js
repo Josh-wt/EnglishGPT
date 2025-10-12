@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { useAdminDashboard } from '../../../hooks/admin/useAdminDashboard';
 import { useEvaluations } from '../../../hooks/admin/useEvaluations';
 import EvaluationDetailModal from './EvaluationDetailModal';
 import DataTable from '../tables/DataTable';
@@ -7,29 +6,12 @@ import {
   Search, 
   Filter, 
   Calendar, 
-  User, 
   FileText, 
   Award,
-  TrendingUp,
   Eye,
   Loader2,
-  ChevronDown as ChevronDownIcon,
-  ChevronUp as ChevronUpIcon,
-  Copy
+  ChevronDown as ChevronDownIcon
 } from 'lucide-react';
-
-// Custom Sort Arrow Icon (replaces ChevronUpDown)
-const SortArrowIcon = ({ className = '', isAsc = false }) => (
-  <svg
-    className={`w-4 h-4 transition-transform duration-200 ${className}`}
-    style={{ transform: isAsc ? 'rotate(180deg)' : 'rotate(0deg)' }}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-  </svg>
-);
 
 // Simple UI Components (replacements for shadcn/ui)
 const Badge = ({ children, variant = 'default', className = '' }) => {
@@ -232,20 +214,19 @@ const AdminEvaluationsPage = () => {
   const [selectedEvaluationId, setSelectedEvaluationId] = useState(null);
 
   const limit = 25;
-  const offset = page * limit;
 
   const { data, isLoading, error, refetch } = useEvaluations({
-    limit,
-    offset,
+    page: page + 1, // useEvaluations expects 1-based page
+    pageSize: limit,
     search,
     sortBy,
     sortDir,
     include: showDetails ? 'details' : 'basic',
-    questionTypes: questionTypeFilter,
-    userId: userIdFilter,
-    gradeContains: gradeContainsFilter,
-    dateFrom: dateFromFilter,
-    dateTo: dateToFilter
+    question_types: questionTypeFilter,
+    user_id: userIdFilter,
+    grade_contains: gradeContainsFilter,
+    date_from: dateFromFilter,
+    date_to: dateToFilter
   });
 
   const evaluations = data?.data || [];
@@ -253,108 +234,66 @@ const AdminEvaluationsPage = () => {
 
   const columns = useMemo(() => [
     {
-      accessorKey: 'short_id',
-      header: ({ column, headerTable: { getIsSorted } }) => {
-        const isSorted = getIsSorted();
-        const isAsc = isSorted === 'asc';
-        
-        return (
-          <Button
-            variant="ghost"
-            onClick={column.getToggleSortingHandler()}
-            className="flex items-center space-x-1"
-          >
-            <FileText className="w-4 h-4" />
-            <span>Short ID</span>
-            <SortArrowIcon isAsc={isAsc} />
-          </Button>
-        );
-      },
-      cell: ({ row }) => (
+      id: 'short_id',
+      accessor: 'short_id',
+      header: 'Short ID',
+      sortable: true,
+      sortKey: 'short_id',
+      cell: (row) => (
         <Button
           variant="ghost"
           size="sm"
           className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-mono text-sm"
-          onClick={() => setSelectedEvaluationId(row.original.id)}
+          onClick={() => setSelectedEvaluationId(row.id)}
         >
-          {row.original.short_id || row.original.id?.slice(-8) || 'N/A'}
+          {row.short_id || row.id?.slice(-8) || 'N/A'}
         </Button>
-      ),
-      enableSorting: true,
-      size: 120
+      )
     },
     {
-      accessorKey: 'user_uid',
+      id: 'user_uid',
+      accessor: 'user_uid',
       header: 'User UID',
-      cell: ({ row }) => (
+      cell: (row) => (
         <div className="font-mono text-sm text-gray-900 dark:text-white truncate max-w-[120px]">
-          {row.original.user_uid?.slice(-8) || 'N/A'}
+          {row.user_uid?.slice(-8) || 'N/A'}
         </div>
-      ),
-      size: 140
+      )
     },
     {
-      accessorKey: 'question_type',
+      id: 'question_type',
+      accessor: 'question_type',
       header: 'Question Type',
-      cell: ({ row }) => (
+      cell: (row) => (
         <Badge variant={
-          row.original.question_type === 'essay' ? 'default' :
-          row.original.question_type === 'mcq' ? 'secondary' :
-          row.original.question_type === 'comprehension' ? 'outline' : 'ghost'
+          row.question_type === 'essay' ? 'default' :
+          row.question_type === 'mcq' ? 'secondary' :
+          row.question_type === 'comprehension' ? 'outline' : 'ghost'
         }>
-          {row.original.question_type || 'Unknown'}
+          {row.question_type || 'Unknown'}
         </Badge>
-      ),
-      filterFn: (row, id, value) => {
-        return row.getValue(id).toLowerCase().includes(value.toLowerCase());
-      }
+      )
     },
     {
-      accessorKey: 'timestamp',
-      header: ({ column, headerTable: { getIsSorted } }) => {
-        const isSorted = getIsSorted();
-        const isAsc = isSorted === 'asc';
-        
-        return (
-          <Button
-            variant="ghost"
-            onClick={column.getToggleSortingHandler()}
-            className="flex items-center space-x-1"
-          >
-            <Calendar className="w-4 h-4" />
-            <span>Date</span>
-            <SortArrowIcon isAsc={isAsc} />
-          </Button>
-        );
-      },
-      cell: ({ row }) => (
+      id: 'timestamp',
+      accessor: 'timestamp',
+      header: 'Date',
+      sortable: true,
+      sortKey: 'timestamp',
+      cell: (row) => (
         <div className="text-sm text-gray-900 dark:text-white">
-          {row.original.timestamp ? new Date(row.original.timestamp).toLocaleDateString() : 'N/A'}
+          {row.timestamp ? new Date(row.timestamp).toLocaleDateString() : 'N/A'}
         </div>
-      ),
-      enableSorting: true,
-      size: 140
+      )
     },
     {
-      accessorKey: 'grade',
-      header: ({ column, headerTable: { getIsSorted } }) => {
-        const isSorted = getIsSorted();
-        const isAsc = isSorted === 'asc';
-        
-        return (
-          <Button
-            variant="ghost"
-            onClick={column.getToggleSortingHandler()}
-            className="flex items-center space-x-1"
-          >
-            <Award className="w-4 h-4" />
-            <span>Grade</span>
-            <SortArrowIcon isAsc={isAsc} />
-          </Button>
-        );
-      },
-      cell: ({ row }) => {
-        const grade = row.original.grade;
+      id: 'grade',
+      accessor: 'grade',
+      header: 'Grade',
+      sortable: true,
+      sortKey: 'grade',
+      cell: (row) => {
+        const grade = row.grade;
         if (grade === null || grade === undefined || isNaN(grade)) {
           return <span className="text-sm text-gray-500 dark:text-gray-400">N/A</span>;
         }
@@ -375,74 +314,52 @@ const AdminEvaluationsPage = () => {
             </span>
           </div>
         );
-      },
-      enableSorting: true,
-      size: 160
+      }
     },
     ...(showDetails ? [
       {
-        accessorKey: 'student_response',
+        id: 'student_response',
+        accessor: 'student_response',
         header: 'Essay',
-        cell: ({ row }) => (
-          <LongText 
-            text={row.original.student_response} 
-            maxLength={100}
-            className="max-w-xs"
-          />
-        ),
-        size: 200
+        longText: true,
+        max: 100
       },
       {
-        accessorKey: 'improvement_suggestions',
+        id: 'improvement_suggestions',
+        accessor: 'improvement_suggestions',
         header: 'Improvements',
-        cell: ({ row }) => (
-          <LongText 
-            text={row.original.improvement_suggestions} 
-            maxLength={80}
-            className="max-w-sm"
-          />
-        ),
-        size: 180
+        longText: true,
+        max: 80
       },
       {
-        accessorKey: 'strengths',
+        id: 'strengths',
+        accessor: 'strengths',
         header: 'Strengths',
-        cell: ({ row }) => (
-          <LongText 
-            text={row.original.strengths} 
-            maxLength={80}
-            className="max-w-sm"
-          />
-        ),
-        size: 180
+        longText: true,
+        max: 80
       },
       {
-        accessorKey: 'feedback',
+        id: 'feedback',
+        accessor: 'feedback',
         header: 'Feedback',
-        cell: ({ row }) => (
-          <LongText 
-            text={row.original.feedback} 
-            maxLength={120}
-            className="max-w-md"
-          />
-        ),
-        size: 220
+        longText: true,
+        max: 120
       }
     ] : []),
     {
       id: 'actions',
-      cell: ({ row }) => (
+      header: 'Actions',
+      cell: (row) => (
         <div className="flex space-x-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setSelectedEvaluationId(row.original.id)}
+            onClick={() => setSelectedEvaluationId(row.id)}
           >
             <Eye className="w-4 h-4" />
           </Button>
         </div>
-      ),
-      size: 80
+      )
     }
   ], [showDetails]);
 
@@ -686,13 +603,49 @@ const AdminEvaluationsPage = () => {
             <DataTable
               columns={columns}
               data={evaluations}
-              pageSize={limit}
-              pageIndex={page}
-              onPageChange={setPage}
-              totalCount={totalCount}
-              isLoading={isLoading}
-              searchable={false}
-              sortable={true}
+              loading={isLoading}
+              onSortChange={(sortKey, sortDirection) => {
+                setSortBy(sortKey);
+                setSortDir(sortDirection);
+                setPage(0);
+              }}
+              sortBy={sortBy}
+              sortDir={sortDir}
+              emptyMessage={
+                search || questionTypeFilter || userIdFilter || gradeContainsFilter 
+                  ? 'No evaluations match your filters.' 
+                  : 'No evaluations found.'
+              }
+              footer={
+                <div className="flex items-center justify-between px-4 py-3">
+                  <div className="flex items-center space-x-4">
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Showing {Math.min(page * limit + 1, totalCount)} to {Math.min((page + 1) * limit, totalCount)} of {totalCount} results
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(Math.max(0, page - 1))}
+                      disabled={page === 0 || isLoading}
+                    >
+                      Previous
+                    </Button>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Page {page + 1} of {Math.ceil(totalCount / limit)}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(page + 1)}
+                      disabled={page >= Math.ceil(totalCount / limit) - 1 || isLoading}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              }
             />
           )}
         </CardContent>
