@@ -438,12 +438,13 @@ const EvaluationsChartTab = ({ user }) => {
           </div>
           {user.evaluations.length > 10 && (
             <div className="text-center pt-4">
-              <button 
-                onClick={() => setSelectedUserId(null)} 
-                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-              >
-                View All {user.evaluations.length} Evaluations
-              </button>
+              <span className="text-gray-500 dark:text-gray-400">
+                Showing 10 of {user.evaluations.length} evaluations. 
+                <br />
+                <span className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium cursor-pointer">
+                  Full evaluation history available in the Evaluations tab
+                </span>
+              </span>
             </div>
           )}
         </div>
