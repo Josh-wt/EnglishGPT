@@ -424,10 +424,12 @@ const EvaluationsChartTab = ({ user }) => {
                         <div className="w-16 bg-gray-200 rounded-full h-2">
                           <div 
                             className="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full" 
-                            style={{ width: `${ev.grade || 0}%` }}
+                            style={{ width: `${typeof ev.grade === 'number' ? ev.grade : 0}%` }}
                           ></div>
                         </div>
-                        <span className="font-medium text-gray-900 dark:text-white">{(ev.grade || 0).toFixed(1)}%</span>
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {typeof ev.grade === 'number' ? ev.grade.toFixed(1) : (ev.grade || 'N/A')}%
+                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">

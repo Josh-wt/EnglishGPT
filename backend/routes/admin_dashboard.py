@@ -1102,12 +1102,19 @@ async def get_feedback_admin(
         
         logger.info("Executing feedback query...")
         response = query.execute()
+        logger.info(f"Query executed. Response type: {type(response)}")
         logger.info(f"Query executed. Response: {response}")
         
-        if response.error:
+        # Check for errors in the response
+        if hasattr(response, 'error') and response.error:
             logger.error(f"Supabase error fetching feedback: {response.error}")
             logger.error(f"Error details: {response.error}")
             raise HTTPException(status_code=500, detail=f"Feedback error: {response.error}")
+        
+        # Check if response.data exists
+        if not hasattr(response, 'data') or not response.data:
+            logger.warning("No data in response or response.data is None")
+            return {"data": [], "count": 0}
         
         # Transform the data to match expected format
         feedback_data = []
@@ -1133,11 +1140,12 @@ async def get_feedback_admin(
                 }
             })
         
-        logger.info(f"Retrieved {len(feedback_data)} feedback items, total count: {response.count}")
+        count = getattr(response, 'count', len(feedback_data))
+        logger.info(f"Retrieved {len(feedback_data)} feedback items, total count: {count}")
         
         return {
             "data": feedback_data,
-            "count": response.count
+            "count": count
         }
         
     except HTTPException:
