@@ -6,19 +6,30 @@ import DataTable from '../tables/DataTable';
 import { 
   Search, 
   Filter, 
-  ChevronDown, 
   Calendar, 
   User, 
   FileText, 
   Award,
   TrendingUp,
-  ChevronUpDown,
   Eye,
   Loader2,
   ChevronDown as ChevronDownIcon,
   ChevronUp as ChevronUpIcon,
   Copy
 } from 'lucide-react';
+
+// Custom Sort Arrow Icon (replaces ChevronUpDown)
+const SortArrowIcon = ({ className = '', isAsc = false }) => (
+  <svg
+    className={`w-4 h-4 transition-transform duration-200 ${className}`}
+    style={{ transform: isAsc ? 'rotate(180deg)' : 'rotate(0deg)' }}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+  </svg>
+);
 
 // Simple UI Components (replacements for shadcn/ui)
 const Badge = ({ children, variant = 'default', className = '' }) => {
@@ -63,7 +74,7 @@ const Select = ({ value, onValueChange, children, className = '' }) => {
       >
         {children}
       </select>
-      <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+      <ChevronDownIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
     </div>
   );
 };
@@ -243,17 +254,22 @@ const AdminEvaluationsPage = () => {
   const columns = useMemo(() => [
     {
       accessorKey: 'short_id',
-      header: ({ column, headerTable: { getIsSorted } }) => (
-        <Button
-          variant="ghost"
-          onClick={column.getToggleSortingHandler()}
-          className="flex items-center space-x-1"
-        >
-          <FileText className="w-4 h-4" />
-          <span>Short ID</span>
-          <ChevronUpDown className={`w-4 h-4 ${getIsSorted() === 'asc' ? 'rotate-180' : ''}`} />
-        </Button>
-      ),
+      header: ({ column, headerTable: { getIsSorted } }) => {
+        const isSorted = getIsSorted();
+        const isAsc = isSorted === 'asc';
+        
+        return (
+          <Button
+            variant="ghost"
+            onClick={column.getToggleSortingHandler()}
+            className="flex items-center space-x-1"
+          >
+            <FileText className="w-4 h-4" />
+            <span>Short ID</span>
+            <SortArrowIcon isAsc={isAsc} />
+          </Button>
+        );
+      },
       cell: ({ row }) => (
         <Button
           variant="ghost"
@@ -295,17 +311,22 @@ const AdminEvaluationsPage = () => {
     },
     {
       accessorKey: 'timestamp',
-      header: ({ column, headerTable: { getIsSorted } }) => (
-        <Button
-          variant="ghost"
-          onClick={column.getToggleSortingHandler()}
-          className="flex items-center space-x-1"
-        >
-          <Calendar className="w-4 h-4" />
-          <span>Date</span>
-          <ChevronUpDown className={`w-4 h-4 ${getIsSorted() === 'asc' ? 'rotate-180' : ''}`} />
-        </Button>
-      ),
+      header: ({ column, headerTable: { getIsSorted } }) => {
+        const isSorted = getIsSorted();
+        const isAsc = isSorted === 'asc';
+        
+        return (
+          <Button
+            variant="ghost"
+            onClick={column.getToggleSortingHandler()}
+            className="flex items-center space-x-1"
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Date</span>
+            <SortArrowIcon isAsc={isAsc} />
+          </Button>
+        );
+      },
       cell: ({ row }) => (
         <div className="text-sm text-gray-900 dark:text-white">
           {row.original.timestamp ? new Date(row.original.timestamp).toLocaleDateString() : 'N/A'}
@@ -316,17 +337,22 @@ const AdminEvaluationsPage = () => {
     },
     {
       accessorKey: 'grade',
-      header: ({ column, headerTable: { getIsSorted } }) => (
-        <Button
-          variant="ghost"
-          onClick={column.getToggleSortingHandler()}
-          className="flex items-center space-x-1"
-        >
-          <Award className="w-4 h-4" />
-          <span>Grade</span>
-          <ChevronUpDown className={`w-4 h-4 ${getIsSorted() === 'asc' ? 'rotate-180' : ''}`} />
-        </Button>
-      ),
+      header: ({ column, headerTable: { getIsSorted } }) => {
+        const isSorted = getIsSorted();
+        const isAsc = isSorted === 'asc';
+        
+        return (
+          <Button
+            variant="ghost"
+            onClick={column.getToggleSortingHandler()}
+            className="flex items-center space-x-1"
+          >
+            <Award className="w-4 h-4" />
+            <span>Grade</span>
+            <SortArrowIcon isAsc={isAsc} />
+          </Button>
+        );
+      },
       cell: ({ row }) => {
         const grade = row.original.grade;
         if (grade === null || grade === undefined || isNaN(grade)) {
@@ -476,7 +502,7 @@ const AdminEvaluationsPage = () => {
           >
             <Filter className="w-4 h-4" />
             <span>{showFilters ? 'Hide' : 'Show'} Filters</span>
-            <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+            <ChevronDownIcon className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
           </Button>
           <Button onClick={refetch} variant="outline" size="sm">
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
