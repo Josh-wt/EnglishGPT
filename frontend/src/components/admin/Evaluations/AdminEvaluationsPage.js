@@ -19,7 +19,6 @@ import {
   ChevronUp as ChevronUpIcon,
   Copy
 } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
 
 // Simple UI Components (replacements for shadcn/ui)
 const Badge = ({ children, variant = 'default', className = '' }) => {
@@ -147,6 +146,11 @@ const CardContent = ({ children, className = '' }) => (
   <div className={`p-6 ${className}`}>
     {children}
   </div>
+);
+
+// Simple Skeleton/Loading Component
+const LoadingSkeleton = ({ className = '' }) => (
+  <div className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`}></div>
 );
 
 // Simple LongText Component
@@ -638,7 +642,7 @@ const AdminEvaluationsPage = () => {
           {isLoading ? (
             <div className="space-y-4">
               {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
+                <LoadingSkeleton key={i} className="h-12 w-full" />
               ))}
             </div>
           ) : evaluations.length === 0 ? (
