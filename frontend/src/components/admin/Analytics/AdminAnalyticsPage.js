@@ -6,6 +6,13 @@ import {
   PieChart, Pie, Sector,
   ComposedChart
 } from 'recharts';
+import { 
+  UsersIcon, 
+  ChartBarIcon, 
+  ArrowTrendingUpIcon, 
+  CalculatorIcon, 
+  UserPlusIcon 
+} from '@heroicons/react/24/outline';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
@@ -186,7 +193,7 @@ const AdminAnalyticsPage = () => {
 
       {/* Distributions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <ChartCard title="Evaluations per User Distribution">
+        <ChartCard title="Evaluations/User Distribution">
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data?.evaluations_per_user_distribution || []}>
@@ -293,9 +300,6 @@ const AdminAnalyticsPage = () => {
     </div>
   );
 };
-
-// Note: You'll need to import these icons from @heroicons/react or similar
-// import { UsersIcon, ChartBarIcon, ArrowTrendingUpIcon, CalculatorIcon, UserPlusIcon } from '@heroicons/react/24/outline';
 
 export default AdminAnalyticsPage;
 

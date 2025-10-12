@@ -10,6 +10,8 @@ import {
   BarChart, Bar, Cell
 } from 'recharts';
 
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+
 const Modal = ({ open, onClose, children }) => {
   if (!open) return null;
   
@@ -100,7 +102,7 @@ const ProfileTab = ({ user }) => (
         <div className="text-lg font-semibold">{user.phone || 'Not provided'}</div>
       </div>
 
-      <div className="space-y-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl md:col-span-2 lg:col-span-1">
+      <div className="space-y-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
         <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
           <GraduationCap className="w-4 h-4" />
           <span>Academic Level</span>
@@ -137,9 +139,9 @@ const ProfileTab = ({ user }) => (
           <span>Subscription</span>
         </div>
         <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${
-          user.current_plan === 'pro' || user.current_plan === 'enterprise' ? 'bg-green-100 text-green-800 dark:bg-green-900/30' :
-          user.current_plan === 'starter' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30' :
-          'bg-gray-100 text-gray-800 dark:bg-gray-800'
+          user.current_plan === 'pro' || user.current_plan === 'enterprise' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
+          user.current_plan === 'starter' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' :
+          'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
         }`}>
           {user.current_plan === 'pro' && <Zap className="w-4 h-4 mr-2" />}
           {user.current_plan === 'enterprise' && <Shield className="w-4 h-4 mr-2" />}
@@ -271,7 +273,7 @@ const EvaluationsChartTab = ({ user }) => {
     if (!user.evaluations) return [];
     
     const typeMap = {};
-    user.evaluations.forEach(ev => {
+    user.evaluations.forEach((ev, index) => {
       if (!typeMap[ev.question_type]) {
         typeMap[ev.question_type] = { total: 0, count: 0 };
       }
@@ -279,7 +281,7 @@ const EvaluationsChartTab = ({ user }) => {
       typeMap[ev.question_type].count += 1;
     });
     
-    return Object.entries(typeMap).map(([type, stats]) => ({
+    return Object.entries(typeMap).map(([type, stats], index) => ({
       name: type,
       value: (stats.total / stats.count).toFixed(1),
       count: stats.count,
@@ -554,7 +556,7 @@ const UserDetailModal = ({ userId, open, onClose }) => {
     );
   }
 
-  if (isError || !user) {
+  if (isError) {
     return (
       <Modal open={open} onClose={onClose}>
         <div className="p-8 text-center">
