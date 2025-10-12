@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useAdminDashboard } from '../../../hooks/admin/useAdminDashboard';
 import { useEvaluations } from '../../../hooks/admin/useEvaluations';
-import AdminEvaluationsPage from './AdminEvaluationsPage';
 import EvaluationDetailModal from './EvaluationDetailModal';
 import DataTable from '../tables/DataTable';
 import { 
