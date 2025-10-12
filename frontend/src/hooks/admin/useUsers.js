@@ -42,7 +42,7 @@ export const useUserDetail = (userId) => {
       if (!userId) return null;
       
       const response = await fetch(
-        `${getApiUrl()}/users/${userId}`,
+        `${getApiUrl()}/admin/dashboard/users/${userId}`,
         { headers: getAdminHeaders() }
       );
       

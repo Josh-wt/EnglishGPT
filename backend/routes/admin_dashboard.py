@@ -473,11 +473,17 @@ async def admin_global_search(request: Request, q: str, limit: int = 10):
 
 @router.get("/analytics")
 async def get_admin_analytics(request: Request, days: int = 30):
-    """Comprehensive analytics for admin: totals, new users, unique users with evaluations, totals, averages, per-day counts, and rich breakdowns."""
+    """Ultra-comprehensive analytics for admin: totals, trends, distributions, time-based analysis, and much more."""
     try:
         require_admin_access(request)
         supabase = get_supabase_client()
         from datetime import datetime, timedelta, date
+        from collections import Counter
+        import statistics
+        
+        # Ensure days is within reasonable bounds
+        days = max(1, min(days, 365))
+        
         start_dt = datetime.utcnow() - timedelta(days=days)
         start_date = start_dt.date().isoformat()
 
@@ -498,170 +504,321 @@ async def get_admin_analytics(request: Request, days: int = 30):
             except Exception:
                 return 0.0
 
-        # Base datasets
-        users_rows = supabase.table('assessment_users').select('uid, email, display_name, current_plan, credits, created_at').execute().data or []
-        evals_rows = supabase.table('assessment_evaluations').select('id, user_id, question_type, grade, timestamp, short_id').execute().data or []
+        # Base datasets - get more comprehensive data
+        users_rows = supabase.table('assessment_users').select('uid, email, display_name, current_plan, credits, created_at, updated_at').execute().data or []
+        evals_rows = supabase.table('assessment_evaluations').select('id, user_id, question_type, grade, timestamp, short_id, reading_marks, writing_marks, ao1_marks, ao2_marks').execute().data or []
 
-        # Totals
+        # Enhanced totals with growth trends
         total_users = len(users_rows)
         total_evaluations = len(evals_rows)
         users_with_evals = {e.get('user_id') for e in evals_rows if e.get('user_id')}
         unique_users_with_evals = len(users_with_evals)
 
-        # New users (last N days)
+        # Growth trend calculations
+        prev_period_start = start_dt - timedelta(days=days)
+        prev_period_date = prev_period_start.date().isoformat()
+        
+        prev_users = sum(1 for u in users_rows if prev_period_date <= (u.get('created_at') or '')[:10] < start_date)
         new_users = sum(1 for u in users_rows if (u.get('created_at') or '')[:10] >= start_date)
+        user_growth_rate = f"{((new_users - prev_users) / prev_users * 100) if prev_users else 0:.1f}%"
+        user_growth_trend = "up" if new_users > prev_users else "down" if new_users < prev_users else "flat"
 
-        # Evaluations last N days
+        prev_evals = sum(1 for e in evals_rows if prev_period_date <= (e.get('timestamp') or '')[:10] < start_date)
         evals_last_n = sum(1 for e in evals_rows if (e.get('timestamp') or '')[:10] >= start_date)
+        eval_growth_rate = f"{((evals_last_n - prev_evals) / prev_evals * 100) if prev_evals else 0:.1f}%"
+        eval_growth_trend = "up" if evals_last_n > prev_evals else "down" if evals_last_n < prev_evals else "flat"
 
-        # Avg evaluations per user (overall)
+        # Advanced user metrics
         avg_evals_per_user = (total_evaluations / total_users) if total_users else 0
 
-        # Active users 1d/7d/30d based on evaluations
-        def count_active_unique(days_window: int) -> int:
-            cutoff = (datetime.utcnow() - timedelta(days=days_window)).date().isoformat()
-            return len({e.get('user_id') for e in evals_rows if (e.get('timestamp') or '')[:10] >= cutoff})
-        active_1d = count_active_unique(1)
-        active_7d = count_active_unique(7)
-        active_30d = count_active_unique(30)
+        # Activity-based user counts with more granular periods
+        def get_active_users(period_days):
+            cutoff = (datetime.utcnow() - timedelta(days=period_days)).date().isoformat()
+            return len({e.get('user_id') for e in evals_rows if e.get('user_id') and (e.get('timestamp') or '')[:10] >= cutoff})
 
-        # Daily counts for users and evaluations
-        daily_evals = defaultdict(int)
-        for e in evals_rows:
-            d = (e.get('timestamp') or '')[:10]
-            if d and d >= start_date:
-                daily_evals[d] += 1
-        daily_users = defaultdict(int)
-        for u in users_rows:
-            d = (u.get('created_at') or '')[:10]
-            if d and d >= start_date:
-                daily_users[d] += 1
-        daily = []
-        sdate = date.fromisoformat(start_date)
+        active_1d = get_active_users(1)
+        active_7d = get_active_users(7)
+        active_30d = get_active_users(30)
+
+        # Retention calculations
+        retention_7d = (active_7d / total_users * 100) if total_users else 0
+        retention_30d = (active_30d / total_users * 100) if total_users else 0
+        retention_rate = (unique_users_with_evals / total_users * 100) if total_users else 0
+
+        # Conversion rates
+        conversion_overall = (unique_users_with_evals / total_users * 100) if total_users else 0
+        recent_users = sum(1 for u in users_rows if (u.get('created_at') or '')[:10] >= start_date)
+        recent_converted = len({e.get('user_id') for e in evals_rows if e.get('user_id') and (e.get('timestamp') or '')[:10] >= start_date})
+        conversion_last_n = (recent_converted / recent_users * 100) if recent_users else 0
+
+        # Revenue estimation (basic calculation)
+        plan_revenue = {'free': 0, 'basic': 9.99, 'premium': 19.99, 'pro': 39.99}
+        estimated_revenue = sum(plan_revenue.get(u.get('current_plan', 'free'), 0) for u in users_rows)
+
+        # Enhanced daily breakdown with more metrics
+        daily = {}
         for i in range(days):
-            d = (sdate + timedelta(days=i)).isoformat()
-            daily.append({"date": d, "evaluations": daily_evals.get(d, 0), "new_users": daily_users.get(d, 0)})
+            day = (start_dt.date() + timedelta(days=i)).isoformat()
+            daily[day] = {
+                'date': day,
+                'evaluations': 0,
+                'new_users': 0,
+                'active_users': 0,
+                'grades': [],
+                'cumulative_users': 0,
+                'cumulative_evaluations': 0
+            }
 
-        # Breakdown by question type
-        qtype = defaultdict(lambda: {"count": 0, "avg_grade": 0.0, "sum": 0.0})
-        for r in evals_rows:
-            qt = r.get('question_type') or 'Unknown'
-            qtype[qt]["count"] += 1
-            qtype[qt]["sum"] += parse_grade_value(r.get('grade'))
-        for qt in qtype:
-            c = qtype[qt]["count"] or 1
-            qtype[qt]["avg_grade"] = round(qtype[qt]["sum"] / c, 2)
-            qtype[qt].pop('sum', None)
-
-        # Plan stats
-        plan_counts = defaultdict(int)
+        # Populate daily data
         for u in users_rows:
-            plan_counts[u.get('current_plan') or 'free'] += 1
-        by_plan = [{"plan": k, "count": v} for k, v in plan_counts.items()]
+            day = (u.get('created_at') or '')[:10]
+            if day in daily:
+                daily[day]['new_users'] += 1
 
-        # Evaluations per user distribution
-        evals_per_user = defaultdict(int)
         for e in evals_rows:
-            uid = e.get('user_id')
-            if uid:
-                evals_per_user[uid] += 1
-        bins = {"0": 0, "1": 0, "2-4": 0, "5-9": 0, "10+": 0}
-        for u in users_rows:
-            c = evals_per_user.get(u.get('uid'), 0)
-            if c == 0: bins["0"] += 1
-            elif c == 1: bins["1"] += 1
-            elif 2 <= c <= 4: bins["2-4"] += 1
-            elif 5 <= c <= 9: bins["5-9"] += 1
-            else: bins["10+"] += 1
-        distribution = [{"bucket": k, "users": v} for k, v in bins.items()]
+            day = (e.get('timestamp') or '')[:10]
+            if day in daily:
+                daily[day]['evaluations'] += 1
+                grade = parse_grade_value(e.get('grade'))
+                if grade > 0:
+                    daily[day]['grades'].append(grade)
 
-        # Top users by evaluations (last N days)
-        recent_counts = defaultdict(int)
+        # Calculate cumulative and derived metrics
+        cumulative_users = sum(1 for u in users_rows if (u.get('created_at') or '')[:10] < start_date)
+        cumulative_evals = sum(1 for e in evals_rows if (e.get('timestamp') or '')[:10] < start_date)
+
+        for day in sorted(daily.keys()):
+            cumulative_users += daily[day]['new_users']
+            cumulative_evals += daily[day]['evaluations']
+            daily[day]['cumulative_users'] = cumulative_users
+            daily[day]['cumulative_evaluations'] = cumulative_evals
+            daily[day]['avg_grade'] = sum(daily[day]['grades']) / len(daily[day]['grades']) if daily[day]['grades'] else 0
+            daily[day]['retention_rate'] = (daily[day]['evaluations'] / max(daily[day]['new_users'], 1)) * 100
+
+        # Hourly distribution analysis
+        hourly_dist = defaultdict(lambda: {'count': 0, 'grades': []})
         for e in evals_rows:
-            if (e.get('timestamp') or '')[:10] >= start_date:
-                recent_counts[e.get('user_id')] += 1
-        user_map = {u.get('uid'): u for u in users_rows}
-        top_users_last_n = sorted(
-            [
-                {
-                    "user_id": uid,
-                    "display_name": (user_map.get(uid) or {}).get('display_name'),
-                    "email": (user_map.get(uid) or {}).get('email'),
-                    "count": cnt,
-                }
-                for uid, cnt in recent_counts.items() if uid
-            ], key=lambda x: x["count"], reverse=True
-        )[:10]
-
-        # Grade stats (overall)
-        grades = [parse_grade_value(e.get('grade')) for e in evals_rows if e.get('grade') is not None]
-        grades_sorted = sorted(grades)
-        def pct(p):
-            if not grades_sorted:
-                return 0.0
-            k = int((len(grades_sorted)-1) * p)
-            return round(grades_sorted[k], 2)
-        grade_stats = {
-            "avg": round(sum(grades_sorted)/len(grades_sorted), 2) if grades_sorted else 0.0,
-            "p50": pct(0.5),
-            "p75": pct(0.75),
-            "p90": pct(0.9),
-        }
-
-        # Conversion: users with >=1 evaluation overall and among those created in last N days
-        conversion_overall = round((unique_users_with_evals / total_users) * 100.0, 2) if total_users else 0.0
-        new_user_ids = {u.get('uid') for u in users_rows if (u.get('created_at') or '')[:10] >= start_date}
-        new_with_eval = len({uid for uid in new_user_ids if evals_per_user.get(uid, 0) > 0})
-        conversion_last_n = round((new_with_eval / len(new_user_ids)) * 100.0, 2) if new_user_ids else 0.0
-
-        # Time to first evaluation stats (days)
-        first_eval_ts = {}
-        for e in sorted(evals_rows, key=lambda x: x.get('timestamp') or ''):
-            uid = e.get('user_id')
-            if uid and uid not in first_eval_ts and e.get('timestamp'):
-                first_eval_ts[uid] = e.get('timestamp')
-        deltas = []
-        for u in users_rows:
-            uid = u.get('uid')
-            created = u.get('created_at')
-            first_ts = first_eval_ts.get(uid)
-            if created and first_ts:
+            if e.get('timestamp'):
                 try:
-                    c = datetime.fromisoformat(created.replace('Z',''))
-                    f = datetime.fromisoformat(first_ts.replace('Z',''))
-                    delta_days = max(0.0, (f - c).total_seconds() / 86400.0)
-                    deltas.append(delta_days)
-                except Exception:
+                    hour = datetime.fromisoformat(e['timestamp'].replace('Z', '+00:00')).hour
+                    hourly_dist[hour]['count'] += 1
+                    grade = parse_grade_value(e.get('grade'))
+                    if grade > 0:
+                        hourly_dist[hour]['grades'].append(grade)
+                except:
                     pass
-        deltas_sorted = sorted(deltas)
-        def median(vals):
-            if not vals:
-                return 0.0
-            n = len(vals)
-            m = n // 2
-            return round((vals[m] if n % 2 else (vals[m-1] + vals[m]) / 2), 2)
-        tffe = {
-            "avg_days": round(sum(deltas_sorted)/len(deltas_sorted), 2) if deltas_sorted else 0.0,
-            "median_days": median(deltas_sorted),
-            "count": len(deltas_sorted)
-        }
 
-        # Top question types by last N days and by avg grade
+        hourly_distribution = [
+            {
+                'hour': h,
+                'count': hourly_dist[h]['count'],
+                'avg_grade': sum(hourly_dist[h]['grades']) / len(hourly_dist[h]['grades']) if hourly_dist[h]['grades'] else 0
+            }
+            for h in range(24)
+        ]
+
+        # Weekly distribution analysis
+        weekly_dist = defaultdict(lambda: {'count': 0, 'grades': []})
+        for e in evals_rows:
+            if e.get('timestamp'):
+                try:
+                    weekday = datetime.fromisoformat(e['timestamp'].replace('Z', '+00:00')).weekday()
+                    weekly_dist[weekday]['count'] += 1
+                    grade = parse_grade_value(e.get('grade'))
+                    if grade > 0:
+                        weekly_dist[weekday]['grades'].append(grade)
+                except:
+                    pass
+
+        weekly_distribution = [
+            {
+                'day_of_week': d,
+                'count': weekly_dist[d]['count'],
+                'avg_grade': sum(weekly_dist[d]['grades']) / len(weekly_dist[d]['grades']) if weekly_dist[d]['grades'] else 0
+            }
+            for d in range(7)
+        ]
+
+        # Enhanced question type analysis
+        qtype = defaultdict(lambda: {'count': 0, 'grades': [], 'users': set(), 'recent': 0})
         qt_recent = defaultdict(int)
+        
+        for e in evals_rows:
+            qt = e.get('question_type') or 'Unknown'
+            qtype[qt]['count'] += 1
+            qtype[qt]['users'].add(e.get('user_id'))
+            
+            if (e.get('timestamp') or '')[:10] >= start_date:
+                qt_recent[qt] += 1
+                qtype[qt]['recent'] += 1
+            
+            grade = parse_grade_value(e.get('grade'))
+            if grade > 0:
+                qtype[qt]['grades'].append(grade)
+
+        # Convert to final format with additional metrics
+        for qt in qtype:
+            grades = qtype[qt]['grades']
+            qtype[qt]['avg_grade'] = sum(grades) / len(grades) if grades else 0
+            qtype[qt]['unique_users'] = len(qtype[qt]['users'])
+            qtype[qt]['completion_rate'] = (qtype[qt]['count'] / qtype[qt]['unique_users']) if qtype[qt]['unique_users'] else 0
+            qtype[qt]['avg_time_spent'] = 0  # Placeholder for future time tracking
+            del qtype[qt]['users']  # Remove set for JSON serialization
+            del qtype[qt]['grades']  # Remove list for cleaner output
+
+        # Grade distribution analysis
+        all_grades = [parse_grade_value(e.get('grade')) for e in evals_rows if parse_grade_value(e.get('grade')) > 0]
+        
+        grade_ranges = [
+            ('0-20', 0, 20), ('21-40', 21, 40), ('41-60', 41, 60),
+            ('61-80', 61, 80), ('81-100', 81, 100)
+        ]
+        
+        grade_distribution = []
+        for range_name, min_grade, max_grade in grade_ranges:
+            count = sum(1 for g in all_grades if min_grade <= g <= max_grade)
+            percentage = (count / len(all_grades) * 100) if all_grades else 0
+            grade_distribution.append({
+                'range': range_name,
+                'count': count,
+                'percentage': percentage
+            })
+
+        # Enhanced grade statistics
+        grade_stats = {}
+        if all_grades:
+            grade_stats = {
+                'avg': round(sum(all_grades) / len(all_grades), 2),
+                'p25': round(statistics.quantiles(all_grades, n=4)[0], 2),
+                'p50': round(statistics.median(all_grades), 2),
+                'p75': round(statistics.quantiles(all_grades, n=4)[2], 2),
+                'p90': round(statistics.quantiles(all_grades, n=10)[8], 2),
+                'std_dev': round(statistics.stdev(all_grades), 2),
+                'total_graded': len(all_grades),
+                'min': round(min(all_grades), 2),
+                'max': round(max(all_grades), 2)
+            }
+
+        # Plan distribution with enhanced metrics
+        plan_counts = Counter(u.get('current_plan', 'free') for u in users_rows)
+        plan_data = []
+        for plan, count in plan_counts.items():
+            plan_users = [u for u in users_rows if u.get('current_plan') == plan]
+            plan_evals = [e for e in evals_rows if e.get('user_id') in {u.get('uid') for u in plan_users}]
+            
+            plan_data.append({
+                'plan': plan,
+                'count': count,
+                'revenue': count * plan_revenue.get(plan, 0),
+                'avg_evaluations': len(plan_evals) / count if count else 0,
+                'churn_rate': 0  # Placeholder for churn calculation
+            })
+
+        # Enhanced user distribution
+        user_eval_counts = Counter()
+        for e in evals_rows:
+            if e.get('user_id'):
+                user_eval_counts[e['user_id']] += 1
+
+        eval_buckets = ['0', '1', '2-5', '6-10', '11-20', '21+']
+        distribution = []
+        for bucket in eval_buckets:
+            if bucket == '0':
+                count = total_users - len(user_eval_counts)
+            elif bucket == '1':
+                count = sum(1 for c in user_eval_counts.values() if c == 1)
+            elif bucket == '2-5':
+                count = sum(1 for c in user_eval_counts.values() if 2 <= c <= 5)
+            elif bucket == '6-10':
+                count = sum(1 for c in user_eval_counts.values() if 6 <= c <= 10)
+            elif bucket == '11-20':
+                count = sum(1 for c in user_eval_counts.values() if 11 <= c <= 20)
+            elif bucket == '21+':
+                count = sum(1 for c in user_eval_counts.values() if c >= 21)
+            else:
+                count = 0
+            
+            distribution.append({'bucket': bucket, 'users': count})
+
+        # Enhanced top users with more metrics
+        user_stats = defaultdict(lambda: {'count': 0, 'grades': [], 'days': set(), 'streak': 0})
+        
+        for e in evals_rows:
+            if (e.get('timestamp') or '')[:10] >= start_date and e.get('user_id'):
+                user_id = e['user_id']
+                user_stats[user_id]['count'] += 1
+                user_stats[user_id]['days'].add((e.get('timestamp') or '')[:10])
+                grade = parse_grade_value(e.get('grade'))
+                if grade > 0:
+                    user_stats[user_id]['grades'].append(grade)
+
+        # Get user display names
+        user_names = {u.get('uid'): u.get('display_name') or u.get('email', '').split('@')[0] for u in users_rows}
+        
+        top_users_last_n = []
+        for user_id, stats in sorted(user_stats.items(), key=lambda x: x[1]['count'], reverse=True)[:20]:
+            top_users_last_n.append({
+                'user_id': user_id,
+                'display_name': user_names.get(user_id, 'Unknown'),
+                'count': stats['count'],
+                'avg_grade': sum(stats['grades']) / len(stats['grades']) if stats['grades'] else 0,
+                'active_days': len(stats['days']),
+                'streak': stats['streak'],  # Placeholder for streak calculation
+                'total_time': 0  # Placeholder for time tracking
+            })
+
+        # Time to first evaluation analysis
+        user_first_eval = {}
+        for e in evals_rows:
+            user_id = e.get('user_id')
+            if user_id:
+                eval_date = e.get('timestamp', '')[:10]
+                if user_id not in user_first_eval or eval_date < user_first_eval[user_id]:
+                    user_first_eval[user_id] = eval_date
+
+        time_to_first = []
+        for u in users_rows:
+            user_id = u.get('uid')
+            created = u.get('created_at', '')[:10]
+            if user_id in user_first_eval and created:
+                try:
+                    created_date = datetime.fromisoformat(created).date()
+                    first_eval_date = datetime.fromisoformat(user_first_eval[user_id]).date()
+                    days_diff = (first_eval_date - created_date).days
+                    if days_diff >= 0:
+                        time_to_first.append(days_diff)
+                except:
+                    pass
+
+        tffe = {}
+        if time_to_first:
+            tffe = {
+                'avg_days': round(sum(time_to_first) / len(time_to_first), 2),
+                'median_days': round(statistics.median(time_to_first), 2),
+                'count': len(time_to_first)
+            }
+
+        # Top question types analysis
+        top_qtypes_recent = sorted([
+            {"question_type": k, "count": v} 
+            for k, v in qt_recent.items()
+        ], key=lambda x: x['count'], reverse=True)[:15]
+
         qt_grade_sum = defaultdict(float)
         qt_grade_count = defaultdict(int)
         for e in evals_rows:
             qt = e.get('question_type') or 'Unknown'
-            if (e.get('timestamp') or '')[:10] >= start_date:
-                qt_recent[qt] += 1
             val = parse_grade_value(e.get('grade'))
             qt_grade_sum[qt] += val
             qt_grade_count[qt] += 1
-        top_qtypes_recent = sorted([{ "question_type": k, "count": v } for k, v in qt_recent.items()], key=lambda x: x['count'], reverse=True)[:10]
+
         top_qtypes_by_avg = sorted([
-            {"question_type": k, "avg_grade": round((qt_grade_sum[k]/qt_grade_count[k]), 2) if qt_grade_count[k] else 0.0}
+            {
+                "question_type": k, 
+                "avg_grade": round((qt_grade_sum[k]/qt_grade_count[k]), 2) if qt_grade_count[k] else 0.0
+            }
             for k in qt_grade_sum
-        ], key=lambda x: x['avg_grade'], reverse=True)[:10]
+        ], key=lambda x: x['avg_grade'], reverse=True)[:15]
 
         return {
             "totals": {
@@ -674,14 +831,25 @@ async def get_admin_analytics(request: Request, days: int = 30):
                 "active_users_1d": active_1d,
                 "active_users_7d": active_7d,
                 "active_users_30d": active_30d,
-                "conversion_overall_pct": conversion_overall,
-                "conversion_last_n_days_pct": conversion_last_n,
+                "retention_rate": round(retention_rate, 2),
+                "retention_7d": round(retention_7d, 2),
+                "retention_30d": round(retention_30d, 2),
+                "conversion_overall_pct": round(conversion_overall, 2),
+                "conversion_last_n_days_pct": round(conversion_last_n, 2),
+                "estimated_revenue": round(estimated_revenue, 2),
+                "user_growth_trend": user_growth_trend,
+                "user_growth_rate": user_growth_rate,
+                "evaluation_growth_trend": eval_growth_trend,
+                "evaluation_growth_rate": eval_growth_rate,
             },
-            "daily": daily,
+            "daily": [daily[day] for day in sorted(daily.keys())],
+            "hourly_distribution": hourly_distribution,
+            "weekly_distribution": weekly_distribution,
             "by_question_type": [{"question_type": k, **v} for k, v in qtype.items()],
-            "by_plan": [{"plan": k, "count": v} for k, v in plan_counts.items()],
+            "by_plan": plan_data,
             "evaluations_per_user_distribution": distribution,
             "grade_stats": grade_stats,
+            "grade_distribution": grade_distribution,
             "time_to_first_evaluation": tffe,
             "top_users_last_n_days": top_users_last_n,
             "top_question_types_recent": top_qtypes_recent,
@@ -689,4 +857,111 @@ async def get_admin_analytics(request: Request, days: int = 30):
         }
     except Exception as e:
         logger.error(f"Admin analytics error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Analytics error: {str(e)}")
+
+@router.get("/dashboard/users/{user_id}")
+async def get_user_detail_admin(request: Request, user_id: str):
+    """Get comprehensive user details for admin view including evaluations, activity, and subscription history."""
+    try:
+        require_admin_access(request)
+        supabase = get_supabase_client()
+        from datetime import datetime, timedelta
+        
+        # Get user basic info
+        user_response = supabase.table('assessment_users').select('*').eq('uid', user_id).execute()
+        if not user_response.data:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user = user_response.data[0]
+        
+        # Get user's evaluations with detailed info
+        evaluations_response = supabase.table('assessment_evaluations').select(
+            'id, short_id, user_id, question_type, grade, reading_marks, writing_marks, ao1_marks, ao2_marks, ao3_marks, '
+            'content_structure_marks, style_accuracy_marks, student_response, improvement_suggestions, strengths, '
+            'next_steps, feedback, timestamp'
+        ).eq('user_id', user_id).order('timestamp', desc=True).execute()
+        
+        evaluations = evaluations_response.data or []
+        
+        # Calculate user statistics
+        total_evaluations = len(evaluations)
+        grades = [float(e.get('grade', 0)) for e in evaluations if e.get('grade') is not None]
+        avg_grade = sum(grades) / len(grades) if grades else 0
+        best_grade = max(grades) if grades else 0
+        worst_grade = min(grades) if grades else 0
+        
+        # Create activity timeline (last 30 days)
+        activity_timeline = []
+        cutoff_date = (datetime.now() - timedelta(days=30)).isoformat()
+        
+        # Add evaluation activities
+        for eval in evaluations:
+            if eval.get('timestamp') and eval['timestamp'] >= cutoff_date:
+                activity_timeline.append({
+                    'type': 'evaluation',
+                    'action': f'Completed {eval.get("question_type", "Unknown")} evaluation',
+                    'details': f'Grade: {eval.get("grade", 0)}% • ID: {eval.get("short_id", eval.get("id", "")[:8])}',
+                    'timestamp': eval['timestamp']
+                })
+        
+        # Add user registration as activity
+        if user.get('created_at'):
+            activity_timeline.append({
+                'type': 'registration',
+                'action': 'Account created',
+                'details': f'Joined with {user.get("current_plan", "free")} plan',
+                'timestamp': user['created_at']
+            })
+        
+        # Sort activity timeline by timestamp (most recent first)
+        activity_timeline.sort(key=lambda x: x['timestamp'], reverse=True)
+        
+        # Create subscription history (mock data for now - can be expanded)
+        subscription_history = []
+        if user.get('current_plan') and user.get('current_plan') != 'free':
+            subscription_history.append({
+                'plan': user['current_plan'],
+                'status': 'active',
+                'start_date': user.get('created_at', datetime.now().isoformat()),
+                'end_date': None,
+                'price': {
+                    'basic': 9.99,
+                    'premium': 19.99,
+                    'pro': 39.99
+                }.get(user['current_plan'], 0),
+                'duration_months': 1
+            })
+        
+        # Calculate account age
+        account_age_days = 0
+        if user.get('created_at'):
+            try:
+                created_date = datetime.fromisoformat(user['created_at'].replace('Z', ''))
+                account_age_days = (datetime.now() - created_date).days
+            except:
+                pass
+        
+        # Enhance user object with calculated fields
+        enhanced_user = {
+            **user,
+            'evaluations': evaluations,
+            'total_evaluations': total_evaluations,
+            'avg_grade': avg_grade,
+            'best_grade': best_grade,
+            'worst_grade': worst_grade,
+            'activity_timeline': activity_timeline,
+            'subscription_history': subscription_history,
+            'account_age_days': account_age_days,
+            'last_login': user.get('updated_at'),  # Use updated_at as proxy for last activity
+            'account_status': 'active' if total_evaluations > 0 else 'inactive'
+        }
+        
+        return {"user": enhanced_user}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting user detail: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"User detail error: {str(e)}")

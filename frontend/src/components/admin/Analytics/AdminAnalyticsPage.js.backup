@@ -722,7 +722,11 @@ const AdminAnalyticsPage = () => {
       </div>
       </div>
 
-
+      </div>
+      </div>
+      </div>
+      </div>
+      </div>
       </div>
     </div>
   );
