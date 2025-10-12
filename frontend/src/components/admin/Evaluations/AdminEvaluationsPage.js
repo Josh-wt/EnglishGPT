@@ -14,7 +14,10 @@ import {
   TrendingUp,
   ChevronUpDown,
   Eye,
-  Loader2
+  Loader2,
+  ChevronDown as ChevronDownIcon,
+  ChevronUp as ChevronUpIcon,
+  Copy
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -23,8 +26,60 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LongText } from '../ui/long-text';
 import { Skeleton } from '@/components/ui/skeleton';
+
+// Simple LongText Component
+const LongText = ({ text, maxLength = 100, className = '' }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  
+  if (!text || typeof text !== 'string') {
+    return <span className="text-gray-400 italic">No content</span>;
+  }
+
+  const displayText = isExpanded ? text : text.substring(0, maxLength);
+  const shouldTruncate = text.length > maxLength && !isExpanded;
+  const hasOverflow = shouldTruncate;
+
+  return (
+    <div className={`relative ${className}`}>
+      <div className="relative">
+        <p 
+          className={`text-sm leading-relaxed ${hasOverflow && !isExpanded ? 'line-clamp-2' : ''}`}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          {displayText}
+          {shouldTruncate && (
+            <span className="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline ml-1" onClick={() => setIsExpanded(true)}>
+              ... read more
+            </span>
+          )}
+        </p>
+        
+        {isExpanded && (
+          <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="text-sm leading-relaxed whitespace-pre-wrap max-h-48 overflow-y-auto mb-3">
+              {text}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsExpanded(false)}
+              className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              Show less
+            </Button>
+          </div>
+        )}
+      </div>
+      
+      {isHovered && hasOverflow && !isExpanded && (
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white dark:from-gray-900 to-transparent h-6 pointer-events-none" />
+      )}
+    </div>
+  );
+};
 
 const AdminEvaluationsPage = () => {
   const [search, setSearch] = useState('');
