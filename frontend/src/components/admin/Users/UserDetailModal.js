@@ -547,9 +547,15 @@ const SubscriptionHistoryTab = ({ user }) => (
 );
 
 const UserDetailModal = ({ userId, open, onClose }) => {
+  console.log('=== USER DETAIL MODAL DEBUG START ===');
+  console.log('UserDetailModal props:', { userId, open });
+  
   const { data, isLoading, isError, error, refetch } = useUserDetail(userId);
   const user = data?.user || null;
   const [activeTab, setActiveTab] = useState('profile');
+  
+  console.log('UserDetailModal hook result:', { data, isLoading, isError, error });
+  console.log('UserDetailModal user data:', user);
 
   if (!open) return null;
 

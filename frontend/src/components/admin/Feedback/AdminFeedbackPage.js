@@ -20,6 +20,9 @@ const AdminFeedbackPage = () => {
   const [showFilters, setShowFilters] = useState(false);
   const pageSize = 25;
   
+  console.log('=== FEEDBACK PAGE DEBUG START ===');
+  console.log('Feedback page state:', { search, page, category, accurate, pageSize });
+  
   const { data, isLoading, isError, error } = useFeedback({ 
     page, 
     pageSize, 
@@ -27,6 +30,8 @@ const AdminFeedbackPage = () => {
     category, 
     accurate 
   });
+  
+  console.log('Feedback hook result:', { data, isLoading, isError, error });
 
   const columns = useMemo(() => ([
     { 

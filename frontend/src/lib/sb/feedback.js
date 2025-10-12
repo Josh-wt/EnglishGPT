@@ -21,6 +21,9 @@ export async function listFeedback({
   sortBy = 'created_at',
   sortDir = 'desc',
 } = {}) {
+  console.log('=== FEEDBACK SERVICE DEBUG ===');
+  console.log('listFeedback called with:', { page, pageSize, search, category, accurate, userId, evaluationId, fromDate, toDate, sortBy, sortDir });
+  
   const offset = (page - 1) * pageSize;
   
   const params = new URLSearchParams({
@@ -45,13 +48,22 @@ export async function listFeedback({
   }
 
   const url = `${getApiUrl()}/admin/dashboard/feedback?${params.toString()}`;
+  console.log('Feedback API URL:', url);
+  console.log('Feedback headers:', getAdminHeaders());
+  
   const response = await fetch(url, { headers: getAdminHeaders() });
+  console.log('Feedback response status:', response.status);
+  console.log('Feedback response ok:', response.ok);
   
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Feedback API error response:', errorText);
     throw new Error(`HTTP error! status: ${response.status}`);
   }
   
-  return response.json();
+  const result = await response.json();
+  console.log('Feedback API result:', result);
+  return result;
 }
 
 

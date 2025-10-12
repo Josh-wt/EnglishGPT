@@ -475,8 +475,14 @@ async def admin_global_search(request: Request, q: str, limit: int = 10):
 async def get_admin_analytics(request: Request, days: int = 30):
     """Ultra-comprehensive analytics for admin: totals, trends, distributions, time-based analysis, and much more."""
     try:
+        logger.info("=== ANALYTICS ENDPOINT DEBUG START ===")
+        logger.info(f"Days parameter: {days}")
+        
         require_admin_access(request)
+        logger.info("Admin access verified for analytics")
+        
         supabase = get_supabase_client()
+        logger.info("Supabase client obtained for analytics")
         from datetime import datetime, timedelta, date
         from collections import Counter
         import statistics
@@ -865,8 +871,14 @@ async def get_admin_analytics(request: Request, days: int = 30):
 async def get_user_detail_admin(request: Request, user_id: str):
     """Get comprehensive user details for admin view including evaluations, activity, and subscription history."""
     try:
+        logger.info("=== USER DETAIL ENDPOINT DEBUG START ===")
+        logger.info(f"User ID: {user_id}")
+        
         require_admin_access(request)
+        logger.info("Admin access verified for user detail")
+        
         supabase = get_supabase_client()
+        logger.info("Supabase client obtained for user detail")
         from datetime import datetime, timedelta
         
         logger.info(f"Fetching user details for user_id: {user_id}")
@@ -898,7 +910,30 @@ async def get_user_detail_admin(request: Request, user_id: str):
         
         total_evaluations = total_evaluations_response.count or len(evaluations)
         logger.info(f"Total evaluations count: {total_evaluations}")
-        grades = [float(e.get('grade', 0)) for e in evaluations if e.get('grade') is not None]
+        # Parse grades safely
+        grades = []
+        for e in evaluations:
+            grade = e.get('grade')
+            if grade is not None:
+                try:
+                    # Handle different grade formats
+                    if isinstance(grade, (int, float)):
+                        grades.append(float(grade))
+                    elif isinstance(grade, str):
+                        # Handle string grades like "85/100" or "85%"
+                        if '/' in grade:
+                            num, den = grade.split('/')[:2]
+                            num = float(num.strip() or 0)
+                            den = float(den.strip() or 1)
+                            grades.append((num / den) * 100.0 if den else num)
+                        elif grade.endswith('%'):
+                            grades.append(float(grade[:-1]))
+                        else:
+                            grades.append(float(grade))
+                except (ValueError, TypeError):
+                    logger.warning(f"Could not parse grade: {grade}")
+                    continue
+        
         avg_grade = sum(grades) / len(grades) if grades else 0
         best_grade = max(grades) if grades else 0
         worst_grade = min(grades) if grades else 0
@@ -909,13 +944,28 @@ async def get_user_detail_admin(request: Request, user_id: str):
         
         # Add evaluation activities (limited to prevent performance issues)
         for eval in evaluations[:50]:  # Further limit activity timeline to 50 most recent
-            if eval.get('timestamp') and eval['timestamp'] >= cutoff_date:
-                activity_timeline.append({
-                    'type': 'evaluation',
-                    'action': f'Completed {eval.get("question_type", "Unknown")} evaluation',
-                    'details': f'Grade: {eval.get("grade", 0)}% • ID: {eval.get("short_id", eval.get("id", "")[:8])}',
-                    'timestamp': eval['timestamp']
-                })
+            if eval.get('timestamp'):
+                try:
+                    # Ensure timestamp is in the right format for comparison
+                    eval_timestamp = eval['timestamp']
+                    if eval_timestamp >= cutoff_date:
+                        # Format grade safely for display
+                        grade_display = eval.get("grade", 0)
+                        if isinstance(grade_display, str) and '/' in grade_display:
+                            # Keep fraction format for display
+                            grade_display = grade_display
+                        elif isinstance(grade_display, (int, float)):
+                            grade_display = f"{grade_display}%"
+                        
+                        activity_timeline.append({
+                            'type': 'evaluation',
+                            'action': f'Completed {eval.get("question_type", "Unknown")} evaluation',
+                            'details': f'Grade: {grade_display} • ID: {eval.get("short_id", eval.get("id", "")[:8])}',
+                            'timestamp': eval_timestamp
+                        })
+                except Exception as e:
+                    logger.warning(f"Could not process evaluation timestamp: {e}")
+                    continue
         
         # Add user registration as activity
         if user.get('created_at'):
@@ -932,27 +982,38 @@ async def get_user_detail_admin(request: Request, user_id: str):
         # Create subscription history (mock data for now - can be expanded)
         subscription_history = []
         if user.get('current_plan') and user.get('current_plan') != 'free':
-            subscription_history.append({
-                'plan': user['current_plan'],
-                'status': 'active',
-                'start_date': user.get('created_at', datetime.now().isoformat()),
-                'end_date': None,
-                'price': {
-                    'basic': 9.99,
-                    'premium': 19.99,
-                    'pro': 39.99
-                }.get(user['current_plan'], 0),
-                'duration_months': 1
-            })
+            try:
+                subscription_history.append({
+                    'plan': user['current_plan'],
+                    'status': 'active',
+                    'start_date': user.get('created_at', datetime.now().isoformat()),
+                    'end_date': None,
+                    'price': {
+                        'unlimited': 4.99,  # Updated to match actual pricing
+                        'basic': 9.99,
+                        'premium': 19.99,
+                        'pro': 39.99
+                    }.get(user['current_plan'], 0),
+                    'duration_months': 1
+                })
+            except Exception as e:
+                logger.warning(f"Could not create subscription history: {e}")
+                subscription_history = []
         
         # Calculate account age
         account_age_days = 0
         if user.get('created_at'):
             try:
-                created_date = datetime.fromisoformat(user['created_at'].replace('Z', ''))
-                account_age_days = (datetime.now() - created_date).days
-            except:
-                pass
+                created_at = user['created_at']
+                # Handle different timestamp formats
+                if created_at.endswith('Z'):
+                    created_date = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                else:
+                    created_date = datetime.fromisoformat(created_at)
+                account_age_days = (datetime.now() - created_date.replace(tzinfo=None)).days
+            except Exception as e:
+                logger.warning(f"Could not calculate account age: {e}")
+                account_age_days = 0
         
         # Enhance user object with calculated fields
         enhanced_user = {
@@ -997,18 +1058,25 @@ async def get_feedback_admin(
 ):
     """Get feedback data for admin dashboard with filtering, sorting, and pagination."""
     try:
+        logger.info("=== FEEDBACK ENDPOINT DEBUG START ===")
+        logger.info(f"Request parameters: limit={limit}, offset={offset}, search='{search}', category='{category}', accurate='{accurate}', user_id='{user_id}', evaluation_id='{evaluation_id}', date_from='{date_from}', date_to='{date_to}', sort_by='{sort_by}', sort_dir='{sort_dir}'")
+        
         require_admin_access(request)
+        logger.info("Admin access verified")
+        
         supabase = get_supabase_client()
+        logger.info("Supabase client obtained")
         
         logger.info(f"Fetching feedback with filters: search='{search}', category='{category}', accurate='{accurate}'")
         
-        # Build the query
+        # Build the query - only join with users for now
+        logger.info("Building feedback query with assessment_users join only")
         query = supabase.table('assessment_feedback').select(
             'id, evaluation_id, user_id, category, accurate, comments, created_at, '
-            'assessment_users!inner(uid, display_name, email), '
-            'assessment_evaluations!inner(id, short_id, question_type, grade)',
+            'assessment_users!inner(uid, display_name, email)',
             count='exact'
         )
+        logger.info(f"Query built: {query}")
         
         # Apply filters
         if search:
@@ -1027,14 +1095,19 @@ async def get_feedback_admin(
             query = query.lte('created_at', date_to)
         
         # Apply sorting and pagination
+        logger.info(f"Applying sort: {sort_by} {sort_dir}")
         query = query.order(sort_by, desc=(sort_dir == 'desc'))
+        logger.info(f"Applying pagination: offset={offset}, limit={limit}")
         query = query.range(offset, offset + limit - 1)
         
+        logger.info("Executing feedback query...")
         response = query.execute()
+        logger.info(f"Query executed. Response: {response}")
         
         if response.error:
             logger.error(f"Supabase error fetching feedback: {response.error}")
-            raise HTTPException(status_code=500, detail=f"Database error: {response.error}")
+            logger.error(f"Error details: {response.error}")
+            raise HTTPException(status_code=500, detail=f"Feedback error: {response.error}")
         
         # Transform the data to match expected format
         feedback_data = []
@@ -1053,10 +1126,10 @@ async def get_feedback_admin(
                     'email': item['assessment_users']['email']
                 },
                 'evaluation': {
-                    'id': item['assessment_evaluations']['id'],
-                    'short_id': item['assessment_evaluations']['short_id'],
-                    'question_type': item['assessment_evaluations']['question_type'],
-                    'grade': item['assessment_evaluations']['grade']
+                    'id': item['evaluation_id'],
+                    'short_id': item['evaluation_id'][:8] if item['evaluation_id'] else None,
+                    'question_type': 'Unknown',
+                    'grade': None
                 }
             })
         
@@ -1071,6 +1144,7 @@ async def get_feedback_admin(
         raise
     except Exception as e:
         logger.error(f"Error getting feedback: {str(e)}")
+        logger.error(f"Error type: {type(e)}")
         import traceback
-        traceback.print_exc()
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Feedback error: {str(e)}")

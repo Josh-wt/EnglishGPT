@@ -91,19 +91,41 @@ const AdminAnalyticsPage = () => {
   const [days, setDays] = useState(30);
   const [customDays, setCustomDays] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  console.log('=== ANALYTICS PAGE DEBUG START ===');
+  console.log('Analytics page state:', { data, error, days, customDays, loading });
 
   const fetchAnalytics = async () => {
+    console.log('=== ANALYTICS FETCH DEBUG ===');
+    console.log('fetchAnalytics called with days:', days);
+    
     try {
       setLoading(true);
       setError(null);
       const sessionToken = localStorage.getItem('admin_session_token');
-      const res = await fetch(`${getApiUrl()}/admin/analytics?days=${days}`, { 
+      const url = `${getApiUrl()}/admin/analytics?days=${days}`;
+      
+      console.log('Analytics API URL:', url);
+      console.log('Analytics headers:', { 'X-Admin-Session': sessionToken });
+      
+      const res = await fetch(url, { 
         headers: { 'X-Admin-Session': sessionToken } 
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      
+      console.log('Analytics response status:', res.status);
+      console.log('Analytics response ok:', res.ok);
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Analytics API error response:', errorText);
+        throw new Error(`HTTP ${res.status}`);
+      }
+      
       const json = await res.json();
+      console.log('Analytics API result:', json);
       setData(json);
     } catch (e) {
+      console.error('Error fetching analytics:', e);
       setError(String(e));
     } finally {
       setLoading(false);

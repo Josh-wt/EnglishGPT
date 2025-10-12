@@ -36,9 +36,13 @@ export const useUsers = (params = {}) => {
 };
 
 export const useUserDetail = (userId) => {
+  console.log('=== USER DETAIL HOOK DEBUG ===');
+  console.log('useUserDetail called with userId:', userId);
+  
   return useQuery({
     queryKey: ['admin-user', userId],
     queryFn: async () => {
+      console.log('UserDetail queryFn executing for userId:', userId);
       if (!userId) return null;
       
       // Create an AbortController for timeout handling
@@ -46,23 +50,31 @@ export const useUserDetail = (userId) => {
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
       
       try {
-        const response = await fetch(
-          `${getApiUrl()}/admin/dashboard/users/${userId}`,
-          { 
-            headers: getAdminHeaders(),
-            signal: controller.signal
-          }
-        );
+        const url = `${getApiUrl()}/admin/dashboard/users/${userId}`;
+        console.log('UserDetail API URL:', url);
+        console.log('UserDetail headers:', getAdminHeaders());
+        
+        const response = await fetch(url, { 
+          headers: getAdminHeaders(),
+          signal: controller.signal
+        });
         
         clearTimeout(timeoutId);
+        console.log('UserDetail response status:', response.status);
+        console.log('UserDetail response ok:', response.ok);
         
         if (!response.ok) {
+          const errorText = await response.text();
+          console.error('UserDetail API error response:', errorText);
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        return response.json();
+        const result = await response.json();
+        console.log('UserDetail API result:', result);
+        return result;
       } catch (error) {
         clearTimeout(timeoutId);
+        console.error('UserDetail query error:', error);
         if (error.name === 'AbortError') {
           throw new Error('Request timed out. This user may have too many evaluations.');
         }
@@ -72,6 +84,12 @@ export const useUserDetail = (userId) => {
     enabled: !!userId,
     retry: 2, // Retry failed requests up to 2 times
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    onSuccess: (data) => {
+      console.log('UserDetail query success:', data);
+    },
+    onError: (error) => {
+      console.error('UserDetail query error:', error);
+    }
   });
 };
 
