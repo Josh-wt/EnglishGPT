@@ -232,6 +232,14 @@ const AdminEvaluationsPage = () => {
   const evaluations = data?.data || [];
   const totalCount = data?.count || 0;
 
+  // Debug logging to see actual data structure
+  React.useEffect(() => {
+    if (evaluations.length > 0) {
+      console.log('First evaluation:', evaluations[0]);
+      console.log('Grade field:', evaluations[0]?.grade, typeof evaluations[0]?.grade);
+    }
+  }, [evaluations]);
+
   const columns = useMemo(() => [
     {
       id: 'short_id',
@@ -251,12 +259,12 @@ const AdminEvaluationsPage = () => {
       )
     },
     {
-      id: 'user_uid',
-      accessor: 'user_uid',
-      header: 'User UID',
+      id: 'user_id',
+      accessor: 'user_id',
+      header: 'User ID',
       cell: (row) => (
         <div className="font-mono text-sm text-gray-900 dark:text-white truncate max-w-[120px]">
-          {row.user_uid?.slice(-8) || 'N/A'}
+          {row.user_id?.slice(-8) || 'N/A'}
         </div>
       )
     },
@@ -294,19 +302,45 @@ const AdminEvaluationsPage = () => {
       sortKey: 'grade',
       cell: (row) => {
         const grade = row.grade;
-        if (grade === null || grade === undefined || isNaN(grade)) {
+        
+        // Handle null/undefined/empty grades
+        if (grade === null || grade === undefined || grade === '') {
           return <span className="text-sm text-gray-500 dark:text-gray-400">N/A</span>;
         }
-        const gradeValue = parseFloat(grade);
-        if (isNaN(gradeValue)) {
+        
+        // Handle string grades like "85/100" or "85%"
+        let gradeValue = null;
+        if (typeof grade === 'string') {
+          if (grade.includes('/')) {
+            // Handle "85/100" format
+            const [numerator, denominator] = grade.split('/');
+            const num = parseFloat(numerator);
+            const den = parseFloat(denominator);
+            if (!isNaN(num) && !isNaN(den) && den !== 0) {
+              gradeValue = (num / den) * 100;
+            }
+          } else if (grade.includes('%')) {
+            // Handle "85%" format
+            gradeValue = parseFloat(grade.replace('%', ''));
+          } else {
+            // Handle plain number as string
+            gradeValue = parseFloat(grade);
+          }
+        } else if (typeof grade === 'number') {
+          gradeValue = grade;
+        }
+        
+        // Check if we got a valid number
+        if (isNaN(gradeValue) || gradeValue === null) {
           return <span className="text-sm text-gray-500 dark:text-gray-400">Invalid</span>;
         }
+        
         return (
           <div className="flex items-center space-x-2">
             <div className="w-16 bg-gray-200 rounded-full h-2 dark:bg-gray-700">
               <div 
                 className="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full transition-all duration-300" 
-                style={{ width: `${Math.min(gradeValue, 100)}%` }}
+                style={{ width: `${Math.min(Math.max(gradeValue, 0), 100)}%` }}
               />
             </div>
             <span className="text-sm font-medium text-gray-900 dark:text-white">
@@ -322,28 +356,57 @@ const AdminEvaluationsPage = () => {
         accessor: 'student_response',
         header: 'Essay',
         longText: true,
-        max: 100
+        max: 100,
+        cell: (row) => {
+          // Ensure we're passing a string, not an object
+          const text = row.student_response;
+          if (typeof text === 'object') {
+            return <span className="text-gray-400 italic">Complex data</span>;
+          }
+          return text || '';
+        }
       },
       {
         id: 'improvement_suggestions',
-        accessor: 'improvement_suggestions',
+        accessor: 'improvement_suggestions', 
         header: 'Improvements',
         longText: true,
-        max: 80
+        max: 80,
+        cell: (row) => {
+          const text = row.improvement_suggestions;
+          if (typeof text === 'object') {
+            return <span className="text-gray-400 italic">Complex data</span>;
+          }
+          return text || '';
+        }
       },
       {
         id: 'strengths',
         accessor: 'strengths',
         header: 'Strengths',
         longText: true,
-        max: 80
+        max: 80,
+        cell: (row) => {
+          const text = row.strengths;
+          if (typeof text === 'object') {
+            return <span className="text-gray-400 italic">Complex data</span>;
+          }
+          return text || '';
+        }
       },
       {
         id: 'feedback',
         accessor: 'feedback',
         header: 'Feedback',
         longText: true,
-        max: 120
+        max: 120,
+        cell: (row) => {
+          const text = row.feedback;
+          if (typeof text === 'object') {
+            return <span className="text-gray-400 italic">Complex data</span>;
+          }
+          return text || '';
+        }
       }
     ] : []),
     {

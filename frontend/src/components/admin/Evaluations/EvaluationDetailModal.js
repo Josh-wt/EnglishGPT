@@ -28,49 +28,101 @@ const Row = ({ label, value }) => (
 const EvaluationDetailModal = ({ evaluationId, open, onClose }) => {
   const { data, isLoading, isError } = useEvaluationDetail(evaluationId);
 
+  // Debug logging
+  React.useEffect(() => {
+    if (data) {
+      console.log('EvaluationDetailModal received data:', data);
+      console.log('Evaluation:', data?.evaluation);
+      console.log('Full chat:', data?.full_chat);
+    }
+  }, [data]);
+
+  // Extract evaluation data from the response structure
+  const evaluation = data?.evaluation || data;
+  const fullChat = data?.full_chat;
+
   return (
     <Modal open={open} onClose={onClose}>
       <div className="p-6 space-y-6">
         <h2 className="text-xl font-semibold">Evaluation Details</h2>
         {isLoading && <div>Loading…</div>}
         {isError && <div className="text-red-600">Failed to load evaluation.</div>}
-        {data && (
+        {evaluation && (
           <div className="space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Row label="short_id" value={data.short_id || data.id} />
-              <Row label="question_type" value={data.question_type} />
-              <Row label="grade" value={data.grade} />
-              <Row label="created_at" value={data.created_at} />
+              <Row label="Short ID" value={evaluation.short_id || evaluation.id?.slice(-8) || 'N/A'} />
+              <Row label="Question Type" value={evaluation.question_type || 'N/A'} />
+              <Row label="Grade" value={evaluation.grade || 'N/A'} />
+              <Row label="Timestamp" value={evaluation.timestamp ? new Date(evaluation.timestamp).toLocaleString() : 'N/A'} />
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-              <Row label="reading_marks" value={data.reading_marks} />
-              <Row label="writing_marks" value={data.writing_marks} />
-              <Row label="sol_marks" value={data.sol_marks} />
-              <Row label="so2_marks" value={data.so2_marks} />
-              <Row label="content_structure_marks" value={data.content_structure_marks} />
-              <Row label="style_accuracy_marks" value={data.style_accuracy_marks} />
+              <Row label="Reading Marks" value={evaluation.reading_marks || 'N/A'} />
+              <Row label="Writing Marks" value={evaluation.writing_marks || 'N/A'} />
+              <Row label="AO1 Marks" value={evaluation.ao1_marks || 'N/A'} />
+              <Row label="AO2 Marks" value={evaluation.ao2_marks || 'N/A'} />
+              <Row label="Content Structure" value={evaluation.content_structure_marks || 'N/A'} />
+              <Row label="Style Accuracy" value={evaluation.style_accuracy_marks || 'N/A'} />
             </div>
 
             <div>
               <h3 className="font-semibold mb-2">Student Response</h3>
-              <div className="rounded border p-3 whitespace-pre-wrap text-sm max-h-64 overflow-auto">{data.student_response}</div>
+              <div className="rounded border p-3 whitespace-pre-wrap text-sm max-h-64 overflow-auto bg-gray-50 dark:bg-gray-800">
+                {evaluation.student_response || 'No student response available'}
+              </div>
             </div>
 
             <div>
               <h3 className="font-semibold mb-2">AI Feedback</h3>
-              <div className="rounded border p-3 whitespace-pre-wrap text-sm max-h-64 overflow-auto">{data.feedback}</div>
+              <div className="rounded border p-3 whitespace-pre-wrap text-sm max-h-64 overflow-auto bg-gray-50 dark:bg-gray-800">
+                {evaluation.feedback || 'No feedback available'}
+              </div>
             </div>
 
             <div>
               <h3 className="font-semibold mb-2">Strengths</h3>
-              <div className="rounded border p-3 whitespace-pre-wrap text-sm max-h-64 overflow-auto">{data.strengths}</div>
+              <div className="rounded border p-3 whitespace-pre-wrap text-sm max-h-64 overflow-auto bg-gray-50 dark:bg-gray-800">
+                {Array.isArray(evaluation.strengths) 
+                  ? evaluation.strengths.join('\n• ') 
+                  : evaluation.strengths || 'No strengths available'
+                }
+              </div>
             </div>
 
             <div>
-              <h3 className="font-semibold mb-2">Full Chat</h3>
-              <div className="rounded border p-3 whitespace-pre-wrap text-xs max-h-72 overflow-auto">{data.full_chat}</div>
+              <h3 className="font-semibold mb-2">Improvement Suggestions</h3>
+              <div className="rounded border p-3 whitespace-pre-wrap text-sm max-h-64 overflow-auto bg-gray-50 dark:bg-gray-800">
+                {Array.isArray(evaluation.improvement_suggestions) 
+                  ? evaluation.improvement_suggestions.join('\n• ') 
+                  : evaluation.improvement_suggestions || 'No improvement suggestions available'
+                }
+              </div>
             </div>
+
+            {evaluation.next_steps && (
+              <div>
+                <h3 className="font-semibold mb-2">Next Steps</h3>
+                <div className="rounded border p-3 whitespace-pre-wrap text-sm max-h-64 overflow-auto bg-gray-50 dark:bg-gray-800">
+                  {Array.isArray(evaluation.next_steps) 
+                    ? evaluation.next_steps.join('\n• ') 
+                    : evaluation.next_steps
+                  }
+                </div>
+              </div>
+            )}
+
+            {fullChat && (
+              <div>
+                <h3 className="font-semibold mb-2">Full Chat Data</h3>
+                <div className="rounded border p-3 text-xs max-h-72 overflow-auto bg-gray-50 dark:bg-gray-800 font-mono">
+                  {fullChat.error ? (
+                    <div className="text-orange-600">{fullChat.error}</div>
+                  ) : (
+                    <pre>{JSON.stringify(fullChat, null, 2)}</pre>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
