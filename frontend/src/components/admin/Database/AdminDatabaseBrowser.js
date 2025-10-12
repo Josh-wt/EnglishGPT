@@ -446,9 +446,9 @@ const AdminDatabaseBrowser = () => {
     const { users = [], evaluations = [], feedback = [] } = globalResults;
     const totalResults = users.length + evaluations.length + feedback.length;
 
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Database Browser</h1>
           <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-400">

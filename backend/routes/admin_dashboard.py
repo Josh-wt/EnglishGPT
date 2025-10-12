@@ -869,35 +869,46 @@ async def get_user_detail_admin(request: Request, user_id: str):
         supabase = get_supabase_client()
         from datetime import datetime, timedelta
         
+        logger.info(f"Fetching user details for user_id: {user_id}")
+        
         # Get user basic info
         user_response = supabase.table('assessment_users').select('*').eq('uid', user_id).execute()
         if not user_response.data:
+            logger.warning(f"User not found: {user_id}")
             raise HTTPException(status_code=404, detail="User not found")
         
         user = user_response.data[0]
+        logger.info(f"Found user: {user.get('email', 'unknown')} with {user.get('questions_marked', 0)} marked questions")
         
-        # Get user's evaluations with detailed info
+        # Get user's evaluations with detailed info (limit to recent 100 for performance)
+        logger.info(f"Fetching evaluations for user: {user_id}")
         evaluations_response = supabase.table('assessment_evaluations').select(
             'id, short_id, user_id, question_type, grade, reading_marks, writing_marks, ao1_marks, ao2_marks, ao3_marks, '
             'content_structure_marks, style_accuracy_marks, student_response, improvement_suggestions, strengths, '
             'next_steps, feedback, timestamp'
-        ).eq('user_id', user_id).order('timestamp', desc=True).execute()
+        ).eq('user_id', user_id).order('timestamp', desc=True).limit(100).execute()
         
         evaluations = evaluations_response.data or []
+        logger.info(f"Fetched {len(evaluations)} evaluations")
         
-        # Calculate user statistics
-        total_evaluations = len(evaluations)
+        # Get total count of evaluations for this user (for stats)
+        total_evaluations_response = supabase.table('assessment_evaluations').select(
+            'id', count='exact'
+        ).eq('user_id', user_id).execute()
+        
+        total_evaluations = total_evaluations_response.count or len(evaluations)
+        logger.info(f"Total evaluations count: {total_evaluations}")
         grades = [float(e.get('grade', 0)) for e in evaluations if e.get('grade') is not None]
         avg_grade = sum(grades) / len(grades) if grades else 0
         best_grade = max(grades) if grades else 0
         worst_grade = min(grades) if grades else 0
         
-        # Create activity timeline (last 30 days)
+        # Create activity timeline (last 30 days) - only from the limited evaluations
         activity_timeline = []
         cutoff_date = (datetime.now() - timedelta(days=30)).isoformat()
         
-        # Add evaluation activities
-        for eval in evaluations:
+        # Add evaluation activities (limited to prevent performance issues)
+        for eval in evaluations[:50]:  # Further limit activity timeline to 50 most recent
             if eval.get('timestamp') and eval['timestamp'] >= cutoff_date:
                 activity_timeline.append({
                     'type': 'evaluation',
@@ -958,10 +969,108 @@ async def get_user_detail_admin(request: Request, user_id: str):
             'account_status': 'active' if total_evaluations > 0 else 'inactive'
         }
         
+        logger.info(f"Successfully prepared user details for {user_id}")
         return {"user": enhanced_user}
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error getting user detail: {str(e)}")
+        logger.error(f"Error getting user detail for {user_id}: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"User detail error: {str(e)}")
+
+@router.get("/dashboard/feedback")
+async def get_feedback_admin(
+    request: Request,
+    limit: int = 25,
+    offset: int = 0,
+    search: str = "",
+    category: str = "",
+    accurate: str = "",
+    user_id: str = "",
+    evaluation_id: str = "",
+    date_from: str = "",
+    date_to: str = "",
+    sort_by: str = "created_at",
+    sort_dir: str = "desc"
+):
+    """Get feedback data for admin dashboard with filtering, sorting, and pagination."""
+    try:
+        require_admin_access(request)
+        supabase = get_supabase_client()
+        
+        logger.info(f"Fetching feedback with filters: search='{search}', category='{category}', accurate='{accurate}'")
+        
+        # Build the query
+        query = supabase.table('assessment_feedback').select(
+            'id, evaluation_id, user_id, category, accurate, comments, created_at, '
+            'assessment_users!inner(uid, display_name, email), '
+            'assessment_evaluations!inner(id, short_id, question_type, grade)',
+            count='exact'
+        )
+        
+        # Apply filters
+        if search:
+            query = query.ilike('comments', f'%{search}%')
+        if category:
+            query = query.eq('category', category)
+        if accurate:
+            query = query.eq('accurate', accurate.lower() == 'true')
+        if user_id:
+            query = query.eq('user_id', user_id)
+        if evaluation_id:
+            query = query.eq('evaluation_id', evaluation_id)
+        if date_from:
+            query = query.gte('created_at', date_from)
+        if date_to:
+            query = query.lte('created_at', date_to)
+        
+        # Apply sorting and pagination
+        query = query.order(sort_by, desc=(sort_dir == 'desc'))
+        query = query.range(offset, offset + limit - 1)
+        
+        response = query.execute()
+        
+        if response.error:
+            logger.error(f"Supabase error fetching feedback: {response.error}")
+            raise HTTPException(status_code=500, detail=f"Database error: {response.error}")
+        
+        # Transform the data to match expected format
+        feedback_data = []
+        for item in response.data:
+            feedback_data.append({
+                'id': item['id'],
+                'evaluation_id': item['evaluation_id'],
+                'user_id': item['user_id'],
+                'category': item['category'],
+                'accurate': item['accurate'],
+                'comments': item['comments'],
+                'created_at': item['created_at'],
+                'user': {
+                    'uid': item['assessment_users']['uid'],
+                    'display_name': item['assessment_users']['display_name'],
+                    'email': item['assessment_users']['email']
+                },
+                'evaluation': {
+                    'id': item['assessment_evaluations']['id'],
+                    'short_id': item['assessment_evaluations']['short_id'],
+                    'question_type': item['assessment_evaluations']['question_type'],
+                    'grade': item['assessment_evaluations']['grade']
+                }
+            })
+        
+        logger.info(f"Retrieved {len(feedback_data)} feedback items, total count: {response.count}")
+        
+        return {
+            "data": feedback_data,
+            "count": response.count
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting feedback: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Feedback error: {str(e)}")

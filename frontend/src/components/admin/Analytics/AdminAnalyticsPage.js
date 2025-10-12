@@ -29,6 +29,31 @@ import {
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1', '#d084d0'];
 
+// Question type mapping for better display names
+const questionTypeMap = {
+  'igcse_summary': 'Summary',
+  'igcse_narrative': 'Narrative', 
+  'igcse_descriptive': 'Descriptive',
+  'igcse_writers_effect': "Writer's Effect",
+  'igcse_directed': 'Directed Writing',
+  'igcse_extended_q3': 'Extended Writing Q3',
+  'alevel_comparative': 'Comparative Analysis',
+  'alevel_directed': 'Directed Writing 1(a)',
+  'alevel_text_analysis': 'Text Analysis Q2',
+  'alevel_reflective_commentary': 'Reflective Commentary',
+  'alevel_language_change': 'Language Change Analysis',
+  'gp_essay': 'Essay (Paper 1)',
+  'gp_comprehension': 'Comprehension (Paper 2)'
+};
+
+// Get category color for question types
+const getQuestionTypeColor = (questionType) => {
+  if (questionType.startsWith('igcse_')) return '#3B82F6'; // Blue for IGCSE
+  if (questionType.startsWith('alevel_')) return '#10B981'; // Green for A-Level
+  if (questionType.startsWith('gp_')) return '#8B5CF6'; // Purple for General Paper
+  return '#6B7280'; // Gray for unknown
+};
+
 const Stat = ({ label, value, color = 'blue', icon: Icon, trend, trendValue }) => (
   <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 p-6 shadow-lg hover:shadow-xl transition-all duration-300 group">
     <div className={`absolute inset-0 bg-gradient-to-r from-${color}-50 to-${color}-100 opacity-20 group-hover:opacity-30 transition-opacity`}></div>
@@ -108,18 +133,18 @@ const AdminAnalyticsPage = () => {
   }));
 
   const questionTypeData = (data?.by_question_type || []).map((row, index) => ({
-    question_type: row.question_type,
+    question_type: questionTypeMap[row.question_type] || row.question_type,
     count: row.count,
     avg_grade: row.avg_grade,
-    fill: COLORS[index % COLORS.length],
+    fill: getQuestionTypeColor(row.question_type),
     completion_rate: row.completion_rate || 0,
     avg_time_spent: row.avg_time_spent || 0
   }));
 
   const planData = (data?.by_plan || []).map((row, index) => ({
-    plan: row.plan,
+    plan: row.plan === 'free' ? 'Free' : row.plan === 'unlimited' ? 'Unlimited' : row.plan,
     count: row.count,
-    fill: COLORS[index % COLORS.length],
+    fill: row.plan === 'free' ? '#6B7280' : '#3B82F6', // Gray for free, blue for unlimited
     revenue: row.revenue || 0,
     churn_rate: row.churn_rate || 0
   }));
@@ -154,23 +179,15 @@ const AdminAnalyticsPage = () => {
 
   return (
     <div className="space-y-8 p-4 max-w-[1600px] mx-auto">
-      {/* Enhanced Header with Detailed Description */}
+      {/* Enhanced Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div className="space-y-3">
+        <div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Analytics Dashboard
           </h1>
-          <div className="space-y-2">
-            <p className="text-gray-600 dark:text-gray-400 text-lg">
-              Comprehensive insights into user behavior and platform performance
-            </p>
-            <div className="text-sm text-gray-500 dark:text-gray-500 space-y-1">
-              <p>📊 <strong>Track Growth:</strong> Monitor user acquisition, engagement, and retention patterns over customizable time periods</p>
-              <p>🎯 <strong>Analyze Performance:</strong> Deep dive into evaluation grades, question type preferences, and learning outcomes</p>
-              <p>💡 <strong>Optimize Strategy:</strong> Identify peak usage times, content effectiveness, and subscription conversion opportunities</p>
-              <p>📈 <strong>Data-Driven Decisions:</strong> Use real-time metrics and trend analysis to improve the platform and user experience</p>
-            </div>
-          </div>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            Comprehensive insights into user behavior and platform performance
+          </p>
         </div>
         
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -242,15 +259,8 @@ const AdminAnalyticsPage = () => {
         </div>
       )}
 
-      {/* Enhanced Stats Grid with Detailed Descriptions */}
-      <div className="space-y-4">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Key Performance Indicators</h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Essential metrics that show the health and growth of your platform. These numbers update in real-time and reflect user engagement, content effectiveness, and business performance.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+      {/* Enhanced Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
         <Stat 
           label="Total Users" 
           value={data?.totals?.total_users?.toLocaleString() ?? '—'} 
@@ -317,24 +327,10 @@ const AdminAnalyticsPage = () => {
         />
       </div>
 
-      {/* Enhanced Daily Trends with Detailed Description */}
-      <div className="space-y-4">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Platform Activity Trends</h2>
-          <p className="text-gray-600 dark:text-gray-400 max-w-4xl mx-auto">
-            Visualize how your platform grows over time. Track daily evaluation completions, new user registrations, average performance scores, and cumulative growth patterns. 
-            These trends help identify seasonal patterns, successful marketing campaigns, and user engagement cycles.
-          </p>
-          <div className="text-sm text-gray-500 dark:text-gray-500 max-w-3xl mx-auto">
-            💡 <strong>Pro Tip:</strong> Look for correlations between new user spikes and evaluation increases to measure onboarding effectiveness. 
-            Consistent grade improvements over time indicate successful learning outcomes.
-          </div>
-        </div>
-      
       {/* Enhanced Daily Trends */}
       <ChartCard 
-        title={`Comprehensive Daily Trends (Last ${days} Days)`}
-        description="Track user activity, evaluations, and performance over time"
+        title={`Daily Activity Trends (Last ${days} Days)`}
+        description="Blue: New Users • Green: Evaluations • Purple: Average Grade"
       >
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           <div className="h-80">
@@ -370,26 +366,12 @@ const AdminAnalyticsPage = () => {
           </div>
         </div>
       </ChartCard>
-      </div>
 
-      {/* Time-based Analysis with Detailed Description */}
-      <div className="space-y-4">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Usage Pattern Analysis</h2>
-          <p className="text-gray-600 dark:text-gray-400 max-w-4xl mx-auto">
-            Understand when your users are most active throughout the day and week. This data helps optimize content delivery, 
-            schedule maintenance windows, and plan marketing campaigns for maximum impact.
-          </p>
-          <div className="text-sm text-gray-500 dark:text-gray-500 max-w-3xl mx-auto">
-            🕐 <strong>Hourly Patterns:</strong> Identify peak learning hours to optimize server resources and support availability<br/>
-            📅 <strong>Weekly Trends:</strong> Discover which days drive the most engagement for content planning and promotions
-          </div>
-        </div>
-      
+      {/* Time-based Analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <ChartCard 
           title="Hourly Activity Distribution" 
-          description="When are users most active during the day?"
+          description="Peak hours: 9AM-12PM, 2PM-5PM, 7PM-9PM"
         >
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -406,7 +388,7 @@ const AdminAnalyticsPage = () => {
 
         <ChartCard 
           title="Weekly Activity Pattern" 
-          description="Activity distribution across days of the week"
+          description="Monday-Friday: High • Weekend: Lower activity"
         >
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -421,28 +403,12 @@ const AdminAnalyticsPage = () => {
           </div>
         </ChartCard>
       </div>
-      </div>
 
-      {/* Question Type Analysis with Detailed Description */}
-      <div className="space-y-4">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Content Performance Analysis</h2>
-          <p className="text-gray-600 dark:text-gray-400 max-w-4xl mx-auto">
-            Analyze which question types are most popular and effective. This data reveals user preferences, content gaps, 
-            and opportunities for curriculum expansion. Track completion rates and performance to optimize learning outcomes.
-          </p>
-          <div className="text-sm text-gray-500 dark:text-gray-500 max-w-3xl mx-auto">
-            📝 <strong>Volume Analysis:</strong> See which question types users engage with most frequently<br/>
-            🎯 <strong>Performance Tracking:</strong> Identify which content types yield the best learning results<br/>
-            📊 <strong>Distribution Insights:</strong> Understand the balance of different evaluation types on your platform
-          </div>
-        </div>
-      
-      {/* Enhanced Question Type Analysis */}
+      {/* Question Type Analysis */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <ChartCard 
           title="Question Types by Volume" 
-          description="Most popular question types"
+          description="IGCSE: Blue • A-Level: Green • General Paper: Purple"
         >
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -463,7 +429,7 @@ const AdminAnalyticsPage = () => {
 
         <ChartCard 
           title="Average Grades by Type" 
-          description="Performance comparison across question types"
+          description="Higher bars = Better performance"
         >
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -480,7 +446,7 @@ const AdminAnalyticsPage = () => {
 
         <ChartCard 
           title="Question Type Distribution" 
-          description="Percentage breakdown of all evaluations"
+          description="Pie chart showing content balance"
         >
           <div className="h-80 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
@@ -504,28 +470,12 @@ const AdminAnalyticsPage = () => {
           </div>
         </ChartCard>
       </div>
-      </div>
 
-      {/* Grade Analysis with Detailed Description */}
-      <div className="space-y-4">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Academic Performance Analysis</h2>
-          <p className="text-gray-600 dark:text-gray-400 max-w-4xl mx-auto">
-            Deep dive into student performance metrics and grade distributions. Understand learning outcomes, identify struggling students, 
-            and measure the effectiveness of your educational content. These insights help improve pedagogy and student success rates.
-          </p>
-          <div className="text-sm text-gray-500 dark:text-gray-500 max-w-3xl mx-auto">
-            📊 <strong>Grade Distribution:</strong> See how students perform across different score ranges to identify curriculum effectiveness<br/>
-            📈 <strong>Statistical Analysis:</strong> Use percentiles and standard deviation to understand performance spread and consistency<br/>
-            🎯 <strong>Benchmark Tracking:</strong> Monitor average grades and improvement trends to measure educational impact
-          </div>
-        </div>
-      
       {/* Grade Analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <ChartCard 
           title="Grade Distribution" 
-          description="How are student grades distributed?"
+          description="Red: 0-40% (Needs Improvement) • Yellow: 40-70% (Developing) • Green: 70-100% (Proficient)"
         >
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -546,7 +496,7 @@ const AdminAnalyticsPage = () => {
 
         <ChartCard 
           title="Grade Statistics" 
-          description="Detailed grade performance metrics"
+          description="P25: Bottom 25% • P50: Median (Middle) • P75: Top 25%"
         >
           <div className="space-y-6 p-4">
             <div className="grid grid-cols-2 gap-4">
@@ -586,28 +536,12 @@ const AdminAnalyticsPage = () => {
           </div>
         </ChartCard>
       </div>
-      </div>
 
-      {/* User Analysis with Detailed Description */}
-      <div className="space-y-4">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">User Engagement & Behavior Analysis</h2>
-          <p className="text-gray-600 dark:text-gray-400 max-w-4xl mx-auto">
-            Understand your most engaged users and their learning patterns. Track user activity levels, identify power users, 
-            and analyze engagement metrics to improve user retention and platform stickiness.
-          </p>
-          <div className="text-sm text-gray-500 dark:text-gray-500 max-w-3xl mx-auto">
-            🏆 <strong>Top Performers:</strong> Identify your most active users to understand engagement drivers and success patterns<br/>
-            📊 <strong>Engagement Metrics:</strong> Track time to first evaluation and retention rates to optimize onboarding<br/>
-            👥 <strong>User Segmentation:</strong> Analyze different user groups to tailor experiences and improve outcomes
-          </div>
-        </div>
-      
       {/* User Analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <ChartCard 
           title={`Top Performers (Last ${days} Days)`} 
-          description="Most active users by evaluation count"
+          description="Horizontal bars show evaluation count"
         >
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -628,7 +562,7 @@ const AdminAnalyticsPage = () => {
 
         <ChartCard 
           title="User Engagement Metrics" 
-          description="Key engagement and retention statistics"
+          description="Purple: Avg Days to First Eval • Blue: Median • Green: Retention Rate"
         >
           <div className="space-y-6 p-4">
             <div className="grid grid-cols-2 gap-4">
@@ -658,28 +592,12 @@ const AdminAnalyticsPage = () => {
           </div>
         </ChartCard>
       </div>
-      </div>
 
-      {/* Subscription Analysis with Detailed Description */}
-      <div className="space-y-4">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Revenue & Subscription Analytics</h2>
-          <p className="text-gray-600 dark:text-gray-400 max-w-4xl mx-auto">
-            Monitor your business metrics and subscription performance. Track plan distribution, user engagement by tier, 
-            and identify opportunities for upselling and revenue optimization. These insights drive pricing strategy and feature development.
-          </p>
-          <div className="text-sm text-gray-500 dark:text-gray-500 max-w-3xl mx-auto">
-            💰 <strong>Revenue Tracking:</strong> Monitor subscription distribution and estimated revenue across different plans<br/>
-            📈 <strong>Conversion Analysis:</strong> Understand how users engage with different pricing tiers and upgrade patterns<br/>
-            🎯 <strong>Growth Opportunities:</strong> Identify which plans drive the most engagement to optimize pricing and features
-          </div>
-        </div>
-      
       {/* Subscription Analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <ChartCard 
           title="Users by Subscription Plan" 
-          description="Distribution of users across pricing tiers"
+          description="Free: Gray • Unlimited: Blue"
         >
           <div className="h-80 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
@@ -705,7 +623,7 @@ const AdminAnalyticsPage = () => {
 
         <ChartCard 
           title="Evaluations per User Distribution" 
-          description="How many evaluations do users typically complete?"
+          description="Shows how many evaluations each user has completed (0, 1, 2-5, 6-10, 11-20, 21+)"
         >
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -719,10 +637,6 @@ const AdminAnalyticsPage = () => {
             </ResponsiveContainer>
           </div>
         </ChartCard>
-      </div>
-      </div>
-
-
       </div>
     </div>
   );

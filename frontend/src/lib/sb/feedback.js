@@ -1,40 +1,57 @@
-import { supabase } from '../../supabaseClient';
+import { getApiUrl } from '../../utils/backendUrl';
 
-const baseSelect = `id, evaluation_id, user_id, category, accurate, comments, created_at`;
+const getAdminHeaders = () => {
+  const sessionToken = localStorage.getItem('admin_session_token');
+  return {
+    'X-Admin-Session': sessionToken,
+    'Content-Type': 'application/json',
+  };
+};
 
 export async function listFeedback({
   page = 1,
   pageSize = 25,
   search = '',
-  category,
-  accurate,
-  userId,
-  evaluationId,
-  fromDate,
-  toDate,
+  category = '',
+  accurate = '',
+  userId = '',
+  evaluationId = '',
+  fromDate = '',
+  toDate = '',
   sortBy = 'created_at',
   sortDir = 'desc',
 } = {}) {
-  const from = (page - 1) * pageSize;
-  const to = from + pageSize - 1;
+  const offset = (page - 1) * pageSize;
+  
+  const params = new URLSearchParams({
+    limit: pageSize.toString(),
+    offset: offset.toString(),
+    search,
+    category,
+    accurate,
+    user_id: userId,
+    evaluation_id: evaluationId,
+    date_from: fromDate,
+    date_to: toDate,
+    sort_by: sortBy,
+    sort_dir: sortDir,
+  });
 
-  let query = supabase
-    .from('assessment_feedback')
-    .select(baseSelect + ', user:assessment_users(uid, display_name), evaluation:assessment_evaluations(short_id)', { count: 'exact' })
-    .order(sortBy, { ascending: sortDir === 'asc' })
-    .range(from, to);
+  // Remove empty parameters
+  for (const [key, value] of [...params]) {
+    if (!value) {
+      params.delete(key);
+    }
+  }
 
-  if (search) query = query.ilike('comments', `%${search}%`);
-  if (category) query = query.eq('category', category);
-  if (accurate != null) query = query.eq('accurate', accurate);
-  if (userId) query = query.eq('user_id', userId);
-  if (evaluationId) query = query.eq('evaluation_id', evaluationId);
-  if (fromDate) query = query.gte('created_at', fromDate);
-  if (toDate) query = query.lte('created_at', toDate);
-
-  const { data, error, count } = await query;
-  if (error) throw error;
-  return { data, count };
+  const url = `${getApiUrl()}/admin/dashboard/feedback?${params.toString()}`;
+  const response = await fetch(url, { headers: getAdminHeaders() });
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  return response.json();
 }
 
 

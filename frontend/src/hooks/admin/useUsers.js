@@ -41,18 +41,37 @@ export const useUserDetail = (userId) => {
     queryFn: async () => {
       if (!userId) return null;
       
-      const response = await fetch(
-        `${getApiUrl()}/admin/dashboard/users/${userId}`,
-        { headers: getAdminHeaders() }
-      );
+      // Create an AbortController for timeout handling
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      try {
+        const response = await fetch(
+          `${getApiUrl()}/admin/dashboard/users/${userId}`,
+          { 
+            headers: getAdminHeaders(),
+            signal: controller.signal
+          }
+        );
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+          throw new Error('Request timed out. This user may have too many evaluations.');
+        }
+        throw error;
       }
-      
-      return response.json();
     },
     enabled: !!userId,
+    retry: 2, // Retry failed requests up to 2 times
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   });
 };
 

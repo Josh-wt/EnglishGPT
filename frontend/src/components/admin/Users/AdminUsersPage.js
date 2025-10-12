@@ -481,7 +481,7 @@ const AdminUsersPage = () => {
             >
               Clear All Filters
             </button>
-          </div>
+      </div>
         } 
         onSortChange={(c,d)=>{setSortBy(c);setSortDir(d);setPage(1);}} 
         sortBy={sortBy} 

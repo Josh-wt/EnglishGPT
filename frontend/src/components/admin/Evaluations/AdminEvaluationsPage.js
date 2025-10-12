@@ -346,8 +346,8 @@ const AdminEvaluationsPage = () => {
             <span className="text-sm font-medium text-gray-900 dark:text-white">
               {gradeValue.toFixed(1)}%
             </span>
-          </div>
-        );
+    </div>
+  );
       }
     },
     ...(showDetails ? [
@@ -454,8 +454,8 @@ const AdminEvaluationsPage = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
-    );
+    </div>
+  );
   }
 
   return (
@@ -707,7 +707,7 @@ const AdminEvaluationsPage = () => {
                       Next
                     </Button>
                   </div>
-                </div>
+      </div>
               }
             />
           )}

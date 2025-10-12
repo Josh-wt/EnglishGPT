@@ -382,10 +382,17 @@ const EvaluationsChartTab = ({ user }) => {
       {/* Recent Evaluations Table */}
       {user.evaluations && user.evaluations.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold flex items-center space-x-2 text-gray-900 dark:text-white">
-            <FileText className="w-5 h-5 text-indigo-600" />
-            <span>Recent Evaluations ({user.evaluations.length})</span>
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold flex items-center space-x-2 text-gray-900 dark:text-white">
+              <FileText className="w-5 h-5 text-indigo-600" />
+              <span>Recent Evaluations ({user.evaluations.length})</span>
+            </h3>
+            {user.total_evaluations > user.evaluations.length && (
+              <div className="text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full">
+                Showing {user.evaluations.length} of {user.total_evaluations} total evaluations
+              </div>
+            )}
+          </div>
           <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-800">
@@ -540,7 +547,7 @@ const SubscriptionHistoryTab = ({ user }) => (
 );
 
 const UserDetailModal = ({ userId, open, onClose }) => {
-  const { data, isLoading, isError } = useUserDetail(userId);
+  const { data, isLoading, isError, error, refetch } = useUserDetail(userId);
   const user = data?.user || null;
   const [activeTab, setActiveTab] = useState('profile');
 
@@ -549,9 +556,12 @@ const UserDetailModal = ({ userId, open, onClose }) => {
   if (isLoading) {
     return (
       <Modal open={open} onClose={onClose}>
-        <div className="p-8 text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <div className="mt-4 text-gray-600 dark:text-gray-400">Loading user details...</div>
+        <div className="p-12 text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="mt-6 text-gray-600 dark:text-gray-400 text-lg">Loading user details...</div>
+          <div className="mt-2 text-sm text-gray-500 dark:text-gray-500">
+            This may take a moment for users with many evaluations
+          </div>
         </div>
       </Modal>
     );
@@ -560,14 +570,25 @@ const UserDetailModal = ({ userId, open, onClose }) => {
   if (isError) {
     return (
       <Modal open={open} onClose={onClose}>
-        <div className="p-8 text-center">
-          <div className="text-red-600 dark:text-red-400 mb-4">Failed to load user details</div>
-          <button 
-            onClick={onClose} 
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg"
-          >
-            Close
-          </button>
+        <div className="p-12 text-center">
+          <div className="text-red-600 dark:text-red-400 mb-4 text-lg">Failed to load user details</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+            {error?.message || 'An error occurred while loading user data'}
+          </div>
+          <div className="space-x-3">
+            <button 
+              onClick={() => refetch()} 
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              Try Again
+            </button>
+            <button 
+              onClick={onClose} 
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </Modal>
     );
