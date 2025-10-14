@@ -111,7 +111,7 @@ QUESTION_TOTALS = {
     "alevel_directed": {"total": 10, "components": {"ao1": 5, "ao2": 5}},
     "alevel_directed_writing": {"total": 10, "components": {"ao1": 5, "ao2": 5}},
     "alevel_comparative": {"total": 15, "components": {"ao1": 5, "ao3": 10}},
-    "alevel_text_analysis": {"total": 25, "components": {"ao1": 5, "ao3": 20}},
+    "alevel_text_analysis": {"total": 25, "components": {"ao1": 5, "ao2": 20}},
     "alevel_language_change": {"total": 25, "components": {"ao2": 5, "ao4": 5, "ao5": 15}},
     # English General Paper (8021)
     "gp_essay": {"total": 30, "components": {"AO1": 6, "AO2": 12, "AO3": 12}},

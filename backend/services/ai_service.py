@@ -95,9 +95,9 @@ def get_evaluation_schema(question_type: str) -> dict:
             "type": "string",
             "description": "AO1 marks in format like '4/5'"
         }
-        base_properties["ao3_marks"] = {
+        base_properties["ao2_marks"] = {
             "type": "string",
-            "description": "AO3 marks in format like '18/20'"
+            "description": "AO2 marks in format like '18/20'"
         }
     elif question_type in ['gp_essay']:
         base_properties["ao1_marks"] = {

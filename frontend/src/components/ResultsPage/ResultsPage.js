@@ -205,7 +205,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       igcse_extended_q3: ['READING', 'WRITING'],
       alevel_directed: ['AO1', 'AO2'],
       alevel_comparative: ['AO1', 'AO2'], // AO3 is stored in ao2_marks field
-      alevel_text_analysis: ['AO1', 'AO2'], // AO3 is stored in ao2_marks field
+      alevel_text_analysis: ['AO1', 'AO2'], // AO1 in ao1_marks, AO2 in ao2_marks
       alevel_reflective_commentary: ['AO2'], // AO3 is stored in ao2_marks field, out of 10
       alevel_language_change: ['AO2', 'AO1', 'READING'], // AO4 stored in ao1_marks, AO5 stored in reading_marks
       sat_essay: ['READING', 'WRITING']

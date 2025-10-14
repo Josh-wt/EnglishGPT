@@ -11,7 +11,7 @@ export const getSubmarks = (evaluation) => {
     alevel_directed: ['AO1', 'AO2'],
     alevel_directed_writing: ['AO1', 'AO2'],
     alevel_comparative: ['AO1', 'AO2'],  // Backend asks for AO2 in prompt, even though QUESTION_TOTALS says AO3
-    alevel_text_analysis: ['AO1', 'AO3'],  // Backend stores AO1 in ao1_marks, AO3 in ao2_marks
+    alevel_text_analysis: ['AO1', 'AO2'],  // Backend stores AO1 in ao1_marks, AO2 in ao2_marks
     alevel_reflective_commentary: ['AO3'],  // Only AO3 marks out of 10
     alevel_language_change: ['AO2', 'AO4', 'AO5'],  // AO2 in ao2_marks, AO4 in ao1_marks, AO5 in reading_marks
     gp_essay: ['AO1', 'AO2', 'AO3'],  // GP essay has AO1, AO2, AO3
