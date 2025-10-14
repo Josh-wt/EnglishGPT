@@ -292,386 +292,56 @@ Student Response: {sanitized_response}
         
         return full_prompt
     
-    def parse_ai_response(self, ai_response: str, question_type: str) -> Dict[str, Any]:
-        """Parse the AI response and extract structured data."""
-        # Remove any bolding from the response
-        ai_response = ai_response.replace('**', '')
+    def parse_structured_response(self, ai_response: str, question_type: str) -> Dict[str, Any]:
+        """Parse structured JSON response from AI - MUST be perfect."""
+        # Parse JSON response - this MUST work with structured outputs
+        response_data = json.loads(ai_response)
         
-        feedback_parts = ai_response.split("FEEDBACK:")
-        if len(feedback_parts) > 1:
-            feedback = feedback_parts[1].split("GRADE:")[0].strip()
-            
-            # Extract grade (raw from model first)
-            grade_part = feedback_parts[1].split("GRADE:")[1] if "GRADE:" in feedback_parts[1] else ""
-            if grade_part:
-                # Find the next section after GRADE
-                next_sections = ["READING_MARKS:", "AO1_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                grade = grade_part.strip()
-                for section in next_sections:
-                    if section in grade_part:
-                        grade = grade_part.split(section)[0].strip()
-                        break
-            else:
-                grade = "Not provided"
-            
-            # Extract marks based on question type
-            reading_marks = "N/A"
-            writing_marks = "N/A"
-            ao1_marks = "N/A"
-            ao2_marks = "N/A"
-            ao3_marks = "N/A"
-            content_structure_marks = "N/A"
-            style_accuracy_marks = "N/A"
-            
-            # Extract marks based on question type
-            if question_type in ['igcse_writers_effect']:
-                # Writers effect only needs reading marks
-                if "READING_MARKS:" in ai_response:
-                    reading_part = ai_response.split("READING_MARKS:")[1]
-                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                    reading_marks = reading_part.strip()
-                    for section in next_sections:
-                        if section in reading_part:
-                            reading_marks = reading_part.split(section)[0].strip()
-                            break
-            elif question_type in ['igcse_narrative', 'igcse_descriptive']:
-                # IGCSE narrative/descriptive need Content and Structure (16 marks) and Style and Accuracy (24 marks)
-                # Extract Content and Structure marks (stored in content_structure_marks)
-                if "READING_MARKS:" in ai_response:
-                    reading_part = ai_response.split("READING_MARKS:")[1]
-                    next_sections = ["WRITING_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                    content_structure_marks = reading_part.strip()
-                    for section in next_sections:
-                        if section in reading_part:
-                            content_structure_marks = reading_part.split(section)[0].strip()
-                            break
-                else:
-                    content_structure_marks = "N/A"
-                
-                # Extract Style and Accuracy marks (stored in style_accuracy_marks)
-                if "WRITING_MARKS:" in ai_response:
-                    writing_part = ai_response.split("WRITING_MARKS:")[1]
-                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                    style_accuracy_marks = writing_part.strip()
-                    for section in next_sections:
-                        if section in writing_part:
-                            style_accuracy_marks = writing_part.split(section)[0].strip()
-                            break
-                else:
-                    style_accuracy_marks = "N/A"
-                
-                # Set reading_marks and writing_marks to N/A for these question types
-                reading_marks = "N/A"
-                writing_marks = "N/A"
-            elif question_type in ['igcse_directed', 'igcse_extended_q3']:
-                # IGCSE directed writing and Extended Q3 need Reading (15 marks) and Writing (25 marks)
-                # Extract Reading marks
-                if "READING_MARKS:" in ai_response:
-                    reading_part = ai_response.split("READING_MARKS:")[1]
-                    next_sections = ["WRITING_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                    reading_marks = reading_part.strip()
-                    for section in next_sections:
-                        if section in reading_part:
-                            reading_marks = reading_part.split(section)[0].strip()
-                            break
-                else:
-                    reading_marks = "N/A"
-                
-                # Extract Writing marks
-                if "WRITING_MARKS:" in ai_response:
-                    writing_part = ai_response.split("WRITING_MARKS:")[1]
-                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                    writing_marks = writing_part.strip()
-                    for section in next_sections:
-                        if section in writing_part:
-                            writing_marks = writing_part.split(section)[0].strip()
-                            break
-                else:
-                    writing_marks = "N/A"
-                
-                # Set other marks to N/A for these question types
-                content_structure_marks = "N/A"
-                style_accuracy_marks = "N/A"
-                ao1_marks = "N/A"
-                ao2_marks = "N/A"
-                ao3_marks = "N/A"
-            elif question_type in ['alevel_directed', 'alevel_directed_writing']:
-                # A-Level directed writing needs AO1 and AO2 marks
-                if "AO1_MARKS:" in ai_response:
-                    ao1_part = ai_response.split("AO1_MARKS:")[1]
-                    next_sections = ["AO2_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                    ao1_marks = ao1_part.strip()
-                    for section in next_sections:
-                        if section in ao1_part:
-                            ao1_marks = ao1_part.split(section)[0].strip()
-                            break
-                
-                if "AO2_MARKS:" in ai_response:
-                    ao2_part = ai_response.split("AO2_MARKS:")[1]
-                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                    ao2_marks = ao2_part.strip()
-                    for section in next_sections:
-                        if section in ao2_part:
-                            ao2_marks = ao2_part.split(section)[0].strip()
-                            break
-            elif question_type in ['alevel_comparative']:
-                # A-Level comparative needs AO1 and AO3 marks
-                if "AO1_MARKS:" in ai_response:
-                    ao1_part = ai_response.split("AO1_MARKS:")[1]
-                    next_sections = ["AO3_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                    ao1_marks = ao1_part.strip()
-                    for section in next_sections:
-                        if section in ao1_part:
-                            ao1_marks = ao1_part.split(section)[0].strip()
-                            break
-                
-                if "AO3_MARKS:" in ai_response:
-                    ao3_part = ai_response.split("AO3_MARKS:")[1]
-                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                    ao3_marks = ao3_part.strip()
-                    for section in next_sections:
-                        if section in ao3_part:
-                            ao3_marks = ao3_part.split(section)[0].strip()
-                            break
-            elif question_type in ['alevel_text_analysis']:
-                # A-Level text analysis needs AO1 and AO3 marks
-                if "AO1_MARKS:" in ai_response:
-                    ao1_part = ai_response.split("AO1_MARKS:")[1]
-                    next_sections = ["AO3_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                    ao1_marks = ao1_part.strip()
-                    for section in next_sections:
-                        if section in ao1_part:
-                            ao1_marks = ao1_part.split(section)[0].strip()
-                            break
-                
-                if "AO3_MARKS:" in ai_response:
-                    ao3_part = ai_response.split("AO3_MARKS:")[1]
-                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                    ao2_marks = ao3_part.strip()  # Temporarily store AO3 in ao2_marks (we will compute grade dynamically)
-                    for section in next_sections:
-                        if section in ao3_part:
-                            ao2_marks = ao3_part.split(section)[0].strip()
-                            break
-            elif question_type in ['gp_essay']:
-                # GP essay needs AO1, AO2, and AO3 marks
-                if "AO1_MARKS:" in ai_response:
-                    ao1_part = ai_response.split("AO1_MARKS:")[1]
-                    next_sections = ["AO2_MARKS:", "AO3_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                    ao1_marks = ao1_part.strip()
-                    for section in next_sections:
-                        if section in ao1_part:
-                            ao1_marks = ao1_part.split(section)[0].strip()
-                            break
-                
-                if "AO2_MARKS:" in ai_response:
-                    ao2_part = ai_response.split("AO2_MARKS:")[1]
-                    # For GP essays, AO2_MARKS should be followed by AO3_MARKS, so split on that
-                    if "AO3_MARKS:" in ao2_part:
-                        ao2_marks = ao2_part.split("AO3_MARKS:")[0].strip()
-                    else:
-                        # If no AO3_MARKS found, look for other sections
-                        next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                        ao2_marks = ao2_part.strip()
-                        for section in next_sections:
-                            if section in ao2_part:
-                                ao2_marks = ao2_part.split(section)[0].strip()
-                                break
-                
-                if "AO3_MARKS:" in ai_response:
-                    ao3_part = ai_response.split("AO3_MARKS:")[1]
-                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                    ao3_marks = ao3_part.strip()
-                    for section in next_sections:
-                        if section in ao3_part:
-                            ao3_marks = ao3_part.split(section)[0].strip()
-                            break
-                
-                # Set reading_marks and writing_marks to N/A for GP essay
-                reading_marks = "N/A"
-                writing_marks = "N/A"
-            elif question_type in ['alevel_language_change']:
-                # A-Level language change needs AO2, AO4, and AO5 marks
-                if "AO2_MARKS:" in ai_response:
-                    ao2_part = ai_response.split("AO2_MARKS:")[1]
-                    next_sections = ["AO4_MARKS:", "AO5_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                    ao2_marks = ao2_part.strip()
-                    for section in next_sections:
-                        if section in ao2_part:
-                            ao2_marks = ao2_part.split(section)[0].strip()
-                            break
-                
-                # Store AO4 marks in ao1_marks field (reusing existing field)
-                if "AO4_MARKS:" in ai_response:
-                    ao4_part = ai_response.split("AO4_MARKS:")[1]
-                    next_sections = ["AO5_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                    ao1_marks = ao4_part.strip()  # Store AO4 in ao1_marks field
-                    for section in next_sections:
-                        if section in ao4_part:
-                            ao1_marks = ao4_part.split(section)[0].strip()
-                            break
-                
-                # Extract AO5 marks and store in reading_marks field (reusing existing field)
-                if "AO5_MARKS:" in ai_response:
-                    ao5_part = ai_response.split("AO5_MARKS:")[1]
-                    next_sections = ["IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                    reading_marks = ao5_part.strip()  # Store AO5 in reading_marks field
-                    for section in next_sections:
-                        if section in ao5_part:
-                            reading_marks = ao5_part.split(section)[0].strip()
-                            break
-            else:
-                # Fallback: try to extract all marks
-                # Initialize all mark variables
-                reading_marks = "N/A"
-                writing_marks = "N/A"
-                content_structure_marks = "N/A"
-                style_accuracy_marks = "N/A"
-                ao1_marks = "N/A"
-                ao2_marks = "N/A"
-                ao3_marks = "N/A"
-                
-                if "READING_MARKS:" in ai_response:
-                    reading_part = ai_response.split("READING_MARKS:")[1]
-                    next_sections = ["WRITING_MARKS:", "AO1_MARKS:", "AO2_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                    reading_marks = reading_part.strip()
-                    for section in next_sections:
-                        if section in reading_part:
-                            reading_marks = reading_part.split(section)[0].strip()
-                            break
-            
-            if "WRITING_MARKS:" in ai_response:
-                writing_part = ai_response.split("WRITING_MARKS:")[1]
-                next_sections = ["AO1_MARKS:", "AO2_MARKS:", "IMPROVEMENTS:", "STRENGTHS:", "NEXT STEPS:"]
-                writing_marks = writing_part.strip()
-                for section in next_sections:
-                    if section in writing_part:
-                        writing_marks = writing_part.split(section)[0].strip()
-                        break
-            
-            if "AO1_MARKS:" in ai_response:
-                ao1_part = ai_response.split("AO1_MARKS:")[1]
-                next_sections = ["AO2_MARKS:", "IMPROVEMENTS:", "STRENGTHS:"]
-                ao1_marks = ao1_part.strip()
-                for section in next_sections:
-                    if section in ao1_part:
-                        ao1_marks = ao1_part.split(section)[0].strip()
-                        break
-            
-            if "AO2_MARKS:" in ai_response:
-                ao2_part = ai_response.split("AO2_MARKS:")[1]
-                next_sections = ["IMPROVEMENTS:", "STRENGTHS:"]
-                ao2_marks = ao2_part.strip()
-                for section in next_sections:
-                    if section in ao2_part:
-                        ao2_marks = ao2_part.split(section)[0].strip()
-                        break
-            
-            # Extract improvements
-            improvements = []
-            if "IMPROVEMENTS:" in ai_response:
-                improvements_part = ai_response.split("IMPROVEMENTS:")[1].strip()
-                # Remove NEXT STEPS if present
-                if "NEXT STEPS:" in improvements_part:
-                    improvements_part = improvements_part.split("NEXT STEPS:")[0].strip()
-                # Remove STRENGTHS if present
-                if "STRENGTHS:" in improvements_part:
-                    improvements_part = improvements_part.split("STRENGTHS:")[0].strip()
-                
-                logger.debug(f"DEBUG: Raw improvements part: {improvements_part}")
-                
-                # Try multiple parsing methods
-                if "|" in improvements_part:
-                    # Split by pipe
-                    improvements = [s.strip() for s in improvements_part.split("|") if s.strip()]
-                elif "\n" in improvements_part:
-                    # Split by newlines
-                    improvements = [s.strip() for s in improvements_part.split("\n") if s.strip() and not s.strip().startswith("Student Response:")]
-                else:
-                    # Use as single improvement
-                    improvements = [improvements_part] if improvements_part else []
-                
-                logger.debug(f"DEBUG: Parsed improvements: {improvements}")
-            else:
-                improvements = []
-            
-            # Extract strengths
-            strengths = []
-            if "STRENGTHS:" in ai_response:
-                strengths_part = ai_response.split("STRENGTHS:")[1].strip()
-                # Remove NEXT STEPS if present
-                if "NEXT STEPS:" in strengths_part:
-                    strengths_part = strengths_part.split("NEXT STEPS:")[0].strip()
-                logger.debug(f"DEBUG: Raw strengths part: {strengths_part}")
-                
-                # Try multiple parsing methods
-                if "|" in strengths_part:
-                    # Split by pipe
-                    strengths = [s.strip() for s in strengths_part.split("|") if s.strip()]
-                elif "\n" in strengths_part:
-                    # Split by newlines
-                    strengths = [s.strip() for s in strengths_part.split("\n") if s.strip() and not s.strip().startswith("Student Response:")]
-                else:
-                    # Use as single strength
-                    strengths = [strengths_part] if strengths_part else []
-                
-                logger.debug(f"DEBUG: Parsed strengths: {strengths}")
-            else:
-                strengths = []
-            
-            # Extract next steps
-            next_steps = []
-            if "NEXT STEPS:" in ai_response:
-                next_steps_part = ai_response.split("NEXT STEPS:")[1].strip()
-                logger.debug(f"DEBUG: Raw next steps part: {next_steps_part}")
-                
-                # Clean up any mixed content - remove IMPROVEMENTS and STRENGTHS labels
-                next_steps_part = next_steps_part.replace("IMPROVEMENTS:", "").replace("STRENGTHS:", "")
-                
-                # Try multiple parsing methods
-                if "|" in next_steps_part:
-                    # Split by pipe and filter out any items that contain improvement/strength labels
-                    raw_steps = [s.strip() for s in next_steps_part.split("|") if s.strip()]
-                    next_steps = [step for step in raw_steps if not any(label in step.upper() for label in ["IMPROVEMENTS:", "STRENGTHS:", "IMPROVEMENT:", "STRENGTH:"])]
-                elif "\n" in next_steps_part:
-                    # Split by newlines and filter
-                    raw_steps = [s.strip() for s in next_steps_part.split("\n") if s.strip() and not s.strip().startswith("Student Response:")]
-                    next_steps = [step for step in raw_steps if not any(label in step.upper() for label in ["IMPROVEMENTS:", "STRENGTHS:", "IMPROVEMENT:", "STRENGTH:"])]
-                else:
-                    # Use as single next step if it doesn't contain mixed content
-                    if not any(label in next_steps_part.upper() for label in ["IMPROVEMENTS:", "STRENGTHS:", "IMPROVEMENT:", "STRENGTH:"]):
-                        next_steps = [next_steps_part] if next_steps_part else []
-                    else:
-                        next_steps = []
-                
-                logger.debug(f"DEBUG: Parsed next steps: {next_steps}")
-            else:
-                next_steps = []
-        else:
-            feedback = ai_response
-            grade = "Not provided"
-            reading_marks = "N/A"
-            writing_marks = "N/A"
-            ao1_marks = "N/A"
-            ao2_marks = "N/A"
-            ao3_marks = "N/A"
-            improvements = []
-            strengths = []
-            next_steps = []
+        # Extract base fields
+        feedback = response_data.get("feedback", "")
+        grade = response_data.get("grade", "Not provided")
+        improvements = response_data.get("improvements", [])
+        strengths = response_data.get("strengths", [])
+        next_steps = response_data.get("next_steps", [])
         
-        return {
+        # Initialize result with base fields
+        result = {
             "feedback": feedback,
             "grade": grade,
-            "reading_marks": reading_marks,
-            "writing_marks": writing_marks,
-            "ao1_marks": ao1_marks,
-            "ao2_marks": ao2_marks,
-            "ao3_marks": ao3_marks,
-            "content_structure_marks": content_structure_marks,
-            "style_accuracy_marks": style_accuracy_marks,
             "improvements": improvements,
             "strengths": strengths,
             "next_steps": next_steps
         }
+        
+        # Add only relevant marks based on question type
+        if question_type in ['igcse_writers_effect']:
+            result["reading_marks"] = response_data.get("reading_marks", "N/A")
+        elif question_type in ['igcse_narrative', 'igcse_descriptive']:
+            result["content_structure_marks"] = response_data.get("content_structure_marks", "N/A")
+            result["style_accuracy_marks"] = response_data.get("style_accuracy_marks", "N/A")
+        elif question_type in ['igcse_directed', 'igcse_extended_q3']:
+            result["reading_marks"] = response_data.get("reading_marks", "N/A")
+            result["writing_marks"] = response_data.get("writing_marks", "N/A")
+        elif question_type in ['alevel_directed', 'alevel_directed_writing']:
+            result["ao1_marks"] = response_data.get("ao1_marks", "N/A")
+            result["ao2_marks"] = response_data.get("ao2_marks", "N/A")
+        elif question_type in ['alevel_comparative']:
+            result["ao1_marks"] = response_data.get("ao1_marks", "N/A")
+            result["ao3_marks"] = response_data.get("ao3_marks", "N/A")
+        elif question_type in ['alevel_text_analysis']:
+            result["ao1_marks"] = response_data.get("ao1_marks", "N/A")
+            result["ao3_marks"] = response_data.get("ao3_marks", "N/A")
+        elif question_type in ['gp_essay']:
+            result["ao1_marks"] = response_data.get("ao1_marks", "N/A")
+            result["ao2_marks"] = response_data.get("ao2_marks", "N/A")
+            result["ao3_marks"] = response_data.get("ao3_marks", "N/A")
+        elif question_type in ['alevel_language_change']:
+            result["ao2_marks"] = response_data.get("ao2_marks", "N/A")
+            result["ao1_marks"] = response_data.get("ao4_marks", "N/A")  # Store AO4 in ao1_marks field
+            result["reading_marks"] = response_data.get("ao5_marks", "N/A")  # Store AO5 in reading_marks field
+        
+        return result
+
     
     async def evaluate_submission(self, submission: SubmissionRequest) -> FeedbackResponse:
         """Evaluate a student submission and return feedback."""
@@ -708,11 +378,11 @@ Student Response: {sanitized_response}
             
             logger.debug(f"Prompt building took {prompt_time:.2f}s, length: {len(full_prompt)}")
             
-            # Call AI API
+            # Call AI API with structured outputs
             ai_start = time.time()
-            logger.info(f"🚀 PERFORMANCE: Starting AI API call...")
+            logger.info(f"🚀 PERFORMANCE: Starting AI API call with structured outputs...")
             logger.info(f"🚀 PERFORMANCE: Prompt length: {len(full_prompt)} characters")
-            ai_response, _ = await call_deepseek_api(full_prompt)
+            ai_response, _ = await call_deepseek_api(full_prompt, submission.question_type)
             ai_time = time.time() - ai_start
             
             logger.info(f"🚀 PERFORMANCE: AI API call completed in {ai_time:.2f}s")
@@ -731,9 +401,10 @@ Student Response: {sanitized_response}
                 "timestamp": datetime.now().isoformat()
             }
             
-            # Parse AI response
+            # Parse AI response using structured outputs (MUST be perfect)
             parse_start = time.time()
-            parsed_data = self.parse_ai_response(ai_response, submission.question_type)
+            parsed_data = self.parse_structured_response(ai_response, submission.question_type)
+            logger.info("✅ Successfully parsed structured JSON response")
             parse_time = time.time() - parse_start
             
             logger.debug(f"Response parsing took {parse_time:.2f}s")
@@ -742,33 +413,33 @@ Student Response: {sanitized_response}
             grade_start = time.time()
             dynamic_grade = compute_overall_grade(
                 submission.question_type,
-                parsed_data["reading_marks"],
-                parsed_data["writing_marks"],
-                parsed_data["ao1_marks"],
-                parsed_data["ao2_marks"],
-                parsed_data["content_structure_marks"],
-                parsed_data["style_accuracy_marks"],
-                parsed_data["ao3_marks"] if submission.question_type == 'gp_essay' else None
+                parsed_data.get("reading_marks"),
+                parsed_data.get("writing_marks"),
+                parsed_data.get("ao1_marks"),
+                parsed_data.get("ao2_marks"),
+                parsed_data.get("content_structure_marks"),
+                parsed_data.get("style_accuracy_marks"),
+                parsed_data.get("ao3_marks") if submission.question_type == 'gp_essay' else None
             )
             grade_time = time.time() - grade_start
             
             if dynamic_grade:
                 parsed_data["grade"] = dynamic_grade
             
-            # Create feedback response
+            # Create feedback response with only relevant marks
             feedback_response = FeedbackResponse(
                 user_id=submission.user_id,
                 question_type=submission.question_type,
                 student_response=self.sanitize_input(submission.student_response),
                 feedback=parsed_data["feedback"],
                 grade=parsed_data["grade"],
-                reading_marks=parsed_data["reading_marks"],
-                writing_marks=parsed_data["writing_marks"],
-                ao1_marks=parsed_data["ao1_marks"],
-                ao2_marks=parsed_data["ao2_marks"],
-                ao3_marks=parsed_data["ao3_marks"] if submission.question_type in ['gp_essay'] else None,
-                content_structure_marks=parsed_data["content_structure_marks"] if submission.question_type in ['igcse_narrative', 'igcse_descriptive'] else None,
-                style_accuracy_marks=parsed_data["style_accuracy_marks"] if submission.question_type in ['igcse_narrative', 'igcse_descriptive'] else None,
+                reading_marks=parsed_data.get("reading_marks"),
+                writing_marks=parsed_data.get("writing_marks"),
+                ao1_marks=parsed_data.get("ao1_marks"),
+                ao2_marks=parsed_data.get("ao2_marks"),
+                ao3_marks=parsed_data.get("ao3_marks"),
+                content_structure_marks=parsed_data.get("content_structure_marks"),
+                style_accuracy_marks=parsed_data.get("style_accuracy_marks"),
                 improvement_suggestions=parsed_data["improvements"],
                 strengths=parsed_data["strengths"],
                 next_steps=parsed_data["next_steps"],

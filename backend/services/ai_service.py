@@ -12,8 +12,129 @@ from config.settings import (
 
 logger = logging.getLogger(__name__)
 
-async def call_deepseek_api(prompt: str) -> tuple[str, str]:
-    """Call DeepSeek API for text evaluation"""
+def get_evaluation_schema(question_type: str) -> dict:
+    """Get the JSON schema for structured evaluation responses based on question type."""
+    
+    # Base schema properties
+    base_properties = {
+        "feedback": {
+            "type": "string",
+            "description": "Detailed feedback with specific examples in bullet points"
+        },
+        "grade": {
+            "type": "string", 
+            "description": "Overall grade in format like '24/25' or 'C+'"
+        },
+        "improvements": {
+            "type": "array",
+            "items": {"type": "string"},
+            "minItems": 3,
+            "maxItems": 3,
+            "description": "Exactly 3 specific areas that need work in this essay"
+        },
+        "strengths": {
+            "type": "array", 
+            "items": {"type": "string"},
+            "minItems": 3,
+            "maxItems": 3,
+            "description": "Exactly 3 specific strengths from this essay"
+        },
+        "next_steps": {
+            "type": "array",
+            "items": {"type": "string"}, 
+            "minItems": 3,
+            "maxItems": 3,
+            "description": "Exactly 3 actionable future steps for the student"
+        }
+    }
+    
+    # Add question-type specific mark properties
+    if question_type in ['igcse_writers_effect']:
+        base_properties["reading_marks"] = {
+            "type": "string",
+            "description": "Reading marks in format like '13/15'"
+        }
+    elif question_type in ['igcse_narrative', 'igcse_descriptive']:
+        base_properties["content_structure_marks"] = {
+            "type": "string", 
+            "description": "Content and Structure marks in format like '14/16'"
+        }
+        base_properties["style_accuracy_marks"] = {
+            "type": "string",
+            "description": "Style and Accuracy marks in format like '20/24'"
+        }
+    elif question_type in ['igcse_directed', 'igcse_extended_q3']:
+        base_properties["reading_marks"] = {
+            "type": "string",
+            "description": "Reading marks in format like '12/15'"
+        }
+        base_properties["writing_marks"] = {
+            "type": "string", 
+            "description": "Writing marks in format like '20/25' for directed or '8/10' for extended"
+        }
+    elif question_type in ['alevel_directed', 'alevel_directed_writing']:
+        base_properties["ao1_marks"] = {
+            "type": "string",
+            "description": "AO1 marks in format like '4/5'"
+        }
+        base_properties["ao2_marks"] = {
+            "type": "string",
+            "description": "AO2 marks in format like '5/5'"
+        }
+    elif question_type in ['alevel_comparative']:
+        base_properties["ao1_marks"] = {
+            "type": "string",
+            "description": "AO1 marks in format like '4/5'"
+        }
+        base_properties["ao3_marks"] = {
+            "type": "string",
+            "description": "AO3 marks in format like '8/10'"
+        }
+    elif question_type in ['alevel_text_analysis']:
+        base_properties["ao1_marks"] = {
+            "type": "string",
+            "description": "AO1 marks in format like '4/5'"
+        }
+        base_properties["ao3_marks"] = {
+            "type": "string",
+            "description": "AO3 marks in format like '18/20'"
+        }
+    elif question_type in ['gp_essay']:
+        base_properties["ao1_marks"] = {
+            "type": "string",
+            "description": "AO1 marks in format like '5/6'"
+        }
+        base_properties["ao2_marks"] = {
+            "type": "string",
+            "description": "AO2 marks in format like '10/12'"
+        }
+        base_properties["ao3_marks"] = {
+            "type": "string",
+            "description": "AO3 marks in format like '9/12'"
+        }
+    elif question_type in ['alevel_language_change']:
+        base_properties["ao2_marks"] = {
+            "type": "string",
+            "description": "AO2 marks in format like '4/5'"
+        }
+        base_properties["ao4_marks"] = {
+            "type": "string",
+            "description": "AO4 marks in format like '5/5'"
+        }
+        base_properties["ao5_marks"] = {
+            "type": "string",
+            "description": "AO5 marks in format like '12/15'"
+        }
+    
+    return {
+        "type": "object",
+        "properties": base_properties,
+        "required": list(base_properties.keys()),
+        "additionalProperties": False
+    }
+
+async def call_deepseek_api(prompt: str, question_type: str = None) -> tuple[str, str]:
+    """Call DeepSeek API for text evaluation with structured outputs"""
     
     # Check if API key is properly configured
     if not DEEPSEEK_API_KEY or DEEPSEEK_API_KEY.strip() == '':
@@ -27,6 +148,7 @@ async def call_deepseek_api(prompt: str) -> tuple[str, str]:
             "Content-Type": "application/json"
         }
         
+        # Build payload with structured output if question_type provided
         payload = {
             "model": "x-ai/grok-4-fast",
             "messages": [
@@ -36,6 +158,18 @@ async def call_deepseek_api(prompt: str) -> tuple[str, str]:
             "max_tokens": 4000,
             "temperature": 0.3
         }
+        
+        # Add structured output if question_type is provided
+        if question_type:
+            schema = get_evaluation_schema(question_type)
+            payload["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "evaluation_response",
+                    "strict": True,
+                    "schema": schema
+                }
+            }
         
         try:
             import time

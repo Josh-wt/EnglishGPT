@@ -53,7 +53,7 @@ const AuthModal = ({ isOpen, onClose, onDiscord, onGoogle, onAuthSuccess }) => {
             exit={{ opacity: 0 }}
           />
           <motion.div 
-            className="relative w-full max-w-xl mx-4 rounded-2xl bg-white/95 backdrop-blur-xl border border-purple-200/60 shadow-2xl p-0 overflow-hidden auth-modal"
+            className="relative w-full max-w-4xl mx-4 rounded-2xl bg-white/95 backdrop-blur-xl border border-purple-200/60 shadow-2xl p-0 overflow-hidden auth-modal"
             initial={{ scale: 0.8, opacity: 0, y: 50 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.8, opacity: 0, y: 50 }}
@@ -73,7 +73,7 @@ const AuthModal = ({ isOpen, onClose, onDiscord, onGoogle, onAuthSuccess }) => {
               </div>
             </div>
             {/* Body */}
-            <div className="px-6 py-5 grid md:grid-cols-2 gap-6 relative">
+            <div className="px-8 py-6 grid md:grid-cols-2 gap-6 relative">
               {/* Processing Overlay */}
               {isProcessing && (
                 <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl">
@@ -92,9 +92,9 @@ const AuthModal = ({ isOpen, onClose, onDiscord, onGoogle, onAuthSuccess }) => {
                   <li className="flex items-start gap-2"><span className="h-5 w-5 rounded-full bg-green-500 text-white text-xs flex items-center justify-center mt-0.5">✓</span>Unlock analytics and recommendations</li>
                   <li className="flex items-start gap-2"><span className="h-5 w-5 rounded-full bg-green-500 text-white text-xs flex items-center justify-center mt-0.5">✓</span>Switch devices seamlessly</li>
                 </ul>
-                <div className="text-[11px] text-gray-500 mt-4">By continuing you agree to our terms and privacy policy.</div>
+                <div className="text-[11px] text-gray-500 mt-3">By continuing you agree to our terms and privacy policy.</div>
               </div>
-              <div className="order-1 md:order-2 space-y-3">
+              <div className="order-1 md:order-2 space-y-2">
                 {/* Discord button */}
                 <button 
                   className="discord-btn" 
@@ -124,6 +124,48 @@ const AuthModal = ({ isOpen, onClose, onDiscord, onGoogle, onAuthSuccess }) => {
                 </button>
               </div>
             </div>
+            
+            {/* Testimonials */}
+            <div className="px-8 pb-6">
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                  <div className="flex items-center gap-1 text-yellow-500 mb-2">
+                    {Array.from({length: 5}).map((_, s) => (
+                      <span key={s} className="text-sm">★</span>
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-700 italic mb-2">
+                    "I tried it out on a high level writers effect and it turned out to be really accurate"
+                  </p>
+                  <p className="text-xs text-gray-500 font-medium">- Student, IGCSE</p>
+                </div>
+                
+                <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                  <div className="flex items-center gap-1 text-yellow-500 mb-2">
+                    {Array.from({length: 5}).map((_, s) => (
+                      <span key={s} className="text-sm">★</span>
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-700 italic mb-2">
+                    "It can definitely mark low level essays accurately. This is good, something I've seen other AI's struggle with"
+                  </p>
+                  <p className="text-xs text-gray-500 font-medium">- Teacher, A‑Level</p>
+                </div>
+
+                <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                  <div className="flex items-center gap-1 text-yellow-500 mb-2">
+                    {Array.from({length: 5}).map((_, s) => (
+                      <span key={s} className="text-sm">★</span>
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-700 italic mb-2">
+                    "Turned out to be really accurate, better than ChatGPT"
+                  </p>
+                  <p className="text-xs text-gray-500 font-medium">- Student, IGCSE</p>
+                </div>
+              </div>
+            </div>
+            
             {/* Modal-scoped styles for custom buttons */}
             <style>{`
               .auth-modal .discord-btn {
