@@ -167,6 +167,18 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
     { value: 'report', label: 'Report' }
   ];
 
+    const alevelDirectedTextTypeOptions = [
+    { value: 'leaflet', label: 'Leaflet' },
+    { value: 'speech', label: 'Speech' },
+    { value: 'report', label: 'Report' },
+    { value: 'article', label: 'Magazine/Newspaper Article' },
+    { value: 'letter', label: 'Letter' },
+    { value: 'blog', label: 'Blog Post/Web Article' },
+    { value: 'review', label: 'Review' },
+    { value: 'diary', label: 'Diary Entry/Journal' },
+    { value: 'story', label: 'Story' }
+  ];
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="bg-white rounded-2xl p-8 max-w-2xl mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -255,6 +267,30 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
           </div>
         )}
 
+        {questionType?.id === 'alevel_directed' && (
+          <div className="mb-6">
+            <label htmlFor="text-type" className="block text-sm font-medium text-gray-700 mb-2">
+              Text Type
+            </label>
+            <select
+              id="text-type"
+              value={textType}
+              onChange={(e) => setTextType(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select text type...</option>
+              {alevelDirectedTextTypeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-sm text-gray-500 mt-2">
+              Choose the specific text type for your A-Level directed writing response.
+            </p>
+          </div>
+        )}
+
         {questionType?.id === 'gp_essay' && (
           <div className="mb-6">
             <label htmlFor="command-word" className="block text-sm font-medium text-gray-700 mb-2">
@@ -306,7 +342,7 @@ const MarkingSchemeModal = ({ isOpen, onClose, onProceed, questionType, darkMode
           </button>
           <button
             onClick={handleProceed}
-            disabled={isLoading || !markingScheme.trim() || (questionType?.id === 'gp_essay' && !commandWord) || (questionType?.id === 'igcse_directed' && !textType)}
+            disabled={isLoading || !markingScheme.trim() || (questionType?.id === 'gp_essay' && !commandWord) || (questionType?.id === 'igcse_directed' && !textType) || (questionType?.id === 'alevel_directed' && !textType)}
             className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
             {isLoading ? (

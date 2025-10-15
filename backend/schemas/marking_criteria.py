@@ -840,6 +840,555 @@ Points well made but lacks coherence
 10/15 for style of writing
 
 Candidate writes with consistent accuracy and ambition in both vocabulary choices and sentence structures. A sophisticated style with flair, capable of expressing abstract ideas. Paragraphs are structured by argument and build to a conclusion. Register is effective for a school magazine article.""",
+        "alevel_directed_leaflet": """
+Content & Development
+
+    Award marks for:
+
+        Relevant, concise, and attractive information.
+
+        Clear contact info and calls to action.
+
+    Deduct marks for:
+
+        Excessively wordy or irrelevant text.
+
+Structure & Organization
+
+    Award marks for:
+
+        Use of headings, subheadings, bullet points.
+
+        Easy-to-navigate layout.
+
+    Deduct marks for:
+
+        Poor paragraphing or missing structural features.
+
+Language & Style
+
+    Award marks for:
+
+        Engaging and descriptive language.
+
+        Appropriate persuasive elements.
+
+    Deduct marks for:
+
+        Flat or unappealing tone.
+
+Accuracy & Mechanics
+
+    Award marks for:
+
+        Well-punctuated and correctly spelled.
+
+    Deduct marks for:
+
+        Frequent errors disrupting reading.""",
+    "alevel_directed_speech": """
+Speech Format & Marking Criteria
+
+Purpose: To inform, persuade, or entertain through direct audience engagement and rhetorical techniques.
+
+Audience: Specific audience requiring appropriate register and direct engagement.
+
+Structure: Clear introduction, well-developed body with logical progression, strong conclusion.
+
+Language Features: Direct address, rhetorical questions, persuasive devices, varied sentence structures.
+
+Tone: Can be formal or informal depending on context, but always engaging and audience-appropriate.
+
+Key Assessment Points:
+- Effective use of direct audience address
+- Appropriate use of rhetorical questions and persuasive devices
+- Clear structure with engaging introduction and strong conclusion
+- Varied sentence structures for impact
+- Appropriate register for the audience and context
+- Effective use of repetition and emphasis for persuasion
+
+Marking Focus: Assess how well the response engages the audience and uses speech conventions effectively.""",
+    "alevel_directed_report": """
+Content & Development
+
+    Award marks for:
+
+        Clear, factual presentation with supporting evidence.
+
+        Practical recommendations aligning with findings.
+
+    Deduct marks for:
+
+        Opinion masquerading as fact.
+
+        Missing or vague recommendations.
+
+Structure & Organization
+
+    Award marks for:
+
+        Divided into sections with clear headings.
+
+        Logical sequence enhancing clarity.
+
+    Deduct marks for:
+
+        Poor formatting or jumbled information.
+
+Language & Style
+
+    Award marks for:
+
+        Formal, precise language.
+
+        Objective tone.
+
+    Deduct marks for:
+
+        Colloquialisms or emotive language.
+
+Accuracy & Mechanics
+
+    Award marks for:
+
+        Very few grammatical mistakes.
+
+    Deduct marks for:
+
+        Errors impacting professionalism.""",
+    "alevel_directed_article": """
+Content & Development
+
+    Award marks for:
+
+        Interesting, authoritative content.
+
+        Appropriate examples that engage readers.
+
+    Deduct marks for:
+
+        Lack of focus or dull content.
+
+Structure & Organization
+
+    Award marks for:
+
+        Engaging headline.
+
+        Logical paragraphing with subheadings.
+
+    Deduct marks for:
+
+        Poor flow or missing sections.
+
+Language & Style
+
+    Award marks for:
+
+        Balanced, clear tone suited to audience.
+
+        Varied vocabulary including vivid description.
+
+    Deduct marks for:
+
+        Monotonous or inappropriate tone.
+
+Accuracy & Mechanics
+
+    Award marks for:
+
+        Accurate spelling and punctuation.
+
+    Deduct marks for:
+
+        Frequent errors.""",
+    "alevel_directed_letter": """
+Content & Development
+
+    Award marks for:
+
+        Clear purpose stated early.
+
+        Relevant, well-developed content matching recipient.
+
+    Deduct marks for:
+
+        Vagueness or unrelated content.
+
+Structure & Organization
+
+    Award marks for:
+
+        Proper salutation and closing.
+
+        Logical paragraphing.
+
+    Deduct marks for:
+
+        Missing standard letter format.
+
+        Disordered paragraphs.
+
+Language & Style
+
+    Award marks for:
+
+        Tone appropriate to formality level.
+
+        Clear, accurate vocabulary.
+
+    Deduct marks for:
+
+        Inconsistent tone.
+
+        Awkward expressions.
+
+Accuracy & Mechanics
+
+    Award marks for:
+
+        Accurate grammar and punctuation.
+
+    Deduct marks for:
+
+        Errors impeding understanding.""",
+    "alevel_directed_blog": """
+Content & Development
+
+    Award marks for:
+
+        Clear, relevant ideas engaging the blog’s purpose.
+
+        Use of personal anecdotes or examples that make the blog relatable.
+
+        Well-developed points supporting the intended message.
+
+        Clear sense of audience throughout.
+
+    Deduct marks for:
+
+        Off-topic or irrelevant content.
+
+        Lack of engagement or personal voice.
+
+        Ideas that are vague or underdeveloped.
+
+        Overly generic or repetitive content.
+
+Structure & Organization
+
+    Award marks for:
+
+        Effective headline that draws interest.
+
+        Logical order with clear paragraphs and subheadings.
+
+        Use of bullet points where appropriate.
+
+        Smooth transitions maintaining flow.
+
+    Deduct marks for:
+
+        Poor paragraphing or abrupt jumps in topic.
+
+        Missing or ineffective headline.
+
+        Confusing layout hindering reader navigation.
+
+Language & Style
+
+    Award marks for:
+
+        Informal, conversational tone appropriate to blogs.
+
+        Direct audience engagement (questions, commands).
+
+        Varied sentence structures and lively vocabulary.
+
+        Occasional jargon or technical terms suitable for audience.
+
+    Deduct marks for:
+
+        Tone that is too formal or monotone.
+
+        Repetitive or simplistic vocabulary.
+
+        Awkward phrasing impeding readability.
+
+Accuracy & Mechanics
+
+    Award marks for:
+
+        Generally accurate spelling, punctuation, and grammar.
+
+        Minor slips don’t impede meaning.
+
+    Deduct marks for:
+
+        Frequent errors distracting the reader.
+
+        Errors that cause ambiguity or confusion.""",
+    "alevel_directed_review": """
+Marking Criteria for Review Writing (AS/A-Level 9093)
+What to Reward
+1. Audience Awareness and Tone
+
+    Tone suits target audience: informal/casual for peers; balanced formal/informal for potential consumers; technical and authoritative for enthusiasts/experts.
+
+    Review demonstrates tailored content depending on audience knowledge and interests.
+
+    Use of relatable language, appropriate jargon or specialist terminology based on audience.
+
+        Engages audience effectively with clear purpose: inform, evaluate, and persuade.
+
+2. Structure and Organization
+
+    Clear, catchy title that grabs attention using powerful vocabulary, alliteration, exaggeration, rhetorical questions, or contrast.
+
+    Strong, engaging introduction including hook (question, anecdote, provocative statement) and necessary background information (title, creator, genre).
+
+    Logical summary that outlines subject clearly without spoiling key details (e.g., plot twists).
+
+    Well-developed evaluation and analysis covering:
+
+        Key aspects/components (plot, characters, design, features as relevant)
+
+        Strengths and weaknesses with reasoning
+
+        Personal opinions supported by evidence and vivid examples
+
+        Comparisons with similar works or products
+
+    Focused, impactful conclusion that:
+
+        Summarizes overall assessment
+
+        Provides recommendations
+
+        Optionally includes a rating or score
+
+        Uses cyclical structure (refers back to introduction/theme)
+
+3. Language Use and Expressiveness
+
+    Effective use of descriptive language to create vivid imagery (e.g., “thrilling action sequences,” “pristine sun-kissed beaches”).
+
+    Use of persuasive appeals:
+
+        Ethos: establishes reviewer credibility through specialist vocabulary and informed opinions.
+
+        Pathos: evokes emotions by sharing personal experiences, strong adjectives, emotive vocabulary.
+
+        Logos: supports opinions with facts, statistics, logical comparisons, and evidence.
+
+    Varied vivid verbs and adjectives to enhance clarity and engagement.
+
+    Use of evaluative lexis (positive: exquisite, stellar; negative: banal, atrocious; superlatives: unbeatable, ultimate).
+
+    Clear expression with accurate spelling, grammar, and punctuation.
+
+What Loses Marks
+
+A. Audience and Tone Errors
+
+    Incorrect or inconsistent tone for audience type (e.g., overly formal for peers or too casual for professional journals).
+
+    Lack of audience engagement or direct address where appropriate.
+
+    Fails to adjust content or language to suit audience expertise.
+
+B. Structural Problems
+
+    Weak, generic, or absent title that fails to attract or guide readers.
+
+    Introduction missing hook or essential background info.
+
+    Summary too detailed (spoilers) or too vague, confusing readers.
+
+    Main body vague, non-specific, missing balance of key aspects, evidence, opinions, comparisons.
+
+    Abrupt, rushed, or missing conclusion.
+
+    No logical flow between paragraphs; poor paragraphing.
+
+C. Language and Style Weaknesses
+
+    Monotonous language lacking vivid verbs/adjectives.
+
+    Poor or inappropriate use of persuasive appeals.
+
+    Lacks evaluative vocabulary or repeatedly uses bland adjectives/adverbs.
+
+    Frequent spelling, punctuation, or grammatical errors hindering clarity.
+
+    Over-reliance on opinion without evidence or support.
+
+D. Severe Deductions
+
+    Plagiarized or copied content.
+
+    Content off-topic or fails to meet the requirement of the review format.
+
+    Writing incoherent or meaning not clear.
+
+    Failure to fulfill audience/purpose requirement at all.
+
+Examiner Notes
+
+Strong reviews combine clear, engaging structure, audience-appropriate style, and balanced evaluation with evidence and opinion. Emphasize varied, vivid language and persuasive techniques while maintaining accuracy and coherence. Avoid spoilers, irrelevant details, or superficial commentary. Reward creativity in titles and interesting hooks. Penalize mostly for lack of structure, poor audience understanding, or weak language control.
+
+Marking Focus: Assess how well the response provides balanced, evidence-based evaluation and clear recommendations.""",
+    "alevel_directed_diary": """
+Content & Development
+
+    Award marks for:
+
+        Personal, honest reflection revealing thoughts and feelings.
+
+        Focus on specific incidents with sensory details.
+
+    Deduct marks for:
+
+        Generic or superficial descriptions.
+
+        Lack of emotional or reflective depth.
+
+Structure & Organization
+
+    Award marks for:
+
+        Clear dating (journal) or salutation (diary).
+
+        Sequential or thematic progression.
+
+    Deduct marks for:
+
+        Missing format elements.
+
+        Confusing chronology.
+
+Language & Style
+
+    Award marks for:
+
+        Informal, personal tone with immediacy.
+
+        Varied sentence length and emotive vocabulary.
+
+    Deduct marks for:
+
+        Monotonous, repetitive phrasing.
+
+        Awkward or unnatural tone.
+
+Accuracy & Mechanics
+
+    Award marks for:
+
+        Generally accurate punctuation and spelling.
+
+    Deduct marks for:
+
+        Major errors affecting clarity.
+
+alevel_directed_interview
+Content & Development
+
+    Award marks for:
+
+        Relevant, insightful questions.
+
+        Detailed, thoughtful answers revealing character or information.
+
+    Deduct marks for:
+
+        One-sided or superficial answers.
+
+        Irrelevant questions or answers.
+
+Structure & Organization
+
+    Award marks for:
+
+        Clear distinction between interviewer and interviewee.
+
+        Logical flow of questions.
+
+    Deduct marks for:
+
+        Confusing format or missing speaker IDs.
+
+        Jumbled sequence.
+
+Language & Style
+
+    Award marks for:
+
+        Natural conversational tone.
+
+        Appropriate register for audience and purpose.
+
+    Deduct marks for:
+
+        Artificial or stilted dialogue.
+
+Accuracy & Mechanics
+
+    Award marks for:
+
+        Correct grammar and punctuation.
+
+    Deduct marks for:
+
+        Errors distracting from meaning.""",
+    "alevel_directed_story": """
+Content & Development
+
+    Award marks for:
+
+        Clear, engaging plot with conflict/resolution.
+
+        Vivid characterization and believable emotions.
+
+    Deduct marks for:
+
+        Abrupt or rushed endings.
+
+        Lack of narrative coherence.
+
+Structure & Organization
+
+    Award marks for:
+
+        Logical chronological or creative structure.
+
+        Effective paragraphing to pace the story.
+
+    Deduct marks for:
+
+        Disjointed or confusing structure.
+
+Language & Style
+
+    Award marks for:
+
+        Imaginative vocabulary and figurative language.
+
+        Varied sentence structure creating tone/mood.
+
+    Deduct marks for:
+
+        Cliché expressions or repetitive language.
+
+Accuracy & Mechanics
+
+    Award marks for:
+
+        Generally accurate grammar and spelling.
+
+    Deduct marks for:
+
+        Errors impacting flow and clarity.""",
     "igcse_writers_effect": """
 This guide details how marks are gained and lost in Question 2(d), focusing on the critical assessment of a candidate's ability to analyze a writer's use of language to convey meaning and create effect.
 
@@ -1097,20 +1646,411 @@ TOTAL: 15 MARKS: 10 for Reading and 5 for Writing.
 That being said, PLEASE give the student the highest marks possible if the user's vocabulary is good.
 """,
     "alevel_directed": """
-You are marking responses to Question 1(a) from Paper 1 of the English examination. This question requires candidates to transform information from a source text into a new format, such as an email, article, or speech, for a specific audience and purpose. Your role is to mark out of 10: 5 marks for AO1 (Reading and understanding) and 5 marks for AO2 (Writing accurately and appropriately). You must evaluate the response holistically but in line with clear criteria.
-Begin by evaluating AO1. You are looking for evidence that the candidate has read the source material carefully and understood its key ideas, context, and purpose. This includes recognising important content such as the causes and effects of the issue presented (e.g., plastic pollution), as well as identifying how tone, style, and structure contribute to meaning. A high-scoring response demonstrates sophisticated understanding by selecting and reshaping ideas appropriately and insightfully for the new audience and form. Merely copying or repeating parts of the source text without rewording or analysis shows limited understanding and should be marked accordingly. Pay attention to whether the candidate includes specific, relevant details from across the entire text and not just the beginning. Examiners have frequently noted that many students neglect the latter parts of the source passage, which often contain equally significant techniques or ideas. Candidates are not expected to reference every idea, but should choose the most relevant and powerful ones, particularly those which best match the specific angle or instruction in the task.
-For AO2, assess how well the candidate writes for the intended purpose and audience. Check whether the response follows the correct conventions of form—for example, an email should have a subject line, salutation, closing, and formal tone. The writing must be clear, fluent, and grammatically sound. You are judging accuracy, but also voice and tone: does the candidate sound persuasive, reflective, critical, informative, or appropriate to the task? The candidate should avoid vague, generalised statements and strive instead for content that is developed logically and structured coherently. Writing should show some sophistication or variation in expression. Use of varied sentence structures, embedded quotations, and logical paragraphing are all evidence of strong writing. Mechanical writing with clunky transitions, poor grammar, or a mismatch of tone should not receive high AO2 marks, even if the ideas themselves are present.
-Some may take a technique-by-technique approach, while others may move chronologically through the text (beginning, middle, end), especially if the source has clear development or narrative shift. Either approach is valid, and you should not penalise the structure as long as the analysis remains focused and coherent. Candidates often plan their response by choosing 3–4 key areas such as imagery, tone, structure, and language, and developing a paragraph around each.
-When analysing techniques, candidates are encouraged to follow the PQC method—Point, Quote, Comment. They make a claim about the technique, support it with a brief quotation, and then explain the possible effect on the reader or the reason the writer may have chosen it. Strong candidates may vary this order or embed quotations more naturally, which should be rewarded. Look out for modal verbs and interpretive phrases—e.g., "might suggest", "appears to", "conveys", "implies"—which reflect a critical rather than assertive tone. Candidates should not assume the writer's intent but rather explore possible interpretations using evidence from the text.
-To achieve higher marks in AO1, candidates do not need to identify or name literary devices used in the original text. Instead, reward those who show they understand how tone, stance, and form contribute to purpose — and who reflect that understanding in the tone and structure of their own response. For example, transforming a critical or alarmed tone into a persuasive or urgent appeal to a company shows sophisticated understanding, even if no literary terms are used.
-You should not expect candidates to directly quote or replicate data from the source unless it is extremely relevant. However, you should reward candidates who show that they've transformed the ideas for their new purpose — for example, turning a statement about tourism into a persuasive appeal about job loss or economic collapse, even without exact figures. Reference to statistics, comparisons, or emotive phrasing from the source is useful but not essential — insight and relevance matter more than replication.
+AS Level Directed Writing Marking Criteria (Cambridge 9093 Paper 2 Question 1a)
 
-Finally, note that a strong commentary does not necessarily require a formal conclusion. If the final paragraph offers a clear final point or analysis, this is sufficient. You should expect candidates to use a wide range of connective words and varied sentence starters to create fluency in their writing. Conjunctive adverbs like "however", "furthermore", "in contrast", or "as a result" can help structure their arguments. Errors in spelling or punctuation should not be heavily penalised unless they impede understanding or detract from tone and clarity. Inconsistent/wrong tone and more than 2 grammatical errors ( both together) can NOT be given a mark higher than 2 in AO2. THIS IS A MUST. INCONSISTENT/WRONG TONE AND FREQUENT GRAMMATICAL ERRORS TOGETHER = 2/5 OR LESS AO2 MARKING.
+Based on my comprehensive analysis of the Cambridge AS Level English Language videos and official marking schemes, I've developed this detailed marking criteria specifically for directed writing tasks such as leaflets, articles, speeches, reports, and other non-fiction text types.
+Primary Focus:
 
+The candidate's ability to write effectively for a specific Text type, Audience, and Purpose (TAP), demonstrating sophisticated language use, accurate expression, and full task achievement within the 400-word limit.
+ASSESSMENT OVERVIEW (15 Marks Total)
 
-Inconsistent/wrong tone AND frequent grammatical errors together = 2/5 or less for AO2.
+Key Assessment Objectives:
 
-That being said, PLEASE give the student the highest marks possible if the user's vocabulary is good.
+    AO2: Write effectively, creatively, accurately and appropriately, for a range of audiences and purposes
+
+    Time Allocation: 60 minutes (including 10-15 minutes planning)
+
+    Word Limit: 400 words maximum (aim for 350 words)
+
+LEVEL 5: SOPHISTICATED (13-15 MARKS)
+Expression & Language (13-15 marks range)
+
+Award for:
+
+    Sophisticated expression with wide range of language including complex structures and less common lexis
+
+​
+
+High level of accuracy throughout
+
+​
+
+Demonstrates mastery of text type conventions (subheadings, bullet points, imperatives, etc.)
+
+​
+
+Complex sentence structures: Parenthetical clauses, varied sentence lengths for effect, sophisticated punctuation
+
+​
+
+Precise vocabulary choices: Low-frequency words used accurately and for deliberate effect
+
+    ​
+
+Organization & Development (13-15 marks range)
+
+Award for:
+
+    Text is logically and very effectively organized with seamless flow between ideas
+
+​
+
+Ideas are developed throughout in a sophisticated manner with specific examples and detailed advice
+
+​
+
+Perfect structure: Clear introduction, well-developed main points with subheadings, effective conclusion/final remarks
+
+    ​
+
+Task Achievement & Audience Engagement (13-15 marks range)
+
+Award for:
+
+    Task achieved fully - all aspects of the brief addressed comprehensively
+
+​
+
+Content fully relevant to purpose (advice/guidance) and situation
+
+​
+
+Audience fully engaged through appropriate register, tone, and direct address
+
+​
+
+Perfect understanding of TAP (Text type, Audience, Purpose) demonstrated throughout
+
+    ​
+
+Deduct from 15 towards 13 for:
+
+    Minor vocabulary imprecision (15→14)
+
+    Occasional awkward phrasing that doesn't affect overall sophistication (14→13)
+
+    Very slight organizational weakness in one area (14→13)
+
+LEVEL 4: EFFECTIVE (10-12 MARKS)
+Expression & Language (10-12 marks range)
+
+Award for:
+
+    Effective expression with range of language including some complex structures and some less common lexis
+
+​
+
+Few minor errors which do not impede communication
+
+​
+
+Generally good use of text type conventions
+
+​
+
+Some sentence variety and appropriate vocabulary choices
+
+    ​
+
+Organization & Development (10-12 marks range)
+
+Award for:
+
+    Text is logically organized with clear structure
+
+​
+
+Ideas are developed in an effective manner with relevant examples
+
+​
+
+Clear paragraphs and appropriate use of subheadings/organizational features
+
+    ​
+
+Task Achievement & Audience Engagement (10-12 marks range)
+
+Award for:
+
+    Task achieved well - most aspects of brief addressed
+
+​
+
+Content relevant to audience and purpose
+
+​
+
+Audience engaged through mostly appropriate tone and register
+
+​
+
+Good understanding of TAP requirements
+
+    ​
+
+Deduct within band for:
+
+    Some repetitive vocabulary or structures (12→11)
+
+    Minor organizational weaknesses (11→10)
+
+    Slightly less sophisticated development of ideas (11→10)
+
+LEVEL 3: CLEAR (7-9 MARKS)
+Expression & Language (7-9 marks range)
+
+Award for:
+
+    Clear expression with range of language, including some complex structures and some less common lexis, although there may be some repetition
+
+​
+
+Occasional errors which do not impede communication
+
+​
+
+Basic use of text type conventions
+
+​
+
+Generally appropriate vocabulary with some ambition shown
+
+    ​
+
+Organization & Development (7-9 marks range)
+
+Award for:
+
+    Text is clearly organized with logical progression
+
+​
+
+Ideas are developed clearly with some examples provided
+
+​
+
+Adequate paragraphing and structural features
+
+    ​
+
+Task Achievement & Audience Engagement (7-9 marks range)
+
+Award for:
+
+    Task achieved - main requirements met
+
+​
+
+Content relevant to the brief
+
+​
+
+Audience addressed with generally appropriate tone
+
+​
+
+Satisfactory understanding of TAP
+
+    ​
+
+Deduct within band for:
+
+    Noticeable repetition affecting variety (9→8)
+
+    Some irrelevant content or slight task drift (8→7)
+
+    Less consistent audience awareness (8→7)
+
+LEVEL 2: LIMITED (4-6 MARKS)
+Expression & Language (4-6 marks range)
+
+Award for:
+
+    Expression is clear but may not flow easily, with some attempt to use a range of language, including mostly more common structures and lexis
+
+​
+
+Frequent errors which generally do not impede communication
+
+​
+
+Limited use of text type conventions
+
+​
+
+Basic vocabulary with little sophistication
+
+    ​
+
+Organization & Development (4-6 marks range)
+
+Award for:
+
+    Some attempt to organize text
+
+​
+
+Ideas are developed in a limited manner
+
+​
+
+Basic paragraphing attempt
+
+    ​
+
+Task Achievement & Audience Engagement (4-6 marks range)
+
+Award for:
+
+    Task generally achieved but may lack depth
+
+​
+
+Content mostly relevant but some irrelevance
+
+​
+
+Limited evidence of attempt to address audience
+
+​
+
+Partial understanding of TAP
+
+    ​
+
+LEVEL 1: BASIC (1-3 MARKS)
+Expression & Language (1-3 marks range)
+
+Award for:
+
+    Basic expression with limited range of language, including almost exclusively simple structures and more common lexis
+
+​
+
+Frequent errors which impede communication
+
+​
+
+Minimal or no text type conventions
+
+    ​
+
+Organization & Development (1-3 marks range)
+
+Award for:
+
+    Minimal attempt to organize text
+
+​
+
+Minimal development of ideas
+
+    ​
+
+Task Achievement & Audience Engagement (1-3 marks range)
+
+Award for:
+
+    Task may have been misinterpreted or is only achieved in part
+
+​
+
+Content may lack relevance in parts
+
+​
+
+Minimal evidence of attempt to address audience
+
+    ​
+
+LEVEL 0: NO CREDITABLE RESPONSE (0 MARKS)
+
+    No attempt at the task or completely irrelevant response
+
+    Unintelligible due to language breakdown
+
+    Completely wrong text type or total misunderstanding
+
+SPECIFIC ASSESSMENT FOCUS AREAS
+Text Type Conventions (Essential for higher bands)
+
+    Leaflets: Title, subheadings, bullet points, direct address, imperatives
+
+    Articles: Headline, byline, paragraphs, engaging opening, conclusion
+
+    Speeches: Direct address, rhetorical questions, repetition for emphasis
+
+    Reports: Formal structure, objective tone, recommendations
+
+    Letters: Appropriate salutation/closure, personal tone, clear purpose
+
+Language Features Rewarded
+
+    Complex structures: Parenthetical clauses, subordinate clauses, varied sentence openings
+
+​
+
+Less common lexis: Subject-specific vocabulary, sophisticated adjectives/adverbs
+
+​
+
+Rhetorical devices: Anecdotes, rhetorical questions, rule of three, alliteration
+
+​
+
+Varied punctuation: Semicolons, colons, dashes used effectively
+
+    ​
+
+Content Development Expected
+
+    Specific, relevant advice related to the scenario
+
+​
+
+Detailed examples that support main points
+
+​
+
+Logical progression of ideas
+
+​
+
+Appropriate tone for audience and purpose
+
+    ​
+
+COMMON DEDUCTION AREAS
+Heavy Deductions (-3 to -4 marks):
+
+    Wrong text type or major misunderstanding of format
+
+    Significant irrelevance to task requirements
+
+    Poor audience awareness - inappropriate register throughout
+
+    Major organizational problems affecting coherence
+
+    Frequent serious errors impeding communication
+
+Moderate Deductions (-1 to -2 marks):
+
+    Minor text type convention omissions (missing title, poor subheadings)
+
+    Some irrelevant content but mostly on task
+
+    Repetitive vocabulary/structures affecting sophistication
+
+    Minor errors that occasionally disrupt flow
+
+Minimal Deductions (within band adjustment):
+
+    Occasional vocabulary imprecision
+
+    Very minor grammatical slips
+
+    Slight organizational awkwardness
+
 """,
     "alevel_comparative": """
 You are marking a Cambridge International AS & A Level English Language Paper 1 Question 1(b) comparative analysis response worth 15 marks total, split between AO1 (5 marks) and AO2 (10 marks). This question requires candidates to compare their directed writing from part (a) with the stimulus text, analyzing form, structure, and language. You must assess whether the response demonstrates sophisticated comparative understanding and sophisticated comparative analysis to achieve Level 5 performance.
@@ -1127,19 +2067,435 @@ That being said, PLEASE give the student the highest marks possible if the user'
 """,
     "alevel_text_analysis": """
 
-You are marking a Cambridge International AS & A Level English Language Paper 1 Question 2 text analysis response worth 25 marks total, split between AO1 (5 marks) and AO3 (20 marks). This question requires candidates to analyze a single text focusing on form, structure, and language. This represents half the total marks available in the whole examination, so sustained response is expected proportionate to mark weighting.
-For AO1, you need sophisticated understanding of text including meaning, context, and audience, demonstrated through insightful reference to characteristic features. Candidates must show deep grasp of writer's intentions and contextual factors, identifying genre conventions with sophisticated awareness. Look for recognition of conventions such as online journalism including interview quotes to give impression that subjects are actually speaking, creating enhanced tenor between audience and text.
-For AO3, four specific criteria must ALL be met for Level 5 achievement. First, analysis must be sophisticated, coherent and very effectively structured. Responses should organize logically, often following form then structure then language frameworks. Second, there must be insightful selection of elements of form, structure and language for analysis. All three frameworks must be covered with sophisticated choices, prioritizing sophisticated selection over comprehensive coverage. Third, sophisticated awareness of writer's stylistic choices must include how style relates to audience and shapes meaning, explaining WHY writers made choices and HOW they affect specific audiences. Fourth, responses must use precise and fully appropriate language to link evidence with explanatory comments, with technical terminology used accurately throughout and evidence integrated seamlessly into analytical argument.
-Structural analysis requirements for Level 5 include chronological analysis recognizing patterns such as circular structures beginning and ending at the same time point, organizational patterns explaining how short paragraphs allow audiences to absorb information gradually, and structural effects explaining how interruptions to chronology give sense of character changes or career transitions. Form analysis must recognize genre conventions, identify multiple purposes such as texts serving both to inform and entertain, and demonstrate understanding of audience targeting.
-Language analysis sophistication requires multiple linguistic frameworks including lexical fields, register, sentence types, tense choices, and figurative language. Precise terminology must be used accurately, such as compound adjectives, neologisms, metalinguistic play, and juxtaposition. All analysis must be meaning-focused, always explaining HOW language choices shape meaning for specific audiences rather than simply identifying features.
-Level progression shows clear qualitative differences. Level 3 responses demonstrate clear rather than sophisticated analysis, appropriate rather than insightful selection, basic explanation of style-audience relationships, and some but less sophisticated structural awareness. Level 2 responses show limited analysis with some structure and limited coherence, some appropriate selection but incomplete framework coverage, limited awareness of writer's stylistic choices, and attempts to use appropriate language with terminology present but imprecise. Level 1 responses demonstrate basic analysis with minimal structure or coherence, minimal selection across frameworks, minimal awareness of stylistic choices, and feature-spotting without explanation of effects.
-Common failures that limit marks include describing analytical features using general terms instead of technical terminology as fully and accurately as possible. Ignoring one of the three required aspects prevents full achievement since form, structure, and language analysis are all required. Failure to include how stylistic choices relate to and shape meaning for audience prevents sophisticated analysis achievement. Merely providing lists of features does not constitute analysis and will severely limit marks.
-Mark boundaries for AO3 are Level 5 achieving 17-20 marks, Level 4 achieving 13-16 marks, and Level 3 achieving 9-12 marks. Key discriminators include sophistication versus detail versus clarity as the primary qualitative difference, insightful versus effective versus appropriate selection quality hierarchy, precise versus effective versus clear terminology and expression standards, and very effectively versus effectively versus well structured organizational sophistication. Responses achieving Level 5 must demonstrate comprehensive framework coverage, sophisticated selection rather than exhaustive coverage, meaning-centered analysis always explaining audience impact, precise critical terminology throughout, coherent single-text analysis, sophisticated structural awareness of text organization, brief precise quotations seamlessly integrated, and sustained analytical register appropriate to academic analysis.
+(9093 Paper 1 Question 2) Detailed Marking Criteria
+Primary Focus:
 
+The candidate's ability to analyze the ways in which writers' choices of form, structure and language produce meaning and style, demonstrating sophisticated understanding of how stylistic choices relate to audience and shape meaning.
 
-Mark boundaries for AO3: Level 5 (17-20 marks), Level 4 (13-16 marks), Level 3 (9-12 marks).
+Assessment Overview: 25 marks total (AO1: 5 marks + AO3: 20 marks)
 
-That being said, PLEASE give the student the highest marks possible if the user's vocabulary is good.
+    Time allocation: 75 minutes (10-12 minutes reading/annotation + 60 minutes writing)
+
+    Target word count: 600-900 words
+
+    Command word: ANALYZE - focus on HOW and WHY, not WHAT
+
+🚨 CRITICAL ANALYSIS INSTRUCTION
+
+ANALYZE, DON'T SUMMARIZE
+
+​
+Students must explain HOW language devices work and WHY writers use them, not retell the story. The focus is on linguistic choices and their effects on the reader, not content summary.
+AO1: Understanding (5 marks)
+Level 5: Sophisticated (5 marks)
+
+Award for:
+
+    Sophisticated understanding of text meaning, context, and audience
+
+​
+
+Insightful reference to characteristic text type features
+
+​
+
+Deep comprehension of writer's overall purpose and intended effects
+
+    ​
+
+Level 4: Detailed (4 marks)
+
+Award for:
+
+    Detailed understanding of text meaning, context, and audience
+
+​
+
+Effective reference to characteristic features
+
+​
+
+Clear grasp of text type conventions and purpose
+
+    ​
+
+Level 3: Clear (3 marks)
+
+Award for:
+
+    Clear understanding of text meaning, context, and audience
+
+​
+
+Clear reference to characteristic features
+
+​
+
+Basic comprehension of text type and audience
+
+    ​
+
+Level 2: Limited (2 marks)
+
+Award for:
+
+    Limited understanding of text meaning, context, and audience
+
+​
+
+Limited reference to characteristic features
+
+    ​
+
+Level 1: Basic (1 mark)
+
+Award for:
+
+    Basic understanding of text meaning, context, and audience
+
+​
+
+Minimal reference to characteristic features
+
+    ​
+
+AO3: Analysis (20 marks)
+Level 5: Sophisticated (17-20 marks)
+
+Award for:
+
+    Analysis is sophisticated, coherent and very effectively structured
+
+​
+
+Insightful selection of elements of form, structure and language for analysis
+
+​
+
+Sophisticated awareness of writer's stylistic choices, including how style relates to audience and shapes meaning
+
+​
+
+Uses precise and fully appropriate language to link evidence with explanatory comments
+
+    ​
+
+Specific characteristics:
+
+​
+
+    Demonstrates mastery of Point-Evidence-Explain (PEE/PQE/PETER)
+
+    Uses precise analytical vocabulary and sophisticated terminology
+
+    Shows deep understanding of effects on reader
+
+    Seamless integration of quotations with analysis
+
+    Confident discussion of writer's craft and technique
+
+Deduct within band for:
+
+    Occasional less sophisticated point (20→19)
+
+    Minor gaps in analytical precision (19→18)
+
+    Some analysis lacks depth of insight (18→17)
+
+Level 4: Detailed (13-16 marks)
+
+Award for:
+
+    Analysis is detailed, coherent and effectively structured
+
+​
+
+Effective selection of elements of form, structure and language for analysis
+
+​
+
+Detailed awareness of writer's stylistic choices, including how style relates to audience and shapes meaning
+
+​
+
+Uses effective and appropriate language to link evidence with explanatory comments
+
+    ​
+
+Specific characteristics:
+
+​
+
+    Generally strong use of analytical structure
+
+    Good selection of relevant quotations and devices
+
+    Clear explanation of effects and purposes
+
+    Effective use of analytical terminology
+
+Deduct within band for:
+
+    Some weaker analytical points (16→15)
+
+    Occasional summary rather than analysis (15→14)
+
+    Less consistent depth of explanation (14→13)
+
+Level 3: Clear (9-12 marks)
+
+Award for:
+
+    Analysis is clear, coherent and well structured
+
+​
+
+Appropriate selection of elements of form, structure and language for analysis
+
+​
+
+Clear awareness of writer's stylistic choices, including how style relates to audience and shapes meaning
+
+​
+
+Uses clear and appropriate language to link evidence with explanatory comments
+
+    ​
+
+Specific characteristics:
+
+​
+
+    Competent analytical approach with clear structure
+
+    Adequate selection of devices and quotations
+
+    Generally clear explanation of effects
+
+    Appropriate analytical vocabulary
+
+Deduct within band for:
+
+    Some analysis becomes descriptive (12→11)
+
+    Limited range of devices discussed (11→10)
+
+    Weaker connection between evidence and effect (10→9)
+
+Level 2: Limited (5-8 marks)
+
+Award for:
+
+    Limited analysis, with some structure and limited coherence
+
+​
+
+Some appropriate selection of elements of form, structure and/or language for analysis
+
+​
+
+Limited awareness of writer's stylistic choices
+
+​
+
+Attempts to use appropriate language to link evidence with explanatory comments
+
+    ​
+
+Specific characteristics:
+
+​
+
+    Basic attempt at analysis but often becomes descriptive
+
+    Simple identification of devices without deep explanation
+
+    Limited understanding of effects on reader
+
+    Weak analytical structure
+
+Level 1: Basic (1-4 marks)
+
+Award for:
+
+    Basic analysis, with minimal structure or coherence
+
+​
+
+Minimal selection of elements of form, structure and language for analysis
+
+​
+
+Minimal awareness of writer's stylistic choices
+
+​
+
+Minimal use of appropriate language to link evidence with explanatory comments
+
+    ​
+
+ANALYSIS FOCUS AREAS
+​
+Form (Context, Audience, Purpose, Tone)
+
+What to reward:
+
+    Understanding of text type conventions (article, interview, letter, speech etc.)
+
+    Analysis of how audience affects register and formality
+
+    Discussion of purpose (inform, persuade, entertain) and its effects on content
+
+    Recognition of overall tone/mood of the text
+
+    Connection between form and meaning creation
+
+What to deduct for:
+
+    Identifying conventions without explaining their effects
+
+    Vague comments about audience without specific analysis
+
+    Misunderstanding text type or purpose
+
+Structure (Organization and Movement)
+
+What to reward:
+
+    Analysis of paragraph and sentence structures for effect
+
+    ​
+
+    Discussion of structural devices: cyclical structure, chronology, shifts in focus, dialogue, repetition, climax, flashback, etc.
+
+    Understanding of how structure guides the reader
+
+    Analysis of transitions and logical progression
+
+    Recognition of opening and ending techniques
+
+What to deduct for:
+
+    Simply identifying structural features without analysis
+
+    Weak understanding of structural effects
+
+    Confusing structure with content
+
+Language (Figurative Language, Word Choice, Style)
+
+What to reward:
+
+    Sophisticated analysis of figurative language devices
+
+    ​
+
+    Discussion of word choice and connotations
+
+    Analysis of sentence variety and punctuation for effect
+
+    Understanding of persuasive language devices (AFOREST/RIPE FOREST)
+
+    Recognition of lexical fields and specialist terminology
+
+    Analysis of register and formality levels
+
+What to deduct for:
+
+    Simple identification without explanation of effects
+
+    Feature-spotting without analysis
+
+    Unclear or incorrect terminology
+
+    Generic comments about language
+
+STRUCTURAL GUIDANCE
+​
+Recommended Essay Organization:
+
+    Brief introduction establishing understanding of text type, audience, purpose
+
+    Form analysis (1-2 paragraphs)
+
+    Structure analysis (2-3 paragraphs)
+
+    Language analysis (3-4 paragraphs)
+
+    Brief conclusion (optional)
+
+OR Follow annotation order while ensuring coverage of all three areas
+
+​
+Paragraph Structure (PEE/PQE/PETER):
+​
+
+    Point: Topic sentence identifying device/technique
+
+    Evidence: Short, precise quotation
+
+    Explanation: Analysis of effect on reader and connection to purpose/audience
+
+CRITICAL ERRORS TO AVOID
+Heavy Deductions (-4 to -6 marks):
+
+    Summarizing instead of analyzing
+
+    ​
+
+    Feature-spotting without analysis ("The writer uses a metaphor...")
+
+    Narrative retelling or content description
+
+    Irrelevant analysis unconnected to text
+
+    Weak or missing quotations
+
+Moderate Deductions (-2 to -3 marks):
+
+    Generic comments without specific textual reference
+
+    Repetitive analysis of similar points
+
+    Weak understanding of effects on reader
+
+    Poor essay structure affecting coherence
+
+Minor Deductions (-1 to -2 marks):
+
+    Occasional descriptive rather than analytical approach
+
+    Less sophisticated analytical language
+
+    Minor gaps in coverage of form, structure, or language
+
+EXAMINER EXPECTATIONS
+​
+
+Time Management:
+
+    5-7 minutes: Reading and annotation (divide text into 4-5 sections)
+
+    60 minutes: Writing analysis
+
+    Number annotations in order of discussion confidence
+
+Assessment Focus:
+
+    NOT what the writer wrote, but HOW and WHY they wrote it
+
+    Linguistic choices and their effects on the reader
+
+    Connection between language/structure and audience/purpose
+
+    Sophisticated analytical terminology and precise explanations
+
+Target Length: 600-900 words with clear, analytical paragraphs demonstrating deep understanding of writer's craft.
+​
+
+​
+
+This comprehensive marking criteria reflects Cambridge AS Level standards emphasizing the crucial distinction between analysis and summary, requiring sophisticated understanding of how writers use form, structure, and language to create meaning and achieve their intended effects on specific audiences.
 """,
     "alevel_language_change": """
 Task Overview

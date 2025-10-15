@@ -8,7 +8,7 @@ const QuestionSelection = ({ levelData, selectedQuestionType, onQuestionSelect, 
     <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-900">Choose Question Type</h2>
-        <div className={`bg-gradient-to-r ${levelData.gradient} text-white px-3 py-1 rounded-lg shadow-md`}>
+        <div className={`bg-blue-500 text-white px-3 py-1 rounded-lg shadow-md`}>
           <span className="font-bold text-sm">{levelData.levelName}</span>
         </div>
       </div>
@@ -26,16 +26,16 @@ const QuestionSelection = ({ levelData, selectedQuestionType, onQuestionSelect, 
               onClick={() => onQuestionSelect(question)}
               className={`w-full p-4 rounded-xl text-left transition-all duration-300 border group hover:scale-[1.02] ${
                 selectedQuestionType?.id === question.id
-                  ? 'border-pink-300 bg-gradient-to-r from-pink-50 to-purple-50 shadow-lg ring-2 ring-pink-200'
-                  : 'border-gray-200 bg-white hover:border-pink-200 hover:shadow-md hover:bg-gradient-to-r hover:from-gray-50 hover:to-pink-50'
+                  ? 'border-pink-300 bg-pink-50 shadow-lg ring-2 ring-pink-200'
+                  : 'border-gray-200 bg-white hover:border-pink-200 hover:shadow-md hover:bg-pink-50'
               }`}
               aria-pressed={selectedQuestionType?.id === question.id}
             >
               <div className="flex items-center">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 transition-all duration-300 ${
                   selectedQuestionType?.id === question.id
-                    ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-600 group-hover:bg-gradient-to-r group-hover:from-pink-100 group-hover:to-purple-100'
+                    ? 'bg-pink-500 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-600 group-hover:bg-pink-100'
                 }`}>
                   <span className="text-xl">{question.icon}</span>
                 </div>
@@ -64,9 +64,9 @@ const QuestionSelection = ({ levelData, selectedQuestionType, onQuestionSelect, 
         )}
       </div>
       {preferences.show_tips && (
-        <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200 mt-6">
+        <div className="bg-purple-50 rounded-2xl p-6 border border-purple-200 mt-6">
           <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center">
               <span className="text-white text-lg">💡</span>
             </div>
             <div>
@@ -95,7 +95,7 @@ const QuestionSelection = ({ levelData, selectedQuestionType, onQuestionSelect, 
             </button>
             <button 
               onClick={onGeneratePrompt} 
-              className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium hover:shadow-lg transition-all duration-200"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-purple-500 text-white font-medium hover:shadow-lg transition-all duration-200"
             >
               Generate Prompt
             </button>

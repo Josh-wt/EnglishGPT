@@ -9,11 +9,11 @@ export const getSubmarks = (evaluation) => {
     igcse_summary: ['READING', 'WRITING'],
     igcse_directed: ['READING', 'WRITING'],
     alevel_directed: ['AO1', 'AO2'],
-    alevel_directed_writing: ['AO1', 'AO2'],
-    alevel_comparative: ['AO1', 'AO2'],  // Backend asks for AO2 in prompt, even though QUESTION_TOTALS says AO3
-    alevel_text_analysis: ['AO1', 'AO2'],  // Backend stores AO1 in ao1_marks, AO2 in ao2_marks
+    alevel_directed_writing: ['AO2'],  // Only AO2 out of 15
+    alevel_comparative: ['AO1', 'AO3'],  // AO1 and AO3
+    alevel_text_analysis: ['AO1', 'AO2'],  // AO1 and AO2
     alevel_reflective_commentary: ['AO3'],  // Only AO3 marks out of 10
-    alevel_language_change: ['AO2', 'AO4', 'AO5'],  // AO2 in ao2_marks, AO4 in ao1_marks, AO5 in reading_marks
+    alevel_language_change: ['AO2', 'AO4', 'AO5'],  // AO2, AO4, AO5
     gp_essay: ['AO1', 'AO2', 'AO3'],  // GP essay has AO1, AO2, AO3
     sat_essay: ['READING', 'WRITING']
   };
@@ -43,18 +43,14 @@ export const getSubmarks = (evaluation) => {
       // AO2 is stored in ao2_marks field for gp_essay and other types
       value = evaluation.ao2_marks || 'N/A';
     } else if (metric === 'AO3') {
-      // For gp_essay, AO3 is stored in ao3_marks field; for other types, it's in ao2_marks field
-      if (questionType === 'gp_essay') {
-        value = evaluation.ao3_marks || 'N/A';
-      } else {
-        value = evaluation.ao2_marks || 'N/A';
-      }
+      // AO3 is stored in ao3_marks field
+      value = evaluation.ao3_marks || 'N/A';
     } else if (metric === 'AO4') {
-      // For language_change, AO4 is stored in ao1_marks field
-      value = evaluation.ao1_marks || 'N/A';
+      // AO4 is stored in ao4_marks field
+      value = evaluation.ao4_marks || 'N/A';
     } else if (metric === 'AO5') {
-      // For language_change, AO5 is stored in reading_marks field
-      value = evaluation.reading_marks || 'N/A';
+      // AO5 is stored in ao5_marks field
+      value = evaluation.ao5_marks || 'N/A';
     }
     
     // Clean the value to remove any malformed content

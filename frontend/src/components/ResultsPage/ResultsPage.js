@@ -204,10 +204,11 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       igcse_directed: ['READING', 'WRITING'],
       igcse_extended_q3: ['READING', 'WRITING'],
       alevel_directed: ['AO1', 'AO2'],
-      alevel_comparative: ['AO1', 'AO2'], // AO3 is stored in ao2_marks field
-      alevel_text_analysis: ['AO1', 'AO2'], // AO1 in ao1_marks, AO2 in ao2_marks
-      alevel_reflective_commentary: ['AO2'], // AO3 is stored in ao2_marks field, out of 10
-      alevel_language_change: ['AO2', 'AO1', 'READING'], // AO4 stored in ao1_marks, AO5 stored in reading_marks
+      alevel_directed_writing: ['AO2'], // Only AO2
+      alevel_comparative: ['AO1', 'AO3'], // AO1 and AO3
+      alevel_text_analysis: ['AO1', 'AO2'], // AO1 and AO2
+      alevel_reflective_commentary: ['AO3'], // AO3 only
+      alevel_language_change: ['AO2', 'AO4', 'AO5'], // AO2, AO4, AO5
       sat_essay: ['READING', 'WRITING']
     };
 
@@ -220,10 +221,11 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       igcse_directed: { READING: 15, WRITING: 25 },
       igcse_extended_q3: { READING: 15, WRITING: 10 },
       alevel_directed: { AO1: 5, AO2: 5 },
-      alevel_comparative: { AO1: 5, AO2: 10 },
+      alevel_directed_writing: { AO2: 15 },
+      alevel_comparative: { AO1: 5, AO3: 10 },
       alevel_text_analysis: { AO1: 5, AO2: 20 },
-      alevel_reflective_commentary: { AO2: 10 }, // AO3 out of 10
-      alevel_language_change: { AO2: 5, AO1: 5, READING: 15 },
+      alevel_reflective_commentary: { AO3: 10 },
+      alevel_language_change: { AO2: 5, AO4: 5, AO5: 15 },
       sat_essay: { READING: 8, WRITING: 16 }
     };
 
@@ -243,6 +245,10 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         value = evaluation.ao2_marks || 'N/A';
       } else if (metric === 'AO3') {
         value = evaluation.ao3_marks || 'N/A';
+      } else if (metric === 'AO4') {
+        value = evaluation.ao4_marks || 'N/A';
+      } else if (metric === 'AO5') {
+        value = evaluation.ao5_marks || 'N/A';
       } else {
         const fieldName = `${metric.toLowerCase()}_marks`;
         value = evaluation[fieldName] || 'N/A';

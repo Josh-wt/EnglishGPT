@@ -362,7 +362,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
   // Filter questions based on selected level
   const getQuestionsForLevel = () => {
     if (!questionTypes || questionTypes.length === 0) {
-      return { questions: [], levelName: 'Loading...', fullName: 'Loading...', color: 'gray', gradient: 'from-gray-500 to-gray-600' };
+      return { questions: [], levelName: 'Loading...', fullName: 'Loading...', color: 'gray' };
     }
 
     console.log('🔍 DEBUG: All question types:', questionTypes);
@@ -403,24 +403,21 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
         questions: igcseQuestions,
         levelName: 'IGCSE',
         fullName: 'International General Certificate of Secondary Education',
-        color: 'blue',
-        gradient: 'from-blue-500 to-green-500'
+        color: 'blue'
       };
     } else if (selectedLevel === 'alevel') {
       return {
         questions: alevelQuestions,
         levelName: 'A-Level',
         fullName: 'Advanced Level English',
-        color: 'purple',
-        gradient: 'from-purple-500 to-red-500'
+        color: 'purple'
       };
     } else if (selectedLevel === 'gp') {
       return {
         questions: gpQuestions,
         levelName: 'English General Paper (8021)',
         fullName: 'Cambridge International AS & A Level English General Paper',
-        color: 'orange',
-        gradient: 'from-orange-500 to-red-500'
+        color: 'orange'
       };
     }
 
@@ -428,8 +425,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
       questions: igcseQuestions,
       levelName: 'IGCSE',
       fullName: 'International General Certificate of Secondary Education',
-      color: 'blue',
-      gradient: 'from-blue-500 to-green-500'
+      color: 'blue'
     };
   };
 
@@ -489,7 +485,7 @@ const QuestionTypePage = ({ questionTypes, onSelectQuestionType, onBack, onEvalu
             </div>
             
             {/* Level Badge */}
-            <div className={`px-4 py-2 rounded-full text-white font-semibold text-sm bg-gradient-to-r ${levelData.gradient}`}>
+            <div className={`px-4 py-2 rounded-full text-white font-semibold text-sm bg-blue-500`}>
               {levelData.levelName}
             </div>
           </div>

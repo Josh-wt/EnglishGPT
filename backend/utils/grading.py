@@ -18,7 +18,7 @@ def parse_marks_value(marks_text: Optional[str]) -> int:
     except Exception:
         return 0
 
-def compute_overall_grade(question_type: str, reading_marks: Optional[str], writing_marks: Optional[str], ao1_marks: Optional[str], ao2_or_ao3_marks: Optional[str], content_structure_marks: Optional[str] = None, style_accuracy_marks: Optional[str] = None, ao3_marks: Optional[str] = None) -> str:
+def compute_overall_grade(question_type: str, reading_marks: Optional[str], writing_marks: Optional[str], ao1_marks: Optional[str], ao2_marks: Optional[str], content_structure_marks: Optional[str] = None, style_accuracy_marks: Optional[str] = None, ao3_marks: Optional[str] = None, ao4_marks: Optional[str] = None, ao5_marks: Optional[str] = None) -> str:
     """Compute a dynamic overall grade string 'score/total' for the given question type.
     Uses QUESTION_TOTALS and the extracted component marks.
     """
@@ -39,21 +39,20 @@ def compute_overall_grade(question_type: str, reading_marks: Optional[str], writ
             achieved += parse_marks_value(style_accuracy_marks)
     # Special handling for alevel_language_change which uses AO2/AO4/AO5
     elif question_type == "alevel_language_change":
-        # For language change: ao2_or_ao3_marks contains AO2, ao1_marks contains AO4, reading_marks contains AO5
         if "ao2" in components:
-            achieved += parse_marks_value(ao2_or_ao3_marks)  # AO2 marks
+            achieved += parse_marks_value(ao2_marks)
         if "ao4" in components:
-            achieved += parse_marks_value(ao1_marks)  # AO4 marks stored in ao1_marks field
+            achieved += parse_marks_value(ao4_marks)
         if "ao5" in components:
-            achieved += parse_marks_value(reading_marks)  # AO5 marks stored in reading_marks field
+            achieved += parse_marks_value(ao5_marks)
     # Special handling for GP essay which uses AO1, AO2, AO3 (uppercase)
     elif question_type == "gp_essay":
         if "AO1" in components:
             achieved += parse_marks_value(ao1_marks)
         if "AO2" in components:
-            achieved += parse_marks_value(ao2_or_ao3_marks)  # AO2 marks (stored in ao2_marks field)
+            achieved += parse_marks_value(ao2_marks)
         if "AO3" in components:
-            achieved += parse_marks_value(ao3_marks)  # AO3 marks (stored in ao3_marks field)
+            achieved += parse_marks_value(ao3_marks)
     else:
         # Standard handling for other question types
         if "reading" in components:
@@ -62,11 +61,10 @@ def compute_overall_grade(question_type: str, reading_marks: Optional[str], writ
             achieved += parse_marks_value(writing_marks)
         if "ao1" in components:
             achieved += parse_marks_value(ao1_marks)
-        # For AO2 and AO3 we will pass in through ao2_or_ao3_marks parameter
         if "ao2" in components:
-            achieved += parse_marks_value(ao2_or_ao3_marks)
+            achieved += parse_marks_value(ao2_marks)
         if "ao3" in components:
-            achieved += parse_marks_value(ao2_or_ao3_marks)
+            achieved += parse_marks_value(ao3_marks)
 
     total = cfg["total"]
     return f"{achieved}/{total}"

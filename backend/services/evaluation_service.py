@@ -67,8 +67,8 @@ class EvaluationService:
             'alevel_directed': 'AO1_MARKS: [AO1 marks out of 5] | AO2_MARKS: [AO2 marks out of 5]',
             'igcse_narrative': 'READING_MARKS: [Content and Structure marks out of 16] | WRITING_MARKS: [Style and Accuracy marks out of 24]',
             'igcse_descriptive': 'READING_MARKS: [Content and Structure marks out of 16] | WRITING_MARKS: [Style and Accuracy marks out of 24]',
-            'alevel_comparative': 'AO1_MARKS: [AO1 marks out of 5] | AO2_MARKS: [AO2 marks out of 10]',
-            'alevel_directed_writing': 'AO1_MARKS: [AO1 marks out of 5] | AO2_MARKS: [AO2 marks out of 5]',
+            'alevel_comparative': 'AO1_MARKS: [AO1 marks out of 5] | AO3_MARKS: [AO3 marks out of 10]',
+            'alevel_directed_writing': 'AO2_MARKS: [AO2 marks out of 15]',
             'alevel_text_analysis': 'AO1_MARKS: [AO1 marks out of 5] | AO2_MARKS: [AO2 marks out of 20]',
             'alevel_reflective_commentary': 'AO3_MARKS: [AO3 marks out of 10]',
             'alevel_language_change': 'AO2_MARKS: [AO2 marks out of 5] | AO4_MARKS: [AO4 marks out of 5] | AO5_MARKS: [AO5 marks out of 15]',
@@ -163,6 +163,24 @@ class EvaluationService:
             else:
                 logger.warning(f"⚠️ IGCSE Extended Q3 but no text_type provided in submission!")
                 logger.warning(f"⚠️ This means only base criteria will be used, not speech/journal/interview/article/report specific criteria")
+        
+        # For A-Level directed writing, combine general criteria with text-type-specific criteria
+        if submission.question_type == 'alevel_directed':
+            logger.info(f"🎯 A-Level Directed detected - text_type: {submission.text_type}")
+            if submission.text_type:
+                text_type_key = f"alevel_directed_{submission.text_type}"
+                logger.info(f"🔍 Looking for text-type criteria with key: {text_type_key}")
+                text_type_criteria = self.marking_criteria.get(text_type_key, "")
+                if text_type_criteria:
+                    logger.info(f"✅ Text-type criteria found and added: {text_type_key}")
+                    logger.info(f"📏 Combined criteria length: {len(marking_criteria)} + {len(text_type_criteria)} = {len(marking_criteria) + len(text_type_criteria)}")
+                    marking_criteria = f"{marking_criteria}\n\n{text_type_criteria}"
+                else:
+                    logger.warning(f"⚠️ No text-type criteria found for key: {text_type_key}")
+                    logger.warning(f"⚠️ Available text-type keys: {[k for k in self.marking_criteria.keys() if k.startswith('alevel_directed_')]}")
+            else:
+                logger.warning(f"⚠️ A-Level Directed but no text_type provided in submission!")
+                logger.warning(f"⚠️ This means only base criteria will be used, not leaflet/speech/report/article/letter/blog/review/diary specific criteria")
         
         # For GP Essay, combine general criteria with command-word-specific criteria
         if submission.question_type == 'gp_essay' and submission.command_word:
@@ -322,8 +340,10 @@ Student Response: {sanitized_response}
         elif question_type in ['igcse_directed', 'igcse_extended_q3']:
             result["reading_marks"] = response_data.get("reading_marks", "N/A")
             result["writing_marks"] = response_data.get("writing_marks", "N/A")
-        elif question_type in ['alevel_directed', 'alevel_directed_writing']:
+        elif question_type in ['alevel_directed']:
             result["ao1_marks"] = response_data.get("ao1_marks", "N/A")
+            result["ao2_marks"] = response_data.get("ao2_marks", "N/A")
+        elif question_type in ['alevel_directed_writing']:
             result["ao2_marks"] = response_data.get("ao2_marks", "N/A")
         elif question_type in ['alevel_comparative']:
             result["ao1_marks"] = response_data.get("ao1_marks", "N/A")
@@ -335,10 +355,12 @@ Student Response: {sanitized_response}
             result["ao1_marks"] = response_data.get("ao1_marks", "N/A")
             result["ao2_marks"] = response_data.get("ao2_marks", "N/A")
             result["ao3_marks"] = response_data.get("ao3_marks", "N/A")
+        elif question_type in ['alevel_reflective_commentary']:
+            result["ao3_marks"] = response_data.get("ao3_marks", "N/A")
         elif question_type in ['alevel_language_change']:
             result["ao2_marks"] = response_data.get("ao2_marks", "N/A")
-            result["ao1_marks"] = response_data.get("ao4_marks", "N/A")  # Store AO4 in ao1_marks field
-            result["reading_marks"] = response_data.get("ao5_marks", "N/A")  # Store AO5 in reading_marks field
+            result["ao4_marks"] = response_data.get("ao4_marks", "N/A")
+            result["ao5_marks"] = response_data.get("ao5_marks", "N/A")
         
         return result
 
@@ -419,7 +441,9 @@ Student Response: {sanitized_response}
                 parsed_data.get("ao2_marks"),
                 parsed_data.get("content_structure_marks"),
                 parsed_data.get("style_accuracy_marks"),
-                parsed_data.get("ao3_marks") if submission.question_type == 'gp_essay' else None
+                parsed_data.get("ao3_marks"),
+                parsed_data.get("ao4_marks"),
+                parsed_data.get("ao5_marks")
             )
             grade_time = time.time() - grade_start
             

@@ -72,7 +72,7 @@ def get_evaluation_schema(question_type: str) -> dict:
             "type": "string", 
             "description": "Writing marks in format like '20/25' for directed or '8/10' for extended"
         }
-    elif question_type in ['alevel_directed', 'alevel_directed_writing']:
+    elif question_type in ['alevel_directed']:
         base_properties["ao1_marks"] = {
             "type": "string",
             "description": "AO1 marks in format like '4/5'"
@@ -80,6 +80,11 @@ def get_evaluation_schema(question_type: str) -> dict:
         base_properties["ao2_marks"] = {
             "type": "string",
             "description": "AO2 marks in format like '5/5'"
+        }
+    elif question_type in ['alevel_directed_writing']:
+        base_properties["ao2_marks"] = {
+            "type": "string",
+            "description": "AO2 marks in format like '12/15'"
         }
     elif question_type in ['alevel_comparative']:
         base_properties["ao1_marks"] = {
@@ -111,6 +116,11 @@ def get_evaluation_schema(question_type: str) -> dict:
         base_properties["ao3_marks"] = {
             "type": "string",
             "description": "AO3 marks in format like '9/12'"
+        }
+    elif question_type in ['alevel_reflective_commentary']:
+        base_properties["ao3_marks"] = {
+            "type": "string",
+            "description": "AO3 marks in format like '8/10'"
         }
     elif question_type in ['alevel_language_change']:
         base_properties["ao2_marks"] = {

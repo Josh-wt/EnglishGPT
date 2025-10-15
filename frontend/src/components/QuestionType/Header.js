@@ -21,7 +21,7 @@ const Header = ({ onBack, levelData }) => {
             <p className="text-sm text-gray-600">Choose a question type and start writing</p>
           </div>
           <div className="flex items-center space-x-3">
-            <div className={`bg-gradient-to-r ${levelData.gradient} text-white px-4 py-2 rounded-xl shadow-lg`}>
+            <div className={`bg-blue-500 text-white px-4 py-2 rounded-xl shadow-lg`}>
               <span className="font-bold text-sm">{levelData.levelName}</span>
             </div>
           </div>
