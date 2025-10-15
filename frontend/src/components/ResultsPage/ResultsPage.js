@@ -219,7 +219,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       alevel_directed: ['AO1', 'AO2'],
       alevel_directed_writing: ['AO2'], // Only AO2
       alevel_comparative: ['AO1', 'AO3'], // AO1 and AO3
-      alevel_text_analysis: ['AO1', 'AO2'], // AO1 and AO2
+        alevel_text_analysis: ['AO1', 'AO3'], // AO1 and AO3
       alevel_reflective_commentary: ['AO3'], // AO3 only
       alevel_language_change: ['AO2', 'AO4', 'AO5'], // AO2, AO4, AO5
       sat_essay: ['READING', 'WRITING']
@@ -236,7 +236,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       alevel_directed: { AO1: 5, AO2: 5 },
       alevel_directed_writing: { AO2: 15 },
       alevel_comparative: { AO1: 5, AO3: 10 },
-      alevel_text_analysis: { AO1: 5, AO2: 20 },
+      alevel_text_analysis: { AO1: 5, AO3: 20 },
       alevel_reflective_commentary: { AO3: 10 },
       alevel_language_change: { AO2: 5, AO4: 5, AO5: 15 },
       sat_essay: { READING: 8, WRITING: 16 }
