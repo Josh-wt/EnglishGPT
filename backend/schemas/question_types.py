@@ -47,21 +47,21 @@ QUESTION_TYPES = [
     },
     {
         "id": "alevel_comparative",
-        "name": "Comparative Analysis 1(b)",
+        "name": "Comparative Analysis 1(b) (P1)",
         "category": "A-Level English (9093)",
         "requires_marking_scheme": True,
         "description": "Compare and analyze different texts"
     },
     {
         "id": "alevel_directed",
-        "name": "Directed Writing 1(a)",
+        "name": "Directed Writing 1(a) (P2)",
         "category": "A-Level English (9093)",
         "requires_marking_scheme": True,
         "description": "Transform text into a specific format for audience"
     },
         {
             "id": "alevel_text_analysis",
-            "name": "Text Analysis Q2",
+            "name": "Text Analysis Q2 (P1)",
             "category": "A-Level English (9093)",
             "requires_marking_scheme": True,
             "description": "Analyze form, structure, and language in texts"
