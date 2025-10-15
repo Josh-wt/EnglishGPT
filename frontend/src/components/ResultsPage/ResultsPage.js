@@ -178,20 +178,33 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
 
     const questionType = evaluation.question_type;
     
+    // 🔍 DEBUG: Log all evaluation data
+    console.log('🔍 DEBUG getSubmarks - Full evaluation object:', evaluation);
+    console.log('🔍 DEBUG getSubmarks - Question type:', questionType);
+    console.log('🔍 DEBUG getSubmarks - AO1 marks:', evaluation.ao1_marks);
+    console.log('🔍 DEBUG getSubmarks - AO2 marks:', evaluation.ao2_marks);
+    console.log('🔍 DEBUG getSubmarks - AO3 marks:', evaluation.ao3_marks);
+    console.log('🔍 DEBUG getSubmarks - AO4 marks:', evaluation.ao4_marks);
+    console.log('🔍 DEBUG getSubmarks - AO5 marks:', evaluation.ao5_marks);
+    
     // For GP essays, just show the raw database values
     if (questionType === 'gp_essay') {
       const submarks = [];
       
       if (evaluation.ao1_marks) {
+        console.log('🔍 DEBUG getSubmarks - Adding AO1:', evaluation.ao1_marks);
         submarks.push({ label: 'AO1', value: evaluation.ao1_marks });
       }
       if (evaluation.ao2_marks) {
+        console.log('🔍 DEBUG getSubmarks - Adding AO2:', evaluation.ao2_marks);
         submarks.push({ label: 'AO2', value: evaluation.ao2_marks });
       }
       if (evaluation.ao3_marks) {
+        console.log('🔍 DEBUG getSubmarks - Adding AO3:', evaluation.ao3_marks);
         submarks.push({ label: 'AO3', value: evaluation.ao3_marks });
       }
       
+      console.log('🔍 DEBUG getSubmarks - Final GP submarks:', submarks);
       return submarks;
     }
 
@@ -232,26 +245,54 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
     const metrics = metricsByType[questionType] || [];
     const maxMarks = maxMarksByType[questionType] || {};
 
+    console.log('🔍 DEBUG getSubmarks - Metrics for question type:', metrics);
+    console.log('🔍 DEBUG getSubmarks - Max marks for question type:', maxMarks);
+    
     const submarks = metrics.map(metric => {
       let value = 'N/A';
       
-      if (metric === 'CONTENT_STRUCTURE') {
-        value = evaluation.content_structure_marks || 'N/A';
-      } else if (metric === 'STYLE_ACCURACY') {
-        value = evaluation.style_accuracy_marks || 'N/A';
-      } else if (metric === 'AO1') {
-        value = evaluation.ao1_marks || 'N/A';
-      } else if (metric === 'AO2') {
-        value = evaluation.ao2_marks || 'N/A';
-      } else if (metric === 'AO3') {
-        value = evaluation.ao3_marks || 'N/A';
-      } else if (metric === 'AO4') {
-        value = evaluation.ao4_marks || 'N/A';
-      } else if (metric === 'AO5') {
-        value = evaluation.ao5_marks || 'N/A';
+      // 🔍 FIX: Handle alevel_language_change field mapping issue
+      if (questionType === 'alevel_language_change') {
+        if (metric === 'AO2') {
+          value = evaluation.ao2_marks || 'N/A';
+          console.log('🔍 DEBUG getSubmarks - AO2 value (language_change):', value);
+        } else if (metric === 'AO4') {
+          // AO4 is stored in ao1_marks field due to backend field reuse
+          value = evaluation.ao1_marks || 'N/A';
+          console.log('🔍 DEBUG getSubmarks - AO4 value (stored in ao1_marks):', value);
+        } else if (metric === 'AO5') {
+          // AO5 is stored in reading_marks field due to backend field reuse
+          value = evaluation.reading_marks || 'N/A';
+          console.log('🔍 DEBUG getSubmarks - AO5 value (stored in reading_marks):', value);
+        }
       } else {
-        const fieldName = `${metric.toLowerCase()}_marks`;
-        value = evaluation[fieldName] || 'N/A';
+        // Standard field mapping for other question types
+        if (metric === 'CONTENT_STRUCTURE') {
+          value = evaluation.content_structure_marks || 'N/A';
+          console.log('🔍 DEBUG getSubmarks - CONTENT_STRUCTURE value:', value);
+        } else if (metric === 'STYLE_ACCURACY') {
+          value = evaluation.style_accuracy_marks || 'N/A';
+          console.log('🔍 DEBUG getSubmarks - STYLE_ACCURACY value:', value);
+        } else if (metric === 'AO1') {
+          value = evaluation.ao1_marks || 'N/A';
+          console.log('🔍 DEBUG getSubmarks - AO1 value:', value);
+        } else if (metric === 'AO2') {
+          value = evaluation.ao2_marks || 'N/A';
+          console.log('🔍 DEBUG getSubmarks - AO2 value:', value);
+        } else if (metric === 'AO3') {
+          value = evaluation.ao3_marks || 'N/A';
+          console.log('🔍 DEBUG getSubmarks - AO3 value:', value);
+        } else if (metric === 'AO4') {
+          value = evaluation.ao4_marks || 'N/A';
+          console.log('🔍 DEBUG getSubmarks - AO4 value:', value);
+        } else if (metric === 'AO5') {
+          value = evaluation.ao5_marks || 'N/A';
+          console.log('🔍 DEBUG getSubmarks - AO5 value:', value);
+        } else {
+          const fieldName = `${metric.toLowerCase()}_marks`;
+          value = evaluation[fieldName] || 'N/A';
+          console.log('🔍 DEBUG getSubmarks - Dynamic field', fieldName, 'value:', value);
+        }
       }
       
       // Clean the value - remove pipes
@@ -259,14 +300,20 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         value = value.replace(/\|/g, '').trim();
       }
       
-      return {
+      const submark = {
         label: metric.replace('_', ' '),
         value: value
       };
+      
+      console.log('🔍 DEBUG getSubmarks - Created submark:', submark);
+      return submark;
     }).filter(submark => {
-      return submark.value !== 'N/A' && submark.value !== null && submark.value !== undefined;
+      const isValid = submark.value !== 'N/A' && submark.value !== null && submark.value !== undefined;
+      console.log('🔍 DEBUG getSubmarks - Filtering submark:', submark, 'isValid:', isValid);
+      return isValid;
     });
 
+    console.log('🔍 DEBUG getSubmarks - Final filtered submarks:', submarks);
     return submarks;
   };
   // Parse grade to get score - just use what's in the database
@@ -365,6 +412,9 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
             {(() => {
               const submarks = getSubmarks(evaluation);
               
+              console.log('🔍 DEBUG RENDER - Submarks to display:', submarks);
+              console.log('🔍 DEBUG RENDER - Submarks length:', submarks.length);
+              
               if (submarks.length === 0) {
                 console.log('⚠️ No submarks to display');
                 return (
@@ -377,6 +427,7 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
               return submarks.map((submark, idx) => {
                 // Remove "|" character from submark value for display
                 const cleanValue = submark.value.replace(/\|/g, '').trim();
+                console.log('🔍 DEBUG RENDER - Rendering submark:', submark, 'cleanValue:', cleanValue, 'label:', submark.label);
                 return (
                   <div className="text-center px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl bg-green-50 border border-green-200 min-w-[80px] sm:min-w-[100px]" key={submark.label + idx}>
                     <div className="text-lg sm:text-xl lg:text-2xl font-extrabold text-green-700 tracking-tight">{cleanValue}</div>
