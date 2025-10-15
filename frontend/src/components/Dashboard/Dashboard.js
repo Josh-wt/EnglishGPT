@@ -42,7 +42,7 @@ const Dashboard = ({ questionTypes, onStartQuestion, onPricing, onHistory, onAna
   const memoizedUserStats = useMemo(() => {
     const stats = {
       questionsMarked: userStats?.questions_marked || userStats?.questionsMarked || 0,
-      credits: userStats?.credits || 3,
+      credits: userStats?.credits ?? 3, // Use nullish coalescing to allow 0 credits
       currentPlan: hasBackendError ? 'Backend Error' : (userStats?.current_plan || 'free')
     };
     

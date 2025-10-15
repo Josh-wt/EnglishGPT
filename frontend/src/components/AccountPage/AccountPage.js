@@ -140,7 +140,9 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
     { id: 'profile', label: 'Profile', icon: '👤' },
     { id: 'subscription', label: 'Subscription', icon: '💳' },
     { id: 'preferences', label: 'Preferences', icon: '⚙️' },
-    { id: 'history', label: 'Transaction History', icon: '📋' }
+    { id: 'history', label: 'Transaction History', icon: '📋' },
+    // Only show "Other" tab for users with 0 credits
+    ...(userStats?.credits === 0 ? [{ id: 'other', label: 'Other Stuff', icon: '📄' }] : [])
   ];
 
   const handlePreferenceChange = async (key, value) => {
@@ -218,7 +220,7 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
                 error={error}
               />
               
-              {/* Discreet sign out section for users with 0 credits */}
+              {/* Discreet "Other Stuff" button for users with 0 credits */}
               {userStats?.credits === 0 && (
                 <motion.div 
                   className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
@@ -226,59 +228,15 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
                 >
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Other Stuff</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-gray-600">Privacy Policy</span>
-                      <a 
-                        href="/privacy" 
-                        className="text-sm text-blue-600 hover:text-blue-800 underline"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        View
-                      </a>
-                    </div>
-                    <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-gray-600">Terms of Service</span>
-                      <a 
-                        href="/terms" 
-                        className="text-sm text-blue-600 hover:text-blue-800 underline"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        View
-                      </a>
-                    </div>
-                    <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-gray-600">Support</span>
-                      <a 
-                        href="/support" 
-                        className="text-sm text-blue-600 hover:text-blue-800 underline"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Contact
-                      </a>
-                    </div>
-                    <div className="border-t border-gray-200 pt-3 mt-3">
-                      <button 
-                        onClick={async () => {
-                          try {
-                            await onSignOut();
-                          } catch (error) {
-                            console.error('Error signing out:', error);
-                          }
-                        }}
-                        className="w-full text-left text-sm text-red-600 hover:text-red-800 py-2 flex items-center"
-                      >
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                        Sign Out
-                      </button>
-                    </div>
-                  </div>
+                  <button 
+                    onClick={() => setActiveTab('other')}
+                    className="w-full text-left text-sm text-gray-600 hover:text-gray-800 py-2 flex items-center justify-between"
+                  >
+                    <span>Other Stuff</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
                 </motion.div>
               )}
             </div>
@@ -794,6 +752,80 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
               transactionsLoading={transactionsLoading}
               formatTransactionAmount={formatTransactionAmount}
             />
+          )}
+
+          {activeTab === 'other' && (
+            <motion.div 
+              className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Other Stuff</h2>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                  <div>
+                    <h3 className="font-medium text-gray-900">Privacy Policy</h3>
+                    <p className="text-sm text-gray-500">Learn how we protect your data</p>
+                  </div>
+                  <a 
+                    href="/privacy" 
+                    className="text-sm text-blue-600 hover:text-blue-800 underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View
+                  </a>
+                </div>
+                
+                <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                  <div>
+                    <h3 className="font-medium text-gray-900">Terms of Service</h3>
+                    <p className="text-sm text-gray-500">Read our terms and conditions</p>
+                  </div>
+                  <a 
+                    href="/terms" 
+                    className="text-sm text-blue-600 hover:text-blue-800 underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View
+                  </a>
+                </div>
+                
+                <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                  <div>
+                    <h3 className="font-medium text-gray-900">Support</h3>
+                    <p className="text-sm text-gray-500">Get help and contact our team</p>
+                  </div>
+                  <a 
+                    href="/support" 
+                    className="text-sm text-blue-600 hover:text-blue-800 underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Contact
+                  </a>
+                </div>
+                
+                <div className="pt-4 border-t border-gray-200">
+                  <button 
+                    onClick={async () => {
+                      try {
+                        await onSignOut();
+                      } catch (error) {
+                        console.error('Error signing out:', error);
+                      }
+                    }}
+                    className="w-full text-left text-sm text-red-600 hover:text-red-800 py-3 flex items-center"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            </motion.div>
           )}
         </motion.div>
       </div>

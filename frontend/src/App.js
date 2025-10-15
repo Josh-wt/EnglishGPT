@@ -36,6 +36,7 @@ const HistoryDetailPage = lazy(() => import('./components/HistoryPage/HistoryDet
 const AnalyticsDashboard = lazy(() => import('./components/AnalyticsDashboard'));
 const AccountPage = lazy(() => import('./components/AccountPage'));
 const Dashboard = lazy(() => import('./components/Dashboard'));
+const SupportPage = lazy(() => import('./components/SupportPage'));
 const LaunchPeriodModal = lazy(() => import('./components/LaunchPeriodModal/LaunchPeriodModal'));
 const ModernPricingPage = lazy(() => import('./components/PricingPage/ModernPricingPage'));
 const SubscriptionDashboard = lazy(() => import('./components/SubscriptionDashboard/SubscriptionDashboard'));
@@ -1052,6 +1053,16 @@ const App = () => {
         <Route path="/docs/:page" element={
           <LazyWrapper fallback={<PageSkeleton />}>
             <DocumentationPage darkMode={darkMode} />
+          </LazyWrapper>
+        } />
+        
+        {/* Support page */}
+        <Route path="/support" element={
+          <LazyWrapper fallback={<PageSkeleton />}>
+            <SupportPage 
+              onBack={handleBack}
+              darkMode={darkMode}
+            />
           </LazyWrapper>
         } />
       </Routes>
