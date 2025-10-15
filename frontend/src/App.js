@@ -929,6 +929,7 @@ const App = () => {
                 toggleDarkMode={toggleDarkMode}
                 onPricing={() => navigate('/pricing')}
                 onBack={handleBack}
+                onSignOut={signOut}
               />
             </LazyWrapper>
           </AuthRequired>
@@ -944,6 +945,7 @@ const App = () => {
                 toggleDarkMode={toggleDarkMode}
                 onPricing={() => navigate('/pricing')}
                 onBack={handleBack}
+                onSignOut={signOut}
                 defaultTab="preferences"
               />
             </LazyWrapper>
