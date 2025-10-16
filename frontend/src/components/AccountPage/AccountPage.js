@@ -111,6 +111,11 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
 
   const handleAcademicLevelChange = async (level) => {
     const normalized = level.toLowerCase().replace(/[^a-z]/g, '');
+    console.log('🔍 DEBUG handleAcademicLevelChange - Original level:', level);
+    console.log('🔍 DEBUG handleAcademicLevelChange - Normalized level:', normalized);
+    console.log('🔍 DEBUG handleAcademicLevelChange - User:', user);
+    console.log('🔍 DEBUG handleAcademicLevelChange - onLevelChange function:', onLevelChange);
+    
     setAcademicLevel(normalized);
     setError('');
     
@@ -118,7 +123,11 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
       try {
         // Use the onLevelChange prop which is the updateLevel function from useUser
         if (onLevelChange) {
+          console.log('🔍 DEBUG handleAcademicLevelChange - Calling onLevelChange with:', normalized);
           await onLevelChange(normalized);
+          console.log('🔍 DEBUG handleAcademicLevelChange - onLevelChange completed successfully');
+        } else {
+          console.error('❌ DEBUG handleAcademicLevelChange - onLevelChange function is not available');
         }
         
         // If this was triggered by the level prompt, redirect to question types
@@ -129,9 +138,11 @@ const AccountPage = ({ onBack, user, userStats, onLevelChange, showLevelPrompt =
           }, 500);
         }
       } catch (err) {
+        console.error('❌ DEBUG handleAcademicLevelChange - Error:', err);
         setError('Failed to update level.');
       }
     } else {
+      console.error('❌ DEBUG handleAcademicLevelChange - No user or user.id available');
       setError('Please wait for authentication to complete.');
     }
   };

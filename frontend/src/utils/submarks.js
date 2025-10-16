@@ -55,8 +55,26 @@ export const getSubmarks = (evaluation) => {
     
     // Clean the value to remove any malformed content
     if (value !== 'N/A') {
-      // Remove any extra text like "AO3_MARKS:" that might be concatenated
-      value = value.replace(/AO\d+_MARKS:\s*/g, '').replace(/\|/g, '').trim();
+      value = value.replace(/\|/g, '').trim();
+      
+      // Fix for AO1 field containing AO3 data - extract only the AO1 part
+      if (metric === 'AO1' && value.includes('AO3_MARKS:')) {
+        value = value.split('AO3_MARKS:')[0].trim();
+      }
+      
+      // Fix for AO3 field - extract AO3 marks if they're embedded in AO1 field
+      if (metric === 'AO3' && evaluation.ao1_marks && evaluation.ao1_marks.includes('AO3_MARKS:')) {
+        const ao3Match = evaluation.ao1_marks.match(/AO3_MARKS:\s*([^|]+)/);
+        if (ao3Match) {
+          value = ao3Match[1].trim();
+          console.log('🔍 DEBUG UTILS - Extracted AO3 from AO1 field:', value);
+        }
+      }
+      
+      // Additional debug for AO3
+      if (metric === 'AO3') {
+        console.log('🔍 DEBUG UTILS - AO3 processing - metric:', metric, 'value:', value, 'ao3_marks:', evaluation.ao3_marks, 'ao1_marks:', evaluation.ao1_marks);
+      }
     }
     
     return {

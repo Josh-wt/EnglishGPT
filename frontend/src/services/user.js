@@ -168,15 +168,27 @@ export const updateAcademicLevel = async (userId, academicLevel) => {
       level: academicLevel,
       timestamp: new Date().toISOString()
     });
-    const response = await apiHelpers.put(`${API_ENDPOINTS.USERS}/${userId}`, {
+    
+    const requestData = {
       academic_level: academicLevel
-    });
+    };
+    console.log('🔍 DEBUG updateAcademicLevel - Request data:', requestData);
+    console.log('🔍 DEBUG updateAcademicLevel - API endpoint:', `${API_ENDPOINTS.USERS}/${userId}`);
+    
+    const response = await apiHelpers.put(`${API_ENDPOINTS.USERS}/${userId}`, requestData);
     const duration = Date.now() - startTime;
     console.log('✅ Academic level updated in', duration, 'ms:', response.data);
+    console.log('🔍 DEBUG updateAcademicLevel - Response data:', response.data);
     return response.data.user || response.data;
   } catch (error) {
     const duration = Date.now() - startTime;
     console.error('❌ Error updating academic level after', duration, 'ms:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      config: error.config
+    });
     throw error;
   }
 };

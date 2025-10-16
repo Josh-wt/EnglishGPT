@@ -77,6 +77,7 @@ Get the help you need to make the most of EnglishGPT. Our comprehensive support 
 2. **Try different payment method**: Use alternative card or PayPal
 3. **Contact support**: For billing-specific issues
 4. **Check email**: Look for payment confirmation
+5. **Refund requests**: See our [refund policy](/refund) for detailed information
 
 ### Platform Issues
 
@@ -190,10 +191,10 @@ A: Yes! You pay $4.99 once and get lifetime access to all features. No monthly f
 A: We accept all major credit cards, debit cards, PayPal, Apple Pay, and Google Pay.
 
 **Q: Can I get a refund?**
-A: Yes, we offer a 30-day money-back guarantee. If you're not completely satisfied, we'll refund your payment.
+A: Yes. refer to our [refund policy](/refund) page for complete details.
 
 **Q: Will my payment information be stored?**
-A: No, we don't store your payment information. All transactions are processed securely through our payment partners.
+A: No, we don't store your payment information. All transactions are processed securely through our payment partners (DodoPayments).
 
 ## Troubleshooting Guide
 

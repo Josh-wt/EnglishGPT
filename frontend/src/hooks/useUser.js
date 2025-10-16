@@ -894,8 +894,11 @@ export const useUser = () => {
       
       const updateStartTime = Date.now();
       console.log('📝 Updating academic level...');
+      console.log('🔍 DEBUG updateLevel - user.id:', user.id);
+      console.log('🔍 DEBUG updateLevel - academicLevel:', academicLevel);
       
-      await updateAcademicLevel(user.id, academicLevel);
+      const result = await updateAcademicLevel(user.id, academicLevel);
+      console.log('🔍 DEBUG updateLevel - API result:', result);
       
       setUserStats(prev => ({
         ...prev,
@@ -913,8 +916,14 @@ export const useUser = () => {
       
       const updateTime = Date.now() - updateStartTime;
       console.log('✅ Academic level update completed in', updateTime, 'ms');
+      console.log('🔍 DEBUG updateLevel - Final userStats academicLevel:', academicLevel);
     } catch (err) {
-      console.error('Error updating academic level:', err);
+      console.error('❌ Error updating academic level:', err);
+      console.error('❌ Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status
+      });
       setError(err.message);
       throw err;
     }

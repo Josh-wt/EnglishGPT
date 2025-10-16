@@ -93,7 +93,7 @@ We accept all major payment methods:
 - **Secure payments**: All transactions are encrypted and secure
 - **No data storage**: We don't store your payment information
 - **PCI compliant**: We meet the highest security standards
-- **Money-back guarantee**: 30-day refund policy
+- **Money-back guarantee**: 3-day refund policy
 
 ### Billing
 - **One-time payment**: No recurring charges
@@ -121,21 +121,14 @@ We accept all major payment methods:
 
 ## Refund Policy
 
-### 30-Day Money-Back Guarantee
+For complete refund information, please refer to our [refund policy](/refund) page.
 
-We're confident you'll love EnglishGPT, but if you're not completely satisfied:
+### Quick Summary
 
-- **Full refund**: 100% money-back guarantee
-- **No questions asked**: Simple refund process
-- **30-day window**: Request refund within 30 days of purchase
-- **Quick processing**: Refunds processed within 5-7 business days
-
-### How to Request a Refund
-
-1. **Contact support**: Email support@everythingenglish.xyz
-2. **Provide details**: Include your order number and reason
-3. **Quick processing**: We'll process your refund promptly
-4. **Confirmation**: You'll receive confirmation once processed
+- **3-day window**: Full refunds available within 3 days of subscription
+- **Valid reason required**: Must provide legitimate reason for dissatisfaction
+- **Full refund only**: Get back exactly what you paid
+- **Fast processing**: 24-hour response, 3-5 days refund processing
 
 ## Frequently Asked Questions
 
@@ -151,7 +144,7 @@ A: Everything! Unlimited evaluations, advanced analytics, priority support, and 
 A: No hidden fees. The price you see is the price you pay. No recurring charges, no additional costs.
 
 **Q: Can I get a refund if I'm not satisfied?**
-A: Yes, we offer a 30-day money-back guarantee. If you're not completely satisfied, we'll refund your payment.
+A: Yes, we offer a 3-day refund policy. Please refer to our [refund policy](/refund) page for complete details and requirements.
 
 ### Feature Questions
 

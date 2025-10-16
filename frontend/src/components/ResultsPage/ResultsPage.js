@@ -295,9 +295,28 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         }
       }
       
-      // Clean the value - remove pipes
+      // Clean the value - remove pipes and extract only the relevant part
       if (value !== 'N/A') {
         value = value.replace(/\|/g, '').trim();
+        
+        // Fix for AO1 field containing AO3 data - extract only the AO1 part
+        if (metric === 'AO1' && value.includes('AO3_MARKS:')) {
+          value = value.split('AO3_MARKS:')[0].trim();
+        }
+        
+        // Fix for AO3 field - extract AO3 marks if they're embedded in AO1 field
+        if (metric === 'AO3' && evaluation.ao1_marks && evaluation.ao1_marks.includes('AO3_MARKS:')) {
+          const ao3Match = evaluation.ao1_marks.match(/AO3_MARKS:\s*([^|]+)/);
+          if (ao3Match) {
+            value = ao3Match[1].trim();
+            console.log('🔍 DEBUG getSubmarks - Extracted AO3 from AO1 field:', value);
+          }
+        }
+        
+        // Additional debug for AO3
+        if (metric === 'AO3') {
+          console.log('🔍 DEBUG getSubmarks - AO3 processing - metric:', metric, 'value:', value, 'ao3_marks:', evaluation.ao3_marks, 'ao1_marks:', evaluation.ao1_marks);
+        }
       }
       
       const submark = {
@@ -341,10 +360,15 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
       let maxScore = 0;
       submarks.forEach(submark => {
         const cleanValue = submark.value.replace(/\|/g, '').trim();
+        console.log('🔍 DEBUG TOTAL - Processing submark for total:', submark.label, 'value:', submark.value, 'cleanValue:', cleanValue);
         const [score, max] = cleanValue.split('/').map(Number);
+        console.log('🔍 DEBUG TOTAL - Parsed score:', score, 'max:', max);
         if (!isNaN(score) && !isNaN(max)) {
           totalScore += score;
           maxScore += max;
+          console.log('🔍 DEBUG TOTAL - Added to totals - score:', score, 'max:', max, 'running total:', totalScore, 'running max:', maxScore);
+        } else {
+          console.log('🔍 DEBUG TOTAL - Invalid values, skipping:', score, max);
         }
       });
       
