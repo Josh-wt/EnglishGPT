@@ -280,7 +280,18 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
           value = evaluation.ao2_marks || 'N/A';
           console.log('🔍 DEBUG getSubmarks - AO2 value:', value);
         } else if (metric === 'AO3') {
-          value = evaluation.ao3_marks || 'N/A';
+          // Check if AO3 data is embedded in AO1 field first
+          if (evaluation.ao1_marks && evaluation.ao1_marks.includes('AO3_MARKS:')) {
+            const ao3Match = evaluation.ao1_marks.match(/AO3_MARKS:\s*([^|]+)/);
+            if (ao3Match) {
+              value = ao3Match[1].trim();
+              console.log('🔍 DEBUG getSubmarks - AO3 extracted from AO1 field:', value);
+            } else {
+              value = evaluation.ao3_marks || 'N/A';
+            }
+          } else {
+            value = evaluation.ao3_marks || 'N/A';
+          }
           console.log('🔍 DEBUG getSubmarks - AO3 value:', value);
         } else if (metric === 'AO4') {
           value = evaluation.ao4_marks || 'N/A';
@@ -302,15 +313,6 @@ const ResultsPage = ({ evaluation, onNewEvaluation, userPlan, darkMode, user, si
         // Fix for AO1 field containing AO3 data - extract only the AO1 part
         if (metric === 'AO1' && value.includes('AO3_MARKS:')) {
           value = value.split('AO3_MARKS:')[0].trim();
-        }
-        
-        // Fix for AO3 field - extract AO3 marks if they're embedded in AO1 field
-        if (metric === 'AO3' && evaluation.ao1_marks && evaluation.ao1_marks.includes('AO3_MARKS:')) {
-          const ao3Match = evaluation.ao1_marks.match(/AO3_MARKS:\s*([^|]+)/);
-          if (ao3Match) {
-            value = ao3Match[1].trim();
-            console.log('🔍 DEBUG getSubmarks - Extracted AO3 from AO1 field:', value);
-          }
         }
         
         // Additional debug for AO3
